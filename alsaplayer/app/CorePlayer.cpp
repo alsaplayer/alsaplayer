@@ -268,7 +268,7 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	tmp->version = the_plugin->version;
 	if (tmp->version) {
 		if ((version = tmp->version) != INPUT_PLUGIN_VERSION) {
-			alsaplayer_error("Wrong version number on plugin v%d, wanted v%d",
+			alsaplayer_error("Wrong version number on plugin (v%d, wanted v%d)",
 					version - INPUT_PLUGIN_BASE_VERSION,
 					INPUT_PLUGIN_VERSION - INPUT_PLUGIN_BASE_VERSION);      
 			Unlock();

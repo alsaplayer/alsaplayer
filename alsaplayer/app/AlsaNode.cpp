@@ -419,7 +419,7 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 	output_plugin *tmp = &plugins[plugin_count];
 	tmp->version = the_plugin->version;
 	if ((version = tmp->version) != OUTPUT_PLUGIN_VERSION) {
-		alsaplayer_error("Wrong version on plugin v%d, wanted v%d",
+		alsaplayer_error("Wrong version on plugin (v%d, wanted v%d)",
 				version - 0x1000, OUTPUT_PLUGIN_VERSION - 0x1000);
 		return 0;
 	}	
