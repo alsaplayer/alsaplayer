@@ -265,8 +265,7 @@ int ap_get_string(int session, ap_cmd_t cmd, char *dest)
 		dest[pkt.payload_length] = 0; // Null terminate the string
 		free(pkt.payload);
 	} else {
-		close(fd);
-		return 0;
+		dest[0] = 0;
 	}
 	close(fd);
 	return result;
