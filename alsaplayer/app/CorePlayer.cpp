@@ -247,7 +247,7 @@ void CorePlayer::UnregisterPlugins()
 		tmp = &plugins[i];
 		//alsaplayer_error("Unloading Input plugin: %s", tmp->name); 
 		if (tmp->handle) {
-			tmp->shutdown(); // Shutdown plugin
+			//tmp->shutdown(); // Shutdown plugin
 			dlclose(tmp->handle);
 			tmp->handle = NULL;
 			tmp = NULL;
@@ -353,6 +353,7 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	if (plugin_count == 1) { // First so assign plugin
 		plugin = tmp;
 	}
+
 	//alsaplayer_error("Loading Input plugin: %s", tmp->name);
 	Unlock();
 	return 1;

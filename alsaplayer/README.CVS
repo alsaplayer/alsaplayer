@@ -1,3 +1,7 @@
 Please run ./bootstrap first. It will setup your enviroment for a build.
 
 It is wise to rerun bootstrap, make clean, and configure after every update.
+
+Another good thing to do after every checkout: make install 
+This ensures that any old plugins get overwritten with the freshly compiled
+ones.
