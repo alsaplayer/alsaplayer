@@ -31,10 +31,13 @@
 #ifdef USE_ESD
 #include <esd.h>
 #endif
+#ifdef USE_JACK
+#include <jack/jack.h>
+#endif
 #include "output_plugin.h"
 
 #define MAX_PLUGIN	32
-#define MAX_SUB	16
+#define MAX_SUB	8
 
 #define POS_BEGIN		0x0
 #define POS_MIDDLE	0x1
@@ -66,6 +69,17 @@ class AlsaNode
 	int sample_freq;
 	int external_latency;
 	char *use_pcm;
+#ifdef USE_JACK	
+	bool use_jack;	/* This changes the internal workings of the class */
+	jack_port_t *my_output_port1;
+	jack_port_t *my_output_port2;
+	jack_client_t *client;
+	nframes_t buffer_size;
+	nframes_t sample_rate;
+	static int bufsize(nframes_t nframes, void *arg);
+	static int srate(nframes_t nframes, void *arg);
+	static int process (nframes_t nframes, void *arg);
+#endif	
 	bool realtime_sched;
 	bool init;
 	bool looping;
