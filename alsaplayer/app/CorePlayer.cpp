@@ -1015,7 +1015,7 @@ int CorePlayer::Read32(void *data, int samples)
 		write_buf_changed = 1;
 		pthread_mutex_unlock(&counter_mutex);
 	}
-
+#if 0
 	// provide a fast path implementation for the common case (no pitch)
 	if ((use_read_direction == DIR_FORWARD) && (use_pitch == 1.0)) {
 
@@ -1049,7 +1049,9 @@ int CorePlayer::Read32(void *data, int samples)
 			tmp_index = -1;
 		}
 	}
-	else if (use_read_direction == DIR_FORWARD) {
+	else 
+#endif		
+	if (use_read_direction == DIR_FORWARD) {
 		while (buf_index < samples) {
 			tmp_index = (int) ((float)use_pitch*(float)(buf_index-base_corr));
 			if ((check_index + tmp_index) > (read_buf->buf->write_index)-1) {
