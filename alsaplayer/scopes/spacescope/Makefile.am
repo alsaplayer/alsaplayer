@@ -14,7 +14,7 @@ spacescopesources =
 
 endif
 
-CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
+CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
 			@ARCH_CFLAGS@ @GTK_CFLAGS@ @DFLAGS@
 
 libdir = $(ADDON_DIR)/scopes

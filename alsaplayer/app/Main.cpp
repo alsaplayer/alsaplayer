@@ -626,7 +626,6 @@ int main(int argc, char **argv)
 			newitems.push_back(std::string(argv[last_arg++]));
 		}
 		playlist->Insert(newitems, playlist->Length());
-		sleep(1); // Wait a second
 	}
 	
 	// If playlist is empty check if we have a playlist from
@@ -691,7 +690,7 @@ int main(int argc, char **argv)
 		} else {	
 			ui->start(playlist, argc, argv);
 			ui->close();
-			//dlclose(ui->handle);
+			dlclose(ui->handle);
 		}
 		control_socket_stop();
 	}

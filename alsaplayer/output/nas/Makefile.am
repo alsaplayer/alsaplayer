@@ -16,7 +16,7 @@ EXTRA_DIST = nas.c
 
 lib_LTLIBRARIES = $(nasltlibs)
 
-CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
+CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
 			@ARCH_CFLAGS@	
 
 libdir = $(ADDON_DIR)/output

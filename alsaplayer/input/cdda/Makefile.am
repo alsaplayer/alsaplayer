@@ -18,7 +18,7 @@ CFLAGS = -D_REENTRANT @ARCH_CFLAGS@
 
 CXXFLAGS = $(CFLAGS)
 
-INCLUDES = -I$(top_builddir) -I$(top_srcdir)/include
+INCLUDES = -I$(top_builddir) -I$(top_srcdir)/alsaplayer
 
 libdir = $(ADDON_DIR)/input
 

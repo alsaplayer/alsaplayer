@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = interface output input scopes app include extra docs libalsaplayer m4
+SUBDIRS = interface output input scopes app alsaplayer extra docs libalsaplayer m4
 
 EXTRA_DIST = bootstrap
 

@@ -4,7 +4,7 @@ nullsources = null.c
 
 lib_LTLIBRARIES = $(nullltlibs)
 
-CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include @ARCH_CFLAGS@
+CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer @ARCH_CFLAGS@
 
 libdir = $(ADDON_DIR)/output
 

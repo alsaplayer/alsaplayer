@@ -29,7 +29,7 @@ LIBS = -lpthread -ldl $(SUN_LIBS) $(JACK_LIBS)
 COMMON_FLAGS = @DFLAGS@ -D_REENTRANT \
 		-DADDON_DIR=\"$(ADDON_DIR)\" @ARCH_CFLAGS@ $(JACK_FLAGS)
 
-INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/libalsaplayer
+INCLUDES = -I$(top_srcdir)/alsaplayer -I$(top_srcdir)/libalsaplayer
 
 CXXFLAGS = $(COMMON_FLAGS) $(EXTRA_CFLAGS)
 

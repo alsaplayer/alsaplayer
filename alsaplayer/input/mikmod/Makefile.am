@@ -3,7 +3,7 @@ if HAVE_MIKMOD
 modltlibs = libmod.la
 modldflags = -export-dynamic -avoid-version
 modsources = mikmod_engine.c drv_alsaplayer.c
-modcflags = -I$(top_builddir) -I$(top_srcdir)/include \
+modcflags = -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
 		@ARCH_CFLAGS@ -D_REENTRANT @LIBMIKMOD_CFLAGS@ @DFLAGS@
 modldadd = @LIBMIKMOD_LDADD@
 

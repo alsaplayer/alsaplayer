@@ -12,7 +12,7 @@ lib_LTLIBRARIES = $(madltlibs)
 
 libdir = $(ADDON_DIR)/input
 
-COMMON_CFLAGS = -I$(top_builddir) -I$(top_srcdir)/include \
+COMMON_CFLAGS = -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
 	@ARCH_CFLAGS@ -D_REENTRANT @DFLAGS@
 
 CFLAGS = $(COMMON_CFLAGS) $(EXTRA_CFLAGS)

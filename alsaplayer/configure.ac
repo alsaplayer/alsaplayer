@@ -619,7 +619,7 @@ input/mikmod/Makefile
 input/wav/Makefile
 input/vorbis/Makefile
 input/audiofile/Makefile
-include/Makefile
+alsaplayer/Makefile
 docs/Makefile
 extra/Makefile
 m4/Makefile

@@ -3,7 +3,7 @@ alsaplayerincludedir = $(includedir)/alsaplayer
 
 lib_LTLIBRARIES = libalsaplayer.la
 
-INCLUDES = -I$(top_srcdir)/include
+INCLUDES = -I$(top_srcdir)/alsaplayer
 
 libalsaplayer_la_LDFLAGS = -export-dynamic -version-info 0:1:0
 

@@ -56,6 +56,9 @@ static Atom wm_delete_window_atom;
 static pthread_t draw_thread;
 static pthread_mutex_t scope_mutex;
 
+static int window_w;
+static int window_h;
+
 static int fft_buf[2][256];
 
 static void stop_display(int);
@@ -194,12 +197,17 @@ static void draw_bars(void)
 	glXSwapBuffers(dpy,window);
 }
 
+#define DEFAULT_W	640
+#define DEFAULT_H 480
 
 void *draw_thread_func(void *arg)
 {
 	Bool configured = FALSE;
 
-	if ((window = create_window(640, 480)) == 0)
+	window_w = prefs_get_int(ap_prefs, "opengl_spectrum", "width", DEFAULT_W);	
+	window_h = prefs_get_int(ap_prefs, "opengl_spectrum", "height", DEFAULT_H);
+	
+	if ((window = create_window(window_w, window_h)) == 0)
 	{
 		alsaplayer_error("unable to create window");
 		pthread_exit(NULL);
@@ -228,6 +236,10 @@ void *draw_thread_func(void *arg)
 			{
 			case ConfigureNotify:
 				glViewport(0,0,event.xconfigure.width, event.xconfigure.height);
+				window_w = event.xconfigure.width;
+				window_h = event.xconfigure.height;
+				prefs_set_int(ap_prefs, "opengl_spectrum", "width", window_w);
+				prefs_set_int(ap_prefs, "opengl_spectrum", "height", window_h);
 				configured = TRUE;
 				break;
 			case KeyPress:

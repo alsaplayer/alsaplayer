@@ -4,7 +4,7 @@ wavsources = wav_engine.c formats.h
 
 lib_LTLIBRARIES = $(wavltlibs)
 
-CFLAGS = @DFLAGS@ -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include
+CFLAGS = @DFLAGS@ -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer
 
 libdir = $(ADDON_DIR)/input
 

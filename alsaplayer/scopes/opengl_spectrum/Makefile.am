@@ -26,4 +26,4 @@ liboglspectrum_la_SOURCES = $(oglspectrumsources)
 
 CFLAGS = -D_REENTRANT @ARCH_CFLAGS@ @DFLAGS@
 
-INCLUDES = -I$(top_srcdir)/include -I$(top_builddir)
+INCLUDES = -I$(top_srcdir)/alsaplayer -I$(top_builddir)

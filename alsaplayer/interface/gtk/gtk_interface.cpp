@@ -81,6 +81,7 @@ static int global_draw_volume = 1;
 static GtkWidget *play_pix;
 static GdkPixmap *val_ind = NULL;
 static gint global_rb = 1;
+static PlaylistWindowGTK *playlist_window_gtk = NULL;
 
 /* These are used to contain the size of the window manager borders around
    our windows, and are used to show/hide windows in the same positions. */
@@ -131,8 +132,12 @@ gboolean main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 	GtkFunction f = (GtkFunction)data;
 	//CorePlayer *p = (CorePlayer *)data;
 	global_update = -1;
+	pthread_cancel(indicator_thread);
 	pthread_join(indicator_thread, NULL);
 	//p->Stop();
+	if (playlist_window_gtk)
+		delete playlist_window_gtk;
+
 	if (f) { // Oh my, a very ugly HACK indeed! But it works
 		GDK_THREADS_LEAVE();
 		f(NULL);
@@ -932,7 +937,7 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	gtk_window_set_wmclass(GTK_WINDOW(main_window), "AlsaPlayer", "alsaplayer");
 	gtk_widget_realize(main_window);
 
-	static PlaylistWindowGTK *playlist_window_gtk = new PlaylistWindowGTK(playlist);
+	playlist_window_gtk = new PlaylistWindowGTK(playlist);
 
 	effects_window = init_effects_window();	
 	scopes_window = init_scopes_window();
@@ -1205,6 +1210,11 @@ void init_main_window(Playlist *pl, GtkFunction f)
 
 	//gdk_window_set_decorations(GTK_WIDGET(main_window)->window, (GdkWMDecoration)0);
 	gtk_widget_show(GTK_WIDGET(main_window));
+
+	// Check if we should open the playlist
+	if (prefs_get_bool(ap_prefs, "gtk_interface", "playlist_active", 0)) {
+		playlist_window_gtk->Show();
+	}	
 
 	// start indicator thread
 	pthread_create(&indicator_thread, NULL,

@@ -59,6 +59,8 @@ PlaylistWindowGTK::PlaylistWindowGTK(Playlist * pl) {
 }
 
 PlaylistWindowGTK::~PlaylistWindowGTK() {
+	prefs_set_bool(ap_prefs, "gtk_interface", "playlist_active", showing);
+	
 	Hide();
 	gtk_clist_clear(GTK_CLIST(playlist_list));
 	playlist->UnRegister(this);
@@ -177,6 +179,7 @@ void PlaylistWindowGTK::Show() {
 
 // Hide the playlist
 void PlaylistWindowGTK::Hide() {
+	
 	if(showing) {
 		gint x, y;
 		gdk_window_get_origin(playlist_window->window, &x, &y);

@@ -9,7 +9,7 @@ libdir = $(ADDON_DIR)/input
 
 ASFLAGS =
 
-COMMON_CFLAGS = -I$(top_builddir) -I$(top_srcdir)/include \
+COMMON_CFLAGS = -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
 	@ARCH_CFLAGS@ -D_REENTRANT @DFLAGS@
 
 COMMON_SRC = common.c decode_2to1.c decode_4to1.c decode_ntom.c \

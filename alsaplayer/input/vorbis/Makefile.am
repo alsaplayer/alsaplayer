@@ -16,7 +16,7 @@ EXTRA_DIST = vorbis_engine.cpp
 
 lib_LTLIBRARIES = $(vorbis_inltlibs)
 
-CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include
+CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer
 
 CXXFLAGS = $(CFLAGS)
 

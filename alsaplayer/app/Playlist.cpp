@@ -210,6 +210,7 @@ Playlist::~Playlist() {
 	// Nasty hack to stop other thread (should use pthread_cancel)
 	// but we're going to replace this anyway
 	active = false;
+	pthread_cancel(playlist_thread);
 	pthread_join(playlist_thread, NULL);
 	interfaces.clear();	// Unregister all interfaces
 	
