@@ -1,3 +1,5 @@
+Sat Apr 20 12:14:52 HST 2002
+	readmidi.c, playmidi.c: bug in metatext caused seg fault
 Sat Apr 20 06:48:05 HST 2002
 	midi_engine.c: better buffering to avoid dropouts
 	various: move a little more into local_data

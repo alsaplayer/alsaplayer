@@ -146,18 +146,18 @@ static int32 getvl(struct md *d)
     /* Error */
     ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 	      "\"%s\": Illegal Variable-length quantity format.",
-	      current_filename);
+	      d->midi_name);
     return -2;
 
   eof:
     if(errno)
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 		  "\"%s\": read_midi_event: %s",
-		  current_filename, strerror(errno));
+		  d->midi_name, strerror(errno));
     else
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 		  "Warning: \"%s\": Short midi file.",
-		  current_filename);
+		  d->midi_name);
     return -1;
 }
 
@@ -180,8 +180,6 @@ static uint32 getvl(struct md *d)
 
 /**********************************/
 #ifdef INFO_ONLY
-static
-#endif
 struct meta_text_type *meta_text_list = NULL;
 
 static void free_metatext()
@@ -278,6 +276,7 @@ while d->at==0
     }
     else return 0;
 }
+#endif
 
 static int sysex(uint32 len, uint8 *syschan, uint8 *sysa, uint8 *sysb, struct md *d)
 {
@@ -461,7 +460,11 @@ static int dumpstring(uint32 len, const char *label, int type, struct md *d)
       return -1;
     }
   s[len]='\0';
+#ifdef INFO_ONLY
   if (!metatext(type, len, s, d))
+#else
+    if ( !(type==5 || ( d->at > 0 && (type==1||type==6||type==7) )) )
+#endif
   {
    while (len--)
     {
@@ -498,11 +501,7 @@ static MidiEventList *read_midi_event(struct md *d)
   static uint8 laststatus, lastchan;
   static uint8 nrpn=0, rpn_msb[MAXCHAN], rpn_lsb[MAXCHAN]; /* one per channel */
   uint8 me, type, a,b,c;
-#ifdef tplus
   int32 len, i;
-#else
-  int32 len, i;
-#endif
   MidiEventList *newev;
 
   for (;;)
@@ -520,11 +519,11 @@ static MidiEventList *read_midi_event(struct md *d)
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "\"%s\": read_midi_event: %s",
-			  current_filename, strerror(errno));
+			  d->midi_name, strerror(errno));
 	    else
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "Warning: \"%s\": Short midi file.",
-			  current_filename);
+			  d->midi_name);
 	    return 0;
 	}
       me = (uint8)i;
@@ -532,7 +531,7 @@ static MidiEventList *read_midi_event(struct md *d)
       if (fread(&me,1,1,d->fp)!=1)
 	{
 	  ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "\"%s\": read_midi_event: %s", 
-	       current_filename, sys_errlist[errno]);
+	       d->midi_name, sys_errlist[errno]);
 	  return 0;
 	}
 #endif
@@ -560,11 +559,11 @@ static MidiEventList *read_midi_event(struct md *d)
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "\"%s\": read_midi_event: %s",
-			  current_filename, strerror(errno));
+			  d->midi_name, strerror(errno));
 	    else
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "Warning: \"%s\": Short midi file.",
-			  current_filename);
+			  d->midi_name);
 	    return 0;
 	}
       type = (uint8)i;
@@ -595,7 +594,7 @@ static MidiEventList *read_midi_event(struct md *d)
 		    {
 			    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 				      "Warning: \"%s\": Short midi file.",
-				      current_filename);
+				      d->midi_name);
 			    return 0;
 		    }
 		    d->midi_port_number &= 0x0f;
@@ -617,11 +616,11 @@ static MidiEventList *read_midi_event(struct md *d)
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "\"%s\": read_midi_event: %s",
-			  current_filename, strerror(errno));
+			  d->midi_name, strerror(errno));
 	    else
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "Warning: \"%s\": Short midi file.",
-			  current_filename);
+			  d->midi_name);
 	    return 0;
 	}
       a = (uint8)i;
@@ -630,11 +629,11 @@ static MidiEventList *read_midi_event(struct md *d)
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "\"%s\": read_midi_event: %s",
-			  current_filename, strerror(errno));
+			  d->midi_name, strerror(errno));
 	    else
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "Warning: \"%s\": Short midi file.",
-			  current_filename);
+			  d->midi_name);
 	    return 0;
 	}
       b = (uint8)i;
@@ -643,11 +642,11 @@ static MidiEventList *read_midi_event(struct md *d)
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "\"%s\": read_midi_event: %s",
-			  current_filename, strerror(errno));
+			  d->midi_name, strerror(errno));
 	    else
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "Warning: \"%s\": Short midi file.",
-			  current_filename);
+			  d->midi_name);
 	    return 0;
 	}
       c = (uint8)i;
@@ -676,11 +675,11 @@ static MidiEventList *read_midi_event(struct md *d)
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "\"%s\": read_midi_event: %s",
-			  current_filename, strerror(errno));
+			  d->midi_name, strerror(errno));
 	    else
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "Warning: \"%s\": Short midi file.",
-			  current_filename);
+			  d->midi_name);
 	    return 0;
 	}
       a = (uint8)i;
@@ -698,11 +697,11 @@ static MidiEventList *read_midi_event(struct md *d)
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "\"%s\": read_midi_event: %s",
-			  current_filename, strerror(errno));
+			  d->midi_name, strerror(errno));
 	    else
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "Warning: \"%s\": Short midi file.",
-			  current_filename);
+			  d->midi_name);
 	    return 0;
 	}
       b = (uint8)i;
@@ -720,11 +719,11 @@ static MidiEventList *read_midi_event(struct md *d)
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "\"%s\": read_midi_event: %s",
-			  current_filename, strerror(errno));
+			  d->midi_name, strerror(errno));
 	    else
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "Warning: \"%s\": Short midi file.",
-			  current_filename);
+			  d->midi_name);
 	    return 0;
 	}
       b = (uint8)i;
@@ -741,11 +740,11 @@ static MidiEventList *read_midi_event(struct md *d)
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "\"%s\": read_midi_event: %s",
-			  current_filename, strerror(errno));
+			  d->midi_name, strerror(errno));
 	    else
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "Warning: \"%s\": Short midi file.",
-			  current_filename);
+			  d->midi_name);
 	    return 0;
 	}
       b = (uint8)i;
@@ -762,11 +761,11 @@ static MidiEventList *read_midi_event(struct md *d)
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "\"%s\": read_midi_event: %s",
-			  current_filename, strerror(errno));
+			  d->midi_name, strerror(errno));
 	    else
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "Warning: \"%s\": Short midi file.",
-			  current_filename);
+			  d->midi_name);
 	    return 0;
 	}
       b = (uint8)i;
@@ -927,11 +926,11 @@ ctl->cmsg(CMSG_INFO, VERB_NORMAL, "PHASER");
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "\"%s\": read_midi_event: %s",
-			  current_filename, strerror(errno));
+			  d->midi_name, strerror(errno));
 	    else
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "Warning: \"%s\": Short midi file.",
-			  current_filename);
+			  d->midi_name);
 	    return 0;
 	}
       b = (uint8)i;
@@ -984,14 +983,14 @@ static int read_track(int append, struct md *d)
   if ((fread(tmp,1,4,d->fp) != 4) || (fread(&len,4,1,d->fp) != 1))
     {
       ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-	   "\"%s\": Can't read track header.", current_filename);
+	   "\"%s\": Can't read track header.", d->midi_name);
       return -1;
     }
   len=BE_LONG(len);
   if (memcmp(tmp, "MTrk", 4))
     {
       ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-	   "\"%s\": Corrupt MIDI file.", current_filename);
+	   "\"%s\": Corrupt MIDI file.", d->midi_name);
       return -2;
     }
 
@@ -1038,7 +1037,7 @@ static void free_midi_list(struct md *d)
    events, marking used instruments for loading. Convert event times to
    samples: handle tempo changes. Strip unnecessary events from the list.
    Free the linked list. */
-static MidiEvent *groom_list(int32 divisions, struct md *d)
+static void groom_list(int32 divisions, struct md *d)
 {
   MidiEvent *groomed_list, *lp;
   MidiEventList *meep;
@@ -1049,8 +1048,9 @@ static MidiEvent *groom_list(int32 divisions, struct md *d)
 #endif
   int32 sample_cum, samples_to_do, st, dt, counting_time;
   uint32 our_at;
+#ifdef INFO_ONLY
   struct meta_text_type *meta = meta_text_list;
-
+#endif
   int current_bank[MAXCHAN], current_banktype[MAXCHAN], current_set[MAXCHAN],
     current_kit[MAXCHAN], current_program[MAXCHAN]; 
   /* Or should each bank have its own current program? */
@@ -1088,11 +1088,13 @@ static MidiEvent *groom_list(int32 divisions, struct md *d)
 		"%6d: ch %2d: event %d (%d,%d)",
 		meep->event.time, meep->event.channel + 1,
 		meep->event.type, meep->event.a, meep->event.b);
+#ifdef INFO_ONLY
       while (meta && meta->time <= our_at)
 	{
 	   meta->time = st;
 	   meta = meta->next;
 	}
+#endif
       if (meep->event.type==ME_TEMPO)
 	{
 #ifndef tplus
@@ -1374,14 +1376,10 @@ static MidiEvent *groom_list(int32 divisions, struct md *d)
   /**eventsp=our_event_count;*/
   d->event_count = our_event_count;
   d->sample_count = st;
-  return groomed_list;
+  d->event = groomed_list;
 }
 
-#ifdef INFO_ONLY
-MidiEvent *read_midi_file_info(struct md *d)
-#else
-MidiEvent *read_midi_file(struct md *d)
-#endif
+void read_midi_file(struct md *d)
 {
   uint32 len;
   int32 divisions;
@@ -1392,7 +1390,9 @@ MidiEvent *read_midi_file(struct md *d)
   d->event_count=0;
   d->at=0;
   d->evlist=0;
+#ifdef INFO_ONLY
   free_metatext();
+#endif
   d->GM_System_On=d->GS_System_On=d->XG_System_On=0;
   d->vol_table = def_vol_table;
   d->XG_System_reverb_type=d->XG_System_chorus_type=d->XG_System_variation_type=0;
@@ -1417,57 +1417,57 @@ MidiEvent *read_midi_file(struct md *d)
     {
       if (ferror(d->fp))
 	{
-	  ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "\"%s\": %s", current_filename, 
+	  ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "\"%s\": %s", d->midi_name, 
 	       sys_errlist[errno]);
 	}
       else
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, 
-	     "\"%s\": Not a MIDI file!", current_filename);
-      return 0;
+	     "\"%s\": Not a MIDI file!", d->midi_name);
+      return;
     }
   len=BE_LONG(len);
   if (memcmp(tmp, "MThd", 4) || len < 6)
     {
       ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
-	   "\"%s\": Not a MIDI file!", current_filename);
-      return 0;
+	   "\"%s\": Not a MIDI file!", d->midi_name);
+      return;
     }
 
   if ( fread(&format, 2, 1, d->fp) != 1 )
     {
       if (ferror(d->fp))
 	{
-	  ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "\"%s\": %s", current_filename, 
+	  ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "\"%s\": %s", d->midi_name, 
 	       sys_errlist[errno]);
 	}
       else
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, 
-	     "\"%s\": Not a MIDI file!", current_filename);
-      return 0;
+	     "\"%s\": Not a MIDI file!", d->midi_name);
+      return;
     }
   if ( fread(&tracks, 2, 1, d->fp) != 1 )
     {
       if (ferror(d->fp))
 	{
-	  ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "\"%s\": %s", current_filename, 
+	  ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "\"%s\": %s", d->midi_name, 
 	       sys_errlist[errno]);
 	}
       else
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, 
-	     "\"%s\": Not a MIDI file!", current_filename);
-      return 0;
+	     "\"%s\": Not a MIDI file!", d->midi_name);
+      return;
     }
   if ( fread(&divisions_tmp, 2, 1, d->fp) != 1 )
     {
       if (ferror(d->fp))
 	{
-	  ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "\"%s\": %s", current_filename, 
+	  ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "\"%s\": %s", d->midi_name, 
 	       sys_errlist[errno]);
 	}
       else
 	ctl->cmsg(CMSG_ERROR, VERB_NORMAL, 
-	     "\"%s\": Not a MIDI file!", current_filename);
-      return 0;
+	     "\"%s\": Not a MIDI file!", d->midi_name);
+      return;
     }
   /* fread(&divisions_tmp, 2, 1, d->fp); */
   format=BE_SHORT(format);
@@ -1486,14 +1486,14 @@ MidiEvent *read_midi_file(struct md *d)
     {
       ctl->cmsg(CMSG_WARNING, VERB_NORMAL, 
 	   "%s: MIDI file header size %ld bytes", 
-	   current_filename, len);
+	   d->midi_name, len);
       skip(d->fp, len-6); /* skip the excess */
     }
   if (format<0 || format >2)
     {
       ctl->cmsg(CMSG_ERROR, VERB_NORMAL, 
-	   "\"%s\": Unknown MIDI file format %d", current_filename, format);
-      return 0;
+	   "\"%s\": Unknown MIDI file format %d", d->midi_name, format);
+      return;
     }
   ctl->cmsg(CMSG_INFO, VERB_VERBOSE, 
        "Format: %d  Tracks: %d  Divisions: %d", format, tracks, divisions);
@@ -1511,7 +1511,7 @@ MidiEvent *read_midi_file(struct md *d)
       if (read_track(0, d))
 	{
 	  free_midi_list(d);
-	  return 0;
+	  return;
 	}
       break;
 
@@ -1520,7 +1520,7 @@ MidiEvent *read_midi_file(struct md *d)
 	if (read_track(0, d))
 	  {
 	    free_midi_list(d);
-	    return 0;
+	    return;
 	  }
       break;
 
@@ -1529,9 +1529,9 @@ MidiEvent *read_midi_file(struct md *d)
 	if (read_track(1, d))
 	  {
 	    free_midi_list(d);
-	    return 0;
+	    return;
 	  }
       break;
     }
-  return groom_list(divisions, d);
+  groom_list(divisions, d);
 }

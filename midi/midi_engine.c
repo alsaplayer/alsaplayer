@@ -132,18 +132,14 @@ static int look_midi_file(struct md *d)
 
   ctl->cmsg(CMSG_INFO, VERB_VERBOSE, "MIDI file: %s", d->midi_name);
 
-	d->is_open = FALSE;
-
-  if (!(d->fp=open_file(d->midi_path_name, 1, OF_VERBOSE, 0)))
+  if (!(d->fp=fopen(d->midi_path_name, "r")))
     return 0;
 
-  ctl->file_name(current_filename);
+  ctl->file_name(d->midi_name);
 
-  d->event=read_midi_file(d);
+  read_midi_file(d);
 
-
-  if (d->fp != stdin)
-      close_file(d->fp);
+  if (d->fp) close_file(d->fp);
   
   if (!d->event)
       return 0;
@@ -152,7 +148,6 @@ static int look_midi_file(struct md *d)
 	    "%d supported events, %d samples", d->event_count, d->sample_count);
 
   ctl->total_time(d->sample_count);
-  /*d->is_open = TRUE;*/
   free(d->event);
   return 1;
 }

@@ -48,6 +48,8 @@
 #include "resample.h"
 
 #include "tables.h"
+
+#define current_filename d->midi_name
 /*<95GUI_MODIF_BEGIN>*/
 #ifdef CHANNEL_EFFECT
 extern void effect_ctrl_change( MidiEvent* pCurrentEvent, struct md *d );
@@ -1779,13 +1781,12 @@ static int32 midi_cnv_vib_delay(int delay)
 }
 #endif
 
+#ifdef INFO_ONLY
 static int xmp_epoch = -1;
 static unsigned xxmp_epoch = 0;
 static unsigned time_expired = 0;
 static unsigned last_time_expired = 0;
-#if !defined( _UNIXWARE ) && ! defined(__hpux__) && ! defined (sun) && ! defined(_SCO_DS) && ! defined (sgi)
 extern int gettimeofday(struct timeval *, struct timezone *);
-#endif
 static struct timeval tv;
 static struct timezone tz;
 static void time_sync(uint32 resync, int dosync)
@@ -1856,11 +1857,14 @@ static void show_markers(uint32 until_time, int dosync)
 	}
     if (i < j) ctl->cmsg(CMSG_LYRIC, VERB_ALWAYS, "~%s", buf + i);
 }
+#endif
 
 static void seek_forward(uint32 until_time, struct md *d)
 {
   reset_voices(d);
+#ifdef INFO_ONLY
   show_markers(until_time, 1);
+#endif
   while (d->current_event->time < until_time)
     {
       switch(d->current_event->type)
@@ -2042,7 +2046,9 @@ int skip_to(uint32 until_time, struct md *d)
 
   if (until_time)
     seek_forward(until_time, d);
+#ifdef INFO_ONLY
   else show_markers(until_time, 1);
+#endif
   ctl->reset();
   return 1;
 }
@@ -2191,7 +2197,9 @@ static int compute_data(uint32 count, struct md *d)
       d->buffered_count=0;
       
       ctl->current_time(d->current_sample);
+#ifdef INFO_ONLY
       show_markers(0, 0);
+#endif
       if ((rc=apply_controls(d))!=RC_NONE)
 	return rc;
     }
@@ -2634,13 +2642,15 @@ int play_midi_file(struct md *d)
 
   ctl->cmsg(CMSG_INFO, VERB_VERBOSE, "MIDI file: %s", d->midi_path_name);
 
-  if (!(d->fp=open_file(d->midi_path_name, 1, OF_VERBOSE, 0)))
-    return RC_ERROR;
+/*
+  if (!(d->fp=open_file(d->midi_path_name, 1, OF_VERBOSE, 0))) return RC_ERROR;
+*/
+  if (!(d->fp=fopen(d->midi_path_name, "r"))) return RC_ERROR;
 
   ctl->file_name(current_filename);
 
   d->is_open = TRUE;
-  d->event=read_midi_file(d);
+  read_midi_file(d);
 
   close_file(d->fp);
   
@@ -2661,7 +2671,9 @@ int play_midi_file(struct md *d)
   if (command_cutoff_allowed) dont_filter_melodic = 0;
   else dont_filter_melodic = 1;
 
+#ifdef INFO_ONLY
   got_a_lyric = 0;
+#endif
 #ifdef POLYPHONY_COUNT
   d->future_polyphony = 0;
 #endif

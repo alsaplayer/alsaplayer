@@ -29,9 +29,9 @@ typedef struct {
 */
 /*extern int32 quietchannels;*/
 
-extern MidiEvent *read_midi_file(struct md *d);
-extern MidiEvent *read_midi_file_info(struct md *d);
+extern void read_midi_file(struct md *d);
 
+#ifdef INFO_ONLY
 struct meta_text_type {
     unsigned long time;
     unsigned char type;
@@ -40,4 +40,4 @@ struct meta_text_type {
 };
 
 extern struct meta_text_type *meta_text_list;
-
+#endif
