@@ -19,9 +19,7 @@ static void usage(void)
 	"supported commands:\n\n"
 	"play <title> [<title> ...]\n"
 	"playlist <playlistfile>\n"
-#ifdef SAVE_PLAYLIST_COMMITTED
 	"save\n"
-#endif
 	"shuffle\n"
 	"sort direction\n"
 	"stop\n"
@@ -89,10 +87,8 @@ int main(int argc, char *argv[])
 	if (!strcmp(argv[1], "shuffle"))
 		return ap_shuffle_playlist(0) == 1;
 
-#ifdef SAVE_PLAYLIST_COMMITTED
 	if (!strcmp(argv[1], "save"))
 		return ap_save_playlist(0) == 1;
-#endif
 
 	if (!strcmp(argv[1], "query"))
 	{
