@@ -1,4 +1,4 @@
-EXTRA_DIST = TODO sockmon.txt wishlist.txt
+EXTRA_DIST = TODO wishlist.txt
 
 clean-local:
 	rm -f *~ *.bak $(DOC_STAMPS) || true
@@ -46,23 +46,14 @@ uninstall-local: doxygen-build.stamp
 	  done; \
 	fi)
 
-#
-# Require doxygen when making dist
-#
-#if HAVE_DOXYGEN
-#dist-check-doxygen:
-#else
-
 dist-check-doxygen:
 
-#endif
+endif
 
-dist-hook: dist-hook-local dist-check-doxygen
+dist-hook: dist-hook-local
 	mkdir $(distdir)/reference
 	mkdir $(distdir)/reference/html
 	-cp reference/html/*.html reference/html/*.css \
 	    reference/html/*.gif  $(distdir)/reference/html
 
 .PHONY : dist-hook-local
-
-endif
