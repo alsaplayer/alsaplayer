@@ -393,7 +393,6 @@ bool CorePlayer::Start(int reset)
 	
 	// First check if we have a filename to play
 	if (!Open()) {
-		printf("\nOpen() has failed......\n");
 		pthread_mutex_unlock(&player_mutex);
 		return false;
 	}
@@ -561,10 +560,13 @@ CorePlayer::GetPlayer(const char *path)
 bool CorePlayer::Open()
 {
 	bool result = false;
-	input_plugin *best_plugin = GetPlayer(file_path);
-
-	if (best_plugin == NULL) {
-		printf("No suitable plugin found for %s\n", file_path);
+	input_plugin *best_plugin;
+	
+	if (!strlen(file_path))
+		return false;
+		
+	if ((best_plugin = GetPlayer(file_path)) == NULL) {
+		printf("No suitable plugin found for \"%s\"\n", file_path);
 		return false;
 	}
 

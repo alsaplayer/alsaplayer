@@ -112,6 +112,9 @@ public:
 	void PlayFile(PlayItem const &);
 	bool CanPlay(std::string const &);
 	
+	void Lock();
+	void Unlock();
+
 	Playlist(CorePlayer *);
 	Playlist(AlsaNode *);
 	~Playlist();

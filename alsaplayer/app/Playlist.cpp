@@ -94,6 +94,9 @@ void insert_thread(void *data) {
 	PlInsertItems * items = (PlInsertItems *)data;
 	Playlist *playlist = items->playlist;
 
+	// Stop the list being changed while we add these items
+	playlist->Lock();
+
   // First vetting of the list, and recurse through directories
 	std::vector<std::string> vetted_items;
 	std::vector<std::string>::const_iterator i = items->items.begin();
@@ -115,9 +118,6 @@ void insert_thread(void *data) {
 			}
 		}
 	}
-	// Stop the list being changed while we add these items
-	pthread_mutex_lock(&(playlist->playlist_mutex));
-// LAST HERE	
 	// Check position is valid
 	if(playlist->queue.size() < items->position) {
 		items->position = playlist->queue.size();
@@ -147,8 +147,8 @@ void insert_thread(void *data) {
 
 	// Free the list again
 #endif	
+	playlist->Unlock();
 	delete items;
-	pthread_mutex_unlock(&(playlist->playlist_mutex));
 	pthread_exit(NULL);
 }
 
@@ -316,6 +316,19 @@ void Playlist::Prev(int locking) {
 	}
 	pthread_mutex_unlock(&playlist_mutex);
 }
+
+
+void Playlist::Lock()
+{
+	pthread_mutex_lock(&playlist_mutex);
+}
+
+
+void Playlist::Unlock()
+{
+	pthread_mutex_unlock(&playlist_mutex);
+}
+
 
 // Request to put a new item at end of playlist
 void Playlist::Insert(std::vector<std::string> const & paths, unsigned position) {
