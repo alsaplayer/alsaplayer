@@ -42,7 +42,8 @@ alsaplayer_SOURCES = AlsaSubscriber.cpp \
 		Main.cpp CorePlayer.cpp Playlist.cpp  \
 		SampleBuffer.cpp \
 		reverbst.cpp \
-		fft.c convolve.c utilities.cpp 
+		fft.c convolve.c utilities.cpp \
+		ControlSocket.cpp
 
 jackplayer:
 		ln -s alsaplayer jackplayer
