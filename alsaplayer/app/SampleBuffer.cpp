@@ -45,7 +45,7 @@ SampleBuffer::SampleBuffer(int mode, int size)
 	if ((buffer_data = new char[size]) == NULL) {
 		alsaplayer_error("Out of memory in SampleBuffer::SampleBuffer()");
 		exit(1);
-}
+	}
 
 	// Init other stuff
 	SetReadDirection(DIR_FORWARD);
@@ -77,12 +77,13 @@ int SampleBuffer::Seek(int index)
 }
 
 
+#if 0	// these methods are completely unused; FB
 int SampleBuffer::WriteSamples(void *data, int nr)
 {
 	int add = 0;
 	int *dest = (int *)buffer_data + write_index;
 	int *src = (int *)data;
-	
+
 	if (nr < GetFreeSamples()) { // Simply copy everything
 		//memcpy(dest, data, nr * sample_size);
 		for (int c=0; c < nr; c++) {
@@ -102,7 +103,7 @@ int SampleBuffer::WriteSamples(void *data, int nr)
 		//if (GetReadDirection() == DIR_BACK)  {
 		//	read_index = write_index; // Hmmm!!
 		//}
-	        return add;
+		return add;
 	}
 }
 
@@ -151,6 +152,7 @@ int SampleBuffer::ReadSamples(void *data, int nr)
 	}
 	return -1;
 }
+#endif
 
 
 void SampleBuffer::SetSamples(int count)
