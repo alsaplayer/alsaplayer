@@ -74,7 +74,7 @@ static void levelmeter_set_data(void *audio_buffer, int size)
 }
 
 
-static void levelmeter8(GtkWidget *win)
+static void the_levelmeter(GtkWidget *win)
 {
 	static int oldl = 0;
 	static int oldr = 0;
@@ -260,14 +260,14 @@ void levelmeter_hide()
 static void stop_levelmeter()
 {
 	running = 0;
-	pthread_join(&levelmeter_thread, NULL);
+	pthread_join(levelmeter_thread, NULL);
 }
 
 
 static void run_levelmeter(void *data)
 {
 	nice(SCOPE_NICE);	
-	levelmeter8(scope_win);	
+	the_levelmeter(scope_win);	
 	pthread_mutex_unlock(&levelmeter_mutex);
 	pthread_exit(NULL);
 }
@@ -303,6 +303,24 @@ static int open_levelmeter()
 static void close_levelmeter()
 {
 	stop_levelmeter();
+	if (disp) {
+					gdk_pixmap_unref(disp);
+	}
+	if (draw_pixmap) {
+					gdk_pixmap_unref(draw_pixmap);
+	}	
+	if (area) {
+					gtk_widget_destroy(area);
+					area = NULL;
+	}
+	if (gc) {
+					gdk_gc_destroy(gc);
+					gc = NULL;
+	}	
+	if (scope_win) {
+					gtk_widget_destroy(scope_win);
+					scope_win = NULL;
+	}					
 }
 
 

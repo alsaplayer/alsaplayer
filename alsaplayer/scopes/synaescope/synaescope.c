@@ -510,7 +510,7 @@ static void synaescope_hide()
 static void stop_synaescope()
 {
 	running = 0;
-	pthread_join(&synaescope_thread, NULL);
+	pthread_join(synaescope_thread, NULL);
 }
 
 
@@ -535,8 +535,8 @@ static void run_synaescope(void *data)
 		break;
 		
 	}
-	//delete sub;
 	pthread_mutex_unlock(&synaescope_mutex);
+	pthread_exit(NULL);
 }
 
 
@@ -552,7 +552,6 @@ static void start_synaescope(void *data)
 	}
 	gtk_widget_show(scope_win);
 	pthread_create(&synaescope_thread, NULL, (void * (*)(void *))run_synaescope, data);
-	//pthread_detach(synaescope_thread);
 }
 
 

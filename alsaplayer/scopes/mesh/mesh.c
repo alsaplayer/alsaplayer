@@ -27,6 +27,7 @@ static double fftmult[FFT_BUFFER_SIZE / 2 + 2];
 void stop_meshscope ()
 {
 	running = 0;
+	pthread_join(meshscope_thread, NULL);
 }
 
 
@@ -246,6 +247,7 @@ void run_meshscope (void *data)
 	memset(&actSS, 0, sizeof(actSS));
 	meshscope(meshscope_win);
 	pthread_mutex_unlock (&meshscope_mutex);
+	pthread_exit(NULL);
 }
 
 
@@ -258,7 +260,6 @@ void start_meshscope (void *data)
 	running = 1;
 	pthread_create (&meshscope_thread, NULL,
 		(void *(*)(void *)) run_meshscope, data);
-	pthread_detach (meshscope_thread);
 }
 
 

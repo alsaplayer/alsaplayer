@@ -70,14 +70,14 @@ void spacescope_set_data(void *audio_buffer, int size)
 }
 
 
-void spacescope8(GtkWidget *win)
+void the_spacescope()
 {
 	gint foo, bar;
 	char *oldset = oldEq;
 	char *newset = actEq;
 	guchar bits[(SPACE_WH+1) * (SPACE_WH+1)], *loc;
 	int i;
-	
+
 	while (running) {
 		memset(bits, 0, SPACE_WH * SPACE_WH);
 		memcpy(oldset,newset,256);
@@ -106,9 +106,11 @@ void stop_spacescope();
 
 static gboolean close_spacescope_window(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-        stop_spacescope();
-
-		return TRUE;
+				GDK_THREADS_LEAVE();				
+				stop_spacescope();
+				GDK_THREADS_ENTER();
+				
+				return TRUE;
 }
 
 
@@ -177,14 +179,15 @@ void spacescope_hide()
 void stop_spacescope()
 {
 	running = 0;
-	pthread_join(&spacescope_thread, NULL);
+	pthread_join(spacescope_thread, NULL);
 }
 
 void run_spacescope(void *data)
 {
 	nice(SCOPE_NICE);
-	spacescope8(scope_win);
+	the_spacescope();
 	pthread_mutex_unlock(&spacescope_mutex);
+	pthread_exit(NULL);
 }
 
 
@@ -201,7 +204,6 @@ void start_spacescope(void *data)
 	running = 1;
 	gtk_widget_show(scope_win);
 	pthread_create(&spacescope_thread, NULL, (void * (*)(void *))run_spacescope, data);
-	//pthread_detach(spacescope_thread);
 }
 
 static int open_spacescope()
@@ -216,6 +218,14 @@ static int init_spacescope()
 
 static void close_spacescope()
 {
+	if (area) {
+					gtk_widget_destroy(area);
+					area = NULL;
+	}
+	if (scope_win) {
+					gtk_widget_destroy(scope_win);
+					scope_win = NULL;
+	}				
 }
 
 

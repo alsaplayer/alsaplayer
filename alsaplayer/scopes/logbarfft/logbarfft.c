@@ -375,6 +375,7 @@ static void fftscope_hide()
 static void stop_fftscope()
 {
 	running = 0;
+	pthread_join(fftscope_thread, NULL);
 }
 
 
@@ -399,8 +400,8 @@ static void run_fftscope(void *data)
 		break;
 		
 	}
-	//delete sub;
 	pthread_mutex_unlock(&fftscope_mutex);
+	pthread_exit(NULL);
 }
 
 
@@ -419,7 +420,6 @@ static void start_fftscope(void *data)
 	}
 	gtk_widget_show(scope_win);
 	pthread_create(&fftscope_thread, NULL, (void * (*)(void *))run_fftscope, data);
-	pthread_detach(fftscope_thread);
 }
 
 
