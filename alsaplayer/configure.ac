@@ -514,7 +514,7 @@ AC_CHECK_FUNCS(madvise)
 AC_CHECK_FUNCS(strdup strstr)
 
 
-ADDON_DIR=${libdir}/alsaplayer
+ADDON_DIR=${libdir}/$PACKAGE
 
 dnl ================
 dnl Create Makefiles
@@ -534,6 +534,7 @@ AC_SUBST(ALSAPLAYER_VERSION)
 AC_OUTPUT([
 Makefile
 alsaplayer.1
+alsaplayer-config
 app/Makefile
 interface/Makefile
 interface/gtk/Makefile
@@ -570,7 +571,9 @@ include/Makefile
 docs/Makefile
 extra/Makefile
 libalsaplayer/Makefile
-])
+],
+[chmod +x alsaplayer-config])
+
 echo "
 Configuration:
   
