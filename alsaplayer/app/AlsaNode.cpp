@@ -134,7 +134,6 @@ void AlsaNode::looper(void *pointer)
 	char *buffer_data;
 	AlsaNode *node = (AlsaNode *)pointer;
 	int read_size = node->GetFragmentSize();
-	bool usleep_hack = true;
 	bool status;
 
 	signal(SIGINT, exit_sighandler);
@@ -164,8 +163,6 @@ void AlsaNode::looper(void *pointer)
 		}
 	}	
 #endif
-	usleep_hack = (node->plugin->get_queue_count != NULL);
-
 	node->looping = true;
 
 	buffer_data = new char[16384];
@@ -201,13 +198,6 @@ void AlsaNode::looper(void *pointer)
 		node->plugin->write(buffer_data, read_size);
 
 		read_size = node->GetFragmentSize(); // Change on the fly
-#ifdef TOP_HACK		
-		if (usleep_hack) {
-			int count = node->plugin->get_queue_count();
-			if (count < 10)
-				dosleep(1000);
-		}
-#endif		
 	}
 	delete []buffer_data;
 	pthread_mutex_unlock(&node->thread_mutex);
