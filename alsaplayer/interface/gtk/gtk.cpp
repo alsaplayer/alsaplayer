@@ -192,6 +192,7 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 	gtk_main();
 	GDK_THREADS_LEAVE();
 	unload_scope_addons();
+	destroy_scopes_window();
 	GDK_THREADS_ENTER();
 	gdk_flush();
 	GDK_THREADS_LEAVE();

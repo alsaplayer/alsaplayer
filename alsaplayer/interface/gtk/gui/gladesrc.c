@@ -615,6 +615,7 @@ create_scopes_window (void)
   GtkWidget *hbox38;
   GtkWidget *label18;
   GtkWidget *scopes_list_box;
+  GtkWidget *scrolledwindow2;
   GtkWidget *scopes_list;
   GtkWidget *label14;
   GtkWidget *label15;
@@ -654,13 +655,21 @@ create_scopes_window (void)
   gtk_box_pack_start (GTK_BOX (vbox22), scopes_list_box, TRUE, TRUE, 0);
   gtk_container_set_border_width (GTK_CONTAINER (scopes_list_box), 8);
 
+  scrolledwindow2 = gtk_scrolled_window_new (NULL, NULL);
+  gtk_widget_ref (scrolledwindow2);
+  gtk_object_set_data_full (GTK_OBJECT (scopes_window), "scrolledwindow2", scrolledwindow2,
+                            (GtkDestroyNotify) gtk_widget_unref);
+  gtk_widget_show (scrolledwindow2);
+  gtk_box_pack_start (GTK_BOX (scopes_list_box), scrolledwindow2, TRUE, TRUE, 0);
+  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow2), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+
   scopes_list = gtk_clist_new (2);
   gtk_widget_ref (scopes_list);
   gtk_object_set_data_full (GTK_OBJECT (scopes_window), "scopes_list", scopes_list,
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (scopes_list);
-  gtk_box_pack_start (GTK_BOX (scopes_list_box), scopes_list, TRUE, TRUE, 0);
-  gtk_widget_set_usize (scopes_list, 150, 180);
+  gtk_container_add (GTK_CONTAINER (scrolledwindow2), scopes_list);
+  gtk_widget_set_usize (scopes_list, 150, 220);
   gtk_clist_set_column_width (GTK_CLIST (scopes_list), 0, 49);
   gtk_clist_set_column_width (GTK_CLIST (scopes_list), 1, 80);
   gtk_clist_column_titles_hide (GTK_CLIST (scopes_list));

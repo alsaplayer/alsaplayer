@@ -27,6 +27,7 @@
 #include "pixmaps/note.xpm"
 #include "alsaplayer_error.h"
 #include "alsaplayer_fft.h"
+#include "prefs.h"
 #include <pthread.h>
 #include <dlfcn.h>
 #include <math.h>
@@ -212,6 +213,68 @@ int apRegisterScopePlugin(scope_plugin *plugin)
 	return 1;
 }
 
+
+void exclusive_open_cb(GtkWidget *widget, gpointer data)
+{
+	GtkWidget *list = (GtkWidget *)data;
+
+	if (list) {
+		scope_entry *current = root_scope;
+		scope_entry *exclusive_one = NULL;
+
+		if (!GTK_CLIST(list)->selection)
+			return;
+
+		gint row = GPOINTER_TO_INT(GTK_CLIST(list)->selection->data);	
+		
+		scope_entry *se = (scope_entry *)
+			gtk_clist_get_row_data(GTK_CLIST(list), row);
+		if (se && se->sp) {
+			while (current) {
+				if (current == se) {
+					exclusive_one = current;
+				}
+				GDK_THREADS_LEAVE();
+				//alsaplayer_error("Stopping \"%s\"", current->sp->name);
+				current->sp->stop();
+				GDK_THREADS_ENTER();
+				current = current->next;
+			}
+			if (exclusive_one && exclusive_one->sp) {
+				//alsaplayer_error("Starting exclusive scope \"%s\"", exclusive_one->sp->name);
+				exclusive_one->sp->start();
+			}
+		}
+	}
+}
+
+
+void scopes_list_button_press(GtkWidget *widget, GdkEvent *bevent, gpointer data)
+{
+	GtkWidget *menu_item;
+	GtkWidget *the_menu;
+	gint row, col;
+	//alsaplayer_error("Button pressed! (%.2f, %.2f, %d)", bevent->button.x, 
+	//	bevent->button.y, bevent->button.button);
+	gtk_clist_get_selection_info(GTK_CLIST(widget), 
+		(gint)bevent->button.x, (gint)bevent->button.y,
+		&row, &col);
+	if (bevent->button.button == 3) { // Right mouse
+		gtk_clist_select_row(GTK_CLIST(widget), row, 0);
+		// Construct a popup
+		the_menu = gtk_menu_new();
+		menu_item = gtk_menu_item_new_with_label("Open Exclusively");
+		gtk_menu_append(GTK_MENU(the_menu), menu_item);
+		gtk_widget_show(menu_item);
+		gtk_signal_connect(GTK_OBJECT(menu_item), "activate", 
+			GTK_SIGNAL_FUNC(exclusive_open_cb), widget);
+		gtk_menu_popup(GTK_MENU(the_menu), NULL, NULL, NULL, NULL,
+			bevent->button.button, bevent->button.time);
+	}
+	
+	//alsaplayer_error("Row = %d, Col = %d", row, col);	
+}
+
 void scopes_list_click(GtkWidget *widget, gint row, gint column,
 	GdkEvent *bevent, gpointer data)
 {
@@ -272,9 +335,17 @@ gboolean scopes_window_delete_event(GtkWidget *widget, GdkEvent *event, gpointer
         gtk_widget_set_uposition(widget, x, y);
         global_scopes_show = 0;
 
-		return TRUE;
+	return TRUE;
 }
 
+
+void destroy_scopes_window()
+{
+	if (!scopes_window)
+		return;
+	prefs_set_bool(ap_prefs, "gtk_interface", "scopeswindow_active",
+		global_scopes_show);
+}
 
 GtkWidget *init_scopes_window()
 {
@@ -292,8 +363,11 @@ GtkWidget *init_scopes_window()
 
 	gtk_object_set_data(GTK_OBJECT(scopes_window), "list", list);
 	gtk_clist_set_column_width(GTK_CLIST(list), 0, 16);
+	gtk_clist_set_row_height(GTK_CLIST(list), 20);
 	gtk_signal_connect(GTK_OBJECT(list), "select_row",
 		GTK_SIGNAL_FUNC(scopes_list_click), NULL);
+	gtk_signal_connect(GTK_OBJECT(list), "button_press_event",
+		GTK_SIGNAL_FUNC(scopes_list_button_press), NULL);
 	working = get_widget(scopes_window, "ok_button");
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
 		GTK_SIGNAL_FUNC(scopes_window_ok_cb), scopes_window);
@@ -306,6 +380,11 @@ GtkWidget *init_scopes_window()
 
 	// Init scope list
 	pthread_mutex_init(&sl_mutex, (pthread_mutexattr_t *)NULL);
-	
+
+	if (prefs_get_bool(ap_prefs, "gtk_interface", "scopeswindow_active", 0)) {
+		gtk_widget_show(scopes_window);
+		global_scopes_show = 1;
+	}	
+
 	return scopes_window;
 }
