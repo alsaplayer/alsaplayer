@@ -474,7 +474,7 @@ void AlsaNode::StopStreaming()
 	
 	looping = false;
 	if (pthread_join(looper_thread, NULL)) {
-		alsaplayer_error("An error occurred waiting for looper thread!");
+		// Hmmm
 	}
 }
 
