@@ -17,17 +17,23 @@ SUN_LIBS = -lresolv
 
 endif
 
-LIBS = -lpthread -ldl $(SUN_LIBS)
+if HAVE_JACK
+
+JACK_FLAGS = -DUSE_JACK
+
+endif
+
+LIBS = -lpthread -ldl $(SUN_LIBS) @JACK_LIB@
 
 COMMON_FLAGS = @DFLAGS@ -D_REENTRANT \
 		-I$(top_srcdir)/include \
-		-DADDON_DIR=\"$(ADDON_DIR)\" @ARCH_CFLAGS@
+		-DADDON_DIR=\"$(ADDON_DIR)\" @ARCH_CFLAGS@ $(JACK_FLAGS)
 
 CXXFLAGS = $(COMMON_FLAGS) $(EXTRA_CFLAGS)
 
 CFLAGS = $(CXXFLAGS)
 
-bin_PROGRAMS = alsaplayer 
+bin_PROGRAMS = alsaplayer
 
 alsaplayer_LDFLAGS = -export-dynamic
 
@@ -37,3 +43,6 @@ alsaplayer_SOURCES = AlsaSubscriber.cpp \
 		SampleBuffer.cpp \
 		reverbst.cpp \
 		fft.c convolve.c utilities.cpp 
+
+jackplayer:
+		ln -s alsaplayer jackplayer

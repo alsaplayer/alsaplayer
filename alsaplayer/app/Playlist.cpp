@@ -33,6 +33,7 @@
 #include "CorePlayer.h"
 #include "utilities.h"
 #include "config.h"
+#include "error.h"
 
 #define READBUFSIZE 1024
 #define MAXLOADFAILURES 100
@@ -487,7 +488,7 @@ Playlist::Load(std::string const &file, unsigned position, bool force)
 
 	// Try opening file
 #ifdef DEBUG
-	fprintf(stderr, "Loading from: %s\n", file.c_str());
+	alsaplayer_error("Loading from: %s", file.c_str());
 #endif
 	FILE *in_list = fopen(file.c_str(), "r");
 	if(!in_list) return E_PL_BAD;

@@ -67,7 +67,6 @@ const char *default_output_addons[] = {
 	{ "libesound.so" },
 	{ "libsgi.so" },
 	{ "libnull.so" },
-	{ "libjack.so" },
 	NULL };
 
 
@@ -433,43 +432,46 @@ int main(int argc, char **argv)
 			last_arg = arg_pos;
 		}
 	}	
-
 	if (!be_quiet)
 		fprintf(stdout, "%s\n", copyright_string);	
 
-	// Connect to an output system
-	AlsaNode *node = new AlsaNode(use_pcm, use_realtime);
 
-	if (!node) {
-		printf("Bwah!!\n");
+	AlsaNode *node;
+
+	// Check if we want jack
+	if (strcmp(argv[0], "jackplayer") == 0 ||
+			strcmp(use_output, "jack") == 0) {
+		node = new AlsaNode("jack", use_realtime);
+	} else { // Else do the usual plugin based thing
+		node = new AlsaNode(use_pcm, use_realtime);
+		if (use_user) {
+			if (use_alsa) 
+				load_output_addons(node, "alsa");
+			else if (use_oss) 
+				load_output_addons(node, "oss");
+			else if (use_esd) 
+				load_output_addons(node, "esound");
+			else if (use_sparc)
+				load_output_addons(node, "sparc");
+			else if (use_nas)
+				load_output_addons(node, "nas");
+			else if (use_sgi)
+				load_output_addons(node, "sgi");
+			else if (use_null)
+				load_output_addons(node, "null");
+			else if (use_other_output) {
+				load_output_addons(node, use_output);
+			}	
+		} else
+			load_output_addons(node);
+	}
+
+	
+	if (!node || !node->ReadyToRun()) {
+		alsaplayer_error("failed to load output add-on. Exiting...");
 		return 1;
 	}
 
-	if (use_user) {
-		if (use_alsa) 
-			load_output_addons(node, "alsa");
-		else if (use_oss) 
-			load_output_addons(node, "oss");
-		else if (use_esd) 
-			load_output_addons(node, "esound");
-		else if (use_sparc)
-			load_output_addons(node, "sparc");
-		else if (use_nas)
-			load_output_addons(node, "nas");
-		else if (use_sgi)
-			load_output_addons(node, "sgi");
-		else if (use_null)
-			load_output_addons(node, "null");
-		else if (use_other_output) {
-			load_output_addons(node, use_output);
-		}	
-	} else
-		load_output_addons(node);
-
-	if (!node->ReadyToRun()) {
-		alsaplayer_error("failed to load output add-on. Exiting...");
-		return 1;
-	}	
 	if (!node->SetSamplingRate(use_freq)) {
 		alsaplayer_error("failed to set sampling frequency. Exiting...");
 		return 1;
@@ -530,7 +532,8 @@ int main(int argc, char **argv)
 	interface_plugin_info_type interface_plugin_info;
 	interface_plugin *ui;
 
-	if (sscanf(argv[0], "alsaplayer-%s", &use_interface) == 1) {
+	if (sscanf(argv[0], "alsaplayer-%s", &use_interface) == 1 ||
+			sscanf(argv[0], "jackplayer-%s", &use_interface) == 1) {
 		/* Determine interface from the command line */
 		printf("Using interface %s\n", use_interface);
 	}	

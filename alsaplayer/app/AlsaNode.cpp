@@ -21,8 +21,6 @@
 */ 
 
 #include "config.h"
-#include "AlsaNode.h"
-#include "utilities.h"
 #include <sys/mman.h>
 #ifdef USE_REALTIME
 #include <sched.h>
@@ -31,6 +29,13 @@
 #include <assert.h>
 #include <signal.h>
 #include <unistd.h>
+#include "AlsaNode.h"
+#include "utilities.h"
+#include "error.h"
+#ifdef USE_JACK
+#include <jack/jack.h>
+#endif
+
 
 #define MAX_FRAGS	32
 #define LOW_FRAGS	1	
@@ -47,13 +52,52 @@ AlsaNode::AlsaNode(char *name, int realtime)
 	init = false;
 	sock = -1;
 	use_pcm = name;
+#ifdef USE_JACK	
+	use_jack = 0;
+#endif	
 	realtime_sched = realtime;
 	sample_freq = OUTPUT_RATE;
 
 	for (int i = 0; i < MAX_SUB; i++) {
 		memset(&subs[i], 0, sizeof(subscriber));
 	}	
+#ifdef USE_JACK
+	if (strcmp(name, "jack") == 0) { // Use JACK
+		if ((client = jack_client_new("jackplayer")) == 0) {
+			alsaplayer_error("jack server not running?");
+			return;
+		}
+		jack_set_process_callback (client, 
+			(JackProcessCallback)process, this);
+		jack_set_buffer_size_callback (client, 
+			(JackProcessCallback)bufsize, this);
+		jack_set_sample_rate_callback (client, 
+			(JackProcessCallback)srate, this);
+		printf("engine sample rate: %lu\n", jack_get_sample_rate (client));
+
+		my_output_port1 = jack_port_register (client, "output1",
+				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);		
+		my_output_port2 = jack_port_register (client, "output2",
+				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);		
+
+		if (jack_activate (client)) {
+			alsaplayer_error("cannot activate client");
+		}	
+		printf("client activated\n");
 	
+		if (jack_port_connect (client, my_output_port1->shared->name,
+				"ALSA I/O:Output 1")) {
+				alsaplayer_error("cannot connect output port 1");
+		}		
+		if (jack_port_connect (client, my_output_port2->shared->name,
+				"ALSA I/O:Output 2")) {
+				alsaplayer_error("cannot connect output port 2");
+		}		
+	
+		use_jack = 1;
+		init = 1;
+	}
+#endif
 	pthread_mutex_init(&thread_mutex, NULL);
 	pthread_mutex_init(&queue_mutex, NULL);
 }
@@ -62,6 +106,13 @@ AlsaNode::AlsaNode(char *name, int realtime)
 AlsaNode::~AlsaNode()
 {
 	StopStreaming();
+#ifdef USE_JACK
+	if (use_jack) {
+		if (client)
+			jack_client_close (client);
+		return;
+	}	
+#endif
 	assert(plugin);
 	plugin->close();
 }
@@ -69,6 +120,12 @@ AlsaNode::~AlsaNode()
 
 int AlsaNode::SetSamplingRate(int freq)
 {
+#ifdef USE_JACK
+	if (use_jack) {
+		//alsaplayer_error("Not setting samplerate for JACK");	
+		return 1;
+	}
+#endif
 	assert(plugin);
 
 	if (plugin->set_sample_rate(freq)) {
@@ -82,6 +139,12 @@ int AlsaNode::SetSamplingRate(int freq)
 
 int AlsaNode::SetStreamBuffers(int frag_size, int count, int channels)
 {
+#ifdef USE_JACK
+	if (use_jack) {
+		//alsaplayer_error("Not setting buffersize for JACK");
+		return 1;
+	}
+#endif
 	assert(plugin);
 
 	if (plugin->set_buffer(frag_size, count, channels)) {
@@ -93,6 +156,98 @@ int AlsaNode::SetStreamBuffers(int frag_size, int count, int channels)
 	}	
 }
 
+#ifdef USE_JACK
+int AlsaNode::bufsize(nframes_t nframes, void *arg)
+{
+	AlsaNode *node = (AlsaNode *)arg;
+
+	printf("the maximum buffer size is now %lu\n", nframes);
+	if (node) {
+		node->fragment_size = nframes;
+		node->nr_fragments = 3;
+	}	
+	return 0;
+}
+
+
+int AlsaNode::srate(nframes_t rate, void *arg)
+{
+	AlsaNode *node = (AlsaNode *)arg;
+
+	printf ("the sample rate is now %lu/sec\n", rate);
+	if (node)
+		node->sample_freq = (int)rate;
+	return 0;
+}
+
+#define SAMPLE_MAX_16BIT  32767.0f
+
+void sample_move_dS_s16 (sample_t *dst, char *src,
+ 			unsigned long nsamples, unsigned long src_skip) 
+{
+        /* ALERT: signed sign-extension portability !!! */
+        while (nsamples--) {
+                *dst = (*((short *) src)) / SAMPLE_MAX_16BIT;
+                dst++;
+                src += src_skip;
+        }
+}      
+
+int AlsaNode::process(nframes_t nframes, void *arg)
+{
+	AlsaNode *node = (AlsaNode *)arg;
+	char bufsize[16384];
+	static bool realtime_set = 0;
+
+#ifdef USE_REALTIME
+	if (node->realtime_sched && !realtime_set) {
+		struct sched_param sp;
+		memset(&sp, 0, sizeof(sp));
+		sp.sched_priority = sched_get_priority_max(SCHED_FIFO);
+
+		//alsaplayer_error("THREAD-%d=soundcard thread\n", getpid());
+
+		if (sched_setscheduler(0, SCHED_FIFO, &sp) != 0) {
+				alsaplayer_error("failed to setup realtime scheduling!");
+		} else {
+			mlockall(MCL_CURRENT);
+			printf("realtime scheduling active\n");
+		}
+		realtime_set = 1;
+	}	
+#endif
+
+	if (node) {
+		subscriber *i;
+		int c;
+		bool status;
+		sample_t *out1 = (sample_t *) jack_port_get_buffer(node->my_output_port1, nframes);
+		sample_t *out2 = (sample_t *) jack_port_get_buffer(node->my_output_port2, nframes);
+	
+		memset(bufsize, 0, sizeof(bufsize));	
+	
+		for (c = 0; c < MAX_SUB; c++) {
+			i = &node->subs[c];
+			if (!i->active) { // Skip inactive streamers
+				continue;
+			}	
+			if (i->streamer) {
+				status = i->streamer(i->arg, bufsize, nframes * 2);
+			} else { 
+				continue;
+			}	
+			if (status == false) { // Disable this streamer
+				i->active = false;
+			}
+		}
+		sample_move_dS_s16(out1, bufsize, nframes, sizeof(short) << 1);
+		sample_move_dS_s16(out2, bufsize + sizeof(short), nframes, sizeof(short) << 1); 
+	}	
+
+	return 0;
+}
+
+#endif
 
 void AlsaNode::looper(void *pointer)
 {
@@ -107,10 +262,9 @@ void AlsaNode::looper(void *pointer)
 
 	assert(node->plugin);
 #ifdef DEBUG
-	printf("THREAD-%d=soundcard thread\n", getpid());
+	alsaplayer_error("THREAD-%d=soundcard thread\n", getpid());
 #endif
 	if (pthread_mutex_trylock(&node->thread_mutex) != 0) {
-		//printf("Node is already looping()\n");
 		return;
 	}	
 #ifdef USE_REALTIME
@@ -120,9 +274,8 @@ void AlsaNode::looper(void *pointer)
 		sp.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	
 		if (sched_setscheduler(0, SCHED_FIFO, &sp) != 0) {
-			//printf("normal scheduling on\n");
 			if (node->fragment_size < 1024) {
-				printf("***NOTE***: please consider scheduling real-time!\n");
+				alsaplayer_error("***NOTE***: please consider scheduling real-time!");
 			}
 		} else {
 			mlockall(MCL_CURRENT);
@@ -137,7 +290,7 @@ void AlsaNode::looper(void *pointer)
 	buffer_data = new char[16384];
 
 	if (!buffer_data) {
-		printf("HUH?? error!\n");
+		alsaplayer_error("HUH?? error!");
 		exit(1);
 	}	
 
@@ -156,7 +309,7 @@ void AlsaNode::looper(void *pointer)
 			}	
 			if (i->streamer) {
 				//printf("streaing %d\n", i->ID);
-				status = i->streamer(i->arg, buffer_data, read_size);
+				status = i->streamer(i->arg, buffer_data, read_size / sizeof(short));
 			} else { 
 				continue;
 			}	
@@ -200,13 +353,13 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 	int version;
 
 	if (plugin_count == MAX_PLUGIN) {
-		fprintf(stderr, "Maximum number of plugins reached (%d)\n", MAX_PLUGIN);
+		alsaplayer_error("Maximum number of plugins reached (%d)", MAX_PLUGIN);
 		return 0;
 	}	
 	output_plugin *tmp = &plugins[plugin_count];
 	tmp->version = the_plugin->version;
 	if ((version = tmp->version) != OUTPUT_PLUGIN_VERSION) {
-		fprintf(stderr, "Wrong version on plugin v%d, wanted v%d\n",
+		alsaplayer_error("Wrong version on plugin v%d, wanted v%d",
 			version - 0x1000, OUTPUT_PLUGIN_VERSION - 0x1000);
 		return 0;
 	}	
@@ -226,7 +379,7 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 
 	/* If we already have a plugin, close the old one. */
 	if (plugin)  {
-		printf("Closing already open plugin?!\n");
+		alsaplayer_error("Closing already opened plugin?!");
 		plugin->close();
 	}
 	/* Remember this plugin - it's the one we're going to use. */
@@ -280,7 +433,7 @@ int AlsaNode::AddStreamer(streamer_type str, void *arg, int preferred_pos)
 			default:
 						break;
 	}	
-	printf("Oversubscribed....!\n");
+	alsaplayer_error("oversubscribed....!");
 	pthread_mutex_unlock(&queue_mutex);
 	return -1;
 }
@@ -300,7 +453,7 @@ bool AlsaNode::RemoveStreamer(int the_id)
 			return true;
 		}	
 	}
-	printf("Streamer not found\n");
+	alsaplayer_error("Streamer not found");
 	pthread_mutex_unlock(&queue_mutex);
 	return false;
 }
@@ -308,12 +461,22 @@ bool AlsaNode::RemoveStreamer(int the_id)
 
 void AlsaNode::StartStreaming()
 {
+#ifdef USE_JACK
+	if (use_jack) {
+		return;
+	}	
+#endif	
 	pthread_create(&looper_thread, NULL, (void * (*)(void *))looper, this);
 }
 
 
 void AlsaNode::StopStreaming()
 {
+#ifdef USE_JACK
+	if (use_jack) {
+		return;
+	}	
+#endif
 	looping = false;
 	pthread_join(looper_thread, NULL); // Wait for thread
 }
@@ -328,14 +491,16 @@ bool AlsaNode::ReadyToRun()
 int AlsaNode::GetLatency()
 {
 	int count = 0;
-
+#ifdef USE_JACK
+	if (use_jack) // Should jack have a hardware buffer length query?
+			return (fragment_size * nr_fragments);
+#endif
 	assert(plugin);
 	if (plugin->get_queue_count && (count = plugin->get_queue_count()) >= 0) {
 		return count;
 	} else if (plugin->get_latency && (count = plugin->get_latency()) >= 0) {
-		//printf("requesting latency with get_latency()\n");
 		return count;
-	} else  // This is obsolete, not to mention incorrect
+	} else  
 		return (external_latency + ((nr_fragments-1) * fragment_size));
 }
 

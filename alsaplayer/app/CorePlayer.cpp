@@ -47,6 +47,7 @@
 #include <math.h>
 #include "Effects.h"
 #include "utilities.h"
+#include "error.h"
 
 #define MAX_FRAGS	16
 #define LOW_FRAGS	4	
@@ -54,12 +55,6 @@
 extern void exit_sighandler(int);
 static char addon_dir[1024];
 
-// ----------------------------- AMP specific
-
-//int CorePlayer::plugin_count;
-//input_plugin CorePlayer::plugins[32];
-
-//bool streamer_func(void *arg, void *data, int size);
 
 bool surround_func(void *arg, void *data, int size)
 {
@@ -114,18 +109,18 @@ void CorePlayer::load_input_addons()
 
 					if (input_plugin_info) {
 #ifdef DEBUG
-						fprintf(stderr, "Loading input plugin: %s\n", path);
+						alsaplayer_error("Loading input plugin: %s", path);
 #endif
 						input_plugin *the_plugin = input_plugin_info();
 						if (the_plugin) {
 							the_plugin->handle = handle;
 						}
 						if (!RegisterPlugin(the_plugin)) {
-							fprintf(stderr, "Error loading %s\n", path);
+							alsaplayer_error("Error loading %s", path);
 							dlclose(handle);
 						}
 					} else {
-						fprintf(stderr, "Could not find input_plugin_info symbol in shared object `%s'\n", path);
+						alsaplayer_error("Could not find input_plugin_info symbol in shared object `%s'", path);
 						dlclose(handle);
 					}	
 				} else {
@@ -256,7 +251,7 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	tmp->version = the_plugin->version;
 	if (tmp->version) {
 		if ((version = tmp->version) != INPUT_PLUGIN_VERSION) {
-			fprintf(stderr, "Wrong version number on plugin v%d, wanted v%d\n",
+			alsaplayer_error("Wrong version number on plugin v%d, wanted v%d",
 					version - INPUT_PLUGIN_BASE_VERSION,
 					INPUT_PLUGIN_VERSION - INPUT_PLUGIN_BASE_VERSION);      
 			pthread_mutex_unlock(&player_mutex);
@@ -557,7 +552,6 @@ bool CorePlayer::Open()
 
 	plugin = best_plugin;
 
-	//fprintf(stderr, "Using input plugin: %s\n", plugin->name);
 	if (plugin->open(the_object, file_path)) {
 		result = true;
 		frames_in_buffer = read_buf->buf->GetBufferSizeBytes(plugin->frame_size(the_object)) / plugin->frame_size(the_object);
@@ -882,22 +876,8 @@ bool CorePlayer::streamer_func(void *arg, void *data, int size)
 	CorePlayer *obj = (CorePlayer *)arg;
 	int count;
 	char input_buffer[16384]; // Should be big enough
-	//static int tracer = 0;
-	//printf("Entering streamer_func...%6d\r", tracer++);
-	//fflush(stdout);
-	if ((count = obj->Read32(input_buffer, size >> 2)) >= 0) {
-		//if (global_reverb_feedback) {
-    //                    echo_effect32(data , size,
-    //                            global_reverb_delay, global_reverb_feedback);
-		//}
-		//if (global_vol != 100 || global_bal != 100) {
-		//		int left, right;
-		//		left = global_vol_left * global_vol;
-		//		left /= 100;
-		//		right = global_vol_right * global_vol;
-		//		right /= 100;
-		//		volume_effect32(data, count, left, right);
-		//}
+
+	if ((count = obj->Read32(input_buffer, size / sizeof(short))) >= 0) {
 		int v, p, left, right;
 		p = obj->GetPan();
 		v = obj->GetVolume();
@@ -927,7 +907,7 @@ bool CorePlayer::streamer_func(void *arg, void *data, int size)
 		int32_t level;
 		in_buffer = (int16_t *)input_buffer;
 		out_buffer = (int16_t *)data;
-		for (int i=0; i < size >> 1; i++) {
+		for (int i=0; i < size ; i++) {
 				level = *(in_buffer++) + *out_buffer;
 				if (level > 32767) level = 32767;
 				else if (level < -32768) level = -32768;
