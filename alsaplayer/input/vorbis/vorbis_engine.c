@@ -232,7 +232,7 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 	struct vorbis_local_data *data;	
 	vorbis_comment *comment;
 	vorbis_info *vi;
-	char *t, *a, *l, *g, *y, *n, *c;
+	const char *t, *a, *l, *g, *y, *n, *c;
 
 	if (!obj || !info)
 		return 0;
@@ -250,13 +250,13 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 			n = vorbis_comment_query(comment, "tracknumber", 0);
 			c = vorbis_comment_query(comment, "description", 0);
 
-			sprintf(info->title, "%s", t ? t : "");
-			sprintf(info->artist, "%s", a ? a : "");
-			sprintf(info->album, "%s", l ? l : "");
-			sprintf(info->genre, "%s", g ? g : "");
-			sprintf(info->year, "%s", y ? y : "");
-			sprintf(info->track, "%s", n ? n : "");
-			sprintf(info->comment, "%s", c ? c : "");
+			strcpy(info->title, t ? t : "");
+			strcpy(info->artist, a ? a : "");
+			strcpy(info->album, l ? l : "");
+			strcpy(info->genre, g ? g : "");
+			strcpy(info->year, y ? y : "");
+			strcpy(info->track, n ? n : "");
+			strcpy(info->comment, c ? c : "");
 		} else {
 			strcpy (info->title, data->path);
 			info->artist [0] = '\0';
@@ -276,7 +276,7 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 					vi->rate / 1000, 
 					data->bitrate_instant / 1000);
 		} else
-			sprintf(info->stream_type, "Unkown OGG VORBIS");
+			strcpy(info->stream_type, "Unkown OGG VORBIS");
 		info->status[0] = 0;
 	}
 	return 1;
