@@ -1,5 +1,5 @@
-/*  Main.cpp - main() function and other gtk+ blurbs
- *  Copyright (C) 1998 Andy Lo A Foe <andy@alsa-project.org>
+/*  Main.cpp - main() function and other utils
+ *  Copyright (C) 1998-2001 Andy Lo A Foe <andy@alsa-project.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -43,11 +43,6 @@
 #include "utilities.h"
 
 Playlist * playlist = NULL;
-
-int global_bal = 100;
-int global_vol_left = 100;
-int global_vol_right = 100;
-int global_vol = 100;
 
 int global_reverb_on = 0;
 int global_reverb_delay = 2;
@@ -150,72 +145,6 @@ void load_output_addons(AlsaNode *node, char *module = NULL)
 			"       Use the -o paræmeter to select one.\n", addon_dir);
 }
 
-/*
-void load_input_addons(CorePlayer *p)
-{
-	char path[1024];
-	DIR *dir;
-	struct stat buf;
-	dirent *entry;
-	
-	input_plugin_info_type input_plugin_info;
-
-	sprintf(path, "%s/input", addon_dir);
-
-	dir = opendir(path);
-
-	if (dir) {
-		while ((entry = readdir(dir)) != NULL) {
-			if (strcmp(entry->d_name, ".") == 0 ||
-			    strcmp(entry->d_name, "..") == 0) {
-					continue;
-			}
-			sprintf(path, "%s/input/%s", addon_dir, entry->d_name);
-			if (stat(path, &buf)) continue;
-			if (S_ISREG(buf.st_mode)) {
-				void *handle;
-
-				char *ext = strrchr(path, '.');
-
-				if (!ext)
-					continue;
-				
-				ext++;
-
-				if (strcasecmp(ext, "so"))
-					continue;
-
-				if ((handle = dlopen(path, RTLD_NOW |RTLD_GLOBAL))) {
-					input_plugin_info = (input_plugin_info_type)
-						dlsym(handle, "input_plugin_info");
-
-					if (input_plugin_info) {
-#ifdef DEBUG
-						fprintf(stderr, "Loading input plugin: %s\n", path);
-#endif
-						input_plugin *the_plugin = input_plugin_info();
-						if (the_plugin) {
-							// Set handle here
-						}
-						if (!p->RegisterPlugin(the_plugin)) {
-							fprintf(stderr, "Error loading %s\n", path);
-							dlclose(handle);
-						}
-					} else {
-#ifdef DEBUG
-						fprintf(stderr, "Could not find symbol in shared object `%s'\n", path);
-#endif
-						dlclose(handle);
-					}	
-				} else {
-					printf("%s\n", dlerror());
-				}
-			}	
-		}
-		closedir(dir);
-	}
-}
-*/
 
 interface_plugin_info_type load_interface(char *name)
 {
@@ -309,6 +238,7 @@ int main(int argc, char **argv)
 	int use_user = 0;
 	int last_arg = 0;
 	int arg_pos = 0;
+	int use_vol = 100;
 	CorePlayer *p;
 	//char path[256], *home;
 	char use_interface[256];
@@ -353,7 +283,7 @@ int main(int argc, char **argv)
 				fprintf(stderr, "invalid value for volume: %d\n", tmp);
 				return 1;
 			}
-			global_vol = tmp;
+			use_vol = tmp;
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--version") == 0 ||
 				   strcmp(argv[arg_pos], "-v") == 0) {
@@ -505,17 +435,11 @@ int main(int argc, char **argv)
 	
 	p = new CorePlayer(node);
 
-  // Get input modules
-	//load_input_addons(p);
-	/*
-	if(p->plugin_count == 0) {
-		// No suitable input-addons
-		fprintf(stderr, "ERROR: I could not find any suitable input modules on your\n"
-				"       system. Make sure they're in \"%s/input/\"\n"
-				"       and are the correct version.\n", addon_dir);
+	if (!p)  {
+		fprintf(stderr, "ERROR: failed to create CorePlayer object...\n");
 		return 1;
 	}
-	*/
+
 	// Reverb effect
 	AlsaSubscriber *reverb = NULL;
 	if (use_reverb) {
@@ -528,6 +452,10 @@ int main(int argc, char **argv)
 	// Initialise playlist - must be done before things try to register with it
 	playlist = new Playlist(p);
 
+	if (!playlist) {
+		fprintf(stderr, "ERROR: Failed to create Playlist object\n");
+		return 1;
+	}	
 	// Add any command line arguments to the playlist
 	if (++last_arg < argc) {
 		std::vector<std::string> newitems;
