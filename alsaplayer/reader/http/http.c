@@ -406,7 +406,7 @@ static int reconnect (http_desc_t *desc)
 	    return 1;
 	} else {
 	    /* unknown */
-	    alsaplayer_error ("HTTP: We doesn't support %d response code: http://%s:%u%s",
+	    alsaplayer_error ("HTTP: We don't support %d response code: http://%s:%u%s",
 		rc, desc->host, desc->port, desc->path);
 	    return 1;
 	}
