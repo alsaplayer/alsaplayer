@@ -1,3 +1,13 @@
+* Modify threading to use conditional waits. More portable
+* GTK2 test interface. Far from functional
+
+Fri Dec  5 21:41:50 CET 2003
+----------------------------
+* Code cleanups
+* Fix for NPTL enabled systems (Redhat, Debian).
+* Fix for new ALSA driver release
+* Do not loop the playlist by default
+* Fix filename handling with percent signs
 * lower resource usage (RAM + CPU) for embedded target
 * VOLUME and PAN values are now FLOATS. Interface coders, take note!!
 * xosd interface: larger standard font

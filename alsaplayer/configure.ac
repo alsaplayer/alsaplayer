@@ -4,7 +4,7 @@ AC_INIT(app/CorePlayer.cpp)
 
 ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
-ALSAPLAYER_MICRO_VERSION=76
+ALSAPLAYER_MICRO_VERSION=77
 
 BETA=
 
@@ -313,10 +313,10 @@ dnl ==========
 dnl GTK2 stuff
 dnl ==========
 
-dnl PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.3 gthread-2.0 >= 2.0.3, have_gtk2=yes, have_gtk2=no)
-dnl AC_SUBST(GTK2_LIBS)
-dnl AC_SUBST(GTK2_CFLAGS)
-dnl AM_CONDITIONAL(HAVE_GTK2, test "x$have_gtk2" = xyes)
+PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.3 gthread-2.0 >= 2.0.3, have_gtk2=yes, have_gtk2=no)
+AC_SUBST(GTK2_LIBS)
+AC_SUBST(GTK2_CFLAGS)
+AM_CONDITIONAL(HAVE_GTK2, test "x$have_gtk2" = xyes)
 
 dnl ==================
 dnl libsndfile library
@@ -496,12 +496,12 @@ then
 have_sgi=no
 fi])
 
-dnl AC_ARG_ENABLE(gtk2,
-dnl [ --enable-gtk2           Enable GTK2 graphical interface (default=yes)],
-dnl [if test "$enableval" = "no"
-dnl then
-dnl have_gtk2=no
-dnl fi])
+AC_ARG_ENABLE(gtk2,
+[ --enable-gtk2           Enable GTK2 graphical interface (default=yes)],
+[if test "$enableval" = "no"
+then
+have_gtk2=no
+fi])
 
 AC_ARG_ENABLE(gtk,
 [  --enable-gtk            Enable GTK graphical interface (default=yes)],
@@ -584,6 +584,8 @@ AM_CONDITIONAL(ARCH_586,test "$ARCH_TYPE" = "i586")
 AM_CONDITIONAL(ARCH_686,test "$ARCH_TYPE" = "i686")
 AM_CONDITIONAL(ARCH_PPC,test "$ARCH_TYPE" = "ppc")
 AM_CONDITIONAL(ARCH_ULTRA,test "$ARCH_TYPE" = "sun4u")
+dnl cruft to satisfy gtk2's Makefile. Leave it in for now
+AM_CONDITIONAL(BUILD_EXTERNAL, test "a" = "b")
 
 AC_MSG_CHECKING(for gcc optimization flags)
 old_cflags=$CFLAGS
@@ -698,8 +700,6 @@ AC_SUBST(ALSAPLAYER_MINOR_VERSION)
 AC_SUBST(ALSAPLAYER_MICRO_VERSION)
 AC_SUBST(ALSAPLAYER_VERSION)
 
-dnl interface/gtk2/Makefile
-
 AC_OUTPUT([
 Makefile
 alsaplayer.1
@@ -710,6 +710,8 @@ interface/Makefile
 interface/gtk/Makefile
 interface/gtk/pixmaps/Makefile
 interface/gtk/gui/Makefile
+interface/gtk2/Makefile
+interface/gtk2/pixmaps/Makefile
 interface/text/Makefile
 interface/daemon/Makefile
 interface/xosd/Makefile
@@ -752,8 +754,6 @@ docs/Makefile
 docs/reference.doxygen
 ])
 
-dnl Build GTK2 interface:               ${have_gtk2
-
 echo "
 Configuration:
   
@@ -761,6 +761,7 @@ Configuration:
   Use libmad shared library:          ${use_libmad}
   Enable libid3tag support:           ${use_libid3tag}
   Build GTK interface:                ${have_gtk}
+  Build GTK2 interface:               ${have_gtk2}
   Build XOSD interface:               ${have_xosd}
   Build OpenGL based visual plugins:  ${have_opengl}
   Build alsa 0.5.x output plugin:     ${have_alsa_05x}

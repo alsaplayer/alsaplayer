@@ -1,5 +1,5 @@
 /*  Main.cpp - main() function and other utils
- *  Copyright (C) 1998-2003 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 1998-2004 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -186,7 +186,7 @@ extern bool reverb_func(void *arg, void *data, int size);
 
 static char *copyright_string =
     "AlsaPlayer " VERSION
-    "\n(C) 1999-2003 Andy Lo A Foe <andy@alsaplayer.org> and others.";
+    "\n(C) 1999-2004 Andy Lo A Foe <andy@alsaplayer.org> and others.";
 
 static void list_available_plugins(const char *plugindir)
 {
