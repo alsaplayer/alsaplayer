@@ -209,7 +209,6 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	pthread_mutex_init(&player_mutex, NULL);
 	pthread_mutex_init(&notifier_mutex, NULL);
 	
-	file_path[0] = 0;
 	producer_thread = 0; 
 	total_frames = 0;
 	streaming = false;
@@ -796,7 +795,6 @@ CorePlayer::GetPlayer(const char *path)
 void CorePlayer::Unload()
 {
 	Lock();
-	file_path[0] = 0;
 	Close();
 	Unlock();
 }
@@ -805,31 +803,23 @@ bool CorePlayer::Load(const char *path)
 {
 	bool result = false;
 	input_plugin *best_plugin;
-
+	input_object our_object;
+	
 	Unload();
 
-	if (path == NULL && !strlen(file_path)) {
+	if (path == NULL || strlen(path) == 0) {
+		alsaplayer_error("No path supplied");
 		return false;
 	}
-	
-	Lock();
-
-	if (path) {
-		strncpy(file_path, path, 1023);
-		file_path[1023] = 0;
-	}	
-
-	if ((best_plugin = GetPlayer(file_path)) == NULL) {
-		alsaplayer_error("No suitable plugin found for \"%s\"", file_path);
+	if ((best_plugin = GetPlayer(path)) == NULL) {
+		alsaplayer_error("No suitable plugin found for \"%s\"", path);
 		Unlock();
 		return false;
 	}
 
-	plugin = best_plugin;
-
-	memset(the_object, 0, sizeof(the_object));
-	if (plugin->open(the_object, file_path)) {
-		if (plugin->frame_size(the_object) > BUF_SIZE) {
+	memset(&our_object, 0, sizeof(our_object));
+	if (best_plugin->open(&our_object, path)) {
+		if (best_plugin->frame_size(&our_object) > BUF_SIZE) {
 			alsaplayer_error("CRITICAL ERROR: this plugin advertised a buffer size\n"
 					 "larger than %d bytes. This is not supported by AlsaPlayer!\n"
 					 "Contact the author to fix this problem.\n"
@@ -839,21 +829,29 @@ bool CorePlayer::Load(const char *path)
 					 "We will retreat, as chaos and despair await us on\n"
 					 "this chosen path........................................", BUF_SIZE);
 			result = false;
-			frames_in_buffer = 0;
-			plugin->close(the_object);
-		}	
-		result = true;
-		frames_in_buffer = read_buf->buf->GetBufferSizeBytes(plugin->frame_size(the_object)) / plugin->frame_size(the_object);
+			best_plugin->close(&our_object);
+		} else {
+			result = true;
+		}
 	} else {
 		result = false;
-		frames_in_buffer = 0;
-		plugin->close(the_object);
+		best_plugin->close(&our_object);
 	}
+
+	if (!result)
+		return false;
+
+	Lock();
+
+	memcpy(the_object, &our_object, sizeof(our_object));
 	the_object->ready = 1;
+	plugin = best_plugin;
 	
+	frames_in_buffer = read_buf->buf->GetBufferSizeBytes(plugin->frame_size(the_object)) / plugin->frame_size(the_object);
+
 	Unlock();
 	
-	return result;	
+	return true;	
 }
 
 #ifdef DEBUG
