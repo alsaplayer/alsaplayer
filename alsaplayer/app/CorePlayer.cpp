@@ -1143,7 +1143,6 @@ void CorePlayer::producer_func(void *data)
 	}
 	//alsaplayer_error("Exitting producer_func (producing = %d)", obj->producing);
 	pthread_exit(NULL);
-	return;
 }
 
 extern int global_bal;
