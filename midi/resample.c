@@ -143,7 +143,8 @@ int update_modulation(int v, struct md *d)
 /* Returns 1 if the note died */
 int32 update_modulation_signal(int v, int32 incr, struct md *d)
 {
-  if (d->voice[v].modulation_increment && update_modulation(v, d)) {
+  if (d->voice[v].modulation_increment) {
+    update_modulation(v, d);
     return calc_mod_freq(v, incr, d);
   }
   return incr;
