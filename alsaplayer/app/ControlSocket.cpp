@@ -69,11 +69,15 @@ void socket_looper(void *arg)
 		return;
 	}
 
+	alsaplayer_error("About to setup socket control");
+
 	pwd = getpwuid(geteuid());
 
 	if ((socket_fd = socket(AF_UNIX, SOCK_STREAM, 0)) != -1) {
 		saddr.sun_family = AF_UNIX;
+		alsaplayer_error("Looking for a free session_id");
 		while (session_id < MAX_AP_SESSIONS && !session_ok) {
+			alsaplayer_error("Checking %d", session_id);
 			if (!ap_ping(session_id)) {
 				sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
 						"anonymous" : pwd->pw_name, session_id);
@@ -83,6 +87,7 @@ void socket_looper(void *arg)
 				session_id++;
 				continue;
 			}	
+			alsaplayer_error("Found session id %d\n", session_id);
 			sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ? 
 					"anonymous" : pwd->pw_name, session_id);
 			if (bind(socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
@@ -102,6 +107,8 @@ void socket_looper(void *arg)
 		return;
 	}
 	global_session_id = session_id;
+
+	alsaplayer_error("socket control active");
 
 	while (socket_thread_running) {
 		FD_ZERO(&set);
@@ -127,7 +134,7 @@ void socket_looper(void *arg)
 		
 		ap_message_t *reply = ap_message_new();
 	
-		//alsaplayer_error("server: got something (%x)", msg->header.cmd);
+		alsaplayer_error("server: got something (%x)", msg->header.cmd);
 	
 		player = playlist->GetCorePlayer();
 	
@@ -377,7 +384,7 @@ void socket_looper(void *arg)
 					msg->header.cmd);
 				 break;
 		}
-		//alsaplayer_error("Sending reply");
+		alsaplayer_error("Sending reply");
 		ap_message_send(fd, reply);
 		ap_message_delete(reply);
 		ap_message_delete(msg);
@@ -389,7 +396,9 @@ void socket_looper(void *arg)
 
 void control_socket_start(Playlist *playlist)
 {
+	alsaplayer_error("control_socket_start()");
 	pthread_create(&socket_thread, NULL, (void * (*)(void *))socket_looper, playlist);
+	alsaplayer_error("success");
 }
 
 

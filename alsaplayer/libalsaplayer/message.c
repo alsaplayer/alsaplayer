@@ -45,9 +45,6 @@ int ap_connect_session (int session)
 
 	pwd = getpwuid(geteuid());
 
-	if (!pwd) {
-		return -1;
-	}	
 	if ((socket_fd = socket (AF_UNIX, SOCK_STREAM, 0)) != -1) {
 		saddr.sun_family = AF_UNIX;
 		sprintf (saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
@@ -685,6 +682,8 @@ int ap_ping(int session)
 	ap_message_t *msg, *reply;
 	
 	fd = ap_connect_session(session);
+	if (fd < 0)
+		return 0;
 	msg = ap_message_new();
 	msg->header.cmd = AP_PING;
 	ap_message_send(fd, msg);
@@ -711,6 +710,8 @@ int ap_add_and_play(int session, char *path)
 	ap_message_t *msg, *reply;
 
 	fd = ap_connect_session(session);
+	if (fd < 0)
+		return 0;
 	msg = ap_message_new();
 	msg->header.cmd = AP_ADD_AND_PLAY;
 	ap_message_add_string(msg, "path1", path);
@@ -739,6 +740,8 @@ int ap_add_path(int session, char *path)
 	ap_message_t *msg, *reply;
 
 	fd = ap_connect_session(session);
+	if (fd < 0)
+		return 0;
 	msg = ap_message_new();
 	msg->header.cmd = AP_ADD_PATH;
 	ap_message_add_string(msg, "path1", path);

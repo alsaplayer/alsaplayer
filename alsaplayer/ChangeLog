@@ -1,3 +1,12 @@
+* Rewrote locking code for callback interface. Much simpler.
+* New callback API for CorePlayer so interfaces get notified when
+  something happens.  
+* New ap_add_and_play() call for libalsaplayer
+* New info calls: ap_get_genre(), int ap_get_year(), 
+  ap_get_track_number() and ap_get_comment().
+
+
+
 Thu May 16 00:08:08 CEST 2002
 -----------------------------
 * JACK plugin is now a *real* plugin. Minor changes to the output 
