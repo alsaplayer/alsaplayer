@@ -157,7 +157,7 @@ void socket_looper(void *arg)
 				case AP_GET_STRING_SESSION_NAME:
 					// Hackery
 					pkt.pld_length = strlen("AlsaPlayer");
-					write (fd, &pkt, pkt.pld_length);
+					write (fd, &pkt, sizeof(ap_pkt_t));
 					write (fd, "AlsaPayer", pkt.pld_length);
 					break;
 				case AP_SET_STRING_ADD_FILE:
@@ -166,6 +166,15 @@ void socket_looper(void *arg)
 						char_val[pkt.pld_length] = 0; // Null terminate string
 						playlist->Insert(char_val, playlist->Length());
 					}	
+					break;
+				case AP_GET_INT_POS_SECOND:
+					player = playlist->GetCorePlayer();
+					if (player) {
+						int_val = player->GetCurrentTime() / 100;
+						pkt.pld_length = sizeof(int);
+						write (fd, &pkt, sizeof(ap_pkt_t));
+						write (fd, &int_val, sizeof(int));
+					}
 					break;
 				case AP_SET_INT_POS_SECOND:
 					player = playlist->GetCorePlayer();
