@@ -608,6 +608,7 @@ bool CorePlayer::Start()
 	}
 	pthread_create(&producer_thread, NULL,
 		(void * (*)(void *))producer_func, this);
+
 	// allow producer to actually start producing
 	dosleep(20000);
 	//alsaplayer_error("Prebuffering...");
@@ -1029,6 +1030,10 @@ int CorePlayer::Read32(void *data, int samples)
 		}
 		else
 		{
+			if (samplesInBuffer <= 0) {
+				memset(data, 0, samples * 4);
+				return samples;
+			}	
 			// use rest of current block
 			if (samplesInBuffer)
 				memcpy(out_buf, in_buf, samplesInBuffer * 4);
