@@ -262,23 +262,7 @@ int process(jack_nframes_t nframes, void *arg)
 {
 	subscriber *subs = (subscriber *)arg;
 	char bufsize[32768];
-	static bool realtime_set = 0;
 	
-	if (!realtime_set) {
-		struct sched_param sp;
-		memset(&sp, 0, sizeof(sp));
-		sp.sched_priority = sched_get_priority_max(SCHED_FIFO);
-
-		//alsaplayer_error("THREAD-%d=soundcard thread\n", getpid());
-
-		if (sched_setscheduler(0, SCHED_FIFO, &sp) != 0) {
-			alsaplayer_error("jack: failed to setup realtime scheduling! reliability might suffer.");
-		} else {
-			mlockall(MCL_CURRENT);
-			printf("jack: realtime scheduling active\n");
-		}
-		realtime_set = 1;
-	}       
 	if (subs) {
 		subscriber *i;
 		int c;
