@@ -26,6 +26,7 @@
 
 #include "config.h"
 #include "cdda.h"
+#include "prefs.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -248,14 +249,13 @@ static int cdda_open(input_object *obj, char *name)
 {
 	struct cdda_local_data *data;	
 	char *fname;	
+	char device[1024];
 	int cdrom_fd;
 
 	if (!obj)
 			return 0;
 
 	
-	// if(!name)
-		// name = DEFAULT_DEVICE;
 	fname = strrchr(name, '/');
 	if (fname) {
 		*fname = '\0';
@@ -263,7 +263,11 @@ static int cdda_open(input_object *obj, char *name)
 			fname++;
 		} while (*fname == '/');
 	} else {
-		name = DEFAULT_DEVICE;
+		if (ap_prefs) {
+			name = prefs_get_string(ap_prefs, "cdda.device", DEFAULT_DEVICE);
+		} else {
+			name = DEFAULT_DEVICE;
+		}	
 		fname = "Track 01.cdda";
 	}
 	
