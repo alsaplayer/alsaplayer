@@ -18,10 +18,6 @@ doxygen-build.stamp: $(DOX)
 	doxygen $(DOX)
 	touch doxygen-build.stamp
 			
-distclean-local: clean
-	rm -f *.stamp || true
-	if test -d reference; then rm -rf reference; fi
-
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(DOC_DIR)/reference/html
 	(installfiles=`echo reference/html/*.html`; \
@@ -49,6 +45,10 @@ uninstall-local: doxygen-build.stamp
 dist-check-doxygen:
 
 endif
+
+distclean-local: clean
+	rm -f *.stamp || true
+	if test -d reference; then rm -rf reference; fi
 
 dist-hook: dist-hook-local
 	mkdir $(distdir)/reference
