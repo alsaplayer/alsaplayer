@@ -118,9 +118,9 @@ int interface_text_start(Playlist *playlist, int /* argc */, char ** /* argv */)
 	stream_info info;
 	stream_info old_info;
 	bool streamInfoRequested = false;
-	bool displayProgress = true;
-	int nr_frames, pos = -1, old_pos = -1;
-	
+	int nr_frames, pos = -1, old_pos = -1, spaces, c;
+	char out_text[81];
+		
 	memset(&info, 0, sizeof(stream_info));
 	memset(&old_info, 0, sizeof(stream_info));
 
@@ -169,22 +169,8 @@ int interface_text_start(Playlist *playlist, int /* argc */, char ** /* argv */)
 			if (pos != old_pos) {
 				fprintf(stdout, "\n");
 				streamInfoRequested = false;
-			}	
-			if (!streamInfoRequested) {
-				coreplayer->GetStreamInfo(&info);
-				if (*info.title && strcmp(info.title, old_info.title) != 0) {
-					if (*info.artist)
-						fprintf(stdout, "Playing: %s - %s\n", info.artist, info.title);
-					else if (*info.title)
-						fprintf(stdout, "Playing: %s\n", info.title);
-					else
-						fprintf(stdout, "Playing: (no information available)\n");
-					memcpy(&old_info, &info, sizeof(stream_info));
-				} else {
-					fprintf(stdout, "Playing...\n");
-				}	
-				streamInfoRequested = true;
 			}
+			coreplayer->GetStreamInfo(&info);
 
 			if (global_quiet) {
 				dosleep(SLEEPTIME);
@@ -206,13 +192,33 @@ int interface_text_start(Playlist *playlist, int /* argc */, char ** /* argv */)
 				continue;
 			}	
 			c_min = secs / 6000;
-			c_sec = (secs % 6000) / 100;	
-			fprintf(stdout, "\r   Time: %02ld:%02ld ", c_min, c_sec);
-			if (nr_frames >= 0) 
-				fprintf(stdout, "(%02ld:%02ld) ", t_min, t_sec);
-			else {
-				fprintf(stdout, "-- Live broadcast -- ");
+			c_sec = (secs % 6000) / 100;
+			fprintf(stdout, "\rPlaying (%d/%d): %ld:%02ld ", 
+					 playlist->GetCurrent(),
+					 playlist->Length(),
+					 c_min, c_sec);
+			i = 50;
+			if (nr_frames >= 0)  {
+				fprintf(stdout, "(%ld:%02ld) ", t_min, t_sec);
+				i -= 8;		
+			} else {
+				fprintf(stdout, "(streaming) ", t_min, t_sec);
+				i -= 8;
 			}	
+			if (*info.artist)
+				snprintf(out_text, i, "%s - %s", info.artist, info.title);
+			else if (*info.title)
+				snprintf(out_text, i, "%s", info.title);
+			else 
+				snprintf(out_text, i, "(no title information available)");
+			spaces = i - strlen(out_text);
+			fprintf(stdout, "%s", out_text);
+			for (c=0; c < spaces; c++) {
+				fprintf(stdout, " ");
+			}
+			fprintf(stdout, "\r");
+
+#ifdef FANCY_INDICATOR			
 			// Draw nice indicator
 			block_val /= NR_BLOCKS; 
 
@@ -221,20 +227,19 @@ int interface_text_start(Playlist *playlist, int /* argc */, char ** /* argv */)
 			else
 				cur_val /= block_val;
 			
-			if (displayProgress && nr_frames >= 0) {
+			if (nr_frames >= 0) {
 				fprintf(stdout, "[");
 				for (i = 0; i < NR_BLOCKS; i++) {
 					fputc(cur_val >= i ? '*':' ', stdout);
 				}
 				fprintf(stdout,"] ");
 			}
-			fprintf(stdout, "(%03d/%03d)  ",
-				playlist->GetCurrent(), playlist->Length());
+#endif			
 			fflush(stdout);
 			dosleep(SLEEPTIME);
 		}
 	}
-	fprintf(stdout, "\n\n...done playing\n");
+	fprintf(stdout, "\n...done playing\n");
 	pthread_mutex_unlock(&finish_mutex);
 
 	//playlist->UnRegisterNotifier(&notifier);
