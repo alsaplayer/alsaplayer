@@ -324,6 +324,7 @@ void AlsaNode::looper(void *pointer)
 	alsaplayer_error("THREAD-%d=soundcard thread\n", getpid());
 #endif
 	if (pthread_mutex_trylock(&node->thread_mutex) != 0) {
+		pthread_exit(NULL);
 		return;
 	}	
 #ifdef USE_REALTIME
@@ -527,6 +528,7 @@ void AlsaNode::StartStreaming()
 	}	
 #endif	
 	pthread_create(&looper_thread, NULL, (void * (*)(void *))looper, this);
+	pthread_detach(looper_thread);
 }
 
 
@@ -538,7 +540,8 @@ void AlsaNode::StopStreaming()
 	}	
 #endif
 	looping = false;
-	pthread_join(looper_thread, NULL); // Wait for thread
+	pthread_cancel(looper_thread);
+	//pthread_join(looper_thread, NULL); // Wait for thread
 }
 
 
