@@ -650,7 +650,7 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 
 	if (data) {
 		if (!data->parsed_id3) {
-	            if (obj->flags & P_FILEBASED) 
+	            if (reader_seekable(data->mad_fd))
 			    parse_id3 (data->path, &data->sinfo);
 		    if (obj->flags & P_STREAMBASED) 
 			    strcpy(data->sinfo.status, "Streaming");
