@@ -94,7 +94,7 @@ void load_scope_addons()
 						if (tmp) {
 								tmp->handle = handle;
 								if (apRegisterScopePlugin(tmp) == -1) {
-									alsaplayer_error("%s is deprecated. Please remove it\n", path);
+									alsaplayer_error("%s is deprecated and should be removed", path);
 								}
 						}		
 					} else {

@@ -185,7 +185,7 @@ int apRegisterScopePlugin(scope_plugin *plugin)
 	se->next = (scope_entry *)NULL;
 	se->sp = plugin;
 	if (se->sp->version != SCOPE_PLUGIN_VERSION) {
-			alsaplayer_error("Wrong version number on scope plugin \"%s\" (v%d, wanted v%d)\n", se->sp->name, se->sp->version - 0x1000, SCOPE_PLUGIN_VERSION - 0x1000);
+			alsaplayer_error("Wrong version number on scope plugin \"%s\" (v%d, wanted v%d)", se->sp->name, se->sp->version - 0x1000, SCOPE_PLUGIN_VERSION - 0x1000);
 			delete se;
 			return -1;
 	}		
