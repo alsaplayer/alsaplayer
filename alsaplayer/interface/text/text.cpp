@@ -127,7 +127,7 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 interface_plugin default_plugin =
 {
 	INTERFACE_PLUGIN_VERSION,
-	{ "Default TEXT interface v1.0" },
+	{ "TEXT interface v1.0" },
 	{ "Andy Lo A Foe" },
 	NULL,
 	interface_text_init,
