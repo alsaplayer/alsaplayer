@@ -400,18 +400,18 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 																ext_header = 1;
 																header_size += 10; /* 10 byte extended header */
 												}
-												printf("ID3v2.%c detected with header size %d (at pos %d)\n",  0x30 + data[pos + 3], header_size, pos);
+												//printf("ID3v2.%c detected with header size %d (at pos %d)\n",  0x30 + data[pos + 3], header_size, pos);
 												if (ext_header) {
-													printf("Extended header detected\n");
+													//printf("Extended header detected\n");
 												}
 												header_size += 10;
-												printf("MP3 should start at %d\n", header_size);
+												//printf("MP3 should start at %d\n", header_size);
 												if (data[header_size] != 0xff) {
 													printf("You have a broken MP3! Searching for next 0xFF\n");
 													while (header_size < size) {
 														if (data[++header_size] == 0xff &&
 																data[header_size+1] == 0xfb) {
-															printf("Found 0xff 0xfb at %d\n",  header_size);
+															//printf("Found 0xff 0xfb at %d\n",  header_size);
 															return header_size;
 														}
 													}
@@ -441,7 +441,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 								header_size = 0;
 								while (header_size < size) {
 									if (data[++header_size] == 0xff && data[header_size+1] == 0xfb) {
-											printf("Found ff fb at %d\n", header_size);
+											//printf("Found ff fb at %d\n", header_size);
 											return header_size;
 									}
 								}	
