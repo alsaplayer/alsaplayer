@@ -36,6 +36,7 @@ run_cmd() {
     fi
 }
 
+run_cmd cat m4/*.m4 > acinclude.m4
 run_cmd aclocal
 run_cmd autoheader
 run_cmd libtoolize --automake
