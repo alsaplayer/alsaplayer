@@ -5,4 +5,5 @@ EXTRA_DIST = input_plugin.h output_plugin.h scope_plugin.h SampleBuffer.h \
 
 alsaplayerincludedir = $(includedir)/alsaplayer
 
-alsaplayerinclude_HEADERS = input_plugin.h output_plugin.h scope_plugin.h
+alsaplayerinclude_HEADERS = input_plugin.h output_plugin.h scope_plugin.h \
+	CorePlayer.h Playlist.h SampleBuffer.h AlsaNode.h
