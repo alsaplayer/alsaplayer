@@ -885,7 +885,7 @@ playlist_window_gtk->load_list = gtk_file_selection_new("Load Playlist");
 			GTK_DEST_DEFAULT_ALL,
 			drag_types,
 			n_drag_types,
-			GDK_ACTION_COPY);
+			(GdkDragAction) (GDK_ACTION_MOVE | GDK_ACTION_COPY));
 	gtk_signal_connect(GTK_OBJECT(toplevel), "drag_data_received",
 			GTK_SIGNAL_FUNC(dnd_drop_event), NULL);
 
