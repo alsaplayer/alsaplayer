@@ -36,6 +36,8 @@ extern "C" {
 // Used by scopes and things, so use C-style linkage
 void dosleep(unsigned int);
 void parse_file_uri_free(char *);
+char *get_homedir();
+char *get_prefsdir();
 char *parse_file_uri(const char *);
 int is_playlist(const char *);
 
