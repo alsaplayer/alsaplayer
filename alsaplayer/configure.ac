@@ -100,7 +100,7 @@ dnl Debugging stuff
 dnl ===============
 
 AC_ARG_ENABLE(debug, 
-[  --enable-debug          Enable debugging [default=no]],, enable_debug=no)
+[  --enable-debug          Enable debugging (default=no)],, enable_debug=no)
 
 if test "$enable_debug" = yes; then
 DFLAGS="$DFLAGS -g"
@@ -113,7 +113,7 @@ dnl OpenGL
 dnl ======
 
 AC_ARG_ENABLE(opengl,
-[  --enable-opengl         Enable OpenGL plugins [default=yes]],,
+[  --enable-opengl         Enable OpenGL plugins (default=yes)],,
 	enable_opengl=yes)
 
 if test "x$enable_opengl" = xyes; then
@@ -164,7 +164,7 @@ else
 fi
 
 AC_ARG_ENABLE(mikmod,
-[  --enable-mikmod         Enable Mikmod plugin [default=yes]],
+[  --enable-mikmod         Enable Mikmod plugin (default=yes)],
 [if test "$enableval" = "no"
 then
 	if test "$have_mikmod" = "yes"
@@ -175,7 +175,7 @@ fi])
 
 
 AC_ARG_ENABLE(oggvorbis,
-[  --enable-oggvorbis      Enable Ogg Vorbis plugin [default=yes]],
+[  --enable-oggvorbis      Enable Ogg Vorbis plugin (default=yes)],
 [if test "$enableval" = "no"
 then
 	if test "$have_oggvorbis" = "yes"
@@ -189,7 +189,7 @@ AM_CONDITIONAL(HAVE_OGGVORBIS,test "$have_oggvorbis" = "yes")
 audiofile_enable=no
 
 AC_ARG_ENABLE(audiofile,
-[  --enable-audiofile      Enable Audiofile plugin [default=no]],
+[  --enable-audiofile      Enable Audiofile plugin (default=no)],
 [if test "$enableval" = "yes"
 then
 	if test "$have_audiofile" = "yes"
@@ -320,9 +320,18 @@ AC_SUBST(NAS_LIB)
 dnl ==========
 dnl JACK stuff
 dnl ==========
+use_jack=yes
+
+AC_ARG_ENABLE(jack,[  --enable-jack           Enable jack support (default=yes)],[if test "$enableval" = "no"
+then
+use_jack=no
+fi])
 
 AC_ARG_WITH(jack,[  --with-jack=PFX        Prefix where jack is installed (optional)],
  jack_prefix="$withval", jack_prefix="/usr/local") 
+
+if test "$use_jack" = "yes"
+then
 
 JACK_CFLAGS="-I$jack_prefix/include"
 
@@ -353,6 +362,13 @@ JACK_LIB=""
 
 fi
 
+else
+
+have_jack=no
+JACK_LIB=""
+
+fi
+
 AC_SUBST(JACK_LIB)
 
 
@@ -363,14 +379,14 @@ dnl is really modular
 dnl =====================================================
 
 AC_ARG_ENABLE(alsa,
-[  --enable-alsa		  Enable ALSA [default=yes]],
+[  --enable-alsa		  Enable ALSA (default=yes)],
 [if test "$enableval" = "no"
 then
 have_alsa=no
 fi])
 
 AC_ARG_ENABLE(esd,
-[  --enable-esd            Enable esd driver [default=yes]],
+[  --enable-esd            Enable esd driver (default=yes)],
 [if test "$enableval" = "no"
 then
 have_esd=no
@@ -378,7 +394,8 @@ fi])
 
 
 AC_ARG_ENABLE(sparc,
-[  --enable-sparc          Enable SPARC driver [default=yes]],
+[  --enable-sparc          Enable SPARC driver (default=yes)],
+
 [if test "$enableval" = "no"
 then
 have_sparc=no
@@ -386,7 +403,7 @@ fi])
 
 
 AC_ARG_ENABLE(oss,
-[  --enable-oss            Enable OSS driver [default=yes]],
+[  --enable-oss            Enable OSS driver (default=yes)],
 [if test "$enableval" = "no"
 then
 have_oss=no
@@ -394,28 +411,28 @@ fi])
 
 
 AC_ARG_ENABLE(sgi,
-[  --enable-sgi            Enable SGI driver [default=yes]],
+[  --enable-sgi            Enable SGI driver (default=yes)],
 [if test "$enableval" = "no"
 then
 have_sgi=no
 fi])
 
 AC_ARG_ENABLE(gtk,
-[  --enable-gtk            Enable GTK graphical interface [default=yes]],
+[  --enable-gtk            Enable GTK graphical interface (default=yes)],
 [if test "$enableval" = "no"
 then
 have_gtk=no
 fi])
 
 AC_ARG_ENABLE(nas,
-[  --enable-nas            Enable NAS driver [default=yes]],
+[  --enable-nas            Enable NAS driver (default=yes)],
 [if test "$enableval" = "no"
 then
 have_nas=no
 fi])
 
 dnl AC_ARG_ENABLE(qt,
-dnl [  --enable-qt             Enable Qt graphical interface [default=no]],
+dnl [  --enable-qt             Enable Qt graphical interface (default=no)],
 dnl [
 dnl   if test "x$enableval" = "xno"
 dnl  then
