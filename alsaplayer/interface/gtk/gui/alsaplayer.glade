@@ -301,8 +301,8 @@
 	    <digits>1</digits>
 	    <policy>GTK_UPDATE_CONTINUOUS</policy>
 	    <value>0</value>
-	    <lower>-233</lower>
-	    <upper>234</upper>
+	    <lower>-333</lower>
+	    <upper>334</upper>
 	    <step>1</step>
 	    <page>1</page>
 	    <page_size>1</page_size>

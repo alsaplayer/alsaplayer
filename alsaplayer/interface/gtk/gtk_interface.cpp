@@ -232,7 +232,8 @@ void draw_volume()
 {
 	update_struct *ustr = &global_ustr;
 	GtkAdjustment *adj;
-	CorePlayer *p = (CorePlayer *)ustr->data;
+	Playlist *pl = (Playlist *)ustr->data;
+	CorePlayer *p = pl->GetCorePlayer();
 	GdkRectangle update_rect;
 	char str[60];
 	static int old_vol = -1;
@@ -294,22 +295,12 @@ void draw_balance()
 {
 	update_struct *ustr = &global_ustr;
 	GdkRectangle update_rect;
-	CorePlayer *p = (CorePlayer *)ustr->data;
+	Playlist *pl = (Playlist *)ustr->data;
+	CorePlayer *p = pl->GetCorePlayer();
 	char str[60];
 	int pan, left, right;
 
 	pan = p->GetPan();
-	/*
-	if (pan > 0) {
-		right = 100;
-		left = 100 - pan;
-	} else if (pan == 0) {
-		left = right = 100;
-	} else {
-		left = 100;
-		right = 100 + pan;
-	}	
-	*/
 	if (pan < 0) {
 		sprintf(str, "Pan: left %d%%", - pan);
 	} else if (pan > 0) {
@@ -423,7 +414,8 @@ void release_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	GtkAdjustment *adj;
 	update_struct *ustr = &global_ustr;
-	CorePlayer *p = (CorePlayer *)ustr->data;
+	Playlist *pl = (Playlist *)ustr->data;
+	CorePlayer *p = pl->GetCorePlayer();
 
 	adj = GTK_RANGE(widget)->adjustment;
 	p->Seek((int)adj->value);
@@ -440,7 +432,8 @@ void move_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 
 void speed_cb(GtkWidget *widget, gpointer data)
 {
-	CorePlayer *p = (CorePlayer *)data;
+	Playlist *pl = (Playlist *)data;
+	CorePlayer *p = pl->GetCorePlayer();
 	float val =  GTK_ADJUSTMENT(widget)->value;
 	global_speed = (gint) val;	
 	if (val < ZERO_PITCH_TRESH && val > -ZERO_PITCH_TRESH)
@@ -490,7 +483,8 @@ void pause_cb(GtkWidget *widget, gpointer data)
 
 void stop_cb(GtkWidget *widget, gpointer data)
 {
-	CorePlayer *p = (CorePlayer *)data;
+	Playlist *pl = (Playlist *)data;
+	CorePlayer *p = pl->GetCorePlayer();
 
 	if (p && p->IsPlaying()) {
 		if (playlist)
@@ -504,7 +498,8 @@ void eject_cb(GtkWidget *, gpointer);
 
 void play_cb(GtkWidget *widget, gpointer data)
 {
-	CorePlayer *p = (CorePlayer *)data;
+	Playlist *pl = (Playlist *)data;
+	CorePlayer *p = pl->GetCorePlayer();
 	if (p) {
 		if (playlist)
 			playlist->UnPause(); // Start playing stuff in the playlist
@@ -515,7 +510,9 @@ void play_cb(GtkWidget *widget, gpointer data)
 
 void eject_cb(GtkWidget *wdiget, gpointer data)
 {
-	CorePlayer *p = (CorePlayer *)data;
+	Playlist *pl = (Playlist *)data;
+	CorePlayer *p = pl->GetCorePlayer();
+
 	if (p) {
 		gtk_widget_show(play_dialog);
 		gdk_window_raise(play_dialog->window);
@@ -526,8 +523,8 @@ void eject_cb(GtkWidget *wdiget, gpointer data)
 void volume_cb(GtkWidget *widget, gpointer data)
 {
 	GtkAdjustment *adj = (GtkAdjustment *)widget;
-	CorePlayer *p = (CorePlayer *)data;
-
+	Playlist *pl = (Playlist *)data;
+	CorePlayer *p = pl->GetCorePlayer();
 
 	if (p) {
 		int idx = (int)adj->value;
@@ -540,7 +537,8 @@ void volume_cb(GtkWidget *widget, gpointer data)
 void balance_cb(GtkWidget *widget, gpointer data)
 {
 	GtkAdjustment *adj = (GtkAdjustment *)widget;
-	CorePlayer *p = (CorePlayer *)data;
+	Playlist *pl = (Playlist *)data;
+	CorePlayer *p = pl->GetCorePlayer();
 	int val;
 
 	if (p) {
@@ -554,6 +552,7 @@ void balance_cb(GtkWidget *widget, gpointer data)
 gint indicator_callback(gpointer data)
 {
 	update_struct *ustr;
+	Playlist *pl;
 	CorePlayer *p;
 	GtkAdjustment *adj;
 	GdkDrawable *drawable;
@@ -569,7 +568,8 @@ gint indicator_callback(gpointer data)
 
 	seeking[0] = 0;	
 	ustr = &global_ustr;
-	p = (CorePlayer *)ustr->data;
+	pl = (Playlist *)ustr->data;
+	p = pl->GetCorePlayer();
 	drawable = ustr->drawing_area->window;
 
 	adj = GTK_RANGE(ustr->pos_scale)->adjustment;
@@ -659,7 +659,8 @@ gint indicator_callback(gpointer data)
 
 void cd_cb(GtkWidget *widget, gpointer data)
 {
-	CorePlayer *p = (CorePlayer *)data;
+	Playlist *pl = (Playlist *)data;
+	CorePlayer *p = pl->GetCorePlayer();
 
 	if (p) {
 		playlist->Pause();
@@ -900,7 +901,7 @@ gint val_area_configure(GtkWidget *widget, GdkEventConfigure *event, gpointer da
 	return true;
 }
 
-void init_main_window(CorePlayer *p, Playlist *pl, GtkFunction f)
+void init_main_window(Playlist *pl, GtkFunction f)
 {
 	GtkWidget *root_menu;
 	GtkWidget *menu_item;
@@ -957,25 +958,12 @@ void init_main_window(CorePlayer *p, Playlist *pl, GtkFunction f)
 	style->font = smallfont;
 	gdk_font_ref(style->font); 	
 
-#if 0
-	working = get_widget(main_window, "eject_button");
-	if (working) {
-		pix = xpm_label_box(eject_xpm, main_window);
-		gtk_widget_show(pix);
-		gtk_container_add(GTK_CONTAINER(working), pix);
-		gtk_signal_connect(GTK_OBJECT(working), "clicked",
-						   GTK_SIGNAL_FUNC(eject_cb), p);
-		gtk_button_set_relief(GTK_BUTTON(working),
-							  global_rb ? GTK_RELIEF_NONE : GTK_RELIEF_NORMAL);
-	}										
-#endif
-
 	working = get_widget(main_window, "stop_button");
 	pix = xpm_label_box(stop_xpm, main_window);
 	gtk_widget_show(pix);
 	gtk_container_add(GTK_CONTAINER(working), pix);
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
-					   GTK_SIGNAL_FUNC(stop_cb), p);
+					   GTK_SIGNAL_FUNC(stop_cb), playlist);
 	gtk_button_set_relief(GTK_BUTTON(working), global_rb ? GTK_RELIEF_NONE :
 						  GTK_RELIEF_NORMAL);
 
@@ -1028,7 +1016,7 @@ void init_main_window(CorePlayer *p, Playlist *pl, GtkFunction f)
 	gtk_widget_show(play_pix);
 	gtk_container_add(GTK_CONTAINER(working), play_pix);
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
-					   GTK_SIGNAL_FUNC(play_cb), p);
+					   GTK_SIGNAL_FUNC(play_cb), playlist);
 	gtk_button_set_relief(GTK_BUTTON(working), 
 						  global_rb ? GTK_RELIEF_NONE : GTK_RELIEF_NORMAL);
 
@@ -1045,9 +1033,9 @@ void init_main_window(CorePlayer *p, Playlist *pl, GtkFunction f)
 #else
 		adj = GTK_RANGE(working)->adjustment;
 #endif	
-		gtk_adjustment_set_value(adj, (float)p->GetVolume());
+		gtk_adjustment_set_value(adj, (float)(pl->GetCorePlayer())->GetVolume());
 		gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-							GTK_SIGNAL_FUNC(volume_cb), p);
+							GTK_SIGNAL_FUNC(volume_cb), playlist);
 	}
 
 	val_area = gtk_drawing_area_new();
@@ -1056,7 +1044,7 @@ void init_main_window(CorePlayer *p, Playlist *pl, GtkFunction f)
 
 	global_ustr.vol_scale = working;
 	global_ustr.drawing_area = val_area;
-	global_ustr.data = p;
+	global_ustr.data = playlist;
 	if (working) {	
 		gtk_signal_connect (GTK_OBJECT (working), "motion_notify_event",
 							GTK_SIGNAL_FUNC(volume_move_event), &global_ustr);
@@ -1080,7 +1068,7 @@ void init_main_window(CorePlayer *p, Playlist *pl, GtkFunction f)
 		adj = GTK_RANGE(working)->adjustment;
 		gtk_adjustment_set_value(adj, 100.0);
 		gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-							GTK_SIGNAL_FUNC(balance_cb), p);
+							GTK_SIGNAL_FUNC(balance_cb), playlist);
 		global_ustr.bal_scale = working;
 		gtk_signal_connect (GTK_OBJECT (working), "motion_notify_event",
 							GTK_SIGNAL_FUNC(balance_move_event), &global_ustr);
@@ -1098,22 +1086,7 @@ void init_main_window(CorePlayer *p, Playlist *pl, GtkFunction f)
 					   GTK_SIGNAL_FUNC(playlist_cb), playlist_window_gtk); 
 	gtk_button_set_relief(GTK_BUTTON(working), 
 						  global_rb ? GTK_RELIEF_NONE : GTK_RELIEF_NORMAL);
-#if 0
-	working = get_widget(main_window, "scope_button");
-	if (working) {
-		GtkWidget *label = gtk_label_new("alsaplayer");
-		style = gtk_style_copy(gtk_widget_get_style(label));
-		gdk_font_unref(style->font);
-		style->font = smallfont;
-		gdk_font_ref(style->font);
-		gtk_widget_set_style(GTK_WIDGET(label), style);
-		gtk_container_add(GTK_CONTAINER(working), label);
-		gtk_widget_show(label);
-		gtk_button_set_relief(GTK_BUTTON(working),
-							  global_rb ? GTK_RELIEF_NONE : GTK_RELIEF_HALF);
-	}
-#endif
-
+	
 	working = get_widget(main_window, "cd_button");
 	pix = xpm_label_box(menu_xpm, main_window);
 	gtk_widget_show(pix);
@@ -1129,7 +1102,7 @@ void init_main_window(CorePlayer *p, Playlist *pl, GtkFunction f)
 
 	gtk_box_pack_start (GTK_BOX (working), val_area, true, true, 0);
 
-	global_ustr.data = p;
+	global_ustr.data = playlist;
 	working = get_widget(main_window, "pos_scale");
 	global_ustr.pos_scale = working;
 
@@ -1151,7 +1124,7 @@ void init_main_window(CorePlayer *p, Playlist *pl, GtkFunction f)
 
 	adj = GTK_RANGE(speed_scale)->adjustment;
 	gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-						GTK_SIGNAL_FUNC(speed_cb), p);
+						GTK_SIGNAL_FUNC(speed_cb), playlist);
 	gtk_adjustment_set_value(adj, 100.0);
 #endif
 	gtk_signal_connect(GTK_OBJECT(main_window), "delete_event", GTK_SIGNAL_FUNC(main_window_delete), (void *)f);
@@ -1196,7 +1169,7 @@ void init_main_window(CorePlayer *p, Playlist *pl, GtkFunction f)
 	gtk_widget_show(menu_item);
 	gtk_menu_append(GTK_MENU(root_menu), menu_item);
 	gtk_signal_connect(GTK_OBJECT(menu_item), "activate",
-					   GTK_SIGNAL_FUNC(cd_cb), p);
+					   GTK_SIGNAL_FUNC(cd_cb), playlist);
 #endif
 
 
@@ -1245,7 +1218,7 @@ void init_main_window(CorePlayer *p, Playlist *pl, GtkFunction f)
 
 	// start indicator thread
 	pthread_create(&indicator_thread, NULL,
-				   (void * (*)(void *))indicator_looper, p);
+				   (void * (*)(void *))indicator_looper, playlist);
 #ifdef DEBUG
 	printf("THREAD-%d=main thread\n", getpid());
 #endif

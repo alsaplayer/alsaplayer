@@ -165,7 +165,7 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 	}
 
 	playlist->UnPause(); // Make sure playlist is active
-	init_main_window(coreplayer, playlist, (GtkFunction)unload_scope_addons);
+	init_main_window(playlist, (GtkFunction)unload_scope_addons);
 	
 	// Do something whacky here
 
