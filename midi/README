@@ -1,3 +1,4 @@
+/* $Id$ */
 
 This is a midi input plugin for alsaplayer.  Compile and install it
 in alsaplayer's input/ plugin directory, then you can play midi files.
