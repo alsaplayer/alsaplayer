@@ -40,29 +40,49 @@
 #include "utilities.h"
 #include "prefs.h"
 
+
 typedef struct http_desc_t_ {
+    /* Info about stream */
     char *host, *path;
-    char *metadata;
-    void *data;
     int port;
     int sock;
-    long size, pos;
-    void *buffer;
-    int icy_metaint;
-    int buffer_pos;
-    int begin;			    /* Pos of first byte in the buffer. */
-    int len;			    /* Length of the buffered data. */
-    int direction;		    /* Reading direction. */
-    int going;			    /* True if buffer is filling. */
-    pthread_t thread;		    /* Thread which fill the buffer. */
-    pthread_mutex_t buffer_lock;    /* Lock to share buffer in threads */
-    pthread_mutex_t meta_lock;	    /* Metadata lock */
-    pthread_cond_t read_condition;  /* Notice reader_read about new block. */
-    pthread_cond_t fast_condition;  /* Give me data as soon as possible. */
-    int error;			    /* Error status (0 - none). */
+    long size;			/* Total size of stream (0 if unknown ) */
     int seekable;
+
+    /* Info about reading */
+    int direction;		/* Reading direction. */
+    long pos;			/* Current position where reader is */
+
+    /* Buffer stuff */
+    pthread_t buffer_thread;
+    pthread_mutex_t buffer_lock;
+    void *buffer;
+    int buffer_pos;		/* Pos of the byte which will be readed from server */
+    int begin;			/* Pos of first byte in the buffer. */
+    int len;			/* Length of the buffered data. */
+
+    /* Metadata stuff */
+    pthread_mutex_t meta_lock;
+    char *metadata;
+    int icy_metaint;
+
+    /* Variables to notify buffer_thread about one pass of non-blocking mode */
+    pthread_cond_t dont_wait_signal;
+    int dont_wait;
+
+    /* Variables to notify http_read when we have new data block for this function */
+    pthread_cond_t new_datablock_signal;
+    int new_datablock;
+
+    /* Status of this stream */
+    int error;			/* 0 if none */
+    int going;			/* True if buffer is filling. */
+
+    /* Callback info */
     reader_status_type status;
+    void *data;
 } http_desc_t;
+
 
 /* How much data we should read at once? (bytes)*/
 #define  HTTP_BLOCK_SIZE  (32*1024)
@@ -71,44 +91,76 @@ typedef struct http_desc_t_ {
 #define  DEFAULT_HTTP_BUFFER_SIZE  (1*1024*1024)
 int http_buffer_size;
 
+/* Maximum waiting time in thread (secs, float) */
+#define  MAX_WAIT_TIME  1000000.0
+
 /* Debug mode on/off */
-/* #define DEBUG_HTTP_BUFFERING  0 */
+/*#define DEBUG_HTTP_BUFFERING  0*/
+
 
 /* --------------------------------------------------------------- */
 /* ----------------------------- MISC FUNCTIONS ------------------ */
-static int cond_timedwait_relative (pthread_cond_t *cond, pthread_mutex_t *mut, unsigned int delay)
+static int cond_timedwait_relative (pthread_cond_t *cond, pthread_mutex_t *mut, unsigned long delay)
 {
     struct timeval now;
     struct timespec timeout;
 
     gettimeofday (&now, NULL);
 	    
-    timeout.tv_sec = now.tv_sec;
-    timeout.tv_nsec = (now.tv_usec + delay) * 1000;
+    timeout.tv_sec = now.tv_sec + delay / 1000000;
+    timeout.tv_nsec = (now.tv_usec + delay % 1000000) * 1000;
 	    
     return pthread_cond_timedwait (cond, mut, &timeout);
 }
 
+/* ------------------------------------------------ */
 static int calc_time_to_wait (http_desc_t *desc)
 {
     int timetowait;
     int suggested_len = http_buffer_size;
     int useless_buffer_len = desc->pos - desc->begin;
+    int useful_buffer_len = desc->len - useless_buffer_len;
 
     /* if size of stream is known we could use it to limit suggested len */
     if (desc->size) {
-	int rest_of_stream = desc->size - desc->buffer_pos + 1;
+	int rest_of_stream = desc->size - desc->buffer_pos;
 
 	if (rest_of_stream < suggested_len)
 	    suggested_len = rest_of_stream;
     };
 
+    /* check for possible overtime */
+    if (useful_buffer_len > suggested_len)
+	return (int)MAX_WAIT_TIME;
+
     /* calculate waiting time */
-    timetowait = (int)((float)(desc->len - useless_buffer_len) / (float)suggested_len*2000000.0);
+    timetowait = (int)((float)useful_buffer_len / (float)suggested_len * MAX_WAIT_TIME);
 
     return timetowait;
 }
 
+/* ------------------------------------------------ */
+void shrink_buffer (http_desc_t *desc)
+{
+    /* trying to shrink buffer */
+    if (desc->len + HTTP_BLOCK_SIZE > http_buffer_size && desc->pos - desc->begin > http_buffer_size/2) {
+	void *newbuf;
+	int shrinking_len = (desc->pos - desc->begin) - http_buffer_size / 2 + HTTP_BLOCK_SIZE;
+     
+	desc->len -= shrinking_len;
+	desc->begin += shrinking_len;
+	
+	/* allocate new buffer with the part of old one */
+	newbuf = malloc (desc->len);    
+	memcpy (newbuf, desc->buffer + shrinking_len, desc->len);
+
+	/* replace old buffer */
+	free (desc->buffer);
+	desc->buffer = newbuf;
+    }
+}
+
+/* ------------------------------------------------ */
 #ifdef DEBUG_HTTP_BUFFERING
 static void print_debug_info (http_desc_t *desc)
 {
@@ -170,11 +222,7 @@ static int parse_uri (const char *uri, char **host, int *port, char **path)
 
     //if (*path)
     //	    free(*path);
-    if (slash) {
-	*path = strdup (slash);
-    } else {
-	*path = strdup ("/");
-    }
+    *path = strdup (slash ? slash : "/");
     return 0;
 } /* end of: parse_uri */
 
@@ -252,40 +300,51 @@ static int read_data (int sock, void *ptr, size_t size)
 static void buffer_thread (http_desc_t *desc)
 {
     pthread_mutex_t mut;			/* Temporary mutex. */
-    int going = desc->going;			/* We should be careful. */
     int BLOCK_SIZE = HTTP_BLOCK_SIZE;
-    void *ibuffer = malloc (BLOCK_SIZE << 1);	/* Internal thread buffer. */
+    void *ibuffer;
     int rest = 0;
     int metasize = 0, metapos = 0, extra_read = 0;
     char *p;
-	    
-    if (desc->icy_metaint) {
-	    BLOCK_SIZE = (HTTP_BLOCK_SIZE > desc->icy_metaint) ? desc->icy_metaint : HTTP_BLOCK_SIZE;
-    }
-    
+       
     /* Init */
     pthread_mutex_init (&mut, NULL);
     
+    if (desc->icy_metaint) {
+	BLOCK_SIZE = (HTTP_BLOCK_SIZE > desc->icy_metaint) ? desc->icy_metaint : HTTP_BLOCK_SIZE;
+    }
+
+    ibuffer = malloc (BLOCK_SIZE << 1);
+    
     /* Process while main thread allow it. */
-    while (going) {
+    while (desc->going) {
 	void *newbuf;
 	int readed;
 
 #ifdef DEBUG_HTTP_BUFFERING
-	    print_debug_info (desc);
+	print_debug_info (desc);
 #endif
 
-	/* check for overflow */
-	going = desc->going;
 	rest = metasize = 0;
+	
+	/* trying to shrink buffer */
+	pthread_mutex_lock (&desc->buffer_lock);
+	shrink_buffer (desc);
+	pthread_mutex_unlock (&desc->buffer_lock);
+
+	/* check for overflow */
 	if (desc->len > http_buffer_size) {
 	    /* Notice waiting function that the new block of data has arrived */
-	    pthread_cond_signal (&desc->read_condition);
+	    desc->new_datablock = 1;
+	    pthread_cond_signal (&desc->new_datablock_signal);
     
 	    /* Make pause */
-	    pthread_mutex_lock (&mut);
-	    cond_timedwait_relative (&desc->fast_condition, &mut, calc_time_to_wait (desc));
-	    pthread_mutex_unlock (&mut);
+	    if (!desc->dont_wait) {
+		pthread_mutex_lock (&mut);
+		cond_timedwait_relative (&desc->dont_wait_signal, &mut, calc_time_to_wait (desc));
+		pthread_mutex_unlock (&mut);
+	    } else {
+		desc->dont_wait--;
+	    }
 
 	    continue;
 	}
@@ -296,15 +355,14 @@ static void buffer_thread (http_desc_t *desc)
 	/* reasons to stop */
 	if (readed == 0) {
 	    desc->going = 0;
-	    going = 0;
 	} else if (readed <0) {
 	    desc->error = 1;
 	    desc->going = 0;
-	    going = 0;
-	}
-	
-	/* Metadata stuff */
-	if (desc->icy_metaint > 0 && 
+	} else {
+	    /* Something readed */
+	    
+	    /* Metadata stuff */
+	    if (desc->icy_metaint > 0 && 
 		(desc->buffer_pos+readed) >  desc->icy_metaint) {
 		/* Metadata block is next! */
 		rest = (desc->buffer_pos+readed) - desc->icy_metaint;
@@ -313,40 +371,39 @@ static void buffer_thread (http_desc_t *desc)
 		p += (readed-rest);
 		metapos = (readed-rest);
 		if (rest) {
-			metasize = *(int8_t *)p;
-			metasize <<= 4;
-			if (rest < metasize) {
-				/* Uh oh, big trouble ahead, or maybe not? */
-				extra_read = read_data (desc->sock, ibuffer+readed, metasize);
-				readed += extra_read;
-				rest += extra_read;
+		    metasize = *(int8_t *)p;
+		    metasize <<= 4;
+		    if (rest < metasize) {
+			/* Uh oh, big trouble ahead, or maybe not? */
+			extra_read = read_data (desc->sock, ibuffer+readed, metasize);
+			readed += extra_read;
+			rest += extra_read;
+		    }	
+		    if (metasize > 4080) { 
+			alsaplayer_error("Invalid metasize (%d)", metasize);
+		    } else if (metasize > 0) {
+			p++;
+			p[metasize] = '\0';
+			pthread_mutex_lock (&desc->meta_lock);
+			if (desc->metadata) {
+			    free(desc->metadata);
 			}	
-			if (metasize > 4080) { 
-				alsaplayer_error("Invalid metasize (%d)", metasize);
-			} else if (metasize > 0) {
-				p++;
-				p[metasize] = '\0';
-				pthread_mutex_lock (&desc->meta_lock);
-				if (desc->metadata) {
-					free(desc->metadata);
-				}	
-				desc->metadata = (char *)malloc(strlen(p)+1);
-				memcpy(desc->metadata, p, strlen(p));
-				pthread_mutex_unlock (&desc->meta_lock);
-			} else {
-				/* Metadata is zero length */
-			}
+			desc->metadata = (char *)malloc(strlen(p)+1);
+			memcpy(desc->metadata, p, strlen(p));
+			pthread_mutex_unlock (&desc->meta_lock);
+		    } else {
+			/* Metadata is zero length */
+		    }
 		} else {
-			alsaplayer_error("Rest = 0???");
+		    alsaplayer_error("Rest = 0???");
 		}
 		metasize++; /* Length byte */
-	} else {
+	    } else {
 		desc->buffer_pos += readed;
-	}
+	    }
 
-	/* These operations are fast. -> doesn't break reader_read */
-	if (readed > 0) {
-	   /* ---------------- lock buffer ( */
+            /* These operations are fast. -> doesn't break reader_read */
+	    /* ---------------- lock buffer ( */
 	    pthread_mutex_lock (&desc->buffer_lock);
 	
 	    /* enlarge buffer */
@@ -370,14 +427,18 @@ static void buffer_thread (http_desc_t *desc)
 	}
 	
 	/* Notice waiting function that the new block of data has arrived */
-	pthread_cond_signal (&desc->read_condition);
+	desc->new_datablock = 1;
+	pthread_cond_signal (&desc->new_datablock_signal);
 
 	/* Do wait */
-	if (going) {    
+	if (desc->going && !desc->dont_wait) {
 	    pthread_mutex_lock (&mut);
-	    cond_timedwait_relative (&desc->fast_condition, &mut, calc_time_to_wait (desc));
+	    cond_timedwait_relative (&desc->dont_wait_signal, &mut, calc_time_to_wait (desc));
 	    pthread_mutex_unlock (&mut);
 	}
+	
+	if (desc->dont_wait)
+	    desc->dont_wait--;
     }
     
     free (ibuffer);
@@ -406,7 +467,9 @@ static int reconnect (http_desc_t *desc, char *redirect)
     /* Stop filling thread */
     if (desc->going) {
 	desc->going = 0;
-	pthread_join (desc->thread, NULL);
+	desc->dont_wait = 10;
+	pthread_cond_signal (&desc->dont_wait_signal);
+	pthread_join (desc->buffer_thread, NULL);
     }
     
     /* Close connection */
@@ -585,7 +648,7 @@ static int reconnect (http_desc_t *desc, char *redirect)
     
     /* Attach thread to fill a buffer */
     desc->going = 1;
-    pthread_create (&desc->thread, NULL, (void* (*)(void *)) buffer_thread, desc);
+    pthread_create (&desc->buffer_thread, NULL, (void* (*)(void *)) buffer_thread, desc);
 
     /* Prebuffer if this is stream */
 #if 1
@@ -624,7 +687,9 @@ static void http_close(void *d)
     /* stop buffering thread */
     if (desc->going) {
 	desc->going = 0;
-	pthread_join (desc->thread, NULL);
+	desc->dont_wait = 10000;
+	pthread_cond_signal (&desc->dont_wait_signal);
+	pthread_join (desc->buffer_thread, NULL);
     }
     
     /* free resources */
@@ -644,10 +709,12 @@ static void *http_open(const char *uri, reader_status_type status, void *data)
     http_desc_t *desc;
     char redirect[1024];
     int tries = 0;
-    
+ 
     /* Alloc descripor and init members. */
     desc = malloc (sizeof (http_desc_t));
     desc->going = 0;
+    desc->new_datablock = 0;
+    desc->dont_wait = 0;
     desc->sock = 0;
     desc->size = 0;
     desc->pos = 0;
@@ -661,8 +728,8 @@ static void *http_open(const char *uri, reader_status_type status, void *data)
     desc->data = data;
     pthread_mutex_init (&desc->buffer_lock, NULL);
     pthread_mutex_init (&desc->meta_lock, NULL);
-    pthread_cond_init (&desc->read_condition, NULL);
-    pthread_cond_init (&desc->fast_condition, NULL);
+    pthread_cond_init (&desc->new_datablock_signal, NULL);
+    pthread_cond_init (&desc->dont_wait_signal, NULL);
 
     /* Parse URI */
     if (parse_uri (uri, &desc->host, &desc->port, &desc->path)) {
@@ -791,39 +858,26 @@ static size_t http_read (void *ptr, size_t size, void *d)
 	}
 	
 	/* break waiting */
-	pthread_cond_signal (&desc->fast_condition);
+	desc->dont_wait = 1;
+	pthread_cond_signal (&desc->dont_wait_signal);
 	
 	/* Allow buffer_thread to use buffer */
         pthread_mutex_unlock (&desc->buffer_lock);
     
 	/* Wait for next portion of data */
-	pthread_mutex_lock (&mut);
-	pthread_cond_wait (&desc->read_condition, &mut);
-	pthread_mutex_unlock (&mut);
+	if (!desc->new_datablock) {
+	    pthread_mutex_lock (&mut);
+	    pthread_cond_wait (&desc->new_datablock_signal, &mut);
+	    pthread_mutex_unlock (&mut);
+	} else {
+	    desc->new_datablock --;
+	}
     }
 
-    /* If there are data to copy */
+    /* copy result If there are data to copy */
     if (tocopy) {
-	/* copy result */
 	memcpy (ptr, desc->buffer + desc->pos - desc->begin, tocopy);
 	desc->pos += tocopy;
-
-	/* trying to shrink buffer */
-	if (desc->len + HTTP_BLOCK_SIZE > http_buffer_size && desc->pos - desc->begin > http_buffer_size/2) {
-	    void *newbuf;
-	    int shrinking_len = (desc->pos - desc->begin) - http_buffer_size / 2 + HTTP_BLOCK_SIZE;
-	 
-	    desc->len -= shrinking_len;
-	    desc->begin += shrinking_len;
-	    
-	    /* allocate new buffer with the part of old one */
-	    newbuf = malloc (desc->len);    
-	    memcpy (newbuf, desc->buffer + shrinking_len, desc->len);
-
-	    /* replace old buffer */
-	    free (desc->buffer);
-	    desc->buffer = newbuf;
-	}
     }
     
     /* Allow buffer_thread to use buffer. */
@@ -909,7 +963,7 @@ static int http_eof (void *d)
 /* info about this plugin */
 reader_plugin http_plugin = {
 	READER_PLUGIN_VERSION,
-	"HTTP reader v1.2",
+	"HTTP reader v1.3",
 	"Evgeny Chukreev",
 	NULL,
 	http_init,
