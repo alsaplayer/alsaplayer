@@ -45,6 +45,7 @@
 #include "output_plugin.h"
 #include "interface_plugin.h"
 #include "utilities.h"
+#include "error.h"
 
 Playlist * playlist = NULL;
 
@@ -66,8 +67,21 @@ const char *default_output_addons[] = {
 	{ "libesound.so" },
 	{ "libsgi.so" },
 	{ "libnull.so" },
+	{ "libjack.so" },
 	NULL };
 
+
+static void default_alsaplayer_error (const char *fmt, ...)
+{
+        va_list ap;
+
+        va_start (ap, fmt);
+        vfprintf (stderr, fmt, ap);
+        va_end (ap);
+        fputc ('\n', stderr);
+}
+
+void (*alsaplayer_error)(const char *fmt, ...) = &default_alsaplayer_error;
 
 
 void exit_sighandler(int x)
@@ -76,7 +90,7 @@ void exit_sighandler(int x)
 
 	++sigcount;
 	if (sigcount == 1)
-		fprintf(stderr, "\nAlsaPlayer interrupted by signal %d\n", x);
+		alsaplayer_error("AlsaPlayer interrupted by signal %d", x);
 	if (sigcount == 1) 
 		exit(1);
 	if (sigcount > 5){
@@ -105,9 +119,9 @@ void load_output_addons(AlsaNode *node, char *module = NULL)
 				node->RegisterPlugin(output_plugin_info());
 				return;
 			} else {
-				fprintf(stderr, "symbol error in shared object: %s\n", path);
-				fprintf(stderr, "Try starting up with \"-o\" to load a\n"
-								"specific output module (alsa, oss, esd, etc.)\n");
+				alsaplayer_error("symbol error in shared object: %s\n"
+												"Try starting up with \"-o\" to load a\n"
+												"specific output module (alsa, oss, esd, etc.)", path);
 				dlclose(handle);
 				return;
 			}
@@ -130,15 +144,15 @@ void load_output_addons(AlsaNode *node, char *module = NULL)
 #endif
 				if (node->RegisterPlugin(output_plugin_info())) {
 					if (!node->ReadyToRun()) {
-						fprintf(stderr, "%s failed to init\n", path);
+						alsaplayer_error("%s failed to init", path);
 						continue; // This is not clean
 					}
 					return; // Return as soon as we load one successfully!
 				} else {
-					fprintf(stderr, "%s failed to load\n", path);
+					alsaplayer_error("%s failed to load", path);
 				}
 			} else {
-				printf("could not find symbol in shared object\n");
+				alsaplayer_error("could not find symbol in shared object");
 				dlclose(handle);
 			}
 		} else {
@@ -146,9 +160,9 @@ void load_output_addons(AlsaNode *node, char *module = NULL)
 		}
 	}
 	// If we arrive here it means we haven't found any suitable output-addons
-	fprintf(stderr, "ERROR: I could not find a suitable output module on your\n"
+	alsaplayer_error("I could not find a suitable output module on your\n"
 			"       system. Make sure they're in \"%s/output/\".\n"
-			"       Use the -o paræmeter to select one.\n", addon_dir);
+			"       Use the -o paræmeter to select one.", addon_dir);
 }
 
 
@@ -175,7 +189,7 @@ interface_plugin_info_type load_interface(char *name)
 					plugin->handle = handle;
 				return plugin_info;
 			} else {
-				fprintf(stderr, "symbol error in shared object: %s\n", path);
+				alsaplayer_error("symbol error in shared object: %s", path);
 				dlclose(handle);
 				return NULL;
 			}
@@ -254,8 +268,8 @@ int main(int argc, char **argv)
 	int arg_pos = 0;
 	int use_vol = 100;
 	int use_crossfade = 0;
-	//CorePlayer *p;
-	//char path[256], *home;
+	int use_other_output = 0;
+	char use_output[256];
 	char use_interface[256];
 
 	// First setup signal handler
@@ -284,7 +298,7 @@ int main(int argc, char **argv)
 		} else if (strcmp(argv[arg_pos], "--interface") == 0 ||
 				strcmp(argv[arg_pos], "-i") == 0) {
 				if (argc <= arg_pos+1) {
-						fprintf(stderr, "argument expected for %s\n",
+						alsaplayer_error("argument expected for %s",
 										argv[arg_pos]);
 						return 1;
 				}
@@ -295,7 +309,7 @@ int main(int argc, char **argv)
 			int tmp = -1;	   
 			if (sscanf(argv[++arg_pos], "%d", &tmp) != 1 ||
 				(tmp < 0 || tmp > 100)) {
-				fprintf(stderr, "invalid value for volume: %d\n", tmp);
+				alsaplayer_error("invalid value for volume: %d", tmp);
 				return 1;
 			}
 			use_vol = tmp;
@@ -338,8 +352,7 @@ int main(int argc, char **argv)
 					strcmp(argv[arg_pos], "-o") == 0) {
 			//printf("Use define output method!\n");		
 			if (argc <= arg_pos+1) {
-				fprintf(stderr, "argument expected for %s\n",
-					argv[arg_pos]);
+				alsaplayer_error("argument expected for %s\n", argv[arg_pos]);
 				return 1;
 			}
 			use_alsa = use_sparc = use_esd = use_oss = 0;
@@ -368,9 +381,9 @@ int main(int argc, char **argv)
 				use_nas = 1;
 				last_arg = ++arg_pos;
 			} else {
-				fprintf(stderr, "Unsupported output module: %s\n",
-					argv[arg_pos+1]);
-				return 1;
+				use_other_output = 1;
+				strcpy(use_output, argv[arg_pos+1]);
+				last_arg= ++arg_pos;
 			}
 			use_user = 1;
 		} else if (strcmp(argv[arg_pos], "--quiet") == 0 ||
@@ -380,35 +393,35 @@ int main(int argc, char **argv)
 		} else if (strcmp(argv[arg_pos], "--frequency") == 0 ||
 					strcmp(argv[arg_pos], "-F") == 0) {
 			if (sscanf(argv[++arg_pos], "%d", &use_freq) != 1) {
-				fprintf(stderr, "numeric argument expected for %s\n",
+				alsaplayer_error("numeric argument expected for %s",
 					argv[arg_pos-1]);
 				return 1;
 			}
 			if (use_freq < 8000 || use_freq > 48000) {
-				fprintf(stderr, "frequency out of range [8000-48000]\n");
+				alsaplayer_error("frequency out of range [8000-48000]");
 				return 1;
 			}		
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--fragsize") == 0 ||
 				   strcmp(argv[arg_pos], "-f") == 0) {
 			if (sscanf(argv[++arg_pos], "%d", &use_fragsize) != 1) {
-				fprintf(stderr, "numeric argument expected for %s\n",
+				alsaplayer_error("numeric argument expected for %s\n",
 					argv[arg_pos-1]);
 				return 1;
 			}
 			if (!use_fragsize || (use_fragsize % 32)) {
-				fprintf(stderr, "invalid fragment size, must be multiple of 32\n");
+				alsaplayer_error("invalid fragment size, must be multiple of 32");
 				return 1;
 			}
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--fragcount") == 0 ||
 				   strcmp(argv[arg_pos], "-g") == 0) {
 			if (sscanf(argv[++arg_pos], "%d", &use_fragcount) != 1) {
-				fprintf(stderr, "numeric argument expected for --fragcount\n");
+				alsaplayer_error("numeric argument expected for --fragcount");
 				return 1;
 			}
 			if (!use_fragcount) {
-				fprintf(stderr, "fragment count cannot be 0\n");
+				alsaplayer_error("fragment count cannot be 0");
 				return 1;
 			}
 			last_arg = arg_pos;
@@ -445,26 +458,29 @@ int main(int argc, char **argv)
 			load_output_addons(node, "sgi");
 		else if (use_null)
 			load_output_addons(node, "null");
+		else if (use_other_output) {
+			load_output_addons(node, use_output);
+		}	
 	} else
 		load_output_addons(node);
 
 	if (!node->ReadyToRun()) {
-		fprintf(stderr, "ERROR: failed to load output add-on. Exiting...\n");
+		alsaplayer_error("failed to load output add-on. Exiting...");
 		return 1;
 	}	
 	if (!node->SetSamplingRate(use_freq)) {
-		fprintf(stderr, "ERROR: failed to set sampling frequency. Exiting...\n");
+		alsaplayer_error("failed to set sampling frequency. Exiting...");
 		return 1;
 	}
 	if (!node->SetStreamBuffers(use_fragsize, use_fragcount, 2)) {
-		fprintf(stderr, "ERROR: failed to set fragment size/count. Exiting...\n");
+		alsaplayer_error("failed to set fragment size/count. Exiting...");
 		return 1;
 	}	
 	
 	//p = new CorePlayer(node);
 
 	//if (!p)  {
-	//	fprintf(stderr, "ERROR: failed to create CorePlayer object...\n");
+	//	alsaplayer_error("failed to create CorePlayer object...");
 	//	return 1;
 	//}
 
@@ -482,7 +498,7 @@ int main(int argc, char **argv)
 	playlist = new Playlist(node);
 
 	if (!playlist) {
-		fprintf(stderr, "ERROR: Failed to create Playlist object\n");
+		alsaplayer_error("Failed to create Playlist object");
 		return 1;
 	}	
 	// Add any command line arguments to the playlist
