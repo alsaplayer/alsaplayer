@@ -34,16 +34,13 @@ typedef jack_default_audio_sample_t sample_t;
 static jack_port_t *my_output_port1;
 static jack_port_t *my_output_port2;
 static jack_client_t *client = (jack_client_t *)NULL;
-static jack_nframes_t buffer_size;
 static jack_nframes_t sample_rate;
-static jack_nframes_t nr_fragments;
 static jack_nframes_t latency = 0;
 static int jack_reconnect = 1;
 
 static char dest_port1[128];
 static char dest_port2[128];
 
-static int bufsize(jack_nframes_t nframes, void *arg);
 static int srate(jack_nframes_t nframes, void *arg);
 static int process (jack_nframes_t nframes, void *arg);
 static int jack_prepare(void *arg);
@@ -117,7 +114,6 @@ int jack_prepare(void *arg)
 			return -1;
 		}
 		jack_set_process_callback (client, (JackProcessCallback)process, arg);
-		jack_set_buffer_size_callback (client, (JackProcessCallback)bufsize, arg);
 		jack_set_sample_rate_callback (client, (JackProcessCallback)srate, arg);
 		jack_on_shutdown (client, jack_shutdown, arg);
 
@@ -146,15 +142,6 @@ int jack_prepare(void *arg)
 		return 0;
 	}
 	return -1;
-}
-
-
-int bufsize(jack_nframes_t nframes, void *arg)
-{
-	//printf("the maximum buffer size is now %lu\n", nframes);
-	buffer_size = nframes;
-	nr_fragments = 3;
-	return 0;
 }
 
 
@@ -276,7 +263,7 @@ static int jack_set_sample_rate(int rate)
 int process(jack_nframes_t nframes, void *arg)
 {
 	subscriber *subs = (subscriber *)arg;
-	char bufsize[16384];
+	char bufsize[32768];
 	static bool realtime_set = 0;
 #if 1
 #if 1 
