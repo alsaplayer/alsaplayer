@@ -411,6 +411,11 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	    	alsaplayer_error("At least %d error(s) were detected", error_count);
 		//Unlock();
 		return 0;
+	}
+	if (!tmp->init()) {
+		alsaplayer_error("Plugin failed to initialize (\"%s\")",
+				tmp->name);
+		return 0;
 	}	
 	plugin_count++;
 	if (plugin_count == 1) { // First so assign plugin
