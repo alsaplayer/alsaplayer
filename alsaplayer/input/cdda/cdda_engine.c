@@ -232,7 +232,7 @@ static int cdda_init()
 }
 
 
-static float cdda_test_support(const char *name)
+static float cdda_can_handle(const char *name)
 {
 	char *ext;
 	ext = strrchr(name, '.');
@@ -468,7 +468,7 @@ input_plugin cdda_plugin = {
 		cdda_init,
 		NULL,
 		NULL,
-		cdda_test_support,
+		cdda_can_handle,
 		cdda_open,
 		cdda_close,
 		cdda_play_frame,

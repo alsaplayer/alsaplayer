@@ -86,7 +86,7 @@ static int test_wavefile(input_object *obj, void *buffer)
 		switch (wp->bit_p_spl) {
 		case 8:
 		case 16:
-			// Humm, no nothing :)
+			/* Humm, no nothing :) */
 			break;
 		default:
 			fprintf(stderr, "APLAY: can't play WAVE-files with sample %d bits wide\n",
@@ -155,7 +155,7 @@ static int wav_open(input_object *obj, char *name)
 		return 0;
 	}
 	if (test_wavefile(obj, audiobuf) >= 0) {
-		// Extract the filename
+		/* Extract the filename */
 		char *ptr = strrchr(name, '/');
 		if (ptr)
 			ptr++;
@@ -211,9 +211,9 @@ static int wav_play_frame(input_object *obj, char *buf)
 			return 0;
 	}
 
-	// Take care of mono streams
-	if (obj->nr_channels == 1) { // mono, so double 
-			if (data->format.bits == 8) { // 8 bit
+	/* Take care of mono streams */
+	if (obj->nr_channels == 1) { /* mono, so double  */
+			if (data->format.bits == 8) { /* 8 bit */
 				if (fread(tmpbuf, APLAY_FRAME_SIZE >> 2, 1, data->wav_fd) != 1) {
 					return 0;
 				}
@@ -225,7 +225,7 @@ static int wav_play_frame(input_object *obj, char *buf)
 					*d++ = c;
 				}
 #endif
-			} else { // 16 bit					
+			} else { /* 16 bit */	
 				if (fread(tmpbuf, APLAY_FRAME_SIZE >> 1, 1, data->wav_fd) != 1) {
 						return 0;
 				}
@@ -233,7 +233,7 @@ static int wav_play_frame(input_object *obj, char *buf)
 				d = (short *)audiobuf;
 				for (i=0; i < APLAY_FRAME_SIZE; i+=4) {
 						*d++ = *s;
-						*d++ = *s++; // Copy twice
+						*d++ = *s++; /* Copy twice */
 				}
 			}
 	} else if (obj->nr_channels == 2) {
@@ -310,7 +310,7 @@ static int wav_sample_rate(input_object *obj)
 
 static int wav_channels(input_object *obj)
 {
-	return 2; // Yes, always stereo, we take care of mono -> stereo converion
+	return 2; /* Yes, always stereo, we take care of mono -> stereo converion */
 }
 
 
@@ -333,7 +333,7 @@ static unsigned long wav_frame_to_sec(input_object *obj, int frame)
 
 
 
-static float wav_test_support(const char *name)
+static float wav_can_handle(const char *name)
 {
 	WaveHeader wp;
 	FILE *fd;
@@ -346,7 +346,7 @@ static float wav_test_support(const char *name)
 	ext++;
 	if (strcasecmp(ext, "wav"))
 		return 0.0;
-
+/*
 	if (stat(name, &st)) return 0.0;
 	if (!S_ISREG(st.st_mode)) return 0.0;
 	if ((fd = fopen(name, "r")) == NULL) {
@@ -365,6 +365,7 @@ static float wav_test_support(const char *name)
 			return 0.0;
 		}
 	}
+*/	
 	return 1.0;
 }
 
@@ -394,13 +395,13 @@ static int wav_init()
 input_plugin wav_plugin = {
 	INPUT_PLUGIN_VERSION,
 	0,
-	{ "WAV player v1.01" },	// Plugin name
-	{ "Andy Lo A Foe" }, 	// Author name
+	{ "WAV player v1.01" },
+	{ "Andy Lo A Foe" },
 	NULL,
 	wav_init,
 	NULL,
 	NULL,
-	wav_test_support,
+	wav_can_handle,
 	wav_open,
 	wav_close,
 	wav_play_frame,

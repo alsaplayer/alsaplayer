@@ -273,7 +273,7 @@ static unsigned long audiofile_frame_to_sec (input_object *obj, int frame)
 	return result;
 }
 
-static float audiofile_test_support (const char *name)
+static float audiofile_can_handle (const char *name)
 {
 	AFfilehandle	file;
 
@@ -287,10 +287,12 @@ static float audiofile_test_support (const char *name)
 		strstr(fname, ".AU") ||
 		strstr(fname, ".aiff") ||
 		strstr(fname, ".AIFF")) {
+		/*	
 			file = afOpenFile(name, "r", NULL);
 			if (file == AF_NULL_FILEHANDLE)
 				return 0.0;
 			afCloseFile(file);
+		*/
 			return 1.0;
 	}
 	return 0.0;
@@ -339,13 +341,13 @@ input_plugin audiofile_plugin =
 {
 	INPUT_PLUGIN_VERSION,
 	0,
-	{ "Audio File Library player v0.2.1" },	// Plugin name
-	{ "Michael Pruett" },	// Author name
-	NULL,									// Handle, filled in by main program
+	{ "Audio File Library player v0.2.1" },
+	{ "Michael Pruett" },
+	NULL,
 	audiofile_init,
 	NULL,
 	NULL,
-	audiofile_test_support,
+	audiofile_can_handle,
 	audiofile_open,
 	audiofile_close,
 	audiofile_play_frame,

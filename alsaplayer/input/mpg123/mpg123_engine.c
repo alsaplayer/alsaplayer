@@ -29,9 +29,9 @@
 
 #define RESYNC_FRAMES 4
 
-//#define DEBUG
+/* #define DEBUG */
 
-static long outscale = 32768; // Have to figure out what this does
+static long outscale = 32768; /* Have to figure out what this does */
 static int decoder_init = 0;
 int _internal_mpg123_error = 0;
 char *equalfile = NULL; 
@@ -90,7 +90,7 @@ static int mpeg_nr_frames(input_object *obj)
 {
 	if (!obj)
 			return 0; 
-	return obj->nr_frames; // This is silly, but clean
+	return obj->nr_frames; /* This is silly, but clean */
 }
 
 
@@ -100,7 +100,7 @@ static void initialise_decoder()
 	
 	make_decode_tables(outscale);
     init_layer2(); /* inits also shared tables with layer1 */
-    init_layer3(0); // No down sample support (yet?)
+    init_layer3(0); /* No down sample support (yet?) */
 }
 
 
@@ -118,7 +118,7 @@ static int mpeg_frame_seek(input_object *obj, int frame)
 			fprintf(stderr, "No seeking in streaming data\n");
 			return 0;
 		}	
-		if (frame < RESYNC_FRAMES) { // Always skip first 3 to 5 frames
+		if (frame < RESYNC_FRAMES) { /* Always skip first 3 to 5 frames */
 			stream_jump_to_frame(&data->fr, RESYNC_FRAMES);
 			mpeg_play_frame(obj, NULL);
 			mpeg_play_frame(obj, NULL);
@@ -195,7 +195,9 @@ static int mpeg_get_frame_info(input_object *obj, const char *fname)
 	
 		obj->nr_frames = data->streaming ? 0 : calc_numframes(&data->fr);
 		obj->frame_size = 4608;
-		//if (data->fr.stereo == 1) obj->frame_size = 2304; // Is this a constant? Dunno..
+		/* if (data->fr.stereo == 1) obj->frame_size = 2304; */
+		/* Is this a constant? Dunno.. Well, we do now.. It's not constant for
+		 * different layers and MPEG versions */
 #if 1	
 		switch(data->sample_freq) {
 					case 22050: obj->frame_size >>= 1;
@@ -206,7 +208,7 @@ static int mpeg_get_frame_info(input_object *obj, const char *fname)
 								break;
 		}						
 #endif
-		pcm_point = 0; // !!!!!!!!!
+		pcm_point = 0; /* !!!!!!!!! */
 	}
 	return 1;
 }
@@ -248,7 +250,7 @@ int mpeg_open(input_object *obj, char *path)
 
 	data->streaming = 0;
 	data->junk_size = 0;
-	obj->nr_channels = 2; // !!!!!!!!!
+	obj->nr_channels = 2; /* !!!!!!!!! */
 	
 #ifdef DEBUG	
 	printf("Opening stream %s\n", path);	
@@ -292,7 +294,7 @@ int mpeg_open(input_object *obj, char *path)
 		char *ptr = strrchr(path, '/');
 	
 		if (ptr)
-			ptr++; // get rid of /
+			ptr++; /* get rid of / */
 		else
 			ptr = path;
 		if (strlen(ptr) > FILENAME_MAX) {
@@ -302,7 +304,7 @@ int mpeg_open(input_object *obj, char *path)
 			strcpy(data->mpeg_name, ptr);
 	}
 	
-	// Set up object
+	/* Set up object */
 	
 	obj->flags = P_SEEK;
 	
@@ -356,7 +358,7 @@ void set_synth_functions(struct frame *fr)
 	fr->synth_mono = funcs_mono[1][p8][ds];
 
 	if(p8) {
-		make_conv16to8_table(-1); // FIX
+		make_conv16to8_table(-1); /* FIX */
 	}
 }
 

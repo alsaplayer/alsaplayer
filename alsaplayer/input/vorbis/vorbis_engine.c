@@ -287,11 +287,23 @@ static int vorbis_channels(input_object *obj)
 }
 
 
-static float vorbis_test_support(const char *path)
+static float vorbis_can_handle(const char *path)
 {
 		FILE *stream;
 		OggVorbis_File vfile;
+		char *ext;
 
+		ext = strrchr(path, '.');
+
+		if (!ext) /* Until we get MIME type support, this is the safest 
+								 method to detect file types */
+						return 0.0;
+		ext++;
+		if (!strcasecmp(ext, "ogg"))
+						return 1.0;
+		else
+						return 0.0;
+#if FANCY_CHECKING		
 		if ((stream = fopen(path, "r")) == NULL) {
 				return 0.0;
 		}		
@@ -301,6 +313,7 @@ static float vorbis_test_support(const char *path)
 		}
 		ov_clear(&vfile);
 		return 1;
+#endif		
 }
 
 
@@ -377,7 +390,7 @@ input_plugin vorbis_plugin =
 	vorbis_init,
 	NULL,
 	NULL,
-	vorbis_test_support,
+	vorbis_can_handle,
 	vorbis_open,
 	vorbis_close,
 	vorbis_play_frame,
