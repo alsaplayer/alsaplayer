@@ -948,7 +948,6 @@ first_frame:
 			case MAD_ERROR_BUFLEN:
 				return 0;
 			case MAD_ERROR_LOSTSYNC:
-				//alsaplayer_error("Lost synchronisation (frame %d)", data->current_frame);
 			case MAD_ERROR_BADEMPHASIS:
 			case MAD_ERROR_BADBITRATE:
 			case MAD_ERROR_BADLAYER:	
@@ -975,15 +974,16 @@ first_frame:
 		}
 	}
 	
-	
-	if (data->stream.error != MAD_ERROR_LOSTSYNC) {
-		if (xing_parse(&data->xing, data->stream.anc_ptr, data->stream.anc_bitlen) == 0) {
-			// We use the xing data later on
-		}	
+	mad_frame_decode(&data->frame, &data->stream);
+	/*	
+	alsaplayer_error("xing parsing...%x %x %x %x (%x %d)", 
+			data->stream.this_frame[0], data->stream.this_frame[1],
+			data->stream.this_frame[2], data->stream.this_frame[3],
+			data->stream.anc_ptr, data->stream.anc_bitlen);
+	*/		
+	if (xing_parse(&data->xing, data->stream.anc_ptr, data->stream.anc_bitlen) == 0) {
+		// We use the xing data later on
 	}
-	// XXX experimental. Decode an extra header...
-	if ((mad_header_decode(&data->frame.header, &data->stream) == -1)) 
-		goto first_frame;
 	
 	mode = (data->frame.header.mode == MAD_MODE_SINGLE_CHANNEL) ?
 		1 : 2;
@@ -1020,7 +1020,11 @@ first_frame:
 
 		obj->frame_size = (int) samples << 2; /* Assume 16-bit stereo */
 		frames = data->samplerate * (time+1) / samples;
-		obj->nr_frames = data->xing.frames ? (int) data->xing.frames : (int) frames;
+		if (data->xing.flags & XING_FRAMES) {
+			obj->nr_frames = data->xing.frames;
+		} else {	
+			obj->nr_frames = (int) frames;
+		}	
 		obj->nr_tracks = 1;
 	}
 	/* Determine if nr_frames makes sense */
