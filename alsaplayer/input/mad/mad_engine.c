@@ -28,7 +28,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -643,7 +643,7 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 {
 	struct mad_local_data *data;	
 	unsigned len;
-	char metadata[4096];
+	char metadata[256];
 	char *s, *p;
 	
 	if (!obj || !info)
@@ -669,8 +669,8 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 		    strncpy (data->sinfo.path, data->path, sizeof(data->sinfo.path));
 		    data->parsed_id3 = 1;
 		}
-		if ((len = reader_metadata(data->mad_fd, 4096, metadata))) {
-			metadata[4095] = '\0';
+		memset(metadata, 0, sizeof(metadata));
+		if ((len = reader_metadata(data->mad_fd, sizeof(metadata), metadata))) {
 			if (s = strstr(metadata, "StreamTitle='")) {
 				s += 13;
 				if ((p = strstr(s, "'"))) {
