@@ -1,0 +1,18 @@
+Copyright (C) 1995 Tuukka Toivonen.
+Tuukka Toivonen <toivonen@clinet.fi>
+
+AWE SoundFont support by Takashi Iwai <iwai@dragon.mm.t.u-tokyo.ac.jp>
+
+IW patchset support, karaoke, AWE/XG enhancements, much reworking of the code,
+conversion to alsaplayer plugin
+by Greg Lee <greg@ling.lll.hawaii.edu>
+
+Effects filter by Nicolas Witczak <witczak@geocities.fr>, see
+URL \fIhttp://www.geocities.com/SiliconValley/Lab/6307/\fP).
+
+Portamento, mod wheel, and other enhancements from TiMidity++
+Copyright (C) 1999 Masanao Izumo <mo@goice.co.jp>.  See
+URL \fIhttp://www.goice.co.jp/member/mo/hack-progs/timidity.html\fP.
+
+XG patch translation derived from Eric Welsh's eawpats distribution.
+(See TiMidity++ above.)

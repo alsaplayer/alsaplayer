@@ -1,3 +1,5 @@
+/*	$Id$   Greg Lee */
+
 /* bank 0 sf */
 /* 	  0 Grand_Piano */
 /* 	  1 Bright_Piano */
@@ -133,6 +135,8 @@
 /*	120 Cut_Noise */
 /*	121 Fl._Key_Click */
 /*	122 Rain */
+
+/* This table is derived from Eric Welsh's .cfg files for hiw "eawpats" distribution. */
 
 #define STS 1
 #define SDS 2

@@ -472,6 +472,12 @@ static int dumpstring(uint32 len, const char *label, int type, struct md *d)
 	s[len]='.';
     }
    ctl->cmsg(CMSG_TEXT, VERB_VERBOSE, "%s%s", label, s);
+
+   if (d->is_open && len > 10 && strstr(s, " by ") && !strstr(s, "opyright")) {
+     if (!d->author[0]) strncpy(d->author, s, 40);
+   }
+   if (type == 3 && len > 6 && d->curr_track == 0 && !d->title[0])
+	   strncpy(d->title, s, 30);
   }
   free(s);
   return 0;
@@ -732,6 +738,8 @@ static MidiEventList *read_midi_event(struct md *d)
 #endif
 	      b &= 0x7F;
 	      MIDIEVENT(d->at, ME_NOTEON, lastchan, a,b);
+
+	      if (d->curr_track == 0 && d->track_info > 1) d->title[0] = '\0';
 
 	    case 2: /* Key Pressure */
 #ifdef tplus
@@ -1245,27 +1253,31 @@ static void groom_list(int32 divisions, struct md *d)
 	  else /* not percussion */
 	    {
 	      int chan=meep->event.channel;
-	      int banknum;
+	      int banknum, mprog;
+	      int drumsflag = 0;
 
 	      if (current_banktype[chan]) banknum=SFXBANK;
 	      else banknum=current_bank[chan];
 
-	      if (current_program[chan]==SPECIAL_PROGRAM)
+	      mprog = current_program[chan];
+
+	      if (mprog==SPECIAL_PROGRAM)
 		break;
 
 	      if (d->XG_System_On && banknum==SFXBANK && tonebank[120]) 
 		      banknum = 120;
 
+	      if (current_config_pc42b) pcmap(&banknum, &mprog, &drumsflag);
+
 	      /* Mark this instrument to be loaded */
-	      if (!(tonebank[banknum]->tone[current_program[chan]].layer))
+	      if (!(tonebank[banknum]->tone[mprog].layer))
 		{
-		  tonebank[banknum]->tone[current_program[chan]].layer=
+		  tonebank[banknum]->tone[mprog].layer=
 		    MAGIC_LOAD_INSTRUMENT;
 		}
-	      else tonebank[banknum]->tone[current_program[chan]].last_used
-		 = current_tune_number;
+	      else tonebank[banknum]->tone[mprog].last_used = current_tune_number;
 	      if (!d->channel[meep->event.channel].name) d->channel[meep->event.channel].name=
-		    tonebank[banknum]->tone[current_program[chan]].name;
+		    tonebank[banknum]->tone[mprog].name;
 	    }
 	  break;
 
@@ -1510,6 +1522,8 @@ void read_midi_file(struct md *d)
   /* fread(&divisions_tmp, 2, 1, d->fp); */
   format=BE_SHORT(format);
   tracks=BE_SHORT(tracks);
+  d->track_info = tracks;
+  d->curr_track = 0;
   divisions_tmp=BE_SHORT(divisions_tmp);
 
   if (divisions_tmp<0)
@@ -1560,6 +1574,7 @@ void read_midi_file(struct md *d)
 	    free_midi_list(d);
 	    return;
 	  }
+        else d->curr_track++;
       break;
 
     case 2: /* We simply play the tracks sequentially */
@@ -1569,6 +1584,7 @@ void read_midi_file(struct md *d)
 	    free_midi_list(d);
 	    return;
 	  }
+        else d->curr_track++;
       break;
     }
   groom_list(divisions, d);

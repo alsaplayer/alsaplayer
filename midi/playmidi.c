@@ -608,7 +608,8 @@ static void clone_voice(Instrument *ip, int v, MidiEvent *e, uint8 clone_type, i
   d->voice[w].channel = d->voice[v].channel;
   d->voice[w].note = d->voice[v].note;
   d->voice[w].sample = d->voice[v].right_sample;
-  d->voice[w].velocity= (e->b * (127 - d->voice[w].sample->attenuation)) / 127;
+  /*d->voice[w].velocity= (e->b * (127 - d->voice[w].sample->attenuation)) / 127;*/
+  d->voice[w].velocity= e->b;
   d->voice[w].left_sample = d->voice[v].left_sample;
   d->voice[w].right_sample = d->voice[v].right_sample;
   d->voice[w].orig_frequency = d->voice[v].orig_frequency;
@@ -1043,7 +1044,8 @@ static void start_note(MidiEvent *e, int i, struct md *d)
   d->voice[i].status=VOICE_ON;
   d->voice[i].channel=ch;
 /* Check this! */
-  d->voice[i].velocity= (this_velocity * (127 - d->voice[i].sample->attenuation)) / 127;
+  /*d->voice[i].velocity= (this_velocity * (127 - d->voice[i].sample->attenuation)) / 127;*/
+  d->voice[i].velocity= this_velocity;
   d->voice[i].sample_offset=0;
   d->voice[i].sample_increment=0; /* make sure it isn't negative */
   /* why am I copying loop points? */

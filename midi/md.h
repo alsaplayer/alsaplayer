@@ -1,3 +1,4 @@
+/*	$Id$   Greg Lee */
 
 #ifdef PLAYLOCK
 #include <semaphore.h>
@@ -6,6 +7,8 @@ struct md
 {
 	char midi_name[FILENAME_MAX+1];
 	char midi_path_name[FILENAME_MAX+1];
+	char author[128];
+	char title[128];
 	int is_playing;
 	int is_open;
 	unsigned char *bbuf;
@@ -39,6 +42,8 @@ struct md
 	FILE *fp;
 	uint32 at;
 	int32 sample_increment, sample_correction;
+	int track_info;
+	int curr_track;
 	int midi_port_number;
 	FLOAT_T *vol_table;
 	Channel channel[MAXCHAN];

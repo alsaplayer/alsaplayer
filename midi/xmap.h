@@ -1,3 +1,4 @@
+/*	$Id$   Greg Lee */
 int xmap[XMAPMAX][5] = {
 { SFXBANK, 0, 0, 120, 0 },
 { SFXBANK, 0, 1, 120, 1 },

@@ -265,6 +265,9 @@ static int midi_open(input_object *obj, char *name)
 	d->XG_System_On = 0;
 	d->GS_System_On = 0;
 
+	d->author[0] = '\0';
+	d->title[0] = '\0';
+
 	d->xmp_epoch = -1;
 	d->xxmp_epoch = 0;
 	d->time_expired = 0;
@@ -686,13 +689,16 @@ static int midi_stream_info(input_object *obj, stream_info *info)
 #ifdef PLUGDEBUG
 fprintf(stderr,"midi_stream_info\n");
 #endif
-	if (!obj || !info)
-			return 0;
-	sprintf(info->stream_type, "%d-bit %dKhz %s MIDI", 16, 
-		44100 / 1000, "stereo");
-	info->author[0] = 0;
-	info->status[0] = 0;
-	strcpy(info->title, d->midi_name);	
+	if (!info) return 0;
+
+	sprintf(info->stream_type, "%s midi: %d track%s, %d events",
+		d->XG_System_On? "XG" : ( d->GS_System_On? "GS" : "GM"),
+		d->track_info, (d->track_info > 1)? "s" : "", d->event_count);
+	if (d->author[0]) snprintf(info->author, 80, "%s", d->author);
+	else info->author[0] = '\0';
+	sprintf(info->status, "notes: %3d", d->current_polyphony);
+	if (d->title[0]) snprintf(info->title, 80, "%s", d->title);
+	else strcpy(info->title, d->midi_name);	
 	
 	return 1;
 }

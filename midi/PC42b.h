@@ -1,3 +1,5 @@
+/*	$Id$   Greg Lee */
+
 struct cfg_type PC42b[] = {
 { FONT_TONESET, 0, NULL },
 { FONT_PRESET,   0, "Grand_Piano" },
