@@ -36,14 +36,20 @@
 #include "input_plugin.h"
 #include "alsaplayer_error.h"
 
+#ifdef __cplusplus
 extern "C" { 	/* Make sure MAD symbols are not mangled
 							 * since we compile them with regular gcc */
+#endif
 
+#ifndef HAVE_LIBMAD
 #include "frame.h"
 #include "synth.h"
+#endif	
 #include "mad.h"
 
+#ifdef __cplusplus
 }
+#endif
 
 #define BLOCK_SIZE 4096
 #define MAX_NUM_SAMPLES 8192
@@ -119,8 +125,8 @@ char const *error_str(enum mad_error error, char *str)
 
 /* utility to scale and round samples to 16 bits */
 
-				static inline
-signed int scale(mad_fixed_t sample)
+static inline
+signed int my_scale(mad_fixed_t sample)
 {
 				/* round */
 				sample += (1L << (MAD_F_FRACBITS - 16));
@@ -240,59 +246,64 @@ static int mad_frame_size(input_object *obj)
 
 static int mad_play_frame(input_object *obj, char *buf)
 {
-				int ret;
-				int bytes_read;
-				struct mad_local_data *data;
+		int ret;
+		int bytes_read;
+		struct mad_local_data *data;
+		struct mad_pcm *pcm;
+		mad_fixed_t const *left_ch;
+		mad_fixed_t const *right_ch;
+		int16_t	*output;
+		int nsamples;
+		int nchannels;
 
-				if (!obj)
-								return 0;
-				data = (struct mad_local_data *)obj->local_data;
-				if (!data)
-								return 0;
-				if (mad_frame_decode(&data->frame, &data->stream) == -1) {
-								if (!MAD_RECOVERABLE(data->stream.error)) {
-												/* printf("MAD error: %s\n", error_str(data->stream.error, data->str)); */
-												mad_frame_mute(&data->frame);
-												return 0;
-								}	else {
-												/* printf("MAD error: %s\n", error_str(data->stream.error, data->str)); */
-								}
-				}
-				data->current_frame++;
-				if (data->current_frame < (obj->nr_frames + FRAME_RESERVE)
-												&& data->seekable) {
-								data->frames[data->current_frame] = 
-												data->stream.this_frame - data->mad_map;
-								if (data->current_frame && 
-										 (data->frames[data->current_frame] -
-										  data->frames[data->current_frame-1]) < 2) {
-											/* alsaplayer_error("EOF reached"); */
-											return 0;
-								}		
-								if (data->highest_frame < data->current_frame)
-												data->highest_frame = data->current_frame;
-				}				
-				
-				mad_synth_frame (&data->synth, &data->frame);
-				{
-								struct mad_pcm *pcm = &data->synth.pcm;
-								mad_fixed_t const *left_ch, *right_ch;
-								uint16_t	*output = (uint16_t *)buf;
-								int nsamples = pcm->length;
-								int nchannels = pcm->channels;
-								left_ch = pcm->samples[0];
-								right_ch = pcm->samples[1];
-								while (nsamples--) {
-												*output++ = scale(*left_ch++);
-												if (nchannels == 1) 
-																*output++ = scale(*(left_ch-1));
-												else /* nchannels == 2 */
-													*output++ = scale(*right_ch++);
-														
-								}
-				}
+		if (!obj)
+			return 0;
+		data = (struct mad_local_data *)obj->local_data;
+		if (!data)
+			return 0;
+		if (mad_frame_decode(&data->frame, &data->stream) == -1) {
+			if (!MAD_RECOVERABLE(data->stream.error)) {
+				/* printf("MAD error: %s\n", error_str(data->stream.error, data->str)); */
+				mad_frame_mute(&data->frame);
+				return 0;
+			}	else {
+				/* printf("MAD error: %s\n", error_str(data->stream.error, data->str)); */
+			}
+		}
+		data->current_frame++;
+		if (data->current_frame < (obj->nr_frames + FRAME_RESERVE)
+				&& data->seekable) {
+			data->frames[data->current_frame] = 
+				data->stream.this_frame - data->mad_map;
+			if (data->current_frame && 
+					(data->frames[data->current_frame] -
+					 data->frames[data->current_frame-1]) < 2) {
+				/* alsaplayer_error("EOF reached"); */
+				return 0;
+			}		
+			if (data->highest_frame < data->current_frame)
+				data->highest_frame = data->current_frame;
+		}				
 
-				return 1;
+		mad_synth_frame (&data->synth, &data->frame);
+		{
+			pcm = &data->synth.pcm;
+			output = (int16_t *)buf;
+			nsamples = pcm->length;
+			nchannels = pcm->channels;
+			left_ch = pcm->samples[0];
+			right_ch = pcm->samples[1];
+			while (nsamples--) {
+				*output++ = my_scale(*(left_ch++));
+				if (nchannels == 1) 
+					*output++ = my_scale(*(left_ch-1));
+				else /* nchannels == 2 */
+					*output++ = my_scale(*(right_ch++));
+
+			}
+		}
+
+		return 1;
 }
 
 
@@ -468,7 +479,8 @@ static int mad_open(input_object *obj, char *path)
 {
 				struct mad_local_data *data;
 				char *p;
-
+				int mode;
+				
 				if (!obj)
 								return 0;
 
@@ -539,7 +551,7 @@ static int mad_open(input_object *obj, char *path)
 																return 0;
 								}
 				}
-				int mode = (data->frame.header.mode == MAD_MODE_SINGLE_CHANNEL) ?
+				mode = (data->frame.header.mode == MAD_MODE_SINGLE_CHANNEL) ?
 								1 : 2;
 				data->samplerate = data->frame.header.samplerate;
 				data->bitrate	= data->frame.header.bitrate;
@@ -655,11 +667,15 @@ input_plugin mad_plugin =
 				NULL
 };
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 input_plugin *input_plugin_info (void)
 {
 				return &mad_plugin;
 }
 
+#ifdef __cplusplus
 }
+#endif

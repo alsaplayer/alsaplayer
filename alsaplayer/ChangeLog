@@ -1,3 +1,8 @@
+- Renamed mad input plugin to mad_in
+- Added check for libmad, and use it if present instead of our own copy
+- Renamed 'include' -> 'alsaplayer'
+
+
 Tue Mar 19 00:08:04 CET 2002
 ----------------------------
 - Scopes will now remember their state

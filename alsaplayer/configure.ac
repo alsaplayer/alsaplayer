@@ -34,6 +34,7 @@ have_mikmod=no
 have_jack=no
 dynload=no
 use_3dnow_asm=no
+use_libmad=no
 prefer_mad=yes
 
 if test "x$x_includes" = "xNONE"
@@ -207,6 +208,20 @@ else
 fi
 
 
+dnl ===========
+dnl MAD library
+dnl ===========
+
+AC_CHECK_LIB(mad, mad_stream_init,
+     MAD_LDADD=-lmad; use_libmad=yes; AC_DEFINE(HAVE_LIBMAD, 1, [Define if you have MAD library (-lmad)]), use_libmad=no; MAD_LDADD=, -lmad)
+
+AC_SUBST(MAD_LDADD)
+
+
+dnl =================
+dnl audiofile library
+dnl =================
+
 AM_CONDITIONAL(HAVE_AUDIOFILE,test "x$have_audiofile" = xyes)
 
 dnl ===============
@@ -231,6 +246,7 @@ AC_CHECK_HEADERS(linux/cdrom.h)
 AC_CHECK_HEADERS(sys/soundcard.h)
 AC_CHECK_HEADERS(sys/audioio.h)
 AC_CHECK_HEADERS(audio/audiolib.h)
+AC_CHECK_HEADERS(mad.h)
 
 dnl ==========
 dnl ALSA stuff
@@ -444,7 +460,12 @@ dnl ],
 dnl [have_qt=no]
 dnl )
 
+if test "x$ac_cv_header_mad_h" = "xno"
+then
+	use_libmad=no
+fi	
 
+AM_CONDITIONAL(USE_LIBMAD,test "x$use_libmad" = xyes)
 AM_CONDITIONAL(HAVE_JACK,	test "x$have_jack" = xyes)
 AM_CONDITIONAL(HAVE_ALSA_05X, test "x$have_alsa_05x" = xyes)
 AM_CONDITIONAL(HAVE_ALSA_FINAL, test "x$have_alsa_final" = xyes)
@@ -630,12 +651,13 @@ echo "
 Configuration:
   
   Install path:                       ${prefix}
-  Prefer MAD over mpg123 plugin:      ${prefer_mad}
+  Prefer mad over mpg123 plugin:      ${prefer_mad}
+  Use libmad shared library:          ${use_libmad}
   Build gtk interface:                ${have_gtk}
-  Build with JACK support:            ${have_jack}
+  Build with jack support:            ${have_jack}
   Build OpenGL based visual plugins:  ${have_opengl}
   Build alsa 0.5.x output plugin:     ${have_alsa_05x}
-  Build alsa LATEST output plugin:    ${have_alsa_final}
+  Build alsa 0.9.x output plugin:     ${have_alsa_final}
   Build oss output plugin:            ${have_oss}
   Build esd output plugin:            ${have_esd}
   Build sparc output plugin:          ${have_sparc}
@@ -646,7 +668,7 @@ Configuration:
   Build audiofile input plugin:       ${have_audiofile}"
 echo
 
-if test $have_sparc = "no" -a $have_alsa_05x = "no" -a $have_alsa_final = "no" -a $have_oss = "no" -a $have_esd = "no" -a $have_sgi = "no" -a $have_nas = "no"
+if test $have_jack = "no" -a $have_sparc = "no" -a $have_alsa_05x = "no" -a $have_alsa_final = "no" -a $have_oss = "no" -a $have_esd = "no" -a $have_sgi = "no" -a $have_nas = "no"
 then
 echo "
 **WARNING**: NO OUTPUT MODULES selected. AlsaPlayer won't be
