@@ -231,10 +231,10 @@ static int sndfile_nr_frames (input_object *obj)
 	if (!obj)
 		return 0;
 	data = (struct sf_local_data *) obj->local_data;
-	samples = data->sfinfo.samples;
+	samples = data->sfinfo.frames;
 
 	if (samples > 0)  {
-		return ((int)data->sfinfo.samples * data->sfinfo.channels *
+		return ((int)data->sfinfo.frames * data->sfinfo.channels *
 			     data->width	
 				/ FRAME_SIZE);
 	}
