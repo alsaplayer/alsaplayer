@@ -353,7 +353,14 @@ static int vorbis_channels(input_object *obj)
 
 static float vorbis_can_handle(const char *path)
 {
-#if FANCY_CHECKING		
+	char *ext;
+
+	ext = strrchr(path, '.');
+
+	if (ext)
+		ext++;
+//#if FANCY_CHECKING		
+#if 0 // This piece breaks Icecast streams. Need to implemente MIME types
         OggVorbis_File vf_temp;
         reader_type *datasource;
 	int stream;
@@ -369,15 +376,10 @@ static float vorbis_can_handle(const char *path)
 
 	return rc == 0 ? 1.0 : 0.0;
 #else
-	char *ext;
-
-	ext = strrchr(path, '.');
-
 	if (!ext) /* Until we get MIME type support, this is the safest 
 		     method to detect file types */
 		return 0.0;
-	ext++;
-
+	
 	if (!strncasecmp(ext, "ogg", 3)) {
 		return 1.0;
 	} else
