@@ -549,8 +549,12 @@ void pause_cb(GtkWidget *widget, gpointer data)
 
 	smooth_trans = prefs_get_bool(ap_prefs, "gtk_interface", "smooth_transition", 0);
 		
-	destination = 0.0;
 	if (smooth_trans) {
+		if (destination <= adj->value && destination != 0.0) {
+			destination = 0.0;
+		} else {
+			destination = 100.0;
+		}	
 		pthread_create(&smoother_thread, NULL,
 			(void * (*)(void *))smoother, adj);
 		pthread_detach(smoother_thread);

@@ -373,7 +373,7 @@ gint list_resize(GtkWidget *widget, GdkEventConfigure *event, gpointer data)
 				gdk_window_get_size(window->window, &w, &h);
 				//alsaplayer_error("(%d, %d)", w, h);
 				gtk_clist_set_column_width(GTK_CLIST(list),
-						1, w-195);	
+						1, w-200);	
 
 			}	
 		}
@@ -631,8 +631,8 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 
 	gtk_clist_set_column_min_width(GTK_CLIST(list), 1, 250);
 
-	gtk_clist_set_column_width(GTK_CLIST(list), 2, 20);
-	gtk_clist_set_column_max_width(GTK_CLIST(list), 2, 20);
+	gtk_clist_set_column_width(GTK_CLIST(list), 2, 24);
+	gtk_clist_set_column_max_width(GTK_CLIST(list), 2, 24);
 
 	gtk_clist_set_row_height(GTK_CLIST(list), 20);
 
