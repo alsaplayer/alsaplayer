@@ -283,10 +283,11 @@ static void help()
 		"  --verbose               be verbose about the output\n"
 		"  --nosave                do not save playlist content at exit\n"
 		"\n"
-		"Player control (use -n to select another session than the default):\n"
+		"Player control (use -n to select a session other than the default):\n"
 		"\n"
 		"  -e,--enqueue file(s)  queue files in running alsaplayer\n"
 		"  -E,--replace file(s)  clears and queues files in running alsaplayer\n"
+		"  --status              get some information about session\n"
 		"  --volume vol          set software volume [0-100]\n"
 		"  --start               start playing\n"
 		"  --stop                stop playing\n"
@@ -297,6 +298,7 @@ static void help()
 		"  --relative second     jump second seconds from current position\n"
 		"  --jump track          jump to specified playlist track\n"
 		"  --clear               clear whole playlist\n"
+		"  --quit                quit session\n"
 		"\n"
 		"Sound driver options:\n"
 		"\n"
@@ -306,7 +308,7 @@ static void help()
 		"  -f,--fragsize n       fragment size in bytes [default=4096]\n"
 		"  -F,--frequency n      output frequency in Hz [default=%d]\n"
 		"  -g,--fragcount n      fragment count [default=8]\n"
-		"  -r,--realtime         enable realtime scheduling (with proper  rights)\n"
+		"  -r,--realtime         enable realtime scheduling (with proper rights)\n"
 		"  -o,--output output    use specific output driver [default=alsa]. choices:\n", OUTPUT_RATE);
 	printf(
 		"                        [ ");
@@ -367,6 +369,8 @@ int main(int argc, char **argv)
 	int do_seek = -1;
 	int do_relative = 0;
 	int do_setvol = 0;
+	int do_quit = 0;
+	int do_status = 0;
 	
 	int use_freq = OUTPUT_RATE;
 	int use_vol = 100;
@@ -380,7 +384,7 @@ int main(int argc, char **argv)
 	
 	int opt;
 	int option_index;
-	const char *options = "bCc:d:eEf:F:g:hi:JI:l:n:NMp:qrs:vRSQTPVxo:Z:";
+	const char *options = "bCc:d:eEf:F:g:hi:JI:l:n:NMp:qrs:vRSQPVxo:";
 	struct option long_options[] = {
 		{ "config", 1, 0, 'c' },
 		{ "device", 1, 0, 'd' },
@@ -416,6 +420,8 @@ int main(int argc, char **argv)
 		{ "relative", 1, 0, 'Z' },
 		{ "clear", 0, 0, 'C' },
 		{ "startvolume", 1, 0, 'l' },
+		{ "quit", 0, 0, 'A' },
+		{ "status", 0, 0, 'B' },
 		{ 0, 0, 0, 0 }
 	};	
 		
@@ -442,6 +448,14 @@ int main(int argc, char **argv)
 #endif
 	while ((opt = getopt_long(argc, argv, options, long_options, &option_index)) != EOF) {
 		switch(opt) {
+			case 'A':
+				do_remote_control = 1;
+				do_quit = 1;
+				break;
+			case 'B':
+				do_remote_control = 1;
+				do_status = 1;
+				break;
 			case 'c':
 				if (strlen(optarg) < 1023) {
 					use_config = optarg;
@@ -648,7 +662,42 @@ int main(int argc, char **argv)
 
 	// Check if we're in remote control mode
 	if (do_remote_control) {
-		if (do_setvol) {
+		if (do_quit) {
+			ap_quit(use_session);
+			return 0;
+		} else if (do_status) {
+			char res[1024];
+			float fres;
+			int ires;
+			fprintf(stdout, "---------------- Session ----------------\n");
+			if (ap_get_session_name(use_session, res) && strlen(res))
+				fprintf(stdout, "name: %s\n", res);
+			if (ap_get_playlist_length(use_session, &ires))
+				fprintf(stdout, "playlist_length: %d\n", ires);
+			if (ap_get_volume(use_session, &ires))
+				fprintf(stdout, "volume: %d\n", ires);
+			if (ap_get_speed(use_session, &fres))
+				fprintf(stdout, "speed: %d%%\n", (int)(fres * 100));
+			fprintf(stdout, "-------------- Current Track ------------\n");
+			if (ap_get_artist(use_session, res) && strlen(res))
+				fprintf(stdout, "artist: %s\n", res);
+			if (ap_get_title(use_session, res) && strlen(res))
+				fprintf(stdout, "title: %s\n", res);
+			if (ap_get_album(use_session, res) && strlen(res))
+				fprintf(stdout, "album: %s\n", res);
+			if (ap_get_genre(use_session, res) && strlen(res))
+				fprintf(stdout, "genre: %s\n", res);
+			if (ap_get_file_path(use_session, res) && strlen(res))
+				fprintf(stdout, "path: %s\n", res);
+			if (ap_get_frames(use_session, &ires)) 
+				fprintf(stdout, "frames: %d\n", ires);
+			if (ap_get_length(use_session, &ires))
+				fprintf(stdout, "length: %d second%s\n", ires, (ires == 1) ? "": "s");
+			if (ap_get_position(use_session, &ires))
+				fprintf(stdout, "position: %d\n", ires);
+			fprintf(stdout, "-----------------------------------------\n");					
+			return 0;
+		} else if (do_setvol) {
 			ap_set_volume(use_session, use_vol);
 			return 0;
 		} else if (do_start) {
