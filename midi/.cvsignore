@@ -12,3 +12,6 @@ acinclude.m4
 autom4te.cache
 .xvpics
 .deps
+.libs
+*.lo
+*.la
