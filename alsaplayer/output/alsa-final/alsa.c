@@ -130,6 +130,7 @@ static int alsa_write(void *data, int count)
 static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
 {
 	int err;
+	unsigned int val;
 	snd_pcm_hw_params_t *hwparams;
 	snd_pcm_hw_params_alloca(&hwparams);
 	if (!sound_handle) {
@@ -174,7 +175,11 @@ static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
 	if (err < 0) {
 		printf("error on set_period_size (%d)\n", fragment_size / 4);			
 		goto _err;
-	}	
+	}
+	if ((val = snd_pcm_hw_params_get_periods_max(hwparams, 0)) < fragment_count) {
+			fragment_count = val;
+	}
+	printf("max periods = %d\n", val); 
 	err = snd_pcm_hw_params_set_periods(sound_handle, hwparams,
 					    fragment_count, 0);
 	if (err < 0) {
