@@ -106,11 +106,12 @@ void info_looper(void *data)
 		count++;
 	}	
 
-	playlist->Unlock();
 	for(i = playlist->interfaces.begin();
 			i != playlist->interfaces.end(); i++) {
 			(*i)->CbUnlock();
 	}
+	playlist->Unlock();
+
 	delete myplayer;
 	//alsaplayer_error("exit info_looper()");
 }
@@ -243,11 +244,11 @@ void insert_looper(void *data) {
 
 	// Free the list again
 #endif	
-	playlist->Unlock();
 	for(i = playlist->interfaces.begin();
 			i != playlist->interfaces.end(); i++) {
 			(*i)->CbUnlock();
-	}	
+	}
+	playlist->Unlock();
 	delete items;
 
 	// TEST
