@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <assert.h>
-#include <sys/asoundlib.h>
+#include <alsa/asoundlib.h>
 #include <stdlib.h>
 #include <string.h>
 #include "output_plugin.h"
@@ -49,7 +49,8 @@ static int alsa_open(char *name)
 
 	if ((err = snd_pcm_open(&sound_handle, name, stream, 0)) < 0) {
 
-		fprintf(stderr, "snd_pcm_open: %s\n", snd_strerror(err));
+		fprintf(stderr, "snd_pcm_open: %s (%s)\n", snd_strerror(err),
+										name);
 		return 0;
 	}
 	err = snd_output_stdio_attach(&errlog, stderr, 0);
@@ -107,7 +108,7 @@ static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
 	}	
 	err = snd_pcm_hw_params_any(sound_handle, hwparams);
 	if (err < 0) {
-		printf("error on hw_params_any\n");			
+		printf("error on snd_pcm_hw_params_any\n");			
 		goto _err;
 	}	
 	err = snd_pcm_hw_params_set_access(sound_handle, hwparams,
