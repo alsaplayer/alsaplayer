@@ -80,11 +80,11 @@ static char *default_pcm_device = "default";
 const char *default_output_addons[] = {
 	{"alsa"},
 	{"jack"},
-	{"nas"},
 	{"oss"},
+	{"nas"},
 	{"sparc"},
-	{"esound"},
 	{"sgi"},
+	{"esound"},
 	{"null"},
 	NULL
 };
@@ -121,7 +121,7 @@ void exit_sighandler(int x)
 	}
 }
 
-void load_output_addons(AlsaNode * node, char *module = NULL)
+bool load_output_addons(AlsaNode * node, char *module = NULL)
 {
 	void *handle;
 	char path[1024], *pluginroot;
@@ -137,13 +137,7 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 	if (module) {
 		snprintf(path, sizeof(path), "%s/output/lib%s_out.so", pluginroot, module);
 		if (stat(path, &statbuf) != 0) {
-			// Error reading object
-			alsaplayer_error
-				("Cannot find plugin: %s\n"
-				 "Try choosing different plugin name with \"-o\" parameter\n"
-				 "or \"main.default_output\" configuration file option",
-				 path);
-			return;
+			return false;
 		}
 		if ((handle = dlopen(path, RTLD_NOW | RTLD_GLOBAL))) {
 			output_plugin_info =
@@ -151,17 +145,15 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 							    "output_plugin_info");
 			if (output_plugin_info) {
 				if (node->RegisterPlugin(output_plugin_info())) {
-					return;
-				}	
-			} else {
-				alsaplayer_error
-				    ("Symbol error in shared object: %s\n"
-				     "Try starting up with \"-o\" or setting \"main.default_output\""
-				     "in configuration file to load a specific output module (alsa,"
-				     "oss, esound, etc.)",
-				     path);
+					return true;
+				}
 				dlclose(handle);
-				return;
+				alsaplayer_error("Failed to register plugin: %s", path);
+				return false;
+			} else {
+				alsaplayer_error("Symbol error in shared object: %s", path);
+				dlclose(handle);
+				return false;
 			}
 		} else {
 			alsaplayer_error("%s\n", dlerror());
@@ -172,27 +164,26 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 				default_output_addons[i]);
 			if (stat(path, &statbuf) != 0)
 				continue;
-			if ((handle =
-			     dlopen(path, RTLD_NOW | RTLD_GLOBAL))) {
+			if ((handle = dlopen(path, RTLD_NOW | RTLD_GLOBAL))) {
 				output_plugin_info =
 				    (output_plugin_info_type) dlsym(handle, "output_plugin_info");
 				if (output_plugin_info) {
 #ifdef DEBUG
-					alsaplayer_error("Loading output plugin: %s\n", path);
+					alsaplayer_error("Loading output plugin: %s", path);
 #endif
 					if (node->RegisterPlugin(output_plugin_info())) {
 						if (!node->ReadyToRun()) {
 							alsaplayer_error("%s failed to init", path);
 							continue;	// This is not clean
 						}
-						return;	// Return as soon as we load one successfully!
+						return true;	// Return as soon as we load one successfully!
 					} else {
 						alsaplayer_error("%s failed to load", path);
 					}
 				} else {
 					alsaplayer_error("could not find symbol in shared object");
-					dlclose(handle);
 				}
+				dlclose(handle);
 			} else {
 				alsaplayer_error("%s\n", dlerror());
 			}
@@ -678,9 +669,8 @@ int main(int argc, char **argv)
 
 	// Else do the usual plugin based thing
 	node = new AlsaNode(use_output, device_param, do_realtime);
-	if (use_output) {
-		load_output_addons(node, use_output);
-	} else {
+
+	if (!load_output_addons(node, use_output)) { // Fallback
 		load_output_addons(node);
 	}	
 
