@@ -515,6 +515,7 @@ static int mad_open(input_object *obj, char *path)
 												case MAD_ERROR_LOSTSYNC:
 																printf("MAD_ERROR_LOSTSYNC...%d\n", data->offset);
 																return 0;
+												case 0x232:				
 												case 0x235:
 																break;
 												default:
