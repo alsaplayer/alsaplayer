@@ -51,6 +51,10 @@ int prefs_get_string(prefs_handle_t *prefs, char *key, char *res);
 int prefs_get_float(prefs_handle_t *prefs, char *key, float *res);
 int prefs_save(prefs_handle_t *prefs);
 
+/* Global alsaplayer prefs handle. Only use if !NULL of course! */
+
+extern prefs_handle_t *ap_prefs;
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
