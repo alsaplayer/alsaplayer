@@ -30,6 +30,8 @@ LIBS =
 
 libmidi_in_la_SOURCES= $(midi_insources)
 
+man_MANS = midi_in.1
+
 cfg.c: cfg.l
 	rm -f cfg.c
 	flex -t -B $(srcdir)/cfg.l >cfg.c
