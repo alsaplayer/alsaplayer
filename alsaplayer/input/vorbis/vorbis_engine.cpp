@@ -42,6 +42,18 @@ struct vorbis_local_data {
 		int bigendianp;
 };		
 
+/* Stolen from Vorbis' lib/vorbisfile.c */
+static int is_big_endian(void) 
+{
+	unsigned short pattern = 0xbabe;
+	unsigned char *bytewise = (unsigned char *)&pattern;
+
+	if (bytewise[0] == 0xba) return 1;
+	return 0;
+}
+
+
+
 /* The following callbacks are not needed but are here for future
  * expansion, like net streaming or other storage retrieval methods
  */
@@ -365,7 +377,7 @@ static int vorbis_open(input_object *obj, char *path)
 		}
 		data = (struct vorbis_local_data *)obj->local_data;
 		data->last_section = -1;
-		data->bigendianp = ('BIG!'==(('B'<<24)+('I'<<16)+('G'<<8)+'!')) ? 0 : 1;
+		data->bigendianp = is_big_endian();
 		memcpy(&data->vf, &vf_temp, sizeof(vf_temp));
 		memcpy(data->path, path, sizeof(data->path)-1);
 		return 1;
