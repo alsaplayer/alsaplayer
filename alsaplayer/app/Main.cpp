@@ -26,6 +26,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <string.h>
+#include <getopt.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/stat.h>
@@ -267,7 +268,7 @@ static void help()
 		"  -i,--interface iface    load in the iface interface [default=gtk]\n"
 		"  -l,--volume #           set software volume [0-100]\n"
 		"  -n,--session #          select session # [default=0]\n"
-		"  -p,--path [path]        print/set the path alsaplayer looks for add-ons\n"
+		"  -p,--path path          set the path alsaplayer looks for add-ons\n"
 		"  -q,--quiet              quiet operation. no output\n"
 		"  -r,--realtime           enable realtime scheduling (must be SUID root)\n"
 		"  -s,--session-name name  name this session \"name\"\n"
@@ -286,7 +287,7 @@ static void help()
 
 static void version()
 {
-	fprintf(stdout, "%s version %s\n\n", PACKAGE, VERSION);
+	fprintf(stdout, "%s %s\n", PACKAGE, VERSION);
 }
 
 
@@ -304,36 +305,54 @@ static char *get_homedir()
 
 int main(int argc, char **argv)
 {
-	char *use_pcm = default_pcm_device;
+	char *device_param = default_pcm_device;
 	char *homedir;
 	char prefs_path[1024];
-	int use_fragsize;
-	int use_fragcount;
-	int use_reverb = 0;	// TEMP!
-	int use_loopSong = 0;
-	int use_loopList = 0;
+	char str[1024];
+	int use_fragsize; // Initialized
+	int use_fragcount; // later
+	int do_reverb = 0;
+	int do_loopsong = 0;
+	int do_looplist = 0;
 	int be_quiet = 0;
 	int do_enqueue = 0;
-	int use_realtime = 0;
+	int do_realtime = 0;
 	int use_freq = OUTPUT_RATE;
-	int use_alsa = 1;
-	int use_oss = 0;
-	int use_sgi = 0;
-	int use_null = 0;
-	int use_esd = 0;
-	int use_sparc = 0;
-	int use_nas = 0;
-	int use_user = 0;
-	int last_arg = 0;
-	int arg_pos = 0;
 	int use_vol = 100;
 	int use_session = 0;
-	int use_crossfade = 0;
-	int use_other_output = 0;
+	int do_crossfade = 0;
 	int tmp;
-	char use_output[256];
-	char use_interface[256];
+	char *use_output = NULL;
+	char *use_interface = NULL;
 	prefs_handle_t *prefs;
+
+	int opt;
+	int option_index;
+	const char *options = "d:ef:F:g:hi:l:n:p:qrs:vRSPxo:";
+	struct option long_options[] = {
+		{ "device", 1, 0, 'd' },
+		{ "enqueue", 0, 0, 'e' },
+		{ "fragsize", 1, 0, 'f' },
+		{ "frequency", 1, 0, 'F' },
+		{ "fragcount", 1, 0, 'g' },
+		{ "help", 0, 0, 'h' },
+		{ "interface", 1, 0, 'i' },
+		{ "volume", 1, 0, 'l' },
+		{ "session", 1, 0, 'n' },
+		{ "path", 1, 0, 'p' },
+		{ "quiet", 0, 0, 'q' },
+		{ "realtime", 0, 0, 'r' },
+		{ "session-name", 1, 0, 's' },
+		{ "version", 0, 0, 'v' },
+		{ "verbose", 0, 0, 'V' },
+		{ "reverb", 0, 0, 'R' },
+		{ "loopsong", 0, 0, 'L' },
+		{ "looplist", 0, 0, 'P' },
+		{ "crossfade", 0, 0, 'x' },
+		{ "output", 1, 0, 'o' },
+		{ 0, 0, 0, 0 }
+	};	
+		
 
 	// First setup signal handler
 	signal(SIGTERM, exit_sighandler);	// kill
@@ -347,12 +366,6 @@ int main(int argc, char **argv)
 	signal(SIGFPE, exit_sighandler);	// floating point exc.
 	signal(SIGABRT, exit_sighandler);	// abort()
 
-	//if (argc) {
-	//	for (int z=0; z < argc; z++) {
-	//		alsaplayer_error("argv[%d] = \"%s\"", z, argv[z]);
-	//	}
-	//}	
-
 	strcpy(addon_dir, ADDON_DIR);
 
 	init_effects();
@@ -365,249 +378,104 @@ int main(int argc, char **argv)
 
 	ap_prefs = prefs_load(prefs_path);
 
-	memset(use_interface, 0, sizeof(use_interface));
-
 	/* Initialize some settings (and populate the prefs system if needed */
 
 	use_fragsize =
 		prefs_get_int(ap_prefs, "main", "period_size", 4096);
 	use_fragcount = prefs_get_int(ap_prefs, "main", "period_count", 8);
 
-	for (arg_pos = 1; arg_pos < argc; arg_pos++) {
-		if (strcmp(argv[arg_pos], "--help") == 0 ||
-				strcmp(argv[arg_pos], "-h") == 0) {
-			help();
-			return 0;
-		} else if (strcmp(argv[arg_pos], "--interface") == 0 ||
-				strcmp(argv[arg_pos], "-i") == 0) {
-			if (argc <= arg_pos + 1) {
-				alsaplayer_error
-					("argument expected for %s",
-					 argv[arg_pos]);
-				return 1;
-			}
-			strcpy(use_interface, argv[++arg_pos]);
-			last_arg = arg_pos;
-		} else if (strcmp(argv[arg_pos], "--volume") == 0 ||
-				strcmp(argv[arg_pos], "-l") == 0) {
-			tmp = -1;
-			if (argc <= arg_pos + 1) {
-				alsaplayer_error
-					("argument expected for %s",
-					 argv[arg_pos]);
-				return 1;
-			}	
-			if (sscanf(argv[++arg_pos], "%d", &tmp) != 1 ||
-					(tmp < 0 || tmp > 100)) {
-				alsaplayer_error
-					("invalid value for volume: %d", tmp);
-				return 1;
-			}
-			use_vol = tmp;
-			last_arg = arg_pos;
-		} else if (strcmp(argv[arg_pos], "--version") == 0 ||
-				strcmp(argv[arg_pos], "-v") == 0) {
-			version();
-			return 0;
-		} else if (strcmp(argv[arg_pos], "--enqueue") == 0 ||
-				strcmp(argv[arg_pos], "-e") == 0) {
-			do_enqueue = 1;
-			arg_pos++;
-			last_arg = arg_pos;
-		} else if (strcmp(argv[arg_pos], "--session") == 0 ||
-				strcmp(argv[arg_pos], "-n") == 0) {
-			if (argc <= arg_pos + 1) {
-				alsaplayer_error
-					("argument expected for %s",
-					 argv[arg_pos]);
-				return 1;
-			}
-			if (sscanf(argv[++arg_pos], "%d", &tmp) != 1
-					|| tmp < 0) {
-				alsaplayer_error
-					("invalid value for session: %d", tmp);
-				return 1;
-			}
-			use_session = tmp;
-			last_arg = arg_pos;
-		} else if (strcmp(argv[arg_pos], "--session-name") == 0 ||
-				strcmp(argv[arg_pos], "-s") == 0) {
-			if (argc <= arg_pos + 1) {
-				alsaplayer_error
-					("argument expected for %s",
-					 argv[arg_pos]);
-				return 1;
-			}
-			if (0 < strlen(argv[++arg_pos]) < 32) {
-				global_session_name =
-					(char *) malloc(strlen(argv[arg_pos]) +
-							1);
-				if (global_session_name)
-					strcpy(global_session_name,
-							argv[arg_pos]);
-				last_arg = arg_pos;
-			} else {
-				alsaplayer_error
-					("expecting session name (32 chars max)\n");
-				return 1;
-			}
-		} else if (strcmp(argv[arg_pos], "--crossfade") == 0 ||
-				strcmp(argv[arg_pos], "-x") == 0) {
-			use_crossfade = 1;
-			arg_pos++;
-			last_arg = arg_pos;
-		} else if (strcmp(argv[arg_pos], "--path") == 0 ||
-				strcmp(argv[arg_pos], "-p") == 0) {
-			if (arg_pos + 1 == argc) {	// Last option so display and exit
-				fprintf(stdout,
-						"Input  add-on path: %s/input/\n",
-						addon_dir);
-				fprintf(stdout,
-						"Output add-on path: %s/output/\n",
-						addon_dir);
-				fprintf(stdout,
-						"Scope  add-on path: %s/scopes/\n",
-						addon_dir);
+	while ((opt = getopt_long(argc, argv, options, long_options, &option_index)) != EOF) {
+		switch(opt) {
+			case 'd':
+				device_param = optarg;
+				break;
+			case 'e':
+				do_enqueue = 1;
+				break;
+			case 'f':
+				use_fragsize = atoi(optarg);
+				if (!use_fragsize || (use_fragsize % 32)) {
+					alsaplayer_error("invalid fragment size, must be multiple of 32");
+					return 1;
+				}
+				break;
+			case 'F':
+				use_freq = atoi(optarg);
+				if (use_freq < 8000 || use_freq > 48000) {
+					alsaplayer_error("frequency out of range (8000-48000)");
+					return 1;
+				}
+				break;
+			case 'g':
+				use_fragcount = atoi(optarg);
+				if (use_fragcount < 2 || use_fragcount > 64) {
+					alsaplayer_error("fragcount out of range (2-64)");
+					return 1;
+				}
+				break;
+			case 'h':
+				help();
 				return 0;
-			}
-			strcpy(addon_dir, argv[++arg_pos]);
-			last_arg = arg_pos;
-		} else if (strcmp(argv[arg_pos], "--reverb") == 0) {
-			use_reverb = 1;
-			last_arg = arg_pos;
-		} else if (strcmp(argv[arg_pos], "--loopsong") == 0 ||
-				strcmp(argv[arg_pos], "-S") == 0) {
-			use_loopSong = 1;
-			last_arg = arg_pos;
-		} else if (strcmp(argv[arg_pos], "--looplist") == 0 ||
-				strcmp(argv[arg_pos], "-P") == 0) {
-			use_loopList = 1;
-			last_arg = arg_pos;
-		} else if (strcmp(argv[arg_pos], "--realtime") == 0 ||
-				strcmp(argv[arg_pos], "-r") == 0) {
-			use_realtime = 1;
-			last_arg = arg_pos;
-		} else if (strcmp(argv[arg_pos], "--output") == 0 ||
-				strcmp(argv[arg_pos], "-o") == 0) {
-			//printf("Use define output method!\n");                
-			if (argc <= arg_pos + 1) {
-				alsaplayer_error
-					("argument expected for %s\n",
-					 argv[arg_pos]);
-				return 1;
-			}
-			use_alsa = use_sparc = use_esd = use_oss = 0;
-			if (strcmp(argv[arg_pos + 1], "alsa") == 0) {
-				//printf("using ALSA output method\n");
-				use_alsa = 1;
-				last_arg = ++arg_pos;
-			} else if (strcmp(argv[arg_pos + 1], "sgi") == 0) {
-				use_sgi = 1;
-				last_arg = ++arg_pos;
-			} else if (strcmp(argv[arg_pos + 1], "oss") == 0) {
-				//printf("Using OSS output method\n");
-				use_oss = 1;
-				last_arg = ++arg_pos;
-			} else if (strcmp(argv[arg_pos + 1], "null") == 0) {
-				use_null = 1;
-				last_arg = ++arg_pos;
-			} else if (strcmp(argv[arg_pos + 1], "esd") == 0) {
-				//printf("Using ESD output method\n");
-				use_esd = 1;
-				last_arg = ++arg_pos;
-			} else if (strcmp(argv[arg_pos + 1], "sparc") == 0) {
-				use_sparc = 1;
-				last_arg = ++arg_pos;
-			} else if (strcmp(argv[arg_pos + 1], "nas") == 0) {
-				use_nas = 1;
-				last_arg = ++arg_pos;
-			} else {
-				use_other_output = 1;
-				strcpy(use_output, argv[arg_pos + 1]);
-				last_arg = ++arg_pos;
-			}
-			use_user = 1;
-		} else if (strcmp(argv[arg_pos], "--quiet") == 0 ||
-				strcmp(argv[arg_pos], "-q") == 0) {
-			be_quiet = 1;
-			global_quiet = 1;
-			last_arg = arg_pos;
-		} else if (strcmp(argv[arg_pos], "--verbose") == 0) {
-			global_verbose = 1;
-			last_arg = arg_pos;
-		} else if (strcmp(argv[arg_pos], "--frequency") == 0 ||
-				strcmp(argv[arg_pos], "-F") == 0) {
-			if (argc <= arg_pos + 1) {
-				alsaplayer_error
-					("argument expected for %s",
-					 argv[arg_pos]);
-				return 1;
-			}
-			if (sscanf(argv[++arg_pos], "%d", &use_freq) != 1) {
-				alsaplayer_error
-					("numeric argument expected for %s",
-					 argv[arg_pos - 1]);
-				return 1;
-			}
-			if (use_freq < 8000 || use_freq > 48000) {
-				alsaplayer_error
-					("frequency out of range [8000-48000]");
-				return 1;
-			}
-			last_arg = arg_pos;
-		} else if (strcmp(argv[arg_pos], "--fragsize") == 0 ||
-				strcmp(argv[arg_pos], "-f") == 0) {
-			if (argc <= arg_pos + 1) {
-				alsaplayer_error
-					("argument expected for %s",
-					 argv[arg_pos]);
-				return 1;
-			}
-			if (sscanf(argv[++arg_pos], "%d", &use_fragsize) !=
-					1) {
-				alsaplayer_error
-					("numeric argument expected for %s\n",
-					 argv[arg_pos - 1]);
-				return 1;
-			}
-			if (!use_fragsize || (use_fragsize % 32)) {
-				alsaplayer_error
-					("invalid fragment size, must be multiple of 32");
-				return 1;
-			}
-			last_arg = arg_pos;
-		} else if (strcmp(argv[arg_pos], "--fragcount") == 0 ||
-				strcmp(argv[arg_pos], "-g") == 0) {
-			if (argc <= arg_pos + 1) {
-				alsaplayer_error
-					("argument expected for %s",
-					 argv[arg_pos]);
-				return 1;
-			}
-			if (sscanf(argv[++arg_pos], "%d", &use_fragcount)
-					!= 1) {
-				alsaplayer_error
-					("numeric argument expected for --fragcount");
-				return 1;
-			}
-			if (!use_fragcount) {
-				alsaplayer_error
-					("fragment count cannot be 0");
-				return 1;
-			}
-			last_arg = arg_pos;
-		} else if (strcmp(argv[arg_pos], "--device") == 0 ||
-				strcmp(argv[arg_pos], "-d") == 0) {
-			if (argc <= arg_pos + 1) {
-				alsaplayer_error
-					("argument expected for %s",
-					 argv[arg_pos]);
-				return 1;
-			}
-			use_pcm = argv[++arg_pos];
-			last_arg = arg_pos;
-		}
+			case 'i':
+				use_interface = optarg;
+				break;
+			case 'l':
+				use_vol = atoi(optarg);
+				if (use_vol < 0 || use_vol > 100) {
+					alsaplayer_error("volume out of range: using 100");
+					use_vol = 100;
+				}
+				break;
+			case 'n':
+				use_session = atoi(optarg);
+				break;
+			case 'p':
+				strcpy(addon_dir, optarg);
+				break;
+			case 'q':
+				global_quiet = 1;
+				break;
+			case 'r':
+				do_realtime = 1;
+				break;
+			case 's':
+				if (strlen(optarg) < 32) {
+					global_session_name = (char *)
+						malloc(strlen(optarg) + 1 );
+					strcpy(global_session_name, optarg);	
+				} else {
+					alsaplayer_error("max 32 char session name, ignoring");
+				}
+				break;
+			case 'v':
+				version();
+				return 0;
+			case 'V':
+				global_verbose = 1;
+				break;
+			case 'R':
+				do_reverb = 1;
+				break;
+			case 'S':
+				do_loopsong = 1;
+				break;
+			case 'P':
+				do_looplist = 1;
+				break;
+			case 'x':
+				do_crossfade = 1;
+				break;
+			case 'o':
+				use_output = optarg;
+				break;
+			case '?':
+				break;
+			default:
+				alsaplayer_error("Unknown option '%c'", opt);
+				break;
+		}	
 	}
+	
 	if (global_verbose)
 		fprintf(stdout, "%s\n", copyright_string);
 
@@ -615,6 +483,7 @@ int main(int argc, char **argv)
 	if (do_enqueue) {
 		char queue_name[2048];
 		int ap_result = 0;
+		int count = 0;
 
 		if (use_session == 0) {
 			for (; use_session < 32; use_session++) {
@@ -625,22 +494,22 @@ int main(int argc, char **argv)
 				ap_result = -1;
 			}
 		}
-		while (last_arg < argc && ap_result == 0) {
-			if (argv[last_arg][0] != '/') {	// Not absolute so append cwd
+		count = optind;
+		while (count < argc && ap_result == 0) {
+			if (argv[count][0] != '/') {	// Not absolute so append cwd
 				if (getcwd(queue_name, 1024) == NULL) {
 					alsaplayer_error
 						("error getting cwd\n");
 					return 1;
 				}
 				strcat(queue_name, "/");
-				strcat(queue_name, argv[last_arg]);
+				strcat(queue_name, argv[count]);
 			} else
-				strcpy(queue_name, argv[last_arg]);
-			last_arg++;
+				strcpy(queue_name, argv[count]);
+			count++;
 			if (ap_set_string
 					(use_session, AP_SET_STRING_ADD_FILE,
 					 queue_name) == -1) {
-				last_arg--;
 				ap_result = -1;
 			}
 		}
@@ -651,42 +520,16 @@ int main(int argc, char **argv)
 	AlsaNode *node;
 
 	// Check if we want jack
-	if (strcmp(argv[0], "jackplayer") == 0 ||
-			strcmp(use_output, "jack") == 0) {
-		if (strcmp(use_pcm, default_pcm_device) != 0) {
-			printf("not default\n");
-			char *comma;
-			sprintf(use_output, "jack %s", use_pcm);
-			if (comma = strchr(use_output, ',')) {
-				*comma = ' ';
-			}
-		} else {
-			sprintf(use_output, "jack");
-		}
-		node = new AlsaNode(use_output, use_realtime);
-	} else {		// Else do the usual plugin based thing
-		node = new AlsaNode(use_pcm, use_realtime);
-		if (use_user) {
-			if (use_alsa)
-				load_output_addons(node, "alsa");
-			else if (use_oss)
-				load_output_addons(node, "oss");
-			else if (use_esd)
-				load_output_addons(node, "esound");
-			else if (use_sparc)
-				load_output_addons(node, "sparc");
-			else if (use_nas)
-				load_output_addons(node, "nas");
-			else if (use_sgi)
-				load_output_addons(node, "sgi");
-			else if (use_null)
-				load_output_addons(node, "null");
-			else if (use_other_output) {
-				load_output_addons(node, use_output);
-			}
-		} else
-			load_output_addons(node);
+	if (strcmp(argv[0], "jackplayer") == 0) {
+		use_output = "jack";
 	}
+	// Else do the usual plugin based thing
+	node = new AlsaNode(device_param, do_realtime);
+	if (use_output) {
+		load_output_addons(node, use_output);
+	} else {
+		load_output_addons(node);
+	}	
 
 	int output_is_ok = 0;
 	int output_alternate = 0;
@@ -694,7 +537,8 @@ int main(int argc, char **argv)
 	do {
 		if (!node || !node->ReadyToRun()) {
 			alsaplayer_error
-				("failed to load output add-on. exitting...");
+				("failed to load output plugin (%s). exitting...",
+					use_output ? use_output: "alsa,etc.");
 			return 1;
 		}
 		if (!node->SetSamplingRate(use_freq) ||
@@ -721,48 +565,42 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	// Add any command line arguments to the playlist
-	if (last_arg < argc) {
+	if (optind < argc) {
 		std::vector < std::string > newitems;
-		while (last_arg < argc) {
-			newitems.push_back(std::string(argv[last_arg++]));
+		while (optind < argc) {
+			newitems.push_back(std::string(argv[optind++]));
 		}
 		playlist->Insert(newitems, playlist->Length());
-	}
-	// If playlist is empty check if we have a playlist from
-	// the previous run
-	if (!playlist->Length()) {
+		playlist->UnPause();
+	} else {
 		homedir = get_homedir();
 		sprintf(prefs_path, "%s/.alsaplayer/alsaplayer.m3u", homedir);
 		playlist->Load(prefs_path, playlist->Length(), false);
-	} else {
-		playlist->UnPause();
 	}
 
 	// Loop song
-	if (use_loopSong) {
+	if (do_loopsong) {
 		playlist->LoopSong();
 	}
 	// Loop Playlist
-	if (use_loopList) {
+	if (do_looplist) {
 		playlist->LoopPlaylist();
 	}
 	// Cross fading
-	if (use_crossfade) {
+	if (do_crossfade) {
 		playlist->Crossfade();
 	}
 
 	interface_plugin_info_type interface_plugin_info;
 	interface_plugin *ui;
 
-	if (sscanf(argv[0], "alsaplayer-%s", &use_interface) == 1 ||
-			sscanf(argv[0], "jackplayer-%s", &use_interface) == 1) {
-		/* Determine interface from the command line */
-		//alsaplayer_error("Using interface %s\n", use_interface);
+	if (sscanf(argv[0], "alsaplayer-%s", str) == 1 ||
+			sscanf(argv[0], "jackplayer-%s", str) == 1) {
+		use_interface = str;	
 	}
-	if (strlen(use_interface)) {
-		if (!
-				(interface_plugin_info =
-				 load_interface(use_interface))) {
+	if (use_interface && strlen(use_interface)) {
+		if (!(interface_plugin_info =
+					load_interface(use_interface))) {
 			alsaplayer_error("Failed to load interface %s\n",
 					use_interface);
 			goto _fatal_err;

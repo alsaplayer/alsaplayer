@@ -112,12 +112,20 @@ void socket_looper(void *arg)
 			continue;
 		// So we have a connection
 		read(fd, &pkt, sizeof(ap_pkt_t));
+
+		// Check version
+		if (pkt.version != AP_CONTROL_VERSION) {
+			alsaplayer_error("protocl version mismatch (server): %x != %x",
+				pkt.version, AP_CONTROL_VERSION);
+			close(fd);
+			continue;
+		}	
 		// Read the data blurb 
 		if (pkt.pld_length && ((data = malloc(pkt.pld_length+1)) != NULL)) {
 			read(fd, data, pkt.pld_length);
 		} else {
 			data = NULL;
-		}	
+		}
 		switch(pkt.cmd) {
 			case AP_DO_PLAY: 
 				player = playlist->GetCorePlayer();
@@ -141,6 +149,11 @@ void socket_looper(void *arg)
 				if (player)
 					player->SetSpeed(0.0);
 				break;
+			case AP_DO_UNPAUSE:
+				player = playlist->GetCorePlayer();
+				if (player)
+					player->SetSpeed(1.0);
+				break;	
 			case AP_DO_CLEAR_PLAYLIST:
 				playlist->Clear(1);
 				break;

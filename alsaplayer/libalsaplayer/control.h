@@ -23,7 +23,7 @@ extern "C" {
 #endif
 
 #define AP_CONTROL_BASE_VERSION	0x1000
-#define AP_CONTROL_VERSION	(AP_CONTROL_BASE_VERSION + 1)
+#define AP_CONTROL_VERSION	(AP_CONTROL_BASE_VERSION + 2)
 	
 typedef enum  {
 	AP_DO_PLAY = 0x1,
@@ -31,6 +31,7 @@ typedef enum  {
 	AP_DO_NEXT,
 	AP_DO_PREV,
 	AP_DO_PAUSE,
+	AP_DO_UNPAUSE,
 	AP_DO_CLEAR_PLAYLIST,
 	AP_GET_FLOAT_PING,
 	AP_SET_FLOAT_VOLUME,
@@ -57,6 +58,7 @@ int ap_get_string(int session, ap_cmd_t cmd, char *val);
 int ap_set_string(int session, ap_cmd_t cmd, char *val);
 int ap_find_session(char *session_name);
 int ap_session_running(int session);
+int ap_version();
 
 #ifdef __cplusplus
 }

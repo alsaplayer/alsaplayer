@@ -18,7 +18,7 @@
  *
  *  $Id$
  *
-*/ 
+ */ 
 #include "control.h"
 #include "packet.h"
 #include <sys/un.h>
@@ -34,147 +34,93 @@
 
 extern "C" {
 
-int
-ap_connect_session (int session)
+int ap_connect_session (int session)
 {
-  int socket_fd;
-  struct sockaddr_un saddr;
+	int socket_fd;
+	struct sockaddr_un saddr;
 	struct passwd *pwd;
 
 	pwd = getpwuid(geteuid());
 
-  if ((socket_fd = socket (AF_UNIX, SOCK_STREAM, 0)) != -1) {
-    saddr.sun_family = AF_UNIX;
-    sprintf (saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
-					"anonymous" : pwd->pw_name, session);
-    if (connect (socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
-      return socket_fd;
-    }
+	if ((socket_fd = socket (AF_UNIX, SOCK_STREAM, 0)) != -1) {
+		saddr.sun_family = AF_UNIX;
+		sprintf (saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
+				"anonymous" : pwd->pw_name, session);
+		if (connect (socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
+			return socket_fd;
+		}
 	}
 	return -1;
 }
 
 
-int
-ap_read_packet (int fd, ap_pkt_t *pkt)
+int ap_read_packet (int fd, ap_pkt_t *pkt)
 {
 	if (!pkt)
 		return -1;
 	pkt->pld_length = 0;	
-  if (read (fd, pkt, sizeof (ap_pkt_t)) != sizeof (ap_pkt_t))
+	if (read (fd, pkt, sizeof (ap_pkt_t)) != sizeof (ap_pkt_t))
 		return -1;
-  if (pkt->pld_length) {
-    pkt->payload = malloc (pkt->pld_length);
-    if (read (fd, pkt->payload, pkt->pld_length) != pkt->pld_length) {
+	// Check version before parsing	
+	if (pkt->version != AP_CONTROL_VERSION) {
+		fprintf(stderr, "protocol version mismatch (client): %x != %x",
+			pkt->version, AP_CONTROL_VERSION);
+		if (pkt->pld_length)
+			free(pkt->payload);
+		return -1;
+	}	
+	if (pkt->pld_length) {
+		pkt->payload = malloc (pkt->pld_length);
+		if (read (fd, pkt->payload, pkt->pld_length) != pkt->pld_length) {
 			free(pkt->payload);
 			return -1;
 		}	
-  }
+	}
 	return 1;
 }
 
 
-int
-ap_write_packet (int fd, ap_pkt_t pkt)
+int ap_write_packet (int fd, ap_pkt_t pkt)
 {
-  pkt.version = AP_CONTROL_VERSION;
-  if (write (fd, &pkt, sizeof (ap_pkt_t)) != sizeof (ap_pkt_t))
+	pkt.version = AP_CONTROL_VERSION;
+	if (write (fd, &pkt, sizeof (ap_pkt_t)) != sizeof (ap_pkt_t))
 		return -1;
-  if (pkt.pld_length) {
-    if (write (fd, pkt.payload, pkt.pld_length) != pkt.pld_length)
+	if (pkt.pld_length) {
+		if (write (fd, pkt.payload, pkt.pld_length) != pkt.pld_length)
 			return -1;
-  }
+	}
 	return 1;
 }
 
 
-int
+	int
 ap_do (int session, ap_cmd_t cmd)
 {
-  ap_pkt_t pkt;
-  int fd;
+	ap_pkt_t pkt;
+	int fd;
 
-  if ((fd = ap_connect_session (session)) == -1)
-    return -1;
-  pkt.cmd = cmd;
-  pkt.pld_length = 0;
-  ap_write_packet (fd, pkt);
-  close (fd);
+	if ((fd = ap_connect_session (session)) == -1)
+		return -1;
+	pkt.cmd = cmd;
+	pkt.pld_length = 0;
+	ap_write_packet (fd, pkt);
+	close (fd);
 	return 1;
 }
 
 
-int
-ap_get_int (int session, ap_cmd_t cmd, int *val)
+int ap_get_int (int session, ap_cmd_t cmd, int *val)
 {
-  ap_pkt_t pkt;
-  int fd;
+	ap_pkt_t pkt;
+	int fd;
 
-  if ((fd = ap_connect_session (session)) == -1)
-    return -1;
-  pkt.cmd = cmd;
-  pkt.pld_length = 0;
-  if (ap_write_packet (fd, pkt) == -1) {
-		close(fd);
+	if ((fd = ap_connect_session (session)) == -1) {
+		*val = 0;
 		return -1;
-	}	
-  if (ap_read_packet (fd, &pkt) == -1) {
-		close(fd);
-		return -1;
-	}
-	close(fd);
-  if (pkt.pld_length) {
-    *val  = *(int *) pkt.payload;
-		free (pkt.payload);
-  } else {
-		return -1;
-	}	
-  return 1;
-}
-
-int
-ap_set_int (int session, ap_cmd_t cmd, int val)
-{
-  ap_pkt_t pkt;
-  int fd;
-  if ((fd = ap_connect_session (session)) == -1)
-    return -1;
-  pkt.cmd = cmd;
-  pkt.pld_length = sizeof (int);
-  pkt.payload = &val;
-  ap_write_packet (fd, pkt);
-  close (fd);
-	return 1;
-}
-
-
-int
-ap_set_float (int session, ap_cmd_t cmd, float val)
-{
-  ap_pkt_t pkt;
-  int fd;
-  if ((fd = ap_connect_session (session)) == -1)
-    return -1;
-  pkt.cmd = cmd;
-  pkt.pld_length = sizeof (float);
-  pkt.payload = &val;
-  ap_write_packet (fd, pkt);
-  close (fd);
-	return 1;
-}
-
-
-int
-ap_get_float (int session, ap_cmd_t cmd, float *val)
-{
-  ap_pkt_t pkt;
-  int fd;
-  if ((fd = ap_connect_session (session)) == -1)
-    return -1;
-
-  pkt.cmd = cmd;
-  pkt.pld_length = 0;
-  if (ap_write_packet (fd, pkt) == -1) {
+	} 
+	pkt.cmd = cmd;
+	pkt.pld_length = 0;
+	if (ap_write_packet (fd, pkt) == -1) {
 		close(fd);
 		return -1;
 	}	
@@ -183,13 +129,72 @@ ap_get_float (int session, ap_cmd_t cmd, float *val)
 		return -1;
 	}
 	close(fd);
-  if (pkt.pld_length) {
-    *val = *(float *) pkt.payload;
-    free (pkt.payload);
-  } else {
+	if (pkt.pld_length) {
+		*val  = *(int *) pkt.payload;
+		free (pkt.payload);
+	} else {
 		return -1;
 	}	
-  return 1;
+	return 1;
+}
+
+
+int ap_set_int (int session, ap_cmd_t cmd, int val)
+{
+	ap_pkt_t pkt;
+	int fd;
+	if ((fd = ap_connect_session (session)) == -1)
+		return -1;
+	pkt.cmd = cmd;
+	pkt.pld_length = sizeof (int);
+	pkt.payload = &val;
+	ap_write_packet (fd, pkt);
+	close (fd);
+	return 1;
+}
+
+
+int ap_set_float (int session, ap_cmd_t cmd, float val)
+{
+	ap_pkt_t pkt;
+	int fd;
+	if ((fd = ap_connect_session (session)) == -1)
+		return -1;
+	pkt.cmd = cmd;
+	pkt.pld_length = sizeof (float);
+	pkt.payload = &val;
+	ap_write_packet (fd, pkt);
+	close (fd);
+	return 1;
+}
+
+
+int ap_get_float (int session, ap_cmd_t cmd, float *val)
+{
+	ap_pkt_t pkt;
+	int fd;
+	if ((fd = ap_connect_session (session)) == -1) {
+		*val = 0.0;
+		return -1;
+	}
+	pkt.cmd = cmd;
+	pkt.pld_length = 0;
+	if (ap_write_packet (fd, pkt) == -1) {
+		close(fd);
+		return -1;
+	}	
+	if (ap_read_packet (fd, &pkt) == -1) {
+		close(fd);
+		return -1;
+	}
+	close(fd);
+	if (pkt.pld_length) {
+		*val = *(float *) pkt.payload;
+		free (pkt.payload);
+	} else {
+		return -1;
+	}	
+	return 1;
 }
 
 
@@ -200,7 +205,7 @@ int ap_set_string(int session, ap_cmd_t cmd, char *str)
 
 	if ((fd = ap_connect_session (session)) == -1 || !str) 
 		return -1;
-		
+
 	pkt.cmd = cmd;
 	pkt.pld_length = strlen(str);
 	pkt.payload = str;
@@ -214,15 +219,16 @@ int ap_set_string(int session, ap_cmd_t cmd, char *str)
 }
 
 
-int 
-ap_get_string(int session, ap_cmd_t cmd, char *result)
+int ap_get_string(int session, ap_cmd_t cmd, char *result)
 {
 	ap_pkt_t pkt;
 	int fd;
 
-	if (!result || (fd = ap_connect_session (session)) == -1) 
+	if (!result || (fd = ap_connect_session (session)) == -1) {
+		result[0] = 0;
 		return -1;
-	
+	}	
+
 	pkt.cmd = cmd;
 	pkt.pld_length = 0;
 	ap_write_packet(fd, pkt);
@@ -248,16 +254,16 @@ int ap_session_running(int session)
 	float ping;
 
 	pwd = getpwuid(geteuid());
-	
+
 	sprintf(path, "/tmp/alsaplayer_%s_%d", pwd == NULL ? "anonymous" :
-		pwd->pw_name, session);
+			pwd->pw_name, session);
 	if (stat(path, &statbuf) != 0) 
-		return -1;
+		return 0;
 	if (S_ISSOCK(statbuf.st_mode)) {
 		if (ap_get_float(session, AP_GET_FLOAT_PING, &ping) != -1)
 			return 1;
 	}
-	return -1;
+	return 0;
 }
 
 
@@ -278,9 +284,9 @@ int ap_find_session(char *session_name)
 	dir = opendir("/tmp");
 
 	pwd = getpwuid(geteuid());
-	
+
 	sprintf(username, pwd == NULL ? "anonymous" : pwd->pw_name);
-	
+
 	sprintf(test_path, "alsaplayer_%s_", username);
 
 	if (dir) {
@@ -292,7 +298,7 @@ int ap_find_session(char *session_name)
 						if (ap_get_string(i, AP_GET_STRING_SESSION_NAME, remote_name) != -1) {
 							if (strcmp(remote_name, session_name) == 0) {
 								return i;
-								}
+							}
 						}
 					}
 				}
@@ -302,6 +308,11 @@ int ap_find_session(char *session_name)
 	return -1;
 }
 
+
+int ap_version()
+{
+	return AP_CONTROL_VERSION;
+}
 
 } /* extern "C" */
 

@@ -1,3 +1,6 @@
+- Rewrote command line parsing, is much more flexible now.
+- libalsaplayer: Change ap_session_running() return values to 1 for
+  "running" and 0 for "not running"
 - Round the total time calculation of mp3's upwards
 - Implement some more libalsaplayer commands (AP_GET_INT_SONG_LENGTH_SECOND,
   AP_GET_INT_SONG_LENGTH_SECOND)
