@@ -272,22 +272,9 @@ void PlaylistWindowGTK::ToggleVisible() {
 	}
 }
 
-// GTK Callbacks
-
-void thread_next(void *)
-{
-	ap_next(global_session_id);
-}
-
-void thread_prev(void *)
-{
-	ap_prev(global_session_id);
-}
-
 
 // Called when "prev" button is pressed
 extern void playlist_window_gtk_prev(GtkWidget *, gpointer data) {
-#if 0	
 	Playlist * playlist = (Playlist *) data;
 	if(playlist) {
 		playlist->Pause();
@@ -296,18 +283,10 @@ extern void playlist_window_gtk_prev(GtkWidget *, gpointer data) {
 		GDK_THREADS_ENTER();
 		playlist->UnPause();
 	}
-#else
-	pthread_t	worker_thread;
-	pthread_create(&worker_thread, NULL,
-			(void * (*)(void *))thread_prev, NULL);
-	pthread_detach(worker_thread);
-
-#endif	
 }
 
 
 // Called when "next" button is pressed
-#if 0 
 void playlist_window_gtk_next(GtkWidget *widget, gpointer data)
 {
 	Playlist * playlist = (Playlist *) data;
@@ -318,14 +297,6 @@ void playlist_window_gtk_next(GtkWidget *widget, gpointer data)
 		GDK_THREADS_ENTER();
 		playlist->UnPause();
 	}
-#else
-void playlist_window_gtk_next(GtkWidget *, gpointer)
-{	
-	pthread_t	worker_thread;
-	pthread_create(&worker_thread, NULL,
-			(void * (*)(void *))thread_next, NULL);
-	pthread_detach(worker_thread);
-#endif	
 }
 
 
