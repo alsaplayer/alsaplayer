@@ -1,1 +1,1 @@
-SUBDIRS = barfft logbarfft levelmeter synaescope spacescope monoscope fftscope
+SUBDIRS = logbarfft levelmeter synaescope spacescope monoscope blurscope

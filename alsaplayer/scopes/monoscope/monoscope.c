@@ -62,7 +62,7 @@ void monoscope_set_data(void *audio_buffer, int size)
 			memset(&newEq, 0, sizeof(newEq));
 			return;
 	}	
-	if (running && size > CONVOLVE_BIG * 2) {
+	if (running && size >= CONVOLVE_BIG) {
 		short * newset = newEq;
 		int skip = (size / (CONVOLVE_BIG * 2)) * 2;
 		for (i = 0; i < CONVOLVE_BIG; i++) {
@@ -190,7 +190,7 @@ GtkWidget *init_monoscope_window()
 	pthread_mutex_init(&monoscope_mutex, NULL);
 
 	monoscope_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title(GTK_WINDOW(monoscope_win), "AlsaPlayer: Monoscope");
+	gtk_window_set_title(GTK_WINDOW(monoscope_win), "Monoscope");
 	gtk_widget_set_usize(monoscope_win, 256,128);
 	gtk_window_set_wmclass (GTK_WINDOW(monoscope_win), "Monoscope", "AlsaPlayer");
 	gtk_window_set_policy (GTK_WINDOW (monoscope_win), FALSE, FALSE, FALSE);
@@ -277,11 +277,6 @@ void start_monoscope(void *data)
 }
 
 
-static int open_monoscope()
-{
-	return 1;
-}
-
 static int init_monoscope()
 {
 	state = convolve_init();
@@ -293,7 +288,7 @@ static int init_monoscope()
 	return 1;
 }
 
-static void close_monoscope()
+static void shutdown_monoscope()
 {
 /*	
 		if (state)
@@ -318,11 +313,10 @@ scope_plugin monoscope_plugin = {
 	{ "Andy Lo A Foe"},
 	NULL,
 	init_monoscope,
-	open_monoscope,
 	start_monoscope,
 	monoscope_running,
 	stop_monoscope,
-	close_monoscope,
+	shutdown_monoscope,
 	monoscope_set_data,
 	NULL
 };

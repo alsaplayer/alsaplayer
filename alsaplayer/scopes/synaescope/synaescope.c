@@ -34,7 +34,7 @@
 #include <assert.h>
 #include "scope_config.h"
 
-#define FFT_BUFFER_SIZE_LOG 9 
+#define FFT_BUFFER_SIZE_LOG 8 
 #define FFT_BUFFER_SIZE (1 << FFT_BUFFER_SIZE_LOG)
 typedef short int sound_sample;
 
@@ -558,11 +558,6 @@ static void start_synaescope(void *data)
 }
 
 
-static int open_synaescope()
-{
-	return 1;
-}
-
 static int bitReverser(int i) {
     int sum = 0;
     int j;
@@ -632,7 +627,7 @@ static void synaes_fft(double *x, double *y) {
 	}
 }
 
-static void close_synaescope()
+static void shutdown_synaescope()
 {
 }
 
@@ -647,11 +642,10 @@ scope_plugin synaescope_plugin = {
 	{ "Richard Boulton"},
 	NULL,
 	init_synaescope,
-	open_synaescope,
 	start_synaescope,
 	synaescope_running,
 	stop_synaescope,
-	close_synaescope,
+	shutdown_synaescope,
 	synaescope_set_data,
 	NULL
 };

@@ -33,7 +33,7 @@
 #include "fft.h"
 #endif
 
-#define BARS 32
+#define BARS 16 
 
 static GtkWidget *area = NULL;
 static GdkRgbCmap *color_map = NULL;
@@ -58,8 +58,8 @@ static int running = 0;
 static int xranges[] = {1, 2, 3, 4, 6, 8, 11, 15, 21,
 			29, 40, 54, 74, 101, 137, 187, 255};
 #endif
-static int xranges[] = {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 15, 17, 19, 21, 23, 25, 29, 33, 37, 40, 44, 48, 54, 61, 67, 74, 90, 101, 137, 158, 187, 255};
-
+//static int xranges[] = {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 15, 17, 19, 21, 23, 25, 29, 33, 37, 40, 44, 48, 54, 61, 67, 74, 90, 101, 137, 158, 187, 255};
+static int xranges[] = {0, 1, 2, 3, 5, 7, 10, 14, 20, 28, 40, 54, 74, 101, 137, 187, 255};
 
 
 static void fftscope_hide();
@@ -104,7 +104,7 @@ static void the_fftscope()
 				val = 0;
 				for (j = xranges[i]; j < xranges[i + 1]; j++) {
 					/* k = (guint)(sqrt(fftout[j]) * fftmult); */
-					k = (fft_buf[j] + fft_buf[256+j]) / 4;
+					k = (fft_buf[j] + fft_buf[256+j]) / 128;
 					val += k;
 				}
 				if(val > 127) val = 127;
@@ -244,11 +244,6 @@ static void start_fftscope(void *data)
 }
 
 
-static int open_fftscope()
-{
-	return 1;
-}
-
 static int init_fftscope()
 {
 	int i;
@@ -269,7 +264,7 @@ static int init_fftscope()
 	return 1;
 }
 
-static void close_fftscope()
+static void shutdown_fftscope()
 {
 }
 
@@ -284,11 +279,10 @@ scope_plugin logscope_plugin = {
 	{ "Andy Lo A Foe"},
 	NULL,
 	init_fftscope,
-	open_fftscope,
 	start_fftscope,
 	fftscope_running,
 	stop_fftscope,
-	close_fftscope,
+	shutdown_fftscope,
 	NULL,
 	logscope_set_fft,
 };

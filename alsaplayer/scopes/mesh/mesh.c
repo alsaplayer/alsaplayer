@@ -256,12 +256,6 @@ void start_meshscope (void *data)
 }
 
 
-static int open_meshscope ()
-{
-	return 1;
-}
-
-
 static int init_meshscope ()
 {
 	pthread_mutex_init (&meshscope_mutex, NULL);		
@@ -270,7 +264,7 @@ static int init_meshscope ()
 }
 
 
-static void close_meshscope ()
+static void shutdown_meshscope ()
 {
 }
 
@@ -288,11 +282,10 @@ scope_plugin meshscope_plugin =
   {"Stefan Eilemann & Andy Lo A Foe"},
 	NULL,
   init_meshscope,
-  open_meshscope,
   start_meshscope,
   meshscope_running,
   stop_meshscope,
-  close_meshscope,
+  shutdown_meshscope,
 	NULL,
 	meshscope_set_fft
 };

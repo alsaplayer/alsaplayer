@@ -206,17 +206,13 @@ void start_spacescope(void *data)
 	pthread_create(&spacescope_thread, NULL, (void * (*)(void *))run_spacescope, data);
 }
 
-static int open_spacescope()
-{
-	return 1;
-}
 
 static int init_spacescope()
 {
 	return 1;
 }
 
-static void close_spacescope()
+static void shutdown_spacescope()
 {
 	if (area) {
 					gtk_widget_destroy(area);
@@ -241,11 +237,10 @@ scope_plugin spacescope_plugin = {
 	{ "Andy Lo A Foe"},
 	NULL,
 	init_spacescope,
-	open_spacescope,
 	start_spacescope,
 	spacescope_running,
 	stop_spacescope,
-	close_spacescope,
+	shutdown_spacescope,
 	spacescope_set_data,
 	NULL
 };

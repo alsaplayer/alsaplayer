@@ -296,13 +296,8 @@ static int init_levelmeter()
 	return 1;
 }
 
-static int open_levelmeter()
-{
-	return 1;
-}
 
-
-static void close_levelmeter()
+static void shutdown_levelmeter()
 {
 	stop_levelmeter();
 	if (disp) {
@@ -337,11 +332,10 @@ scope_plugin levelmeter_plugin = {
 	{ "Andy Lo A Foe"},
 	NULL,
 	init_levelmeter,
-	open_levelmeter,
 	start_levelmeter,
 	levelmeter_running,
 	stop_levelmeter,
-	close_levelmeter,
+	shutdown_levelmeter,
 	levelmeter_set_data,
 	NULL
 };
