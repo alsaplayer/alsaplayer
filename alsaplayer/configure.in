@@ -493,7 +493,6 @@ interface/Makefile
 interface/gtk/Makefile
 interface/gtk/pixmaps/Makefile
 interface/gtk/gui/Makefile
-interface/qt/Makefile
 interface/cli/Makefile
 scopes/Makefile
 scopes/monoscope/Makefile
