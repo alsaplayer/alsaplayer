@@ -365,7 +365,7 @@ dnl ==========
 AC_MSG_CHECKING(for alsa version)
 AC_EGREP_CPP([AP_maGiC_VALUE],
 [
-#include <alsa/asoundlib.h>
+#include <sys/asoundlib.h>
 #if defined(SND_LIB_MAJOR) && defined(SND_LIB_MINOR)
 #if SND_LIB_MAJOR>0 || (SND_LIB_MAJOR==0 && SND_LIB_MINOR==5)
 AP_maGiC_VALUE
