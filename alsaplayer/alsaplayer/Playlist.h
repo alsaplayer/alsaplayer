@@ -52,7 +52,7 @@ class PlaylistInterface
 		// Current position changed
 		virtual void CbSetCurrent(unsigned pos) = 0;
 
-		virtual void CbLock() = 0;	// If locking needs to be don
+		virtual void CbLock() = 0;	// If locking needs to be done
 		virtual void CbUnlock() = 0;	
 		
 		// Some items were inserted
@@ -128,7 +128,7 @@ public:
 
 	// Move to specified item in playlist and play from there
 	// Position 1 is first item, n is last item where n is length of list
-	void Play(unsigned);
+	void Play(unsigned, int locking=0);
 
 	void Next(int locking=0);    // Start playing next item in playlist
 	void Prev(int locking=0);    // Start playing previous item in playlist

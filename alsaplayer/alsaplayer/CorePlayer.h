@@ -93,6 +93,8 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	virtual int GetDirection() { return read_direction; }
 	void load_input_addons();
 	void UnregisterPlugins();
+	void Lock();
+	void Unlock();
 	int RegisterPlugin(input_plugin *the_plugin);
 	int plugin_count; // Number of registered plugins
 	input_plugin plugins[MAX_PLUGINS]; // Be very optimistic

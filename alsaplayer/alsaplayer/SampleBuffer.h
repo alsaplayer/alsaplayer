@@ -47,11 +47,15 @@ class SampleBuffer {
         int sample_size;
         int buffer_size;
         int read_direction;
-        int read_index;
-        int write_index;
-        char *buffer_data;
+        //int read_index;
+        //int write_index;
+        //char *buffer_data;
 	pthread_mutex_t	lock;	
  public:
+
+	int read_index;
+	int write_index;
+	char *buffer_data;
 	
 	SampleBuffer(int mode, int size);
 	~SampleBuffer();
