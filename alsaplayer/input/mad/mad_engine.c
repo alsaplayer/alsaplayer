@@ -309,8 +309,7 @@ static int mad_play_frame(input_object *obj, char *buf)
 		}
 	}
 	data->current_frame++;
-	if (data->current_frame < (obj->nr_frames + FRAME_RESERVE)
-			&& data->seekable) {
+	if (data->seekable && data->current_frame < (obj->nr_frames + FRAME_RESERVE)) {
 		data->frames[data->current_frame] = 
 			data->map_offset + data->stream.this_frame - data->mad_map;
 		if (data->current_frame > 3 && 
@@ -340,6 +339,7 @@ static int mad_play_frame(input_object *obj, char *buf)
 
 		}
 	}
+	strcpy(data->sinfo.status, "");
 	data->bytes_avail = data->stream.bufend - data->stream.next_frame;
 	return 1;
 }
@@ -652,8 +652,6 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 		if (!data->parsed_id3) {
 	            if (reader_seekable(data->mad_fd))
 			    parse_id3 (data->path, &data->sinfo);
-		    if (obj->flags & P_STREAMBASED) 
-			    strcpy(data->sinfo.status, "Streaming");
 		    strncpy (data->sinfo.path, data->path, sizeof(data->sinfo.path));
 		    data->parsed_id3 = 1;
 		}
@@ -816,6 +814,7 @@ static int mad_open(input_object *obj, const char *path)
 	
 	if (strncasecmp(path, "http://", 7) == 0) {
 		obj->flags |= P_STREAMBASED;
+		strcpy(data->sinfo.status, "Prebuffering");
 	} else {
 		obj->flags |= P_FILEBASED;
 	}
@@ -862,7 +861,7 @@ static int mad_open(input_object *obj, const char *path)
 				return 0;
 			case MAD_ERROR_LOSTSYNC:
 				if (mad_header_decode(&data->frame.header, &data->stream) == -1) {
-					alsaplayer_error("Invalid header");
+					alsaplayer_error("Invalid header (%s)", path);
 				}
 				//alsaplayer_error("Calling mad_frame_decode again.. (%d %d %d)", 
 				//		data->stream.this_frame - data->mad_map,
@@ -880,7 +879,7 @@ static int mad_open(input_object *obj, const char *path)
 			case 0x235:
 				break;
 			default:
-				printf("No valid frame found at start (pos: %d, error: 0x%x)\n", data->offset, data->stream.error);
+				printf("No valid frame found at start (pos: %d, error: 0x%x) (%s)\n", data->offset, data->stream.error, path);
 				return 0;
 		}
 	}
@@ -924,10 +923,15 @@ static int mad_open(input_object *obj, const char *path)
 		obj->nr_frames = data->xing.frames ? data->xing.frames : (int) frames;
 		obj->nr_tracks = 1;
 	}
+	/* Determine if nr_frames makes sense */
+	if (!(obj->flags & P_SEEK) && (obj->flags & P_STREAMBASED)) {
+		obj->nr_frames = -1;
+	}	
+	
 	/* Allocate frame index */
-	if (obj->nr_frames > 1000000 ||
+	if (!data->seekable  || obj->nr_frames > 1000000 ||
 			(data->frames = (ssize_t *)malloc((obj->nr_frames + FRAME_RESERVE) * sizeof(ssize_t))) == NULL) {
-		data->seekable = 0;
+		data->seekable = 0; // Given really
 	}	else {
 		data->seekable = 1;
 		data->frames[0] = 0;
