@@ -317,9 +317,9 @@ static int mad_play_frame(input_object *obj, char *buf)
 			if (reader_eof(data->mad_fd)) {
 				return 0;
 			}	
-			/*
-			alsaplayer_error("MAD error: %s (not fatal)", error_str(data->stream.error, data->str)); 
-			*/
+			//alsaplayer_error("MAD error: %s (not fatal)", error_str(data->stream.error, data->str)); 
+			memset(buf, 0, obj->frame_size);
+			return 1;
 		}
 	}
 	data->current_frame++;
@@ -923,20 +923,17 @@ static int mad_open(input_object *obj, const char *path)
 	}	
 first_frame:
 	
-	if ((mad_header_decode(&data->frame.header, &data->stream) != 0)) {
+	if ((mad_header_decode(&data->frame.header, &data->stream) == -1)) {
 		switch (data->stream.error) {
 			case MAD_ERROR_BUFLEN:
 				return 0;
 			case MAD_ERROR_LOSTSYNC:
+				alsaplayer_error("Lost synchronisation (frame %d)", data->current_frame);
 			case MAD_ERROR_BADEMPHASIS:
 			case MAD_ERROR_BADBITRATE:
 			case MAD_ERROR_BADLAYER:	
-				
 			case MAD_ERROR_BADSAMPLERATE:	
-				if (mad_header_decode(&data->frame.header, &data->stream) == -1) {
-					alsaplayer_error("Lost synchronisation (frame %d)", data->current_frame);
-				}
-				//alsaplayer_error("avail = %d", data->bytes_avail);
+				//alsaplayer_error("Error %x (frame %d)", data->stream.error, data->current_frame);
 				data->bytes_avail-=(data->stream.next_frame - data->stream.this_frame);
 				goto first_frame;
 				break;
@@ -957,10 +954,13 @@ first_frame:
 				return 0;
 		}
 	}
-	if (data->stream.error != MAD_ERROR_LOSTSYNC)
+	
+	if (data->stream.error != MAD_ERROR_LOSTSYNC) {
 		if (xing_parse(&data->xing, data->stream.anc_ptr, data->stream.anc_bitlen) == 0) {
 			// We use the xing data later on
 		}	
+	}
+	
 	mode = (data->frame.header.mode == MAD_MODE_SINGLE_CHANNEL) ?
 		1 : 2;
 	data->samplerate = data->frame.header.samplerate;
