@@ -130,7 +130,6 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 
 	if (module) {
 		sprintf(path, "%s/output/lib%s_out.so", addon_dir, module);
-		printf("Loading output plugin: %s\n", path);
 		if (stat(path, &statbuf) != 0)	// Error reading object
 			return;
 		if ((handle = dlopen(path, RTLD_NOW | RTLD_GLOBAL))) {

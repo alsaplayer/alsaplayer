@@ -91,7 +91,8 @@ int jack_prepare(void *arg)
 	char str[32];
 
 	if (strlen(dest_port1) && strlen(dest_port2)) {
-		if ((client = jack_client_new("alsaplayer")) == 0) {
+		sprintf(str, "alsaplayer-%d", getpid());
+		if ((client = jack_client_new(str)) == 0) {
 			alsaplayer_error("jack server not running?");
 			return -1;
 		}
@@ -109,7 +110,7 @@ int jack_prepare(void *arg)
 			alsaplayer_error("cannot activate client");
 			return -1;
 		}       
-		alsaplayer_error("connecting to jack ports: %s & %s", dest_port1, dest_port2);
+		//alsaplayer_error("connecting to jack ports: %s & %s", dest_port1, dest_port2);
 
 		if (jack_connect (client, jack_port_name(my_output_port1), dest_port1)) {
 			alsaplayer_error("cannot connect output port 1");
@@ -155,6 +156,15 @@ static int jack_init()
 static int jack_open(char *name)
 {
 	int err;
+	char *s;
+	if ((s=strchr(name, ','))) {
+		*s++ = 0;
+		strncpy(dest_port1, name, 31);
+		strncpy(dest_port2, s, 31);
+		dest_port1[31] = dest_port2[31] = 0;
+		alsaplayer_error("Using: %s & %s",
+				dest_port1, dest_port2);
+	}	
 	return 1;
 }
 

@@ -41,7 +41,7 @@ typedef int(*output_get_latency_type)();
 typedef struct _output_plugin
 {
 	/**
-	 * Version of output plugin
+	 * Version of output plugin. Must be OUTPUT_PLUGIN_VERSION
 	 */ 
 	output_version_type version;
 

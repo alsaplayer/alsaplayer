@@ -647,7 +647,7 @@ void CorePlayer::Unload()
 	Unlock();
 }
 
-bool CorePlayer::Load(const char *path = NULL)
+bool CorePlayer::Load(const char *path)
 {
 	bool result = false;
 	input_plugin *best_plugin;

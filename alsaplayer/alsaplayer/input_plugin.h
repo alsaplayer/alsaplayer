@@ -69,8 +69,8 @@
 #define INPUT_PLUGIN_VERSION	(INPUT_PLUGIN_BASE_VERSION + 12)
 
 /**
- * This is a structure that keeps frequently used parameters of the
- * an input instance. It also contains a pointer to any local_data
+ * This is a structure that keeps frequently used parameters of an
+ * input instance. It also contains a pointer to any local_data
  * that might be allocated by the plugin itself.
  */ 
 typedef struct _input_object
@@ -105,7 +105,7 @@ typedef struct _input_object
 	 * value.
 	 */
 	int frame_size;
-	/** If you plugin needs extra space for its own variables assign the
+	/** If your plugin needs extra space for its own variables assign the
 	 * allocated data structure to this pointer
 	 */
 	void *local_data;
@@ -292,7 +292,7 @@ typedef struct _input_plugin
 	 */
 	char *name;
 	/** 
-	 * Should point to a character array containing the nae of the 
+	 * Should point to a character array containing the name of the 
 	 * author(s) of this plugin.
 	 */
 	char *author;
@@ -321,7 +321,9 @@ typedef struct _input_plugin
 /**
  * Every input plugin should have an input_plugin_info() function that
  * returns a pointer to an input_plugin structure that is set up with
- * pointers to your implementations.
+ * pointers to your implementations. If your plugin is compiled using
+ * C++ make sure you 'extern "C"' the input_plugin_info() function or
+ * else the HOST will not be able to load the plugin.
  */
 typedef input_plugin*(*input_plugin_info_type)();
 
