@@ -1,5 +1,5 @@
 /*  input_plugin.h -  Use this to write input plugins
- *  Copyright (C) 1999 Andy Lo A Foe <andy@alsa-project.org>
+ *  Copyright (C) 1999-2002 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,11 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*/ 
+ *
+ *
+ *  $Id$
+ *  
+ */ 
 
 #ifndef __input_plugin_h__
 #define __input_plugin_h__
