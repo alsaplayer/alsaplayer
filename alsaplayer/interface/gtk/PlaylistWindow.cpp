@@ -50,7 +50,7 @@ static int current_entry = -1;
 PlaylistWindowGTK::PlaylistWindowGTK(Playlist * pl) {
 	playlist = pl;
 	
-	alsaplayer_error("PlaylistWindowGTK constructor entered");
+	//alsaplayer_error("PlaylistWindowGTK constructor entered");
 
 	playlist_window = init_playlist_window(this, pl);
 	playlist_list = get_widget(playlist_window, "playlist");
@@ -72,9 +72,7 @@ PlaylistWindowGTK::PlaylistWindowGTK(Playlist * pl) {
 	
 	//alsaplayer_error("Would Register here");
 	//playlist->Register(this);
-	alsaplayer_error("About to register pli");
 	playlist->Register(&pli);
-	alsaplayer_error("Registered pli");
 }
 
 PlaylistWindowGTK::~PlaylistWindowGTK() {
@@ -101,8 +99,6 @@ void PlaylistWindowGTK::CbSetCurrent(void *data, unsigned current) {
 	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 	GtkWidget *working;
 	GtkStyle *style;
-	
-	alsaplayer_error("In CbSetCurrent()");
 	
 	if (!current_play_pix) {
 		style = gtk_widget_get_style(GTK_WIDGET(gtkpl->playlist_list));
@@ -133,13 +129,11 @@ void PlaylistWindowGTK::CbLock(void *data)
 {
 	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 	GDK_THREADS_ENTER();
-	//alsaplayer_error("GDK_THREADS_ENTER()...");
 }
 
 void PlaylistWindowGTK::CbUnlock(void *data)
 {
 	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
-	//alsaplayer_error("GDK_THREADS_LEAVE()...");
 	GDK_THREADS_LEAVE();
 }
 
@@ -149,7 +143,6 @@ void PlaylistWindowGTK::CbUpdated(void *data,PlayItem & item, unsigned position)
 	char tmp[1024];
 	int secs;
 
-	alsaplayer_error("In CbUpdated()");
 
 	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
 
@@ -174,7 +167,7 @@ void PlaylistWindowGTK::CbUpdated(void *data,PlayItem & item, unsigned position)
 void PlaylistWindowGTK::CbInsert(void *data,std::vector<PlayItem> & items, unsigned position) {
 	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 	
-	alsaplayer_error("CbInsert(`%d items', %d)", items.size(), position);
+	//alsaplayer_error("CbInsert(`%d items', %d)", items.size(), position);
 
 	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
 

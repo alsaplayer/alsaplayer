@@ -135,17 +135,14 @@ gboolean main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 	GDK_THREADS_LEAVE(); // Drop lock so indicator_thread can finish
 	pthread_join(indicator_thread, NULL);
 	GDK_THREADS_ENTER();
-	//alsaplayer_error("About to run f()");
 	if (f) { // Oh my, a very ugly HACK indeed! But it works
 		gdk_flush();
 		GDK_THREADS_LEAVE();
 		f(NULL);
 		GDK_THREADS_ENTER();
 	}
-	//alsaplayer_error("About to delete playlist_window_gtk");
 	if (playlist_window_gtk)
 		delete playlist_window_gtk;
-	//alsaplayer_error("About to call gtk_main_quit()");
 	gtk_main_quit();
 	
 	// Never reached
