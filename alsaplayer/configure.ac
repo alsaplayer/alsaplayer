@@ -276,8 +276,8 @@ dnl NAS stuff
 dnl =========
 
 oldcflags=$CFLAGS
-CFLAGS="$CFLAGS -lXt"
-AC_CHECK_LIB(audio,AuStartFlow, [have_nas=yes NAS_LIB="-laudio -lXt"], have_nas=no)
+CFLAGS="$CFLAGS -I$x_includes -L$x_libraries -lXt"
+AC_CHECK_LIB(audio,AuStartFlow, [have_nas=yes NAS_LIB="-L$x_libraries -laudio -lXt"], have_nas=no)
 CFLAGS=$oldcflags
 AC_SUBST(NAS_LIB)
 

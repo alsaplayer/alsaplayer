@@ -277,6 +277,7 @@ static int nas_set_buffer(int fragment_size, int fragment_count, int channels)
     AuStartFlow(Nas_Info.aud,	/* Au server */
                 Nas_Info.flow,  /* id */
                 NULL);          /* status */
+	return 1;	
 }
 
 static int nas_set_sample_rate(int rate)
