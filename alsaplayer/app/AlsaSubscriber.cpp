@@ -81,7 +81,7 @@ void AlsaSubscriber::ExitStream()
 {
 	if (the_node && the_node->IsInStream(the_ID)) {
 		if (!the_node->RemoveStreamer(the_ID)) {
-			printf("ERROR! Failed to remove streamer\n");
+			puts("ERROR! Failed to remove streamer");
 		} else {
 			the_ID = -1;
 		}	
