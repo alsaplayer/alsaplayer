@@ -131,7 +131,7 @@ int AlsaNode::SetStreamBuffers(int frag_size, int count, int channels)
 
 void AlsaNode::looper(void *pointer)
 {
-	char *buffer_data;
+	char *buffer_data[16384];
 	AlsaNode *node = (AlsaNode *)pointer;
 	int read_size = node->GetFragmentSize();
 	bool status;
@@ -165,15 +165,6 @@ void AlsaNode::looper(void *pointer)
 #endif
 	node->looping = true;
 
-	buffer_data = new char[16384];
-
-	if (!buffer_data) {
-		alsaplayer_error("HUH?? error!");
-		exit(1);
-	}	
-
-	memset(buffer_data, 0, 16384);
-
 	read_size = node->GetFragmentSize();
 	while (node->looping) {
 		subscriber *i;
@@ -182,15 +173,15 @@ void AlsaNode::looper(void *pointer)
 		memset(buffer_data, 0, 16384);
 		for (c = 0; c < MAX_SUB; c++) {
 			i = &node->subs[c];
-			if (!i->active) { // Skip inactive streamers
+
+			// Skip inactive streamers
+			if (!i->active || !i->streamer) {
 				continue;
 			}	
-			if (i->streamer) {
-				//printf("streaing %d\n", i->ID);
-				status = i->streamer(i->arg, buffer_data, read_size / sizeof(short));
-			} else { 
-				continue;
-			}	
+
+			//printf("streaming %d\n", i->ID);
+			status = i->streamer(i->arg, buffer_data, read_size / sizeof(short));
+
 			if (status == false) { // Disable this streamer
 				i->active = false;
 			}
@@ -199,7 +190,7 @@ void AlsaNode::looper(void *pointer)
 
 		read_size = node->GetFragmentSize(); // Change on the fly
 	}
-	delete []buffer_data;
+
 	pthread_mutex_unlock(&node->thread_mutex);
 	pthread_exit(NULL);
 }
@@ -270,7 +261,7 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 		sp.sched_priority = sched_get_priority_max(SCHED_FIFO);
 
 		if (sched_setscheduler(0, SCHED_FIFO, &sp) != 0) {
-			alsaplayer_error("failed to setup rea-time scheduling!");
+			alsaplayer_error("failed to set up real-time scheduling!");
 		} else {
 			mlockall(MCL_CURRENT);
 			alsaplayer_error("real-time scheduling on");
