@@ -28,6 +28,7 @@
 #include <vector>
 #include <algorithm>
 
+#include "AlsaPlayer.h"
 #include "Playlist.h"
 #include "PlaylistWindow.h"
 #include "support.h"
@@ -36,6 +37,7 @@
 #include "utilities.h"
 #include "prefs.h"
 #include "alsaplayer_error.h"
+#include "control.h"
 
 // Forward declarations
 
@@ -186,11 +188,6 @@ void PlaylistWindowGTK::CbInsert(void *data,std::vector<PlayItem> & items, unsig
 			index ++;
 		}
 	}
-	//std::string msg = inttostring(items.size()) + " file";
-	//if(items.size() != 1) msg += "s";
-	//msg += " added";
-
-	//gtkpl->GiveStatus(msg);
 	gtk_clist_thaw(GTK_CLIST(gtkpl->playlist_list));
 
 	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
@@ -214,12 +211,6 @@ void PlaylistWindowGTK::CbRemove(void *data, unsigned start, unsigned end)
 		gtk_clist_remove(GTK_CLIST(gtkpl->playlist_list), start - 1);
 		i++;
 	}
-	//gtk_clist_select_row(GTK_CLIST(gtkpl->playlist_list), start-1, 0);
-	//std::string msg = inttostring(end + 1 - start) + " file";
-	//if(end != start) msg += "s";
-	//msg += " removed";
-
-	//gtkpl->GiveStatus(msg);
 
 	gtk_clist_thaw(GTK_CLIST(gtkpl->playlist_list));
 	
@@ -622,6 +613,13 @@ void playlist_window_keypress(GtkWidget *widget, GdkEventKey *event, gpointer da
 			break;
 		case GDK_Return:
 			playlist_play_current(playlist, list);
+			break;
+		case GDK_Right:
+			// This is a hack, but quite legal
+			ap_set_position_relative(global_session_id, 10);
+			break;
+		case GDK_Left:
+			ap_set_position_relative(global_session_id, -10);
 			break;
 		default:
 			break;
