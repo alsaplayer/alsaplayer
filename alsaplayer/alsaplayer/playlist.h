@@ -167,8 +167,10 @@ void		    ap_playlist_update			(ApPlaylist	*playlist,
 void		    ap_playlist_insert			(ApPlaylist	*playlist,
 							 GPtrArray	*array,
 							 guint		pos);
-void		    ap_playlist_clear			(ApPlaylist    *playlist);
-void		    ap_playlist_shuffle			(ApPlaylist    *playlist);
+void		    ap_playlist_clear			(ApPlaylist     *playlist);
+void		    ap_playlist_shuffle			(ApPlaylist     *playlist);
+void		    ap_playlist_sort			(ApPlaylist     *playlist,
+							 const gchar    *order);
 
 #ifdef __cplusplus
 }

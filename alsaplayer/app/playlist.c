@@ -463,12 +463,127 @@ ap_playlist_insert_thread (gpointer data)
     return NULL;
 } /* ap_playlist_insert_thread */
 
+/* - - - -  - - - - - - - - - - - -  - - - - -  - - - - - - - - - - - - -*/
 gint
 shuffle_comparator (gconstpointer a,
-			  gconstpointer b)
+		    gconstpointer b)
 {
     return g_random_int_range(0, 3) - 1;
 } /* shuffle_comparator */
+
+/* - - - -  - - - - - - - - - - - -  - - - - -  - - - - - - - - - - - - -*/
+/* Function is similar to strcmp, but this is for PlayItem type.
+ * This function uses sort_seq variable. Also this function should 
+ * be keept optimized for speed.
+ */
+
+#define ASCENDING	0
+#define DESCENDING	1
+#define COMPARE(what,direction)	    {\
+    return direction==ASCENDING ? g_utf8_collate (sa->##what##, sb->##what##)\
+				: g_utf8_collate (sb->##what##, sa->##what##);\
+}
+
+gint
+sort_comparator (gconstpointer	a,
+		 gconstpointer	b,
+		 gpointer	data)
+{
+    const ApPlayItem *sa = *(const ApPlayItem**)a;
+    const ApPlayItem *sb = *(const ApPlayItem**)b;
+    const gchar *sort_seq = data;
+    const gchar *t;
+
+    // For each kind of sorting field
+    for (t = sort_seq; *t; t++) {
+	switch (*t) {
+		case 't':	// Compare titles, descending
+				COMPARE(title, DESCENDING);
+
+		case 'T':	// Compare titles, ascending
+				COMPARE(title, ASCENDING);
+
+		case 'a':	// Compare artists, descending
+				COMPARE(artist, DESCENDING);
+
+		case 'A':	// Compare artists, ascending
+				COMPARE(artist, ASCENDING);
+
+		case 'l':	// Compare albums, descending
+				COMPARE(album, DESCENDING);
+
+		case 'L':	// Compare albums, ascending
+				COMPARE(album, ASCENDING);
+
+		case 'g':	// Compare genres, descending
+				COMPARE(genre, DESCENDING);
+
+		case 'G':	// Compare genres, ascending
+				COMPARE(genre, ASCENDING);
+
+		case 'f':	// Compare filenames, descending
+				COMPARE(filename, DESCENDING);
+
+		case 'F':	// Compare filenames, ascending
+				COMPARE(filename, ASCENDING);
+
+		case 'c':	// Compare comments, descending
+				COMPARE(comment, DESCENDING);
+
+		case 'C':	// Compare comments, ascending
+				COMPARE(comment, ASCENDING);
+
+		/* TODO: Rewrite this later... when it will be
+		 *	 passible to have good values of fields
+		 *	 to test.
+		 */
+/*		case 'y':	// Compare years, descending		
+				ai = atoi (a.year.c_str ());
+				bi = atoi (b.year.c_str ());
+
+				if (ai == bi)  continue;
+
+				return ai > bi;
+
+		case 'Y':	// Compare years, ascending
+				ai = atoi (a.year.c_str ());
+				bi = atoi (b.year.c_str ());
+
+				if (ai == bi)  continue;
+
+				return ai < bi;
+
+		case 'n':	// Compare tracks, descending
+				ai = atoi (a.track.c_str ());
+				bi = atoi (b.track.c_str ());
+
+				if (ai == bi)  continue;
+
+				return ai > bi;
+
+		case 'N':	// Compare tracks, ascending
+				ai = atoi (a.track.c_str ());
+				bi = atoi (b.track.c_str ());
+
+				if (ai == bi)  continue;
+
+				return ai < bi;
+
+		case 'p':	// Compare playtimes, descending
+				if (a.playtime == b.playtime)  continue;
+
+				return a.playtime > b.playtime;
+
+		case 'P':	// Compare playtimes, ascending
+				if (a.playtime == b.playtime)  continue;
+
+				return a.playtime < b.playtime;*/
+	}
+    }
+
+    // Don't sort
+    return 0;
+} /* sort_comparator */
 
 /* *****************************************************************/
 /* Public functions.						   */
@@ -752,6 +867,34 @@ ap_playlist_shuffle (ApPlaylist	    *playlist)
     g_return_if_fail (AP_IS_PLAYLIST (playlist));
     
     g_ptr_array_sort (playlist->queue, shuffle_comparator);
+
+    g_signal_emit_by_name (playlist, "cleared");
+    g_signal_emit_by_name (playlist, "inserted", 0, playlist->queue);
+
+    /* TODO TODO TODO TODO: Detect new position of currenly playing song. */
+}
+
+/**
+ * @param playlist	    An #ApPlaylist.
+ * @param order		    Pointer to sequence of sorting fields.
+ *
+ * @brief		    Sort playlist.
+ *
+ * @note		    Be careful!!
+ *			    Playlist should be locked by ap_object_lock()
+ *			    before using this function, and unlocked by
+ *			    ap_object_unlock() afterwards.
+ **/
+void
+ap_playlist_sort (ApPlaylist	    *playlist,
+		  const gchar	    *order)
+{
+    g_return_if_fail (AP_IS_PLAYLIST (playlist));
+    g_return_if_fail (order != NULL);
+    
+    g_ptr_array_sort_with_data (playlist->queue,
+				sort_comparator,
+				(gpointer)order);
 
     g_signal_emit_by_name (playlist, "cleared");
     g_signal_emit_by_name (playlist, "inserted", 0, playlist->queue);
