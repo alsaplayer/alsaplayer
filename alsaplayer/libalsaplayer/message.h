@@ -60,6 +60,7 @@
 #define AP_GET_POS_FRAME                0xcc1b
 #define AP_GET_STREAM_TYPE              0xcc1c
 #define AP_GET_STATUS			0xcc1d
+#define AP_SET_POS_SECOND_RELATIVE	0xcc1e
 /* Add new commands here */
 
 #ifdef __cplusplus

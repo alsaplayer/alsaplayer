@@ -57,6 +57,7 @@ int ap_get_genre(int session, char *str);
 
 int ap_set_position(int session, int pos);
 int ap_get_position(int session, int *val);
+int ap_set_position_relative(int session, int pos);
 int ap_get_length(int session, int *length);
 int ap_set_frame(int session, int frame);
 int ap_get_frame(int session, int *val);

@@ -271,6 +271,23 @@ void socket_looper(void *arg)
 					ap_message_add_int32(reply, "ack", 1);
 				}	
 				break;
+			case AP_SET_POS_SECOND_RELATIVE:
+				if (player) {
+					if ((int_val = ap_message_find_int32(msg, "int"))) {
+						printf("Need to jump by %d\n", *int_val);
+						*int_val += ( player->GetCurrentTime() / 100);
+						*int_val *= player->GetSampleRate();
+						*int_val /= player->GetFrameSize();
+						*int_val *= player->GetChannels();
+						*int_val *= 2; // 16-bit ("2" x 8-bit)a
+						if (*int_val < 0)
+							*int_val = 0;
+						printf("Real jump point = %d\n", *int_val);	
+						player->Seek(*int_val);
+					}
+				}
+				ap_message_add_int32(reply, "ack", 1);
+				break;
 			case AP_SET_POS_SECOND:
 				if (player) {
 					if ((int_val = ap_message_find_int32(msg, "int"))) {

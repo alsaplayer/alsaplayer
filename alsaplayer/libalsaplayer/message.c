@@ -539,6 +539,11 @@ int ap_set_position(int session, int pos)
 	return (ap_cmd_set_int(session, AP_SET_POS_SECOND, pos));
 }
 
+int ap_set_position_relative(int session, int pos)
+{
+	return (ap_cmd_set_int(session, AP_SET_POS_SECOND_RELATIVE, pos));
+}
+
 int ap_get_position(int session, int *val)
 {
 	return (ap_cmd_get_int(session, AP_GET_POS_SECOND, val));
