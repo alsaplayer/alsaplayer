@@ -677,6 +677,7 @@ interface/gtk/pixmaps/Makefile
 interface/gtk/gui/Makefile
 interface/text/Makefile
 interface/daemon/Makefile
+interface/xosd/Makefile
 scopes/Makefile
 scopes/monoscope/Makefile
 scopes/levelmeter/Makefile

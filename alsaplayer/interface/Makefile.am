@@ -1,2 +1,2 @@
 # gtk2
-SUBDIRS = gtk text daemon
+SUBDIRS = gtk text daemon xosd
