@@ -48,11 +48,6 @@ void dl_close_scopes()
 
 void scope_entry_destroy_notify(gpointer data)
 {
-	//scope_entry *se = (scope_entry *)data;
-	//if (se) {
-	//	printf("should destroy \"%s\"\n", se->sp->name);
-	//	delete se->sp; // HACK!!!!!!!!
-	//	delete se;
 }
 
 #define SCOPE_BUFFER	4096
@@ -66,32 +61,16 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 
 	scope_entry *se = root_scope;
 
-	if (size > SCOPE_BUFFER && !warn) {
-		warn = 1;
-		alsaplayer_error("The fragment size must be %d bytes or less for scopes to work", SCOPE_BUFFER);
-		return true;
-	} else 
-		warn = 0;
-
-	buffer_effect(data, size);
-
 	if (fill + size >= SCOPE_BUFFER) {
 		left = SCOPE_BUFFER - fill;
 		memcpy(buf + fill, data, left);
 
-		CorePlayer *p = (CorePlayer *)arg;
-		//unsigned int latency = p->GetLatency();
-		//char *point;
-		//latency -= (latency % 4);
-		//point = delay_feed(latency, size);
 		if (pthread_mutex_trylock(&sl_mutex) != 0) {
 			return true;	// List is being manipulated
 		}	
 		while (se && se->sp && se->active) {
 			if (se->sp->running())
-				//se->sp->set_data((short *)point, size >> 1);
 				se->sp->set_data((short *)buf, SCOPE_BUFFER >> 1);
-			//printf("feeding %s (%d)\n", se->sp->name, size >> 1);
 			if (se->next) 
 				se = se->next;
 			else 
@@ -121,14 +100,6 @@ void apUnregiserScopePlugins()
 		current->active = 0;
 		current->sp->stop();
 		current->sp->close();
-		//if (current->sp->handle) {
-		//	fprintf(stdout, "Unloading Scope plugin: %s (%x)\n",
-		//			current->sp->name, current->sp->handle);
-		//	handle = current->sp->handle;	
-			//delete current->sp;
-			//current->sp = NULL;
-			//dlclose(handle);
-		//}
 		current = current->next;
 	}
 	pthread_mutex_unlock(&sl_mutex);
@@ -148,8 +119,6 @@ int apRegisterScopePlugin(scope_plugin *plugin)
 			"list");
 	se = new scope_entry;
 	se->next = (scope_entry *)NULL;
-	//se->sp = new scope_plugin;
-	//memcpy(se->sp, plugin, sizeof(scope_plugin));
 	se->sp = plugin;
 	if (se->sp->version != SCOPE_PLUGIN_VERSION) {
 			fprintf(stderr, "Wrong version number on plugin v%d, wanted v%d\n",
@@ -165,11 +134,9 @@ int apRegisterScopePlugin(scope_plugin *plugin)
 	list_item[1] = g_strdup(se->sp->name);
 	int index = gtk_clist_append(GTK_CLIST(list), list_item);
 	gtk_clist_set_row_data_full(GTK_CLIST(list), index, se, scope_entry_destroy_notify);
-	//gtk_clist_set_shift(GTK_CLIST(list), index, 1, 5, 2);
 
 	// Init scope
 	se->sp->init();
-	//se->sp->start(NULL);
 	// Add scope to scope list
 	// NOTE: WE CURRENTLY NEVER UNLOAD SCOPES
 	pthread_mutex_lock(&sl_mutex);	
@@ -178,19 +145,10 @@ int apRegisterScopePlugin(scope_plugin *plugin)
 		root_scope = se;
 		root_scope->next = (scope_entry *)NULL;
 		root_scope->active = 1;
-		//root_scope.sp = se->sp;
-		//root_scope.next = (scope_entry *)NULL;
-		//root_scope.active = 1;
 	} else { // Not root scope, so insert it at the start
-		//printf("registering other scope...\n");
 		se->next = root_scope->next;
 		se->active = 1;
 		root_scope->next = se;
-		//scope_entry *tmp = (scope_entry *)NULL;
-		//tmp = root_scope.next;
-		//se->next = tmp;
-		//se->active = 1;
-		//root_scope.next = se;
 	}
 	pthread_mutex_unlock(&sl_mutex);
 	//fprintf(stdout, "Loading Scope plugin: %s (%x)\n", se->sp->name, se->sp->handle);
@@ -274,7 +232,6 @@ GtkWidget *init_scopes_window()
 
 	gtk_object_set_data(GTK_OBJECT(scopes_window), "list", list);
 	gtk_clist_set_column_width(GTK_CLIST(list), 0, 16);
-    //gtk_clist_set_row_height(GTK_CLIST(list), 26);
 	gtk_signal_connect(GTK_OBJECT(list), "select_row",
 		GTK_SIGNAL_FUNC(scopes_list_click), NULL);
 	working = get_widget(scopes_window, "ok_button");
@@ -288,9 +245,6 @@ GtkWidget *init_scopes_window()
                 GTK_SIGNAL_FUNC(scopes_window_delete_event), NULL);
 
 	// Init scope list
-	//root_scope.next = (scope_entry *)NULL;
-	//root_scope.active = 0;
-	//root_scope.sp = (scope_plugin *)NULL;
 	pthread_mutex_init(&sl_mutex, (pthread_mutexattr_t *)NULL);
 	
 	return scopes_window;
