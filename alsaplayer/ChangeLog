@@ -8,6 +8,8 @@ Fri Mar  8 21:28:05 CET 2002
 - alsaplayer will now remember the paths of the play, add, load and save
   dialogs whenever you sucessfully complete one of these actions (all paths
 	default to / initially)
+- Removed Qt plugin since it was causing build problems for many folks. 
+  Will make it back, but as a separate plugin.
 
 
 Tue Feb 26 20:56:34 CET 2002
