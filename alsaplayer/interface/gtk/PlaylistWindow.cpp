@@ -147,7 +147,6 @@ void PlaylistWindowGTK::CbUpdated(void *data,PlayItem & item, unsigned position)
 	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
 
 	gtk_clist_freeze(GTK_CLIST(gtkpl->playlist_list));
-	//printf("Updating %d (%s, %d)\n", position, item.author.c_str(), item.playtime);
 	if (item.title.size()) {
 		sprintf(tmp, "%s %s", item.title.c_str(),
 			item.artist.size() ? (string("- ") + item.artist).c_str() : "");
@@ -462,11 +461,9 @@ void add_file_ok(GtkWidget *widget, gpointer data)
 	GList *next = file_list->selection;
 
 	if (!playlist) {
-		printf("Invalid playlist pointer...\n");
 		return;
 	}	
 	if (!next) { // Nothing was selected
-		printf("Nothing was selected...\n");
 		return;
 	}
 	gchar *current_dir =
@@ -523,13 +520,12 @@ void load_list_ok(GtkWidget *widget, gpointer data)
 	loaderr = playlist->Load(file, playlist->Length(), false);
 	if(loaderr == E_PL_DUBIOUS) {
 		// FIXME - pop up a dialog and check if we really want to load
-		fprintf(stderr, "Dubious whether file is a playlist - trying anyway\n");
+		alsaplayer_error("Dubious whether file is a playlist - trying anyway");
 
 		loaderr = playlist->Load(file, playlist->Length(), true);
 	}
 	if(loaderr) {
 		// FIXME - pass playlist_window to this routine
-		//playlist_window->GiveStatus("File is not a valid playlist");
 	}
 }
 
@@ -549,7 +545,6 @@ void save_list_ok(GtkWidget *widget, gpointer data)
 
 	std::string file(gtk_file_selection_get_filename(
 			GTK_FILE_SELECTION(playlist_window_gtk->save_list)));
-	printf("In save_list_ok()\n");
 	enum plist_result saveerr;
 	saveerr = playlist->Save(file, PL_FORMAT_M3U);
 	if(saveerr) {
