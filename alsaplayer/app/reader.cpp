@@ -208,9 +208,19 @@ reader_type *reader_open (const char *uri)
     if (best_plugin) {
 	h->plugin = best_plugin;
 	h->fd = h->plugin->open (uri);
+
+	/* If fail to open */
+	if (h->fd == NULL) {
+	    free (h);
+	    return NULL;
+	}
+	
 	return h;
     }
  
+    /* First chance failed. */
+    free (h);
+    
     /* Second chance!!! (try treat it as a file) */
     if (strncmp (uri, "file:", 5)) {
 	char new_uri [1024];
