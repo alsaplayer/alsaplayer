@@ -1,0 +1,21 @@
+if HAVE_GTK
+
+monoscopeltlibs = libmonoscope.la
+monoscopeldflags = -export-dynamic -avoid-version @GTK_LIBS@
+monoscopesources = monoscope.c
+
+lib_LTLIBRARIES = $(monoscopeltlibs)
+
+CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
+			@ARCH_CFLAGS@ @GTK_CFLAGS@ @DFLAGS@
+
+else
+
+endif
+
+libdir = $(ADDON_DIR)/scopes
+
+libmonoscope_la_LDFLAGS = $(monoscopeldflags)
+LIBS =
+
+libmonoscope_la_SOURCES= $(monoscopesources)

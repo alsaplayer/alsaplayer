@@ -1,0 +1,35 @@
+Installation should be as simple as doing a ./configure;make install
+
+Use ./configure --prefix=/path/to/install to change the default install
+location of /usr/local. I install alsaplayer in my /opt tree so I configure it
+as follows:
+
+./configure --prefix=/opt
+
+The alsaplayer binary will then be placed in /opt/bin after the make install.
+(it is in /usr/local/bin by default). For a complete list of configure options
+run the configure script with --help
+
+If you have questions about the install phase feel free to email me at:
+
+andy@alsaplayer.org
+
+
+Installing from CVS (broken for now)
+====================================
+
+If you have a copy of alsaplayer checked out from the CVS, you should run
+the autogen.sh script to create the makefiles and configure the package,
+and then run make to compile it.
+
+Run
+
+  ./autogen.sh
+
+with the same arguments you would use for ./configure, e.g.
+
+  ./autogen.sh --enable-debug --disable-nls
+
+Note: if you require a remotely stable release, do not use the CVS version.
+Get the latest release from http://www.alsa-project.org/~andy/, or a packaged
+and built release from one of the sites listed on that page.

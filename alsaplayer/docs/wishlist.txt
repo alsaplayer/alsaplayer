@@ -1,0 +1,101 @@
+List of things that it'd be nice to do at some point.
+Or random ideas that might not be so clever, but we havn't thought through
+yet.
+
+(Developers - feel free to add any random ideas you have to this file...
+ Put your name by the idea so we know who to ask if we can't figure out what
+ the comment in the file means.
+ Only remove stuff if it's generally agreed that it wouldn't be a good idea.
+ Patches to implement any of this stuff are [probably] gratefully received...)
+
+
+Ideas from Richard Boulton:
+===========================
+
+a) Have sockmon monitor soundcard devices if you open the corresponding
+   device file (ie, under /dev/, or even /proc/asound/) in the file browser.
+b) Similarly have cdda play data on a CD if you open the corresponding device
+   file.
+c) Have a cdparanoia plugin, for people like me whose CD players a rather dodgy
+   and don't happily read CDDA data.
+   Cdparanoia sometimes goes slower than a real CD, so we might need to buffer
+   lots of the CD, and only start, say, after we've got a minute of data
+   buffered.
+d) Have a plugin dialog, to select which plugins are currently in use, and
+   what search path for plugins is.  Have ability to load and unload plugins
+   at any time.  (Could compile up a new version of a plugin and insert it
+   to fix a bug while alsaplayer is still running - might even speed
+   development. ;-) )
+e) Have ability to change DAC while alsaplayer is running.
+f) Make a fully capable ncurses gui, for people who don't run X.
+g) Pluginify the gui, so that we can have multiple different ones.  (Perhaps
+   a gnome one, perhaps an ncurses one, perhaps a very plain one, etc...)
+   (This is more than themeing...)
+h) Make possible to specify initial playlists on the command line, even if
+   using the GUI.
+i) Have a monitor to show how much data is buffered between the producer
+   process and the DAC  (would show when a socket monitor was running out of
+   data / an mpeg player was running out of CPU time to fill the buffer.)
+   User could then stop frobbing the processor quite so hard with other things
+   in time to prevent there being (horror of horrors) a skip in the audio...
+j) Have sound generation processes able to persist beyond the application
+   closing.  Or at least, beyond the gui and the scopes closing.
+   Then have ability to reconnect to an old process when application is next
+   started.  Then I might be able to restart X without having to stop my
+   music...
+k) Have ability to have each item in a playlist fade into the next when it
+   finishes.
+   Will require all input plugins to have multiple simultaneous instances.
+   Will also require that we have code to mix audio streams together.
+   We might as well make this generic so that we can have multiple things
+   playing at once...
+l) Have "dummy" output driver, so that we can use alsaplayer to just listen to
+   sound and display it on pretty scopes, without having to connect to a card.
+m) Have ability to output to multiple sound devices at once. (eg, output to
+   a soundcard, and an ESD on a remote machine.)
+n) Have options dialogs for scopes, and input and output plugins.  Could do
+   this by having each plugin have a set of attributes which can be set.
+   Would add three calls to interface:
+   	attribute_info() - returns a list of attributes, each item being:
+		{internal_name, short_description, long_description, type,
+		other_info}
+	 . internal_name would be an identifier for the attribute used
+	   in save files, etc.
+	 . short_description would be used to prompt for the attribute
+	   in dialog boxes.
+	 . long_description would be a detailed explaination of the
+	   attribute.
+	 . type would be the type of the attribute.  eg - bool, range,
+	   colour, other.
+	 . other_info would be any extra information required, depending
+	   on type.  Would probably be stored in a union.  eg: for a range
+	   it would
+	get_attributes() - gets the values of all the attributes, as a list.
+	set_attributes() - sets the values of all the attributes, as a list.
+   Using this scheme, all the burden of creating and managing the options
+   dialog / loading and saving the options is put on the central code. (so
+   keeps writing plugins easy)
+   When each plugin is loaded, the main code will look for saved options in
+   a configuration file.  If there are none saved for the particular plugin,
+   then the plugin will keep it's default ones.  Otherwise, the main code
+   will read the options from the configuration file and apply them to the
+   plugin after it's init() call by doing a set_attributes() call.
+o) Use URI's to specify what to play.  So we might have:
+   http://host/mp3streamer     - to do a shoutcast thing
+   cdda://<cddevice>/3-7       - to play tracks 3 to 7 on the CD
+   sock_tcp://host:port/format - to monitor a TCP socket
+   file:///<filename>          - to play a file
+   Would default to assuming file:/// if wasn't in URI form, so that
+   current stuff would all work.
+
+Idea from Brian Hall (via alsaplayer-devel@lists.tartarus.org)
+====================
+
+I just paid $10 for the XMMS QSound plugin, since it dramatically improves the
+sound of my MP3 on cheap speakers and headphones. I would love for alsaplayer
+to have an "XMMS plugin" plugin- IOW a compatibility layer to allow using
+binary-only XMMS modules in alsaplayer. Any chance of this happening, and is
+it even possible?
+
+Ideas from you:
+===============

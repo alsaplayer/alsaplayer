@@ -1,0 +1,10 @@
+TODO list order according to priority, highest first
+
+- Preferences system
+- User interface plugification
+- Complete default interface redesign
+- Playlist code cleanup and make it part of the core
+- Shuffle code
+- Find a replacement for the mpg123 plugin (stale code)
+- Proper CD player controls
+

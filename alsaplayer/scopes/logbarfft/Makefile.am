@@ -1,0 +1,22 @@
+if HAVE_GTK
+
+logbarfftltlibs = liblogbarfft.la
+logbarfftldflags = -export-dynamic -avoid-version @GTK_LIBS@
+logbarfftsources = logbarfft.c
+
+lib_LTLIBRARIES = $(logbarfftltlibs)
+
+CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
+			-I$(top_srcdir)/app/scopes \
+			@ARCH_CFLAGS@ @GTK_CFLAGS@ @DFLAGS@
+
+else
+
+endif
+
+libdir = $(ADDON_DIR)/scopes
+
+liblogbarfft_la_LDFLAGS = $(logbarfftldflags)
+LIBS =
+
+liblogbarfft_la_SOURCES= $(logbarfftsources)
