@@ -46,7 +46,7 @@ extern "C" { 	/* Make sure MAD symbols are not mangled
 #include "synth.h"
 #endif	
 #include "mad.h"
-
+	
 #ifdef __cplusplus
 }
 #endif
@@ -58,6 +58,8 @@ extern "C" { 	/* Make sure MAD symbols are not mangled
 #include "id3tag.h"
 #include <assert.h>
 #endif
+
+#include "xing.h"
 
 #define BLOCK_SIZE 4096
 #define MAX_NUM_SAMPLES 8192
@@ -80,6 +82,7 @@ struct mad_local_data {
 	struct mad_synth  synth; 
 	struct mad_stream stream;
 	struct mad_frame  frame;
+	struct xing xing;
 	stream_info sinfo;
 	int mad_init;
 	ssize_t offset;
@@ -723,6 +726,8 @@ static int mad_open(input_object *obj, char *path)
 	mad_synth_init  (&data->synth);
 	mad_stream_init (&data->stream);
 	mad_frame_init  (&data->frame);
+	memset(&data->xing, 0, sizeof(struct xing));
+	xing_init (&data->xing);
 	data->mad_init = 1;
 	data->offset = find_initial_frame(data->mad_map, 
 			data->stat.st_size < STREAM_BUFFER_SIZE ? data->stat.st_size :
@@ -752,6 +757,9 @@ static int mad_open(input_object *obj, char *path)
 				return 0;
 		}
 	}
+	if (xing_parse(&data->xing, data->stream.anc_ptr, data->stream.anc_bitlen) == 0) {
+		// We use the xing data later on
+	}	
 	mode = (data->frame.header.mode == MAD_MODE_SINGLE_CHANNEL) ?
 		1 : 2;
 	data->samplerate = data->frame.header.samplerate;
@@ -780,7 +788,7 @@ static int mad_open(input_object *obj, char *path)
 		obj->frame_size = (int) samples << 2; /* Assume 16-bit stereo */
 		frames = data->samplerate * (time+1) / samples;
 
-		obj->nr_frames = (int) frames;
+		obj->nr_frames = data->xing.frames ? data->xing.frames : (int) frames;
 		obj->nr_tracks = 1;
 	}
 	/* Allocate frame index */
