@@ -42,8 +42,8 @@ typedef enum  {
 	AP_SET_STRING_ADD_FILE,
 	AP_GET_INT_SONG_LENGTH,
 	AP_GET_INT_CURRENT_TIME,
-	AP_SET_INT_POS,
-	AP_GET_INT_POS
+	AP_SET_INT_POS_SECOND,
+	AP_GET_INT_POS_SECOND,
 } ap_cmd_t;	
 
 int ap_connect_session(int session);

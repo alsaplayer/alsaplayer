@@ -108,6 +108,22 @@ ap_get_int (int session, ap_cmd_t cmd, int *val)
   return state;
 }
 
+int
+ap_set_int (int session, ap_cmd_t cmd, int val)
+{
+  ap_pkt_t pkt;
+  int fd;
+  if ((fd = ap_connect_session (session)) == -1)
+    return -1;
+  pkt.cmd = cmd;
+  pkt.pld_length = sizeof (int);
+  pkt.payload = &val;
+  ap_write_packet (fd, pkt);
+  close (fd);
+
+	return 0;
+}
+
 
 int
 ap_set_float (int session, ap_cmd_t cmd, float val)

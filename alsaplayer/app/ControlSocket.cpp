@@ -42,6 +42,7 @@ void socket_looper(void *arg)
 		void *data;
 		float float_val;
 		char *char_val;
+		int int_val;
 		socklen_t len;
 		int fd;
 		ap_pkt_t pkt;
@@ -110,6 +111,12 @@ void socket_looper(void *arg)
 				case AP_DO_CLEAR_PLAYLIST:
 					playlist->Clear(1);
 					break;
+				case AP_GET_FLOAT_PING:
+					float_val = 1.0; // Perhaps return the running time here
+					pkt.pld_length = sizeof(float);
+					write (fd, &pkt, sizeof(ap_pkt_t));
+					write(fd, &float_val, pkt.pld_length);
+					break;
 				case AP_SET_FLOAT_SPEED:
 					player = playlist->GetCorePlayer();
 					if (player)
@@ -159,6 +166,19 @@ void socket_looper(void *arg)
 						char_val[pkt.pld_length] = 0; // Null terminate string
 						playlist->Insert(char_val, playlist->Length());
 					}	
+					break;
+				case AP_SET_INT_POS_SECOND:
+					player = playlist->GetCorePlayer();
+					if (player) {
+						if (pkt.pld_length && data) {
+							int_val = *(int *)data;
+							int_val *= player->GetSampleRate();
+							int_val /= player->GetFrameSize();
+							int_val *= player->GetChannels();
+							int_val *= 2; // 16-bit ("2" x 8-bit)
+							player->Seek(int_val);
+						}
+					}
 					break;
 				default: alsaplayer_error("CMD = %x\n", pkt.cmd);
 					break;
