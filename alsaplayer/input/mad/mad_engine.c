@@ -374,7 +374,6 @@ static int mad_play_frame(input_object *obj, char *buf)
 
 		}
 	}
-	strcpy(data->sinfo.status, "");
 	data->bytes_avail = data->stream.bufend - data->stream.next_frame;
 	return 1;
 }
@@ -724,7 +723,7 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 		memcpy (info, &data->sinfo, sizeof (data->sinfo));
 		
 		/* Compose path, stream_type and status fields */
-		sprintf(info->stream_type, "MP3, %dKHz, %s, %-3ldkbit",
+		sprintf(info->stream_type, "MP3 %dKHz %s %-3ldkbit",
 				data->frame.header.samplerate / 1000,
 				obj->nr_channels == 2 ? "stereo" : "mono",
 				data->frame.header.bitrate / 1000);
@@ -866,9 +865,9 @@ static void reader_status(void *ptr, const char *str)
 	data = (struct mad_local_data *)obj->local_data;
 
 	if (data) {
-		fprintf(stdout, "%s     \r", str);
-		fflush(stdout);
-		//strcpy(data->sinfo.status, str);
+		//fprintf(stdout, "%s     \r", str);
+		//fflush(stdout);
+		strcpy(data->sinfo.status, str);
 	}	
 }
 
