@@ -483,7 +483,7 @@ int main(int argc, char **argv)
 	}	
 	if (interface_plugin_info) {
 		ui = interface_plugin_info();
-		printf("Interface plugin: %s\n", ui->name); 
+		printf("Loading Interface plugin: %s\n", ui->name); 
 		ui->init();
 		ui->start(p, playlist, argc, argv);
 		ui->close();
