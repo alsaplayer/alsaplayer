@@ -53,6 +53,7 @@ AlsaNode::AlsaNode(char *name, int realtime)
 	sock = -1;
 	use_pcm = name;
 #ifdef USE_JACK	
+	char client_name[32];
 	use_jack = 0;
 #endif	
 	realtime_sched = realtime;
@@ -62,8 +63,10 @@ AlsaNode::AlsaNode(char *name, int realtime)
 		memset(&subs[i], 0, sizeof(subscriber));
 	}	
 #ifdef USE_JACK
+	sprintf(client_name, "player-%d", getpid());
+
 	if (strcmp(name, "jack") == 0) { // Use JACK
-		if ((client = jack_client_new("jackplayer")) == 0) {
+		if ((client = jack_client_new(client_name)) == 0) {
 			alsaplayer_error("jack server not running?");
 			return;
 		}
@@ -85,11 +88,11 @@ AlsaNode::AlsaNode(char *name, int realtime)
 		}	
 		printf("client activated\n");
 	
-		if (jack_port_connect (client, my_output_port1->shared->name,
+		if (jack_port_connect (client, jack_port_name(my_output_port1),
 				"ALSA I/O:Output 1")) {
 				alsaplayer_error("cannot connect output port 1");
 		}		
-		if (jack_port_connect (client, my_output_port2->shared->name,
+		if (jack_port_connect (client, jack_port_name(my_output_port2),
 				"ALSA I/O:Output 2")) {
 				alsaplayer_error("cannot connect output port 2");
 		}		
@@ -193,11 +196,19 @@ void sample_move_dS_s16 (sample_t *dst, char *src,
         }
 }      
 
+//#define STATS  /* Only meaningful if fragments per interrupt is 64
+
 int AlsaNode::process(nframes_t nframes, void *arg)
 {
 	AlsaNode *node = (AlsaNode *)arg;
 	char bufsize[16384];
 	static bool realtime_set = 0;
+#ifdef STATS	
+	static int count = 0;
+	static int regs[64];
+	static int init = 0;
+	static int val = 0;
+#endif
 
 #ifdef USE_REALTIME
 	if (node->realtime_sched && !realtime_set) {
@@ -223,9 +234,27 @@ int AlsaNode::process(nframes_t nframes, void *arg)
 		bool status;
 		sample_t *out1 = (sample_t *) jack_port_get_buffer(node->my_output_port1, nframes);
 		sample_t *out2 = (sample_t *) jack_port_get_buffer(node->my_output_port2, nframes);
-	
+		
 		memset(bufsize, 0, sizeof(bufsize));	
-	
+
+#ifdef STATS
+		if (!init) {
+			memset(regs, 0, sizeof(regs));
+			init = 1;
+		}	
+		val = nframes / 2;
+		if (val > 31) val = 31;
+		regs[val]++;
+		if (count++ > 5000) {
+			count = 0;
+			printf("statistics for last 5000 frames\n");
+			for (val = 0; val < 32; val++) 
+				printf("%3d - %3d : %4d frames\n", val * 2, (val+1) * 2, regs[val]);
+			printf("-------------------------------\n");
+			memset(regs, 0, sizeof(regs));
+		}	
+#endif
+
 		for (c = 0; c < MAX_SUB; c++) {
 			i = &node->subs[c];
 			if (!i->active) { // Skip inactive streamers

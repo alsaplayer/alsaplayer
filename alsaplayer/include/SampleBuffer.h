@@ -23,7 +23,7 @@
 enum {
 	SAMPLE_SIZE_1,
 	SAMPLE_SIZE_2,
-	SAMPLE_SIZE_6
+	SAMPLE_SIZE_4
 };
 
 

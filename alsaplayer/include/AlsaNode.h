@@ -32,6 +32,7 @@
 #include <esd.h>
 #endif
 #ifdef USE_JACK
+#include <glib.h>
 #include <jack/jack.h>
 #endif
 #include "output_plugin.h"

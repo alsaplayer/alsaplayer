@@ -32,7 +32,7 @@
 #define NR_BUF 64	// Number of partitions in ringbuffer
 #define NR_CBUF 16	// Number of partition to read ahead
 
-#define MAX_PLUGINS 64
+#define MAX_PLUGINS 16
 
 typedef struct _sample_buf
 {
