@@ -276,20 +276,16 @@ static int midi_open(input_object *obj, char *name)
 #endif
 
 
-        if (strlen(name) > FILENAME_MAX) {
-                strncpy(d->midi_path_name, name, FILENAME_MAX-1);
-                d->midi_path_name[FILENAME_MAX-1] = 0;
-        } else  strcpy(d->midi_path_name, name);
+        strncpy(d->midi_path_name, name, FILENAME_MAX-1);
+        d->midi_path_name[FILENAME_MAX-1] = 0;
 
 
 	ptr = strrchr(name, '/');
         if (ptr) ptr++;
         else ptr = name;
 
-        if (strlen(ptr) > FILENAME_MAX) {
-                strncpy(d->midi_name, ptr, FILENAME_MAX-1);
-                d->midi_name[FILENAME_MAX-1] = 0;
-        } else  strcpy(d->midi_name, ptr);
+        strncpy(d->midi_name, ptr, FILENAME_MAX-1);
+        d->midi_name[FILENAME_MAX-1] = 0;
 
   	rc = look_midi_file(d);
 #ifdef PLUGDEBUG
@@ -442,7 +438,7 @@ fprintf(stderr,"midi_play_frame to %x\n", buf);
 		if (d->last_slack) d->trouble_ahead = 0;
 		else if (d->trouble_ahead) d->trouble_ahead--;
 	}
-	else {
+	else if (d->trouble_ahead < 50) {
 		d->trouble_ahead++;
 		if (!d->last_slack) d->trouble_ahead += 2;
 	}
@@ -538,7 +534,8 @@ static int midi_frame_seek(input_object *obj, int frame)
 {
         struct md *d;
 	int result = 0;
-	int current_frame = 0, tim_time = 0;
+	int current_frame = 0;
+	unsigned tim_time = 0;
 
 	if (!init_midi()) return FALSE;
 	if (!obj) return 0;
@@ -546,11 +543,11 @@ static int midi_frame_seek(input_object *obj, int frame)
 	d = (struct md *)obj->local_data;
 	if (d->is_playing) {
 		current_frame = (b_out_count(d) + d->bbcount) / output_fragsize;
+		if (frame < 0) frame = 0;
 		if (current_frame == frame) return 1;
 		/*if (current_frame > frame - 2 && current_frame < frame + 2) return 1;*/
-		tim_time = frame * output_fragsize / 4;
-		if (tim_time < 0) tim_time = 0;
-		if (tim_time > (int)d->sample_count) return 0;
+		tim_time = (unsigned)(frame * output_fragsize / 4);
+		if (tim_time > d->sample_count) return 0;
 		play_mode->purge_output(d);
 		result = skip_to(tim_time, d);
 	}
@@ -702,7 +699,9 @@ fprintf(stderr,"midi_stream_info\n");
 		else info->author[0] = '\0';
 	}
 
-	sprintf(info->status, "notes: %3d", d->current_polyphony);
+	if (d->is_playing && !d->flushing_output_device)
+		sprintf(info->status, "notes: %3d", d->current_polyphony);
+	else sprintf(info->status, "notes: %3d", 0);
 
 	if (d->is_open) {
 		if (d->title[0]) sprintf(info->title, "%s", d->title);

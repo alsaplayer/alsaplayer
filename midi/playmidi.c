@@ -553,7 +553,7 @@ static void kill_others(/*MidiEvent *e,*/ int i, struct md *d)
 }
 
 
-static void clone_voice(Instrument *ip, int v, MidiEvent *e, uint8 clone_type, int variationbank, struct md *d)
+static void clone_voice(Instrument *ip, int v, MidiEvent *e, int clone_type, int variationbank, struct md *d)
 {
   int w, k, played_note, chorus, reverb, milli;
   int chan = d->voice[v].channel;

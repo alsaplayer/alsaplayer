@@ -70,7 +70,7 @@ static int pc42bmap[][7] = {
 { STS, 120, 3,  0, 120, 0, 0 }, /*   fx-fret			# string slap */
 { STS, 120, 4,  0, 120, 0, 0 }, /*   fx-fret                      # bass slide */
 { STS, 120, 5,  0, 120, 0, 0 }, /*   fx-fret                      # pick strape */
-{ STS, 120, 16, 56, 44, 1, 0 }, /*  sfx/flclick                  # fl key click */
+{ STS, 120, 16, 1, 121, 0, 0 }, /*  sfx/flclick                  # fl key click */
 { STS, 120, 32, 56, 82, 1, 0 }, /*  mazpat/fx/rainyday           # rain */
 { STS, 120, 33, 56, 80, 1, 0 }, /*  sfx/thunder2			# thunder */
 { STS, 120, 34, 56, 82, 1, 0 }, /*  sfx/newwind amp=75		# wind */

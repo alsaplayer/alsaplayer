@@ -22,7 +22,14 @@ AM_CFLAGS = -DDEFAULT_PATH=\"$(TIMID_DIR)\"
 
 lib_LTLIBRARIES = $(midi_inltlibs)
 
-CFLAGS = -O2 -I$(top_builddir) -D_REENTRANT -Wall -W @ALSAPLAYER_CFLAGS@
+#AM_CPPFLAGS = -O2 -fstrict-aliasing -fomit-frame-pointer
+if OPTIMIZE
+AM_CPPFLAGS = @ARCH_CFLAGS@
+else
+AM_CPPFLAGS = -O
+endif
+
+CFLAGS = -I$(top_builddir) -D_REENTRANT -Wall -W -Wconversion @ALSAPLAYER_CFLAGS@ @DFLAGS@
 
 libdir = $(INPUTPLUGIN_DIR)
 

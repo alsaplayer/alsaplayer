@@ -23,7 +23,7 @@ struct md
 	int output_buffer_full;
 	int output_device_open;
 	int flushing_output_device;
-	int super_buffer_count;
+	unsigned super_buffer_count;
 #ifdef PLAYLOCK
 	sem_t play_lock;
 #endif

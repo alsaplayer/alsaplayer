@@ -1,3 +1,6 @@
+Sun May  5 05:11:44 HST 2002
+	Makefile.am, configure.ac: more optimization; debug option
+	midi_engine.c: notes=0 at end of song; max trouble=50
 Sat May  4 16:18:37 HST 2002
 	sndfont.c: always call calc_cutoff()
 	resample.c: modulation_delay decrement by control_ratio
