@@ -27,7 +27,7 @@
 #include "mpg123_engine.h"
 #include "input_plugin.h"
 
-#define RESYNC_FRAMES 3
+#define RESYNC_FRAMES 4
 
 //#define DEBUG
 
