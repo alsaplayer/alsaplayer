@@ -1,7 +1,7 @@
 /*
 	ap-control
 
-	(c) Frank Baumgart
+	Author: Frank Baumgart, godot@upb.de
 
 	TODO:
 	- "playlist" without further parameters should output current playlist
@@ -42,8 +42,6 @@ int main(int argc, char *argv[])
 
 	if (!strcmp(argv[1], "play") && argc >= 3)
 	{
-//		ap_clear_playlist(0);
-//		ap_stop(0);			
 		int i;
 		for (i = 2; i < argc; i++)
 			ap_add_path(0, argv[i]);
@@ -54,7 +52,6 @@ int main(int argc, char *argv[])
 	if (!strcmp(argv[1], "playlist") && argc == 3)
 	{
 		int ret = 1;
-//		ret &= ap_stop(0);
 		ret &= ap_clear_playlist(0);
 		ret &= ap_add_playlist(0, argv[2]);
 
