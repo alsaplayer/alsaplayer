@@ -44,6 +44,8 @@ class PlaylistWindowGTK : public virtual PlaylistInterface
 		void CbSetCurrent(unsigned);
 		void CbInsert(std::vector<PlayItem> &, unsigned);
 		void CbRemove(unsigned, unsigned);
+		void CbLock();
+		void CbUnlock();
 		void CbClear();
 
 		// Other methods

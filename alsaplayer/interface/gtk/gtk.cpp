@@ -166,9 +166,10 @@ int interface_gtk_start(CorePlayer *coreplayer, Playlist *playlist, int argc, ch
 	//third->PlayFile("/mp3/Andy/the crystal method - bad stone.mp3");
 
 	// Scope addons
-	load_scope_addons();
 	GDK_THREADS_ENTER();
+	load_scope_addons();
 	gtk_main();
+	unload_scope_addons();
 	GDK_THREADS_LEAVE();
 	
 	delete scopes;	// Remove scope_feeder

@@ -69,6 +69,18 @@ void PlaylistWindowGTK::CbSetCurrent(unsigned current) {
 	gtk_clist_select_row(GTK_CLIST(playlist_list), current - 1, 1);
 }
 
+void PlaylistWindowGTK::CbLock()
+{
+	GDK_THREADS_ENTER();
+	printf("GDK_THREADS_ENTER()...\n");
+}
+
+void PlaylistWindowGTK::CbUnlock()
+{
+	printf("GDK_THREADS_LEAVE()...\n");
+	GDK_THREADS_LEAVE();
+}
+
 // Insert new items into the displayed list
 void PlaylistWindowGTK::CbInsert(std::vector<PlayItem> & items, unsigned position) {
 #ifdef DEBUG
