@@ -1,0 +1,2 @@
+You need to run the ./bootstrap script if you are checking out from CVS
+This will then set up the build enviroment on your system.
