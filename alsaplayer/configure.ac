@@ -23,6 +23,7 @@ have_glib=no
 dnl have_qt=no
 have_audiofile=no
 have_oggvorbis=no
+have_flac=no
 have_alsa_05x=no
 have_alsa_final=no
 have_oss=no
@@ -231,6 +232,24 @@ else
 	have_audiofile=no
 fi
 
+AC_ARG_ENABLE(flac,
+[  --enable-flac           Enable flac plugin (default=yes)],
+[if test "$enableval" = "no"
+then
+	if test "$have_flac" = "yes"
+	then
+		have_flac=no
+	fi
+fi])
+
+
+dnl ============
+dnl flac library
+dnl ============
+
+AC_CHECK_LIB(FLAC, FLAC__file_decoder_new,
+     FLAC_LDADD="-lFLAC -lm"; have_flac=yes; AC_DEFINE(HAVE_LIBFLAC, 1, [Define if you have flac library (-lFLAC)]), have_flac=no; FLAC_LDADD=, -lm)
+
 
 dnl ===========
 dnl MAD library
@@ -239,15 +258,22 @@ dnl ===========
 AC_CHECK_LIB(mad, mad_stream_init,
      MAD_LDADD=-lmad; use_libmad=yes; AC_DEFINE(HAVE_LIBMAD, 1, [Define if you have MAD library (-lmad)]), use_libmad=no; MAD_LDADD=, -lmad)
 
+
+dnl ==============
+dnl id3tab library
+dnl ==============
+
 oldcflags=$CFLAGS
 CFLAGS="$CFLAGS -lz"
 
 AC_CHECK_LIB(id3tag, id3_file_open,
-		MAD_LDADD="$MAD_LDADD -lid3tag -lz"; use_libid3tag=yes; AC_DEFINE(HAVE_LIBID3TAG, 1, [Define if you have libid3tag library (-lid3tag)]), use_libid3tag=no)
+     MAD_LDADD="$MAD_LDADD -lid3tag -lz"; FLAC_LDADD="$FLAC_LDADD -lid3tag -lz"; use_libid3tag=yes; AC_DEFINE(HAVE_LIBID3TAG, 1, [Define if you have libid3tag library (-lid3tag)]), use_libid3tag=no)
 
 CFLAGS=$oldcflags
 
+AC_SUBST(FLAC_LDADD)
 AC_SUBST(MAD_LDADD)
+
 
 
 dnl =================
@@ -281,7 +307,7 @@ AC_CHECK_HEADERS(audio/audiolib.h)
 AC_CHECK_HEADERS(libintl.h)
 AC_CHECK_HEADERS(mad.h)
 AC_CHECK_HEADERS(id3tag.h)
-
+AC_CHECK_HEADERS(FLAC/file_decoder.h)
 
 dnl ==========
 dnl ALSA stuff
@@ -518,6 +544,7 @@ fi
 AM_CONDITIONAL(HAVE_DOXYGEN, $HAVE_DOXYGEN)
 AM_CONDITIONAL(USE_LIBMAD,test "x$use_libmad" = xyes)
 AM_CONDITIONAL(USE_LIBID3TAG, test "x$use_libid3tag" = xyes)
+AM_CONDITIONAL(HAVE_FLAC, test "x$have_flac" = xyes)
 AM_CONDITIONAL(HAVE_JACK,	test "x$have_jack" = xyes)
 AM_CONDITIONAL(HAVE_ALSA_05X, test "x$have_alsa_05x" = xyes)
 AM_CONDITIONAL(HAVE_ALSA_FINAL, test "x$have_alsa_final" = xyes)
@@ -692,6 +719,7 @@ input/mikmod/Makefile
 input/wav/Makefile
 input/vorbis/Makefile
 input/audiofile/Makefile
+input/flac/Makefile
 alsaplayer/Makefile
 libalsaplayer/Makefile
 extra/Makefile
@@ -719,7 +747,8 @@ Configuration:
   Build nas output plugin:            ${have_nas}
   Build vorbis input plugin:          ${have_oggvorbis}
   Build mikmod input plugin:          ${have_mikmod}
-  Build audiofile input plugin:       ${have_audiofile}"
+  Build audiofile input plugin:       ${have_audiofile}
+  Build flac input plugin:            ${have_flac}"
 echo
 
 if test $have_jack = "no" -a $have_sparc = "no" -a $have_alsa_05x = "no" -a $have_alsa_final = "no" -a $have_oss = "no" -a $have_esd = "no" -a $have_sgi = "no" -a $have_nas = "no"
