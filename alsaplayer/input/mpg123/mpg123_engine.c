@@ -420,7 +420,7 @@ int mpeg_stream_info(input_object *obj, stream_info *info)
 		info->author[0] = 0;
 		strcpy(info->title, data->mpeg_name);
 #else
-		info->title[0] = info->author[0] = info->stream_type[0] = 0;
+		info->title[0] = info->author[0] = info->stream_type[0] = info->status[0] = 0;
 #endif		
 	}	
 	return 1;

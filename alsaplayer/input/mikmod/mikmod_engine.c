@@ -217,6 +217,7 @@ mikmod_stream_info (input_object *obj, stream_info *info)
 	   data->mf->numchn, data->mf->modtype);
 
   info->author[0] = 0;
+	info->status[0] = 0;
   strcpy (info->title, (data->mf->songname[0]) ? data->mf->songname : data->fname);
   
   return 1;

@@ -569,9 +569,7 @@ gint indicator_callback(gpointer data)
 	long c_hsec, secs, c_min, c_sec;
 	long sr;
 	static char old_str[60] = "";
-	char seeking[12]; 
 
-	seeking[0] = 0;	
 	ustr = &global_ustr;
 	pl = (Playlist *)ustr->data;
 	p = pl->GetCorePlayer();
@@ -592,9 +590,6 @@ gint indicator_callback(gpointer data)
 				slider_val = pos;
 		secs = global_update ? 
 						p->GetCurrentTime() : p->GetCurrentTime((int) adj->value);
-		if (secs < 0) {
-			sprintf(seeking, "Seeking...");
-		}
 		c_min = secs / 6000;
 		c_sec = (secs % 6000) / 100;
 #ifdef SUBSECOND_DISPLAY		
@@ -613,16 +608,16 @@ gint indicator_callback(gpointer data)
 		c_hsec = 0;
 		sprintf(info.title, "No stream");
 	}
-	if (t_min == 0 && t_sec == 0 && !strlen(seeking)) {
-		sprintf(str, "No time data");
+	if (t_min == 0 && t_sec == 0 && !strlen(info.status)) {
+		sprintf(str, "No status");
 	} else {
 #ifdef SUBSECOND_DISPLAY	
 		sprintf(str, "%02ld:%02ld.%02d/%02d:%02d", c_min, c_sec, c_hsec, t_min, t_sec);
 #else
-		if (strlen(seeking))
-			sprintf(str, "%s", seeking);
-		else	
+		if (!strlen(info.status))
 			sprintf(str, "%02ld:%02ld/%02ld:%02ld", c_min, c_sec, t_min, t_sec);
+		else
+			sprintf(str, "%s", info.status);
 #endif
 	}
 	if (val_ind && strcmp(old_str, str) != 0) {

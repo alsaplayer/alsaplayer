@@ -243,6 +243,7 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 			else
 				sprintf(info->stream_type, "Unkown OGG VORBIS");
 			info->author[0] = 0;
+			info->status[0] = 0;
 	}
 	return 1;
 }

@@ -446,6 +446,7 @@ static int cdda_stream_info(input_object *obj, stream_info *info)
                 return 0;
         sprintf(info->stream_type, "16-bit 44KHz stereo CDDA");
         info->author[0] = 0;
+				info->status[0] = 0;
         if (data->track_nr < 0)
                 info->title[0] = 0;
         else if (data->track_nr == 0)

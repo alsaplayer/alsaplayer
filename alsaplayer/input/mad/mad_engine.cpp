@@ -331,6 +331,10 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 																data->frame.header.samplerate / 1000,
 																data->frame.header.bitrate / 1000,
 																obj->nr_channels == 2 ? "stereo" : "mono");
+								if (data->seeking)
+									sprintf(info->status, "Seeking...");
+								else
+									sprintf(info->status, "");
 				}				
 				return 1;
 }

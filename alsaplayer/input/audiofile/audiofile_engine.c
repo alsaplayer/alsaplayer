@@ -325,7 +325,7 @@ static int audiofile_stream_info (input_object *obj, stream_info *info)
 		(int) (sampleRate / 1000),
 		obj->nr_channels == 2 ? "stereo" : "mono",
 		fileType);
-
+	strcpy(info->status, "");
 	strcpy(info->author, "");
 	strcpy(info->title, data->filename);
 
