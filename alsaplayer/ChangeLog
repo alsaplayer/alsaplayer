@@ -1,3 +1,23 @@
+Sat Sep  8 23:38:02 CEST 2001
+-----------------------------
+
+- Fixed another nasty threading bug. The scope windows never really
+  joined since the wrong thread id value was passed
+- Modified the cli interface output slightly, better looking
+- Added a new menu pixmap button. This is less confusing.
+- Modified the scope window to be less confusing also.
+- Many small cleanups to the code to make some compilers complain less.
+- A new Qt interface plugin was added, courtesy Rik Hemsley. This plugin
+  still needs work, lots of functionality is still missing, but it will
+	improve.
+- Unload scope plugins at gtk interface exit.
+- Disabled convolve in Monoscope. The convolve function has a bug that
+  overwrites some parts of memory, but it's subtle enough to not crash 
+	during runtime. It will be back once we figure out the exact nature of
+	the bug.
+- Another bunch of autoconf fixes and cleanups.
+
+
 Tue Aug 28 11:16:15 CEST 2001
 -----------------------------
 
