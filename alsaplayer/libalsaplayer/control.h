@@ -39,6 +39,7 @@ int ap_unpause(int session);
 int ap_next(int session);
 int ap_prev(int session);
 int ap_ping(int session);
+int ap_quit(int session);
 int ap_clear_playlist(int session);
 int ap_add_path(int session, char *path);
 
