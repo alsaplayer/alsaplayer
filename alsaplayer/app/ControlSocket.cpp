@@ -115,8 +115,9 @@ void socket_looper(void *arg)
 			switch(pkt.cmd) {
 				case AP_DO_PLAY: 
 					player = playlist->GetCorePlayer();
-					if (player)
+					if (player && !player->IsPlaying()) {
 						player->Start();
+					}	
 					break;
 				case AP_DO_NEXT: 
 					playlist->Next(1);
@@ -195,7 +196,9 @@ void socket_looper(void *arg)
 					if (pkt.pld_length && data) {
 						char_val = (char *)data;
 						char_val[pkt.pld_length] = 0; // Null terminate string
-						playlist->Insert(char_val, playlist->Length());
+						if (strlen(char_val)) {
+							playlist->Insert(char_val, playlist->Length());
+						}	
 					}	
 					break;
 				case AP_GET_INT_POS_SECOND:
