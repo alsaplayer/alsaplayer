@@ -1,3 +1,5 @@
+Tue Apr  8 18:22:50 CEST 2003
+-----------------------------
 * Add --pause parameter to pause/unpause a running player
 * Added support for ALSA's dmix device. Improved the alsa plugin.
 * Fixed a pretty silly bug in AlsaNode which caused crashing when adding
