@@ -58,12 +58,12 @@ class PlaylistInterface
 		// one of these callback methods - will cause deadlock.
 		// Callbacks - Called when:
 
+		virtual void CbLock() = 0;
+		virtual void CbUnlock() = 0;
+		
 		// Current position changed
 		virtual void CbSetCurrent(unsigned pos) = 0;
 
-		virtual void CbLock() = 0;	// If locking needs to be done
-		virtual void CbUnlock() = 0;	
-		
 		// Some items were inserted
 		// Note: pos is the position to insert at
 		// So - pos == 0  means insert items at beginning
@@ -167,7 +167,7 @@ public:
 	void Shuffle(int locking=0);
 	
 	// Clear playlist
-	void Clear(int lockig=0);
+	void Clear(int locking=0);
 
 	// Pause controls
 	bool Paused() { return paused; }
@@ -199,7 +199,7 @@ public:
 	void Register(PlaylistInterface *);
 
 	// Unregister - must do this before a registered interface is deleted
-	void UnRegister(PlaylistInterface *);
+	void UnRegister(PlaylistInterface *, int locking=0);
 };
 
 inline void Playlist::Insert(std::string const &path, unsigned pos) {

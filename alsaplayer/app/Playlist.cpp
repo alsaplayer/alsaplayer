@@ -293,7 +293,7 @@ Playlist::Playlist(AlsaNode *the_node) {
 
 Playlist::~Playlist() {
 	active = false;
-	pthread_cancel(playlist_thread);
+	//pthread_cancel(playlist_thread);
 	pthread_join(playlist_thread, NULL);
 	interfaces.clear();	// Unregister all interfaces
 	
@@ -775,9 +775,17 @@ void Playlist::Register(PlaylistInterface * pl_if) {
 #endif /* DEBUG */
 }
 
-void Playlist::UnRegister(PlaylistInterface * pl_if) {
+
+void Playlist::UnRegister(PlaylistInterface * pl_if, int locking) {
+	if (!pl_if)
+		return;
+	if (!locking)
+		pl_if->CbUnlock();
 	Lock();
+	pl_if->CbLock();
 	interfaces.erase(interfaces.find(pl_if));
+	if (locking)
+		pl_if->CbUnlock();
 	Unlock();
 #ifdef DEBUG
 	printf("Unregistered playlist interface\n");

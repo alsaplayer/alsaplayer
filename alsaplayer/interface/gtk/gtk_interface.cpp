@@ -130,15 +130,18 @@ gboolean main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	GtkFunction f = (GtkFunction)data;
 	global_update = -1;
+	alsaplayer_error("Going to wait for indicator_thread join");
 	pthread_join(indicator_thread, NULL);
+	alsaplayer_error("About to delete playlist_window_gtk");
 	if (playlist_window_gtk)
 		delete playlist_window_gtk;
-
+	alsaplayer_error("About to run f()");
 	if (f) { // Oh my, a very ugly HACK indeed! But it works
 		GDK_THREADS_LEAVE();
 		f(NULL);
 		GDK_THREADS_ENTER();
-	}	
+	}
+	alsaplayer_error("About to call gtk_main_quit()");
 	gtk_main_quit();
 	
 	// Never reached

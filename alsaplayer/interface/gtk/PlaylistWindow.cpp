@@ -66,7 +66,9 @@ PlaylistWindowGTK::~PlaylistWindowGTK() {
 	
 	Hide();
 	gtk_clist_clear(GTK_CLIST(playlist_list));
+	alsaplayer_error("About to Unregister");
 	playlist->UnRegister(this);
+	alsaplayer_error("Unregister OK");
 }
 
 #include "pixmaps/current_play.xpm"

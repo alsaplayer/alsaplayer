@@ -1,3 +1,7 @@
+- Found the real source of all the subtle deadlocks. We weren't acquiring
+  locks in the same order all the time.
+- Replace foreground color change with icon for active entry in playlist
+
 Mon Apr  1 03:06:08 CEST 2002
 -----------------------------
 - Unpause when going to Next/Prev song
