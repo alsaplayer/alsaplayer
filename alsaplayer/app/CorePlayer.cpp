@@ -332,6 +332,24 @@ int CorePlayer::GetFrames()
 }
 
 
+int CorePlayer::GetChannels()
+{
+	return 2;	// Hardcoded for now
+}
+
+int CorePlayer::GetFrameSize()
+{
+	int result = 0;
+
+	pthread_mutex_lock(&player_mutex);
+	if (plugin && the_object && the_object->ready)
+		result = plugin->frame_size(the_object);
+	pthread_mutex_unlock(&player_mutex);
+
+	return result;
+}
+
+
 int CorePlayer::GetSampleRate()
 {
 	int result = 0;

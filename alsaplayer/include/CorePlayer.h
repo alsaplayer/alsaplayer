@@ -116,6 +116,8 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	virtual int GetStreamInfo(stream_info *info); // Return stream info
 	virtual int GetFrames();					// Total number of frames
 	virtual int GetSampleRate();			// Samplerat of this player
+	virtual int GetChannels();				// Number of channels
+	virtual int GetFrameSize();				// Frame size in bytes
 	input_plugin * GetPlayer(const char *);
 	// This one is temporary
 	virtual int GetLatency() { if (node) return node->GetLatency(); else return 0; }
