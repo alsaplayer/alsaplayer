@@ -364,7 +364,7 @@ void set_synth_functions(struct frame *fr)
 }
 
 
-unsigned long mpeg_frame_to_sec(input_object *obj, int frame)
+long mpeg_frame_to_sec(input_object *obj, int frame)
 {
 	struct mpeg_local_data *data;	
 	unsigned long secs = 0;

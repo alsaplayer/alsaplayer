@@ -314,7 +314,7 @@ static int wav_channels(input_object *obj)
 }
 
 
-static unsigned long wav_frame_to_sec(input_object *obj, int frame)
+static long wav_frame_to_sec(input_object *obj, int frame)
 {
 	struct wav_local_data *data;	
 	unsigned long result = 0;

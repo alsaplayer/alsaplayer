@@ -330,7 +330,7 @@ int main(int argc, char **argv)
 
 	sprintf(prefs_path, "%s/.alsaplayer/", homedir);
 	mkdir(prefs_path, 0700); /* XXX We don't do any error checking here */
-	sprintf(prefs_path, "%s/.alsaplayer/config");
+	sprintf(prefs_path, "%s/.alsaplayer/config", homedir);
 
 	ap_prefs = prefs_load(prefs_path);
 

@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <stdlib.h>
+#include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <audio/audiolib.h>
@@ -128,7 +129,7 @@ static int nas_init()
 	return 1;
 }
 
-static int nas_open(int card, int device)
+static int nas_open(char *device)
 {
 	int err;
 	char *server = NULL;
@@ -170,14 +171,14 @@ static int nas_write(void *buf,int len)
 
     while ((Nas_Info.buf_cnt + (len - buf_cnt)) >  Nas_Info.buf_size) {
         memcpy(Nas_Info.buf + Nas_Info.buf_cnt,
-               buf + buf_cnt,
+               (int *)buf + buf_cnt,
                (Nas_Info.buf_size - Nas_Info.buf_cnt));
         buf_cnt += (Nas_Info.buf_size - Nas_Info.buf_cnt);
         Nas_Info.buf_cnt += (Nas_Info.buf_size - Nas_Info.buf_cnt);
         nas_flush();
     }
     memcpy(Nas_Info.buf + Nas_Info.buf_cnt,
-           buf + buf_cnt,
+           (int *)buf + buf_cnt,
            (len - buf_cnt));
     Nas_Info.buf_cnt += (len - buf_cnt);
     
