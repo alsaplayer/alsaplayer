@@ -21,6 +21,9 @@
  *  $Id$
  */ 
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -31,7 +34,15 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include "input_plugin.h"
+
+extern "C" { 	// Make sure MAD symbols are not mangled
+							// since we compile them with regular gcc
+
+#include "frame.h"
+#include "synth.h"
 #include "mad.h"
+
+}
 
 #define BLOCK_SIZE 4096	/* We can use any block size we like */
 #define MAX_NUM_SAMPLES 8192
@@ -217,11 +228,11 @@ static int mad_play_frame(input_object *obj, char *buf)
 
 				if (mad_frame_decode(&data->frame, &data->stream) == -1) {
 								if (!MAD_RECOVERABLE(data->stream.error)) {
-												printf("MAD error: %s\n", error_str(data->stream.error));
+												/* printf("MAD error: %s\n", error_str(data->stream.error)); */
 												mad_frame_mute(&data->frame);
 												return 0;
 								}	else {
-												printf("MAD error: %s\n", error_str(data->stream.error));
+												/* printf("MAD error: %s\n", error_str(data->stream.error)); */
 								}
 				}
 				data->current_frame++;
@@ -559,7 +570,11 @@ input_plugin mad_plugin =
 				NULL
 };
 
+extern "C" {
+
 input_plugin *input_plugin_info (void)
 {
 				return &mad_plugin;
+}
+
 }
