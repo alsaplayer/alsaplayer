@@ -292,16 +292,19 @@ static  long sndfile_frame_to_sec (input_object *obj, int frame)
 static float sndfile_can_handle (const char *name)
 {
 	const char *fname = strrchr(name, '/');
+	const char *dot;
 
 	if (!fname)
 		fname = name;
-	if (strstr(fname, ".wav") ||
-			strstr(fname, ".WAV") ||
-			strstr(fname, ".au") ||
-			strstr(fname, ".AU") ||
-			strstr(fname, ".aiff") ||
-			strstr(fname, ".AIFF")) {
-		return 0.8;
+	if ((dot = strrchr(fname, '.')) != NULL)
+	{
+		dot++;
+
+		if (!strcasecmp(dot, "wav")
+		||  !strcasecmp(dot, "au")
+		||  !strcasecmp(dot, "aif")
+		||  !strcasecmp(dot, "aiff"))
+			return 0.8;
 	}
 	return 0.0;
 }
