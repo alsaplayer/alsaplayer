@@ -159,7 +159,7 @@ static void curlplugin_close(void *d)
 static float curlplugin_can_handle(const char *uri)
 {
     /* Check for prefix */
-    if (strncmp (uri, "ftp://", 6) && strncmp (uri, "http://", 7))  return 0.0;
+    if (strncmp (uri, "ftp://", 6))  return 0.0;
     
     return 1.0;
 }

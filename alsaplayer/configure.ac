@@ -747,6 +747,7 @@ input/flac/Makefile
 reader/Makefile
 reader/curl/Makefile
 reader/file/Makefile
+reader/http/Makefile
 alsaplayer/Makefile
 libalsaplayer/Makefile
 extra/Makefile
