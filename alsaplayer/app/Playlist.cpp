@@ -710,10 +710,10 @@ Playlist::Load(std::string const &file, unsigned position, bool force)
 }
 
 
-void Playlist::RegisterNotifier(coreplayer_notifier *notif)
+void Playlist::RegisterNotifier(coreplayer_notifier *notif, void *data)
 {
-	player1->RegisterNotifier(notif);
-	player2->RegisterNotifier(notif);
+	player1->RegisterNotifier(notif, data);
+	player2->RegisterNotifier(notif, data);
 }
 
 

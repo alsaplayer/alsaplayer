@@ -134,7 +134,8 @@ void AlsaNode::looper(void *pointer)
 			}
 		} else {
 			mlockall(MCL_CURRENT);
-			printf("real-time scheduling on\n");
+			if (global_verbose)
+				alsaplayer_error("real-time scheduling on");
 		}
 	}	
 #endif

@@ -103,23 +103,25 @@ void CorePlayer::UnlockNotifiers()
 }
 
 
-void CorePlayer::RegisterNotifier(coreplayer_notifier *core_notif)
+void CorePlayer::RegisterNotifier(coreplayer_notifier *core_notif, void *data)
 {
 	if (!core_notif) {
 		alsaplayer_error("Notifier is NULL");
 		return;
 	}	
-	Lock();
+	if (data)
+		core_notif->data = data;
 	if (core_notif->speed_changed)
-		core_notif->speed_changed(GetSpeed());
+		core_notif->speed_changed(core_notif->data, GetSpeed());
 	if (core_notif->pan_changed)
-		core_notif->pan_changed(GetPan());
+		core_notif->pan_changed(core_notif->data, GetPan());
 	if (core_notif->volume_changed)
-		core_notif->volume_changed(GetVolume());
+		core_notif->volume_changed(core_notif->data, GetVolume());
+	if (core_notif->position_notify)
+		core_notif->position_notify(core_notif->data, GetPosition());
 	LockNotifiers();
 	notifiers.insert(core_notif);
 	UnlockNotifiers();
-	Unlock();
 }
 
 
@@ -127,11 +129,9 @@ void CorePlayer::UnRegisterNotifier(coreplayer_notifier *core_notif)
 {
 	if (!core_notif)
 		return;
-	Lock();
 	LockNotifiers();
 	notifiers.erase(notifiers.find(core_notif));
 	UnlockNotifiers();
-	Unlock();
 }
 
 
@@ -319,7 +319,6 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	int error_count = 0;
 	input_plugin *tmp;
 
-	//Lock();
 	tmp = &plugins[plugin_count];
 	tmp->version = the_plugin->version;
 	if (tmp->version) {
@@ -327,7 +326,6 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 			alsaplayer_error("Wrong version number on plugin (v%d, wanted v%d)",
 					version - INPUT_PLUGIN_BASE_VERSION,
 					INPUT_PLUGIN_VERSION - INPUT_PLUGIN_BASE_VERSION);      
-			//Unlock();
 			return 0;
 		}
 	}
@@ -413,7 +411,6 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	if (global_verbose)
 		alsaplayer_error("Loading Input plugin: %s", tmp->name);
 
-	//Unlock();
 	return 1;
 }
 
@@ -578,12 +575,23 @@ bool CorePlayer::Start()
 	sub = new AlsaSubscriber();
 	if (!sub) {
 		alsaplayer_error("Subscriber creation failed :-(\n");
+		Unlock();
 		return false;
 	}	
 	sub->Subscribe(node);
 	//alsaplayer_error("Starting streamer thread...");
 	sub->EnterStream(streamer_func, this);
 	Unlock();
+	
+	// Notify 
+	std::set<coreplayer_notifier *>::const_iterator i;
+	LockNotifiers();
+	for (i = notifiers.begin(); i != notifiers.end(); i++) {
+		if ((*i)->start_notify) {
+			(*i)->start_notify((*i)->data);
+		}
+	}
+	UnlockNotifiers();
 
 	return true;
 }  
@@ -618,7 +626,7 @@ void CorePlayer::Stop()
 	LockNotifiers();
 	for (i = notifiers.begin(); i != notifiers.end(); i++) {
 		if ((*i)->stop_notify) {
-			(*i)->stop_notify();
+			(*i)->stop_notify((*i)->data);
 		}
 	}
 	UnlockNotifiers();
@@ -633,7 +641,7 @@ void CorePlayer::SetVolume(int val)
 	LockNotifiers();
 	for (i = notifiers.begin(); i != notifiers.end(); i++) {
 		if ((*i)->volume_changed)
-			(*i)->volume_changed(volume);
+			(*i)->volume_changed((*i)->data, volume);
 	}		
 	UnlockNotifiers();
 }
@@ -646,7 +654,7 @@ void CorePlayer::SetPan(int val)
 	LockNotifiers();
 	for (i = notifiers.begin(); i != notifiers.end(); i++) {
 		if ((*i)->pan_changed)
-			(*i)->pan_changed(pan);	
+			(*i)->pan_changed((*i)->data, pan);	
 	}
 	UnlockNotifiers();
 }
@@ -658,7 +666,7 @@ void CorePlayer::PositionUpdate()
 	LockNotifiers();
 	for (i = notifiers.begin(); i != notifiers.end(); i++) {
 		if ((*i)->position_notify)
-			(*i)->position_notify(GetPosition());
+			(*i)->position_notify((*i)->data, GetPosition());
 	}
 	UnlockNotifiers();
 }
@@ -677,7 +685,7 @@ int CorePlayer::SetSpeed(float val)
 	LockNotifiers();
 	for (i = notifiers.begin(); i != notifiers.end(); i++) {
 		if ((*i)->speed_changed)
-			(*i)->speed_changed(pitch_point);
+			(*i)->speed_changed((*i)->data, pitch_point);
 	}	
 	UnlockNotifiers();
 
@@ -776,6 +784,9 @@ bool CorePlayer::Load(const char *path)
 	if (path == NULL && !strlen(file_path)) {
 		return false;
 	}
+	
+	Lock();
+
 	if (path) {
 		strncpy(file_path, path, 1023);
 		file_path[1023] = 0;
@@ -783,6 +794,7 @@ bool CorePlayer::Load(const char *path)
 
 	if ((best_plugin = GetPlayer(file_path)) == NULL) {
 		alsaplayer_error("No suitable plugin found for \"%s\"", file_path);
+		Unlock();
 		return false;
 	}
 
@@ -811,7 +823,9 @@ bool CorePlayer::Load(const char *path)
 		plugin->close(the_object);
 	}
 	the_object->ready = 1;
-
+	
+	Unlock();
+	
 	return result;	
 }
 
