@@ -1,5 +1,5 @@
 /*
- *  cli.cpp - Command Line Interface 
+ *  text.cpp - Command Line Interface 
  *  Copyright (C) 2001 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -45,31 +45,31 @@
 static char addon_dir[1024];
 
 
-int interface_cli_init()
+int interface_text_init()
 {
 	strcpy(addon_dir, ADDON_DIR);
 	return 1;
 }
 
 
-int interface_cli_running()
+int interface_text_running()
 {
 	return 1;
 }
 
 
-int interface_cli_stop()
+int interface_text_stop()
 {
 	return 1;
 }
 
-void interface_cli_close()
+void interface_text_close()
 {
 	return;
 }
 
 
-int interface_cli_start(CorePlayer *coreplayer, Playlist *playlist, int argc, char **argv)
+int interface_text_start(CorePlayer *coreplayer, Playlist *playlist, int argc, char **argv)
 {
 	char path[256];
 	char *home;
@@ -128,11 +128,11 @@ interface_plugin default_plugin =
 	{ "Default CLI interface v1.0" },
 	{ "Andy Lo A Foe" },
 	NULL,
-	interface_cli_init,
-	interface_cli_start,
-	interface_cli_running,
-	interface_cli_stop,
-	interface_cli_close
+	interface_text_init,
+	interface_text_start,
+	interface_text_running,
+	interface_text_stop,
+	interface_text_close
 };
 
 extern "C" {

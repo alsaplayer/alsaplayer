@@ -1,52 +1,43 @@
-<!DOCTYPE UI><UI>
+<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
 <class>MainWindowBase</class>
 <author>Rik Hemsley</author>
-<widget>
-    <class>QWidget</class>
-    <property stdset="1">
-        <name>name</name>
+<widget class="QWidget">
+    <property name="name">
         <cstring>MainWindowBase</cstring>
     </property>
-    <property stdset="1">
-        <name>geometry</name>
+    <property name="geometry">
         <rect>
             <x>0</x>
             <y>0</y>
             <width>368</width>
-            <height>121</height>
+            <height>122</height>
         </rect>
     </property>
-    <property stdset="1">
-        <name>caption</name>
+    <property name="caption">
         <string>AlsaPlayer</string>
     </property>
-    <property stdset="1">
-        <name>acceptDrops</name>
+    <property name="acceptDrops">
         <bool>true</bool>
     </property>
-    <property>
-        <name>layoutMargin</name>
+    <property name="layoutMargin" stdset="0">
     </property>
-    <property>
-        <name>layoutSpacing</name>
+    <property name="layoutSpacing" stdset="0">
     </property>
     <vbox>
-        <property stdset="1">
-            <name>margin</name>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <property name="margin">
             <number>4</number>
         </property>
-        <property stdset="1">
-            <name>spacing</name>
+        <property name="spacing">
             <number>4</number>
         </property>
-        <widget>
-            <class>QFrame</class>
-            <property stdset="1">
-                <name>name</name>
+        <widget class="QFrame">
+            <property name="name">
                 <cstring>Frame3</cstring>
             </property>
-            <property stdset="1">
-                <name>palette</name>
+            <property name="palette">
                 <palette>
                     <active>
                         <color>
@@ -118,6 +109,16 @@
                             <red>255</red>
                             <green>255</green>
                             <blue>255</blue>
+                        </color>
+                        <color>
+                            <red>0</red>
+                            <green>0</green>
+                            <blue>0</blue>
+                        </color>
+                        <color>
+                            <red>0</red>
+                            <green>0</green>
+                            <blue>0</blue>
                         </color>
                     </active>
                     <disabled>
@@ -191,6 +192,16 @@
                             <green>255</green>
                             <blue>255</blue>
                         </color>
+                        <color>
+                            <red>0</red>
+                            <green>0</green>
+                            <blue>0</blue>
+                        </color>
+                        <color>
+                            <red>0</red>
+                            <green>0</green>
+                            <blue>0</blue>
+                        </color>
                     </disabled>
                     <inactive>
                         <color>
@@ -263,47 +274,52 @@
                             <green>255</green>
                             <blue>255</blue>
                         </color>
+                        <color>
+                            <red>0</red>
+                            <green>0</green>
+                            <blue>0</blue>
+                        </color>
+                        <color>
+                            <red>0</red>
+                            <green>0</green>
+                            <blue>0</blue>
+                        </color>
                     </inactive>
                 </palette>
             </property>
-            <property stdset="1">
-                <name>frameShape</name>
+            <property name="frameShape">
                 <enum>NoFrame</enum>
             </property>
-            <property stdset="1">
-                <name>frameShadow</name>
+            <property name="frameShadow">
                 <enum>Plain</enum>
             </property>
-            <property>
-                <name>layoutMargin</name>
+            <property name="layoutMargin" stdset="0">
             </property>
-            <property>
-                <name>layoutSpacing</name>
+            <property name="layoutSpacing" stdset="0">
             </property>
             <grid>
-                <property stdset="1">
-                    <name>margin</name>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="margin">
                     <number>2</number>
                 </property>
-                <property stdset="1">
-                    <name>spacing</name>
+                <property name="spacing">
                     <number>4</number>
                 </property>
-                <widget row="0"  column="0" >
-                    <class>QLabel</class>
-                    <property stdset="1">
-                        <name>name</name>
+                <widget class="QLabel" row="0" column="0">
+                    <property name="name">
                         <cstring>speedLabelLeft</cstring>
                     </property>
-                    <property stdset="1">
-                        <name>sizePolicy</name>
+                    <property name="sizePolicy">
                         <sizepolicy>
                             <hsizetype>1</hsizetype>
                             <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
                         </sizepolicy>
                     </property>
-                    <property stdset="1">
-                        <name>palette</name>
+                    <property name="palette">
                         <palette>
                             <active>
                                 <color>
@@ -375,6 +391,16 @@
                                     <red>255</red>
                                     <green>255</green>
                                     <blue>255</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
                                 </color>
                             </active>
                             <disabled>
@@ -448,6 +474,16 @@
                                     <green>255</green>
                                     <blue>255</blue>
                                 </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
                             </disabled>
                             <inactive>
                                 <color>
@@ -520,40 +556,44 @@
                                     <green>255</green>
                                     <blue>255</blue>
                                 </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
                             </inactive>
                         </palette>
                     </property>
-                    <property stdset="1">
-                        <name>margin</name>
+                    <property name="margin">
                         <number>0</number>
                     </property>
-                    <property stdset="1">
-                        <name>text</name>
+                    <property name="text">
                         <string>Speed:</string>
                     </property>
-                    <property stdset="1">
-                        <name>alignment</name>
+                    <property name="alignment">
                         <set>AlignVCenter|AlignRight</set>
                     </property>
-                    <property>
-                        <name>hAlign</name>
+                    <property name="hAlign" stdset="0">
                     </property>
                 </widget>
-                <widget row="1"  column="3" >
-                    <class>QLabel</class>
-                    <property stdset="1">
-                        <name>name</name>
+                <widget class="QLabel" row="1" column="3">
+                    <property name="name">
                         <cstring>timeLabel</cstring>
                     </property>
-                    <property stdset="1">
-                        <name>sizePolicy</name>
+                    <property name="sizePolicy">
                         <sizepolicy>
                             <hsizetype>1</hsizetype>
                             <vsizetype>5</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
                         </sizepolicy>
                     </property>
-                    <property stdset="1">
-                        <name>palette</name>
+                    <property name="palette">
                         <palette>
                             <active>
                                 <color>
@@ -625,6 +665,16 @@
                                     <red>255</red>
                                     <green>255</green>
                                     <blue>255</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
                                 </color>
                             </active>
                             <disabled>
@@ -698,6 +748,16 @@
                                     <green>255</green>
                                     <blue>255</blue>
                                 </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
                             </disabled>
                             <inactive>
                                 <color>
@@ -770,33 +830,39 @@
                                     <green>255</green>
                                     <blue>255</blue>
                                 </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
                             </inactive>
                         </palette>
                     </property>
-                    <property stdset="1">
-                        <name>margin</name>
+                    <property name="margin">
                         <number>0</number>
                     </property>
-                    <property stdset="1">
-                        <name>text</name>
+                    <property name="text">
                         <string>No time data</string>
                     </property>
                 </widget>
-                <widget row="0"  column="1" >
-                    <class>QLabel</class>
-                    <property stdset="1">
-                        <name>name</name>
+                <widget class="QLabel" row="0" column="1">
+                    <property name="name">
                         <cstring>speedLabel</cstring>
                     </property>
-                    <property stdset="1">
-                        <name>sizePolicy</name>
+                    <property name="sizePolicy">
                         <sizepolicy>
                             <hsizetype>1</hsizetype>
                             <vsizetype>5</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
                         </sizepolicy>
                     </property>
-                    <property stdset="1">
-                        <name>palette</name>
+                    <property name="palette">
                         <palette>
                             <active>
                                 <color>
@@ -868,6 +934,16 @@
                                     <red>255</red>
                                     <green>255</green>
                                     <blue>255</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
                                 </color>
                             </active>
                             <disabled>
@@ -941,6 +1017,16 @@
                                     <green>255</green>
                                     <blue>255</blue>
                                 </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
                             </disabled>
                             <inactive>
                                 <color>
@@ -1013,33 +1099,39 @@
                                     <green>255</green>
                                     <blue>255</blue>
                                 </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
                             </inactive>
                         </palette>
                     </property>
-                    <property stdset="1">
-                        <name>margin</name>
+                    <property name="margin">
                         <number>0</number>
                     </property>
-                    <property stdset="1">
-                        <name>text</name>
+                    <property name="text">
                         <string>100%</string>
                     </property>
                 </widget>
-                <widget row="0"  column="2"  rowspan="1"  colspan="2" >
-                    <class>QLabel</class>
-                    <property stdset="1">
-                        <name>name</name>
+                <widget class="QLabel" row="0" column="2" rowspan="1" colspan="2">
+                    <property name="name">
                         <cstring>titleLabel</cstring>
                     </property>
-                    <property stdset="1">
-                        <name>sizePolicy</name>
+                    <property name="sizePolicy">
                         <sizepolicy>
                             <hsizetype>7</hsizetype>
                             <vsizetype>5</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
                         </sizepolicy>
                     </property>
-                    <property stdset="1">
-                        <name>palette</name>
+                    <property name="palette">
                         <palette>
                             <active>
                                 <color>
@@ -1111,6 +1203,16 @@
                                     <red>255</red>
                                     <green>255</green>
                                     <blue>255</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
                                 </color>
                             </active>
                             <disabled>
@@ -1184,6 +1286,16 @@
                                     <green>255</green>
                                     <blue>255</blue>
                                 </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
                             </disabled>
                             <inactive>
                                 <color>
@@ -1256,33 +1368,39 @@
                                     <green>255</green>
                                     <blue>255</blue>
                                 </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
                             </inactive>
                         </palette>
                     </property>
-                    <property stdset="1">
-                        <name>margin</name>
+                    <property name="margin">
                         <number>0</number>
                     </property>
-                    <property stdset="1">
-                        <name>text</name>
+                    <property name="text">
                         <string>No stream</string>
                     </property>
                 </widget>
-                <widget row="1"  column="1" >
-                    <class>QLabel</class>
-                    <property stdset="1">
-                        <name>name</name>
+                <widget class="QLabel" row="1" column="1">
+                    <property name="name">
                         <cstring>volumeLabel</cstring>
                     </property>
-                    <property stdset="1">
-                        <name>sizePolicy</name>
+                    <property name="sizePolicy">
                         <sizepolicy>
                             <hsizetype>1</hsizetype>
                             <vsizetype>1</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
                         </sizepolicy>
                     </property>
-                    <property stdset="1">
-                        <name>palette</name>
+                    <property name="palette">
                         <palette>
                             <active>
                                 <color>
@@ -1354,6 +1472,16 @@
                                     <red>255</red>
                                     <green>255</green>
                                     <blue>255</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
                                 </color>
                             </active>
                             <disabled>
@@ -1427,6 +1555,16 @@
                                     <green>255</green>
                                     <blue>255</blue>
                                 </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
                             </disabled>
                             <inactive>
                                 <color>
@@ -1499,33 +1637,39 @@
                                     <green>255</green>
                                     <blue>255</blue>
                                 </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
                             </inactive>
                         </palette>
                     </property>
-                    <property stdset="1">
-                        <name>margin</name>
+                    <property name="margin">
                         <number>0</number>
                     </property>
-                    <property stdset="1">
-                        <name>text</name>
+                    <property name="text">
                         <string>100%</string>
                     </property>
                 </widget>
-                <widget row="1"  column="0" >
-                    <class>QLabel</class>
-                    <property stdset="1">
-                        <name>name</name>
+                <widget class="QLabel" row="1" column="0">
+                    <property name="name">
                         <cstring>volumeLabelLeft</cstring>
                     </property>
-                    <property stdset="1">
-                        <name>sizePolicy</name>
+                    <property name="sizePolicy">
                         <sizepolicy>
                             <hsizetype>1</hsizetype>
                             <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
                         </sizepolicy>
                     </property>
-                    <property stdset="1">
-                        <name>palette</name>
+                    <property name="palette">
                         <palette>
                             <active>
                                 <color>
@@ -1597,6 +1741,16 @@
                                     <red>255</red>
                                     <green>255</green>
                                     <blue>255</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
                                 </color>
                             </active>
                             <disabled>
@@ -1670,6 +1824,16 @@
                                     <green>255</green>
                                     <blue>255</blue>
                                 </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
                             </disabled>
                             <inactive>
                                 <color>
@@ -1742,40 +1906,44 @@
                                     <green>255</green>
                                     <blue>255</blue>
                                 </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
                             </inactive>
                         </palette>
                     </property>
-                    <property stdset="1">
-                        <name>margin</name>
+                    <property name="margin">
                         <number>0</number>
                     </property>
-                    <property stdset="1">
-                        <name>text</name>
+                    <property name="text">
                         <string>Volume:</string>
                     </property>
-                    <property stdset="1">
-                        <name>alignment</name>
+                    <property name="alignment">
                         <set>AlignVCenter|AlignRight</set>
                     </property>
-                    <property>
-                        <name>hAlign</name>
+                    <property name="hAlign" stdset="0">
                     </property>
                 </widget>
-                <widget row="1"  column="2" >
-                    <class>QLabel</class>
-                    <property stdset="1">
-                        <name>name</name>
+                <widget class="QLabel" row="1" column="2">
+                    <property name="name">
                         <cstring>infoLabel</cstring>
                     </property>
-                    <property stdset="1">
-                        <name>sizePolicy</name>
+                    <property name="sizePolicy">
                         <sizepolicy>
                             <hsizetype>7</hsizetype>
                             <vsizetype>5</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
                         </sizepolicy>
                     </property>
-                    <property stdset="1">
-                        <name>palette</name>
+                    <property name="palette">
                         <palette>
                             <active>
                                 <color>
@@ -1847,6 +2015,16 @@
                                     <red>255</red>
                                     <green>255</green>
                                     <blue>255</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
                                 </color>
                             </active>
                             <disabled>
@@ -1920,6 +2098,16 @@
                                     <green>255</green>
                                     <blue>255</blue>
                                 </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
                             </disabled>
                             <inactive>
                                 <color>
@@ -1992,293 +2180,243 @@
                                     <green>255</green>
                                     <blue>255</blue>
                                 </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
+                                <color>
+                                    <red>0</red>
+                                    <green>0</green>
+                                    <blue>0</blue>
+                                </color>
                             </inactive>
                         </palette>
                     </property>
-                    <property stdset="1">
-                        <name>margin</name>
+                    <property name="margin">
                         <number>0</number>
                     </property>
-                    <property stdset="1">
-                        <name>text</name>
+                    <property name="text">
                         <string>...</string>
                     </property>
                 </widget>
             </grid>
         </widget>
-        <widget>
-            <class>QSlider</class>
-            <property stdset="1">
-                <name>name</name>
+        <widget class="QSlider">
+            <property name="name">
                 <cstring>positionSlider</cstring>
             </property>
-            <property stdset="1">
-                <name>maxValue</name>
+            <property name="focusPolicy">
+                <enum>NoFocus</enum>
+            </property>
+            <property name="maxValue">
                 <number>100</number>
             </property>
-            <property stdset="1">
-                <name>orientation</name>
+            <property name="orientation">
                 <enum>Horizontal</enum>
             </property>
         </widget>
-        <widget>
-            <class>QLayoutWidget</class>
-            <property stdset="1">
-                <name>name</name>
+        <widget class="QLayoutWidget">
+            <property name="name">
                 <cstring>Layout10</cstring>
             </property>
-            <property>
-                <name>layoutSpacing</name>
+            <property name="layoutSpacing" stdset="0">
             </property>
             <hbox>
-                <property stdset="1">
-                    <name>margin</name>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="margin">
                     <number>0</number>
                 </property>
-                <property stdset="1">
-                    <name>spacing</name>
+                <property name="spacing">
                     <number>4</number>
                 </property>
-                <widget>
-                    <class>QLayoutWidget</class>
-                    <property stdset="1">
-                        <name>name</name>
+                <widget class="QLayoutWidget">
+                    <property name="name">
                         <cstring>Layout9</cstring>
                     </property>
-                    <property>
-                        <name>layoutSpacing</name>
+                    <property name="layoutSpacing" stdset="0">
                     </property>
                     <vbox>
-                        <property stdset="1">
-                            <name>margin</name>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
                             <number>0</number>
                         </property>
-                        <property stdset="1">
-                            <name>spacing</name>
+                        <property name="spacing">
                             <number>0</number>
                         </property>
                         <spacer>
-                            <property>
-                                <name>name</name>
+                            <property name="name" stdset="0">
                                 <cstring>Spacer1</cstring>
                             </property>
-                            <property stdset="1">
-                                <name>orientation</name>
+                            <property name="orientation">
                                 <enum>Vertical</enum>
                             </property>
-                            <property stdset="1">
-                                <name>sizeType</name>
+                            <property name="sizeType">
                                 <enum>Expanding</enum>
                             </property>
-                            <property>
-                                <name>sizeHint</name>
+                            <property name="sizeHint">
                                 <size>
                                     <width>20</width>
                                     <height>20</height>
                                 </size>
                             </property>
                         </spacer>
-                        <widget>
-                            <class>QLayoutWidget</class>
-                            <property stdset="1">
-                                <name>name</name>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
                                 <cstring>Layout8</cstring>
                             </property>
-                            <property>
-                                <name>layoutSpacing</name>
+                            <property name="layoutSpacing" stdset="0">
                             </property>
                             <hbox>
-                                <property stdset="1">
-                                    <name>margin</name>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <property name="margin">
                                     <number>0</number>
                                 </property>
-                                <property stdset="1">
-                                    <name>spacing</name>
+                                <property name="spacing">
                                     <number>2</number>
                                 </property>
-                                <widget>
-                                    <class>QToolButton</class>
-                                    <property stdset="1">
-                                        <name>name</name>
+                                <widget class="QToolButton">
+                                    <property name="name">
                                         <cstring>menuButton</cstring>
                                     </property>
-                                    <property stdset="1">
-                                        <name>focusPolicy</name>
+                                    <property name="focusPolicy">
                                         <enum>TabFocus</enum>
                                     </property>
-                                    <property stdset="1">
-                                        <name>text</name>
+                                    <property name="text">
                                         <string></string>
                                     </property>
-                                    <property stdset="1">
-                                        <name>pixmap</name>
+                                    <property name="pixmap">
                                         <pixmap>image0</pixmap>
                                     </property>
-                                    <property stdset="1">
-                                        <name>popupDelay</name>
+                                    <property name="popupDelay">
                                         <number>0</number>
                                     </property>
-                                    <property stdset="1">
-                                        <name>autoRaise</name>
+                                    <property name="autoRaise">
                                         <bool>true</bool>
                                     </property>
-                                    <property>
-                                        <name>toolTip</name>
+                                    <property name="toolTip" stdset="0">
                                         <string>Menu</string>
                                     </property>
                                 </widget>
-                                <widget>
-                                    <class>QToolButton</class>
-                                    <property stdset="1">
-                                        <name>name</name>
+                                <widget class="QToolButton">
+                                    <property name="name">
                                         <cstring>previousButton</cstring>
                                     </property>
-                                    <property stdset="1">
-                                        <name>focusPolicy</name>
+                                    <property name="focusPolicy">
                                         <enum>TabFocus</enum>
                                     </property>
-                                    <property stdset="1">
-                                        <name>text</name>
+                                    <property name="text">
                                         <string></string>
                                     </property>
-                                    <property stdset="1">
-                                        <name>pixmap</name>
+                                    <property name="pixmap">
                                         <pixmap>image1</pixmap>
                                     </property>
-                                    <property stdset="1">
-                                        <name>autoRaise</name>
+                                    <property name="autoRaise">
                                         <bool>true</bool>
                                     </property>
-                                    <property>
-                                        <name>toolTip</name>
+                                    <property name="toolTip" stdset="0">
                                         <string>Skip to previous track</string>
                                     </property>
                                 </widget>
-                                <widget>
-                                    <class>QToolButton</class>
-                                    <property stdset="1">
-                                        <name>name</name>
+                                <widget class="QToolButton">
+                                    <property name="name">
                                         <cstring>playButton</cstring>
                                     </property>
-                                    <property stdset="1">
-                                        <name>focusPolicy</name>
+                                    <property name="focusPolicy">
                                         <enum>TabFocus</enum>
                                     </property>
-                                    <property stdset="1">
-                                        <name>text</name>
+                                    <property name="text">
                                         <string></string>
                                     </property>
-                                    <property stdset="1">
-                                        <name>pixmap</name>
+                                    <property name="pixmap">
                                         <pixmap>image2</pixmap>
                                     </property>
-                                    <property stdset="1">
-                                        <name>autoRaise</name>
+                                    <property name="autoRaise">
                                         <bool>true</bool>
                                     </property>
-                                    <property>
-                                        <name>toolTip</name>
+                                    <property name="toolTip" stdset="0">
                                         <string>Play</string>
                                     </property>
                                 </widget>
-                                <widget>
-                                    <class>QToolButton</class>
-                                    <property stdset="1">
-                                        <name>name</name>
+                                <widget class="QToolButton">
+                                    <property name="name">
                                         <cstring>nextButton</cstring>
                                     </property>
-                                    <property stdset="1">
-                                        <name>focusPolicy</name>
+                                    <property name="focusPolicy">
                                         <enum>TabFocus</enum>
                                     </property>
-                                    <property stdset="1">
-                                        <name>text</name>
+                                    <property name="text">
                                         <string></string>
                                     </property>
-                                    <property stdset="1">
-                                        <name>pixmap</name>
+                                    <property name="pixmap">
                                         <pixmap>image3</pixmap>
                                     </property>
-                                    <property stdset="1">
-                                        <name>autoRaise</name>
+                                    <property name="autoRaise">
                                         <bool>true</bool>
                                     </property>
-                                    <property>
-                                        <name>toolTip</name>
+                                    <property name="toolTip" stdset="0">
                                         <string>Skip to next track</string>
                                     </property>
                                 </widget>
-                                <widget>
-                                    <class>QToolButton</class>
-                                    <property stdset="1">
-                                        <name>name</name>
+                                <widget class="QToolButton">
+                                    <property name="name">
                                         <cstring>stopButton</cstring>
                                     </property>
-                                    <property stdset="1">
-                                        <name>focusPolicy</name>
+                                    <property name="focusPolicy">
                                         <enum>TabFocus</enum>
                                     </property>
-                                    <property stdset="1">
-                                        <name>text</name>
+                                    <property name="text">
                                         <string></string>
                                     </property>
-                                    <property stdset="1">
-                                        <name>pixmap</name>
+                                    <property name="pixmap">
                                         <pixmap>image4</pixmap>
                                     </property>
-                                    <property stdset="1">
-                                        <name>autoRaise</name>
+                                    <property name="autoRaise">
                                         <bool>true</bool>
                                     </property>
-                                    <property>
-                                        <name>toolTip</name>
+                                    <property name="toolTip" stdset="0">
                                         <string>Stop</string>
                                     </property>
                                 </widget>
-                                <widget>
-                                    <class>QToolButton</class>
-                                    <property stdset="1">
-                                        <name>name</name>
+                                <widget class="QToolButton">
+                                    <property name="name">
                                         <cstring>playlistButton</cstring>
                                     </property>
-                                    <property stdset="1">
-                                        <name>focusPolicy</name>
+                                    <property name="focusPolicy">
                                         <enum>TabFocus</enum>
                                     </property>
-                                    <property stdset="1">
-                                        <name>text</name>
+                                    <property name="text">
                                         <string></string>
                                     </property>
-                                    <property stdset="1">
-                                        <name>pixmap</name>
+                                    <property name="pixmap">
                                         <pixmap>image5</pixmap>
                                     </property>
-                                    <property stdset="1">
-                                        <name>autoRaise</name>
+                                    <property name="autoRaise">
                                         <bool>true</bool>
                                     </property>
-                                    <property>
-                                        <name>toolTip</name>
+                                    <property name="toolTip" stdset="0">
                                         <string>Show playlist</string>
                                     </property>
                                 </widget>
                             </hbox>
                         </widget>
                         <spacer>
-                            <property>
-                                <name>name</name>
+                            <property name="name" stdset="0">
                                 <cstring>Spacer2</cstring>
                             </property>
-                            <property stdset="1">
-                                <name>orientation</name>
+                            <property name="orientation">
                                 <enum>Vertical</enum>
                             </property>
-                            <property stdset="1">
-                                <name>sizeType</name>
+                            <property name="sizeType">
                                 <enum>Expanding</enum>
                             </property>
-                            <property>
-                                <name>sizeHint</name>
+                            <property name="sizeHint">
                                 <size>
                                     <width>20</width>
                                     <height>20</height>
@@ -2287,251 +2425,195 @@
                         </spacer>
                     </vbox>
                 </widget>
-                <widget>
-                    <class>QLayoutWidget</class>
-                    <property stdset="1">
-                        <name>name</name>
+                <widget class="QLayoutWidget">
+                    <property name="name">
                         <cstring>Layout5</cstring>
                     </property>
-                    <property>
-                        <name>layoutSpacing</name>
+                    <property name="layoutSpacing" stdset="0">
                     </property>
                     <vbox>
-                        <property stdset="1">
-                            <name>margin</name>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
                             <number>0</number>
                         </property>
-                        <property stdset="1">
-                            <name>spacing</name>
+                        <property name="spacing">
                             <number>2</number>
                         </property>
-                        <widget>
-                            <class>QLayoutWidget</class>
-                            <property stdset="1">
-                                <name>name</name>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
                                 <cstring>Layout3</cstring>
                             </property>
-                            <property>
-                                <name>layoutSpacing</name>
+                            <property name="layoutSpacing" stdset="0">
                             </property>
                             <hbox>
-                                <property stdset="1">
-                                    <name>margin</name>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <property name="margin">
                                     <number>0</number>
                                 </property>
-                                <property stdset="1">
-                                    <name>spacing</name>
+                                <property name="spacing">
                                     <number>2</number>
                                 </property>
-                                <widget>
-                                    <class>QToolButton</class>
-                                    <property stdset="1">
-                                        <name>name</name>
+                                <widget class="QToolButton">
+                                    <property name="name">
                                         <cstring>pauseButton</cstring>
                                     </property>
-                                    <property stdset="1">
-                                        <name>focusPolicy</name>
+                                    <property name="focusPolicy">
                                         <enum>TabFocus</enum>
                                     </property>
-                                    <property stdset="1">
-                                        <name>text</name>
+                                    <property name="text">
                                         <string></string>
                                     </property>
-                                    <property stdset="1">
-                                        <name>pixmap</name>
+                                    <property name="pixmap">
                                         <pixmap>image6</pixmap>
                                     </property>
-                                    <property stdset="1">
-                                        <name>autoRaise</name>
+                                    <property name="autoRaise">
                                         <bool>true</bool>
                                     </property>
-                                    <property>
-                                        <name>toolTip</name>
+                                    <property name="toolTip" stdset="0">
                                         <string>Pause</string>
                                     </property>
                                 </widget>
-                                <widget>
-                                    <class>QToolButton</class>
-                                    <property stdset="1">
-                                        <name>name</name>
+                                <widget class="QToolButton">
+                                    <property name="name">
                                         <cstring>backButton</cstring>
                                     </property>
-                                    <property stdset="1">
-                                        <name>focusPolicy</name>
+                                    <property name="focusPolicy">
                                         <enum>TabFocus</enum>
                                     </property>
-                                    <property stdset="1">
-                                        <name>text</name>
+                                    <property name="text">
                                         <string></string>
                                     </property>
-                                    <property stdset="1">
-                                        <name>pixmap</name>
+                                    <property name="pixmap">
                                         <pixmap>image7</pixmap>
                                     </property>
-                                    <property stdset="1">
-                                        <name>autoRaise</name>
+                                    <property name="autoRaise">
                                         <bool>true</bool>
                                     </property>
-                                    <property>
-                                        <name>toolTip</name>
+                                    <property name="toolTip" stdset="0">
                                         <string>Backwards, normal speed</string>
                                     </property>
                                 </widget>
-                                <widget>
-                                    <class>QToolButton</class>
-                                    <property stdset="1">
-                                        <name>name</name>
+                                <widget class="QToolButton">
+                                    <property name="name">
                                         <cstring>forwardButton</cstring>
                                     </property>
-                                    <property stdset="1">
-                                        <name>focusPolicy</name>
+                                    <property name="focusPolicy">
                                         <enum>TabFocus</enum>
                                     </property>
-                                    <property stdset="1">
-                                        <name>text</name>
+                                    <property name="text">
                                         <string></string>
                                     </property>
-                                    <property stdset="1">
-                                        <name>pixmap</name>
+                                    <property name="pixmap">
                                         <pixmap>image8</pixmap>
                                     </property>
-                                    <property stdset="1">
-                                        <name>autoRaise</name>
+                                    <property name="autoRaise">
                                         <bool>true</bool>
                                     </property>
-                                    <property>
-                                        <name>toolTip</name>
+                                    <property name="toolTip" stdset="0">
                                         <string>Forwards, normal speed</string>
                                     </property>
                                 </widget>
-                                <widget>
-                                    <class>QSlider</class>
-                                    <property stdset="1">
-                                        <name>name</name>
+                                <widget class="QSlider">
+                                    <property name="name">
                                         <cstring>speedSlider</cstring>
                                     </property>
-                                    <property stdset="1">
-                                        <name>minValue</name>
+                                    <property name="minValue">
                                         <number>-100</number>
                                     </property>
-                                    <property stdset="1">
-                                        <name>maxValue</name>
+                                    <property name="maxValue">
                                         <number>200</number>
                                     </property>
-                                    <property stdset="1">
-                                        <name>value</name>
+                                    <property name="value">
                                         <number>66</number>
                                     </property>
-                                    <property stdset="1">
-                                        <name>orientation</name>
+                                    <property name="orientation">
                                         <enum>Horizontal</enum>
                                     </property>
-                                    <property>
-                                        <name>toolTip</name>
+                                    <property name="toolTip" stdset="0">
                                         <string>Playback speed and direction</string>
                                     </property>
                                 </widget>
                             </hbox>
                         </widget>
-                        <widget>
-                            <class>QLayoutWidget</class>
-                            <property stdset="1">
-                                <name>name</name>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
                                 <cstring>Layout4</cstring>
                             </property>
-                            <property>
-                                <name>layoutSpacing</name>
+                            <property name="layoutSpacing" stdset="0">
                             </property>
                             <hbox>
-                                <property stdset="1">
-                                    <name>margin</name>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <property name="margin">
                                     <number>0</number>
                                 </property>
-                                <property stdset="1">
-                                    <name>spacing</name>
+                                <property name="spacing">
                                     <number>2</number>
                                 </property>
-                                <widget>
-                                    <class>QLabel</class>
-                                    <property stdset="1">
-                                        <name>name</name>
+                                <widget class="QLabel">
+                                    <property name="name">
                                         <cstring>PixmapLabel2</cstring>
                                     </property>
-                                    <property stdset="1">
-                                        <name>pixmap</name>
+                                    <property name="pixmap">
                                         <pixmap>image9</pixmap>
                                     </property>
-                                    <property stdset="1">
-                                        <name>scaledContents</name>
+                                    <property name="scaledContents">
                                         <bool>false</bool>
                                     </property>
-                                    <property>
-                                        <name>toolTip</name>
+                                    <property name="toolTip" stdset="0">
                                         <string>Balance</string>
                                     </property>
                                 </widget>
-                                <widget>
-                                    <class>QSlider</class>
-                                    <property stdset="1">
-                                        <name>name</name>
+                                <widget class="QSlider">
+                                    <property name="name">
                                         <cstring>balanceSlider</cstring>
                                     </property>
-                                    <property stdset="1">
-                                        <name>minValue</name>
+                                    <property name="minValue">
                                         <number>-100</number>
                                     </property>
-                                    <property stdset="1">
-                                        <name>maxValue</name>
+                                    <property name="maxValue">
                                         <number>100</number>
                                     </property>
-                                    <property stdset="1">
-                                        <name>value</name>
+                                    <property name="value">
                                         <number>50</number>
                                     </property>
-                                    <property stdset="1">
-                                        <name>orientation</name>
+                                    <property name="orientation">
                                         <enum>Horizontal</enum>
                                     </property>
-                                    <property>
-                                        <name>toolTip</name>
+                                    <property name="toolTip" stdset="0">
                                         <string>Balance</string>
                                     </property>
                                 </widget>
-                                <widget>
-                                    <class>QLabel</class>
-                                    <property stdset="1">
-                                        <name>name</name>
+                                <widget class="QLabel">
+                                    <property name="name">
                                         <cstring>PixmapLabel1</cstring>
                                     </property>
-                                    <property stdset="1">
-                                        <name>pixmap</name>
+                                    <property name="pixmap">
                                         <pixmap>image10</pixmap>
                                     </property>
-                                    <property stdset="1">
-                                        <name>scaledContents</name>
+                                    <property name="scaledContents">
                                         <bool>false</bool>
                                     </property>
-                                    <property>
-                                        <name>toolTip</name>
+                                    <property name="toolTip" stdset="0">
                                         <string>Volume</string>
                                     </property>
                                 </widget>
-                                <widget>
-                                    <class>QSlider</class>
-                                    <property stdset="1">
-                                        <name>name</name>
+                                <widget class="QSlider">
+                                    <property name="name">
                                         <cstring>volumeSlider</cstring>
                                     </property>
-                                    <property stdset="1">
-                                        <name>maxValue</name>
+                                    <property name="maxValue">
                                         <number>100</number>
                                     </property>
-                                    <property stdset="1">
-                                        <name>orientation</name>
+                                    <property name="orientation">
                                         <enum>Horizontal</enum>
                                     </property>
-                                    <property>
-                                        <name>toolTip</name>
+                                    <property name="toolTip" stdset="0">
                                         <string>Volume</string>
                                     </property>
                                 </widget>
@@ -2544,48 +2626,37 @@
     </vbox>
 </widget>
 <images>
-    <image>
-        <name>image0</name>
+    <image name="image0">
         <data format="XPM.GZ" length="2716">789c8dd4c972db461006e0bb9e82a5bea952bf89958372e5a0c5a23652a256caa91c060b454924b5905a5379770fba7b60a62c25117cf93c3f67d0e806beacb58647bdd6da9795f9c22eae8b5631b68fadb5f2693a7dfbe3cfdfff5a590db256fd2fe8b4c2d5df5656078b56d1eadfcdaa1a74e9406dfeab0d52c7ea99388803364dd52630bc7e210efdef536f5d3ff20ee5f7dfd4715bd607deba7ea636ba5fdb3bccd877ea42f27869ccebd413476df5c43b0a38ffaa2ea41e84deba9ff18ee4bca1386e8b69e61df37ea4f5c7b15aef2736b165435d88712c4efcfd04de0937876ed5895acf4f83546cd5895afb9566a99c772e36a5c9d9fabcb2208bf9bcefea2c2bd8da0f1b58593f54276a9d0f5b59ced38d380f7359cfd4a9baafaef2922df3629afeca3c9834d0e775ef2df5a2a81d34fdc4b5b8e95f47adf38877b5ce23e5de7ade01db34f3b22b6efa5d8a7dff70af36ea37b5cff7c4852da4bebdda61d36fdca8b5dff42af6cf979ed959a4f34ca762d76ea9f7405c54b23f71fd511019a99fae1acbef47623f8fb06a3f6f9be2322c13cef3fb16074999c8fab6d8f703cfe2a67f5be23295df839f6f6cfdfc81e72d09fdfce244dcd17ed29bd8e8fc625fecebc393b8b4257f8fb0c17612139f9fbafd74de4fd47efeb7bd3b11fb589de979ebe2e6bcb9b80aab94f363b675fb49bf1ec4468d85d8e791d4ee449d40cec38e3ad3f3b99e4eeeccef1fbaea524c92cf4da0eb1371652ba997fb65ea7196fdfaea44cdefa7c97d7f88e7398bddfb2cefdf58dcf4eb513c0a4772fffc7dcd8ae6fbb01037df87486c13fd3e3c889be7c5fdb1b1cf5321b656bf1715bbf0f5e0565d697ddcffbccc43fd9eeca9add653aa7d7debe222d4791c8947ee8fd7f9bc2269f67b57a762c46abfdf5c5ca6badf95d8ef077e1fcb9ff9aed8cda7bc3ffc3ccbaad0f5c1e2ff5ccb49102cf2e62a3e4fba6c890a23775db96b8cebcf932e7b835bce8e3071d9e9a77bce70877b3ce011732cf08467bc7c789f33bce20def2ebb8e0d97dcc416bef9eccf24e7b6d1c50e76b1877d1ca087bebb0e71b49cc400c738c129ce5cf61c1718e29273f5f51d339f441b014244885d36714ad181d16c4640db2789c8524e059588a9a2115dd198ae61e8c65db734a169939cd11dddd383cb3dd29c4a5aa04b4ff48c21bdd0a43e7be93e0dbdd21bbdbbdc7a7d0fb4419bb445ae72c92dd74edbd4a51ddaa53db76749fbd8a103ead1f4a3e7497d3aa4231ad0319dd0299df9733fec9171f76b5dd50603ea2de77eedbbabeddc3d87095e68bafcffbf265df6c2ed3bfce77e1f27eb39a5cb7f9fe4ff98f9bfbfaefc00c86f7cfc</data>
     </image>
-    <image>
-        <name>image1</name>
+    <image name="image1">
         <data format="XPM.GZ" length="449">789c5dd0cf0a824010c7f1bb4fb1b837894a5048a247283a06d1e1b733b3d4a182fe1c227af766560b7510dcefc7c5456785db6dd7ae9865f7071e277274c4cd15fc3c9f5ffbc3ea9de565edf45ab8329f64f9d491db5c2f626baf6b3f4f63c99635eaa686252c9baa299bca522c4100c892ba9436a365e020812d83654c930ef53ad334b66809a1254ff4239644fa280c494f8a71401e08227d52a1382015dbd427483bfd5dcc0c19bd4b6d44661891d998f40efcc8a3fb46e63f0dfec467997d0195cb6726</data>
     </image>
-    <image>
-        <name>image2</name>
+    <image name="image2">
         <data format="XPM.GZ" length="591">789c6dd04d0b823018c0f1fb3ec570378974a898441fa1e8184487672fba0e16941d22faeef5cc692ef7e061ff1f43b625313decb7344ec8bd83ee2ca93470a3b17ab4edf378dabc48c45714bf94f26841a225957477bd685cc377cd523b9806b380a22a00b3c12cb3929719a6c2acf28a573926c3841c38d814362500484ced52f759630a25b4509812b3b6638f341bab2ca8002ca40220a052f9deab56ca73f707a93c778a9b27eeb4df3cfaa0a21e067dd4a61fe3ed9d9aafe6ff0c9efdd404ee6682efe09bd3f9abbfd7e403068c8c08</data>
     </image>
-    <image>
-        <name>image3</name>
+    <image name="image3">
         <data format="XPM.GZ" length="434">789c5dd04d0ac2301005e07d4e119a5d91d6428304f1088a4b415c4c6622baa882d6858877372fa5d274c862dec790bfbad487fd5697b57af6d45f59f3851eba9457d7bd8fa7cd47158dd571ad74532c545169d6bbfb2da037b137cb54888268c93a4b888ce85ad7b81691108989881103a2171fbc207ac473aa748a31a64a65d00d443498f13c92470b221929044a362122cfb08ce258b48c30c6262714e7c422329b82e47b3124a724536296f9ed879948fc7f76fe13dfb5fa01cc9062ba</data>
     </image>
-    <image>
-        <name>image4</name>
+    <image name="image4">
         <data format="XPM.GZ" length="419">789cc590bd0ac2301080f73cc5916c41aca16806f1112a8e8238dc5d2a3a54c1d641c477b7179bf8f7007e64b8ef1b02778585f5aa025ba8b6c3eec0c07b3c830d97a6b96eb68b9bd26e0afd9b81d323a5c7c0b03c1d6b994d3f9b494494457de99d2f4583283222b2288952a09a82288aee22f1db4f6232ef0c0929c129516afc4a149efc35f180c9893379a1df1dbf2e719fab0784606704</data>
     </image>
-    <image>
-        <name>image5</name>
+    <image name="image5">
         <data format="XPM.GZ" length="621">789c75d0414bc33014c0f17b3f45e8bb15d9da39c782ec23383c0ae2e1f525693298829b8731f6ddcdcb6b9ae9b4f490ffaf2149336fd4cbf3936ae6d5e188c7408a3c7eaac67cedf7a7d7b7cdb9aabbb5e277a1bafaaeaa678ad4f6e3ddf218e218daf470f69c9ada5613e78e1397d8e1929338c968ed1c274a124a7a4ebb5a3fc85296d3b9fb716527a9b5a4c9291b054942f93ae45c2dd2816f9e6b85bf14b0871b0524a4d127054466f1ac1929f9a88c136785fe076685e489cbba00c6422fe8cadc010c3b46b430ede69919d8a693c130b20f01ca797d64c7167c5981270710bafee33839d2eed7ed00948b9cfd73eb97c7ea1b79808d44</data>
     </image>
-    <image>
-        <name>image6</name>
+    <image name="image6">
         <data format="XPM.GZ" length="305">789cd3d7528808f055d0d2e72a2e492cc94c5648ce482c52d04a29cdcdad8c8eb5ade65232345130345230563054d2e152d2534856f0cbcf4b05b195816c650330007113415c4b134b434b13b04a14804b4419086024542431511946d25c04c376026eaeb5e6020001a43bf5</data>
     </image>
-    <image>
-        <name>image7</name>
+    <image name="image7">
         <data format="XPM.GZ" length="305">789cd3d7528808f055d0d2e72a2e492cc94c5648ce482c52d04a29cdcdad8c8eb5ade65232345130345230563054d2e152d2534856f0cbcf4b05b195816c650330007113415c4b134b434b13b04a14805f44591955445939114504c84f441601f3098860eac2663236dbf1b8b9d69a0b00d2b93b89</data>
     </image>
-    <image>
-        <name>image8</name>
+    <image name="image8">
         <data format="XPM.GZ" length="305">789cd3d7528808f055d0d2e72a2e492cc94c5648ce482c52d04a29cdcdad8c8eb5ade65232345130345230563054d2e152d2534856f0cbcf4b05b195816c650330007113415c4b134b434b13b04a1480534459194324112e0617498489218940c5f08aa0ebc23019c376fc6eaeb5e60200d5d93b89</data>
     </image>
-    <image>
-        <name>image9</name>
+    <image name="image9">
         <data format="XPM.GZ" length="358">789cd3d7528808f055d0d2e72a2e492cc94c5648ce482c52d04a29cdcdad8c8eb5ade652323253b05430563054d2e152d2534856f0cbcf4b05b195816c650b630b430b63103711c44d4d4d4d4c05cbeae9e929eb6100901044162aa90c033069b82c4844391102946122605965986e659824541a21ab0c93069b822e8b6431aa5eb834c264655457a1eb4592c5e9df5a6b2e00611245be</data>
     </image>
-    <image>
-        <name>image10</name>
+    <image name="image10">
         <data format="XPM.GZ" length="309">789cd3d7528808f055d0d2e72a2e492cc94c5648ce482c52d04a29cdcdad8c8eb5ade65232345330345430563054d2e152d2534856f0cbcf4b05b195816c650b630b430b63103711c44d4d4d4d4c05cbeaa1018498b2329884892903f9ca89ca7a50418858a2b27222484c19452c112c0611441153c62286a60ed33c2cf662731fba3f6aadb900b64e3d13</data>
     </image>
 </images>
@@ -2668,6 +2739,22 @@
         <receiver>MainWindowBase</receiver>
         <slot>slotVolumeSliderMoved(int)</slot>
     </connection>
+</connections>
+<tabstops>
+    <tabstop>menuButton</tabstop>
+    <tabstop>previousButton</tabstop>
+    <tabstop>playButton</tabstop>
+    <tabstop>nextButton</tabstop>
+    <tabstop>stopButton</tabstop>
+    <tabstop>playlistButton</tabstop>
+    <tabstop>pauseButton</tabstop>
+    <tabstop>backButton</tabstop>
+    <tabstop>forwardButton</tabstop>
+    <tabstop>speedSlider</tabstop>
+    <tabstop>balanceSlider</tabstop>
+    <tabstop>volumeSlider</tabstop>
+</tabstops>
+<slots>
     <slot access="protected">slotCDDA()</slot>
     <slot access="protected">slotAbout()</slot>
     <slot access="protected">slotBack()</slot>
@@ -2685,19 +2772,6 @@
     <slot access="protected">slotSpeedSliderMoved(int)</slot>
     <slot access="protected">slotStop()</slot>
     <slot access="protected">slotVolumeSliderMoved(int)</slot>
-</connections>
-<tabstops>
-    <tabstop>menuButton</tabstop>
-    <tabstop>previousButton</tabstop>
-    <tabstop>playButton</tabstop>
-    <tabstop>nextButton</tabstop>
-    <tabstop>stopButton</tabstop>
-    <tabstop>playlistButton</tabstop>
-    <tabstop>pauseButton</tabstop>
-    <tabstop>backButton</tabstop>
-    <tabstop>forwardButton</tabstop>
-    <tabstop>speedSlider</tabstop>
-    <tabstop>balanceSlider</tabstop>
-    <tabstop>volumeSlider</tabstop>
-</tabstops>
+</slots>
+<layoutdefaults spacing="6" margin="11"/>
 </UI>

@@ -26,6 +26,7 @@
 #include <qslider.h>
 #include <qtoolbutton.h>
 #include <qmessagebox.h>
+#include <qtimer.h>
 
 #include "MainWindow.h"
 #include "ScopesDialog.h"
@@ -36,8 +37,11 @@ MainWindow::MainWindow(CorePlayer * player, Playlist * playList)
   : MainWindowBase        (0, "QtAlsaPlayer"),
     player_               (player),
     playList_             (playList),
+    popup_                (0L),
+    playListDialog_       (0L),
+    updateTitleTimer_     (0L),
     updatePositionSlider_ (true),
-    playListDialog_       (0L)
+    updateTitle_          (true)
 {
   popup_ = new QPopupMenu(this);
 
@@ -55,6 +59,13 @@ MainWindow::MainWindow(CorePlayer * player, Playlist * playList)
 
   // poll me bitch.
   startTimer(200);
+
+  updateTitleTimer_ = new QTimer(this);
+
+  connect(updateTitleTimer_, SIGNAL(timeout()), SLOT(slotUpdateTitle()));
+
+  playListDialog_ = new PlayListDialog(this, playList_);
+  playListDialog_->hide();
 }
 
 MainWindow::~MainWindow()
@@ -97,7 +108,9 @@ void MainWindow::timerEvent(QTimerEvent *)
 
     player_->GetStreamInfo(&info);
 
-    titleLabel  ->setText(QString::fromUtf8(info.title));
+    if (updateTitle_)
+      titleLabel->setText(QString::fromUtf8(info.title));
+
     infoLabel   ->setText(QString::fromUtf8(info.stream_type));
   }
   else
@@ -113,7 +126,21 @@ void MainWindow::timerEvent(QTimerEvent *)
   if (updatePositionSlider_)
   {
     positionSlider->setRange(0, player_->GetFrames());
-    positionSlider->setValue(player_->GetPosition());
+
+    // Let's try to hack around Qt 3's brokenness.
+
+    int pixelWidth = positionSlider->width();
+    int maxValue = positionSlider->maxValue();
+
+    int stepSize = maxValue / pixelWidth;
+
+    int oldPosition(positionSlider->value());
+    int newPosition(player_->GetPosition());
+
+    int diff = newPosition - oldPosition;
+
+    if (diff > stepSize)
+      positionSlider->setValue(player_->GetPosition());
   }
 
   volumeSlider  ->setValue(player_->GetVolume());
@@ -173,7 +200,7 @@ void MainWindow::slotBalanceSliderMoved(int value)
   else
     labelText = tr("Pan: center");
 
-  titleLabel->setText(labelText);
+  setTemporaryTitle(labelText);
 }
 
 void MainWindow::slotPrevious()
@@ -200,9 +227,6 @@ void MainWindow::slotStop()
 
 void MainWindow::slotPlayList()
 {
-  if (0 == playListDialog_)
-    playListDialog_ = new PlayListDialog(this, playList_);
-
   playListDialog_->show();
 }
 
@@ -246,6 +270,18 @@ void MainWindow::slotCDDA()
   player_->Stop();
   player_->SetFile("CD.cdda");
   player_->Start();
+}
+
+void MainWindow::setTemporaryTitle(const QString & s)
+{
+  updateTitle_ = false;
+  titleLabel->setText(s);
+  updateTitleTimer_->start(4000, true);
+}
+
+void MainWindow::slotUpdateTitle()
+{
+  updateTitle_ = true;
 }
 
 #include "MainWindow.moc"

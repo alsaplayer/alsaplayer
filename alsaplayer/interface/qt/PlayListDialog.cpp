@@ -21,6 +21,9 @@
 #include <qfiledialog.h>
 #include <qmessagebox.h>
 #include <qheader.h>
+#include <qfile.h>
+#include <qdir.h>
+#include <qtextstream.h>
 
 #include <vector>
 #include <algorithm>
@@ -47,6 +50,27 @@ PlayListDialog::PlayListDialog(QWidget * parent, Playlist * playList)
     );
 
   list->setSelectionMode(QListView::Extended);
+
+  QString lastUsedPlayListPath
+    (QDir::homeDirPath() + "/.alsaplayer/last_used_playlist");
+
+  QFile f(lastUsedPlayListPath);
+
+  if (f.open(IO_ReadOnly))
+  {
+    QTextStream str(&f);
+    QString filename;
+    str >> filename;
+
+    plist_result ret =
+      playList_->Load(string(filename.local8Bit().data()), 0, false);
+
+    if (E_PL_SUCCESS != ret)
+    {
+      QMessageBox::warning(this, tr("Warning - AlsaPlayer"),
+        tr("Couldn't load last used playlist !"));
+    }
+  }
 }
 
 PlayListDialog::~PlayListDialog()
@@ -122,6 +146,35 @@ void PlayListDialog::slotSave()
     {
       QMessageBox::warning(this, tr("Warning - AlsaPlayer"),
         tr("Couldn't save playlist !"));
+    }
+    else
+    {
+      QString alsaPlayerDir(QDir::homeDirPath() + "/.alsaplayer");
+
+      QDir d(alsaPlayerDir);
+
+      if (!d.exists() && !d.mkdir(alsaPlayerDir))
+      {
+        QMessageBox::warning(this, tr("Warning - AlsaPlayer"),
+          tr("Couldn't create directory %1 !").arg(alsaPlayerDir));
+      }
+      else
+      {
+        QString lastUsedPlayListPath(alsaPlayerDir + "/last_used_playlist");
+
+        QFile f(lastUsedPlayListPath);
+
+        if (!f.exists() && !f.open(IO_WriteOnly))
+        {
+          QMessageBox::warning(this, tr("Warning - AlsaPlayer"),
+            tr("Couldn't create file %1 !").arg(lastUsedPlayListPath));
+        }
+        else
+        {
+          QTextStream str(&f);
+          str << filename;
+        }
+      }
     }
   }
 }

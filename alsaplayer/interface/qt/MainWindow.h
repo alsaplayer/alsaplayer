@@ -26,6 +26,7 @@ class CorePlayer;
 class Playlist;
 
 class QPopupMenu;
+class QTimer;
 
 class PlayListDialog;
 
@@ -61,18 +62,25 @@ class MainWindow : public MainWindowBase
     void slotAbout();
     void slotCDDA();
 
+    void slotUpdateTitle();
+
   protected:
 
     void timerEvent(QTimerEvent *);
     void closeEvent(QCloseEvent *);
+    void setTemporaryTitle(const QString &);
 
   private:
 
     CorePlayer      * player_;
     Playlist        * playList_;
-    bool              updatePositionSlider_;
+
     QPopupMenu      * popup_;
     PlayListDialog  * playListDialog_;
+    QTimer          * updateTitleTimer_;
+
+    bool              updatePositionSlider_;
+    bool              updateTitle_;
 };
 
 #endif // QT_MAIN_WINDOW_H
