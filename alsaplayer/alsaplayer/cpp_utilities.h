@@ -25,9 +25,4 @@
 // library, but doesn't seem to be.
 int cmp_nocase(const std::string &, const std::string &);
 
-extern "C" {
-// Convert an integer to a string
-std::string inttostring(int);
-}
-
 #endif

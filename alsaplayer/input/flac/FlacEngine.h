@@ -240,7 +240,4 @@ FlacEngine::apBytesPerSample () const
 
 } // namespace Flac
 
-#endif _FLAC_ENGINE_H_
-
-
-
+#endif /* _FLAC_ENGINE_H_ */

@@ -193,11 +193,11 @@ void PlaylistWindowGTK::CbInsert(void *data,std::vector<PlayItem> & items, unsig
 			index ++;
 		}
 	}
-	std::string msg = inttostring(items.size()) + " file";
-	if(items.size() != 1) msg += "s";
-	msg += " added";
+	//std::string msg = inttostring(items.size()) + " file";
+	//if(items.size() != 1) msg += "s";
+	//msg += " added";
 
-	gtkpl->GiveStatus(msg);
+	//gtkpl->GiveStatus(msg);
 	gtk_clist_thaw(GTK_CLIST(gtkpl->playlist_list));
 
 	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
@@ -217,11 +217,11 @@ void PlaylistWindowGTK::CbRemove(void *data, unsigned start, unsigned end)
 		i++;
 	}
 
-	std::string msg = inttostring(end + 1 - start) + " file";
-	if(end != start) msg += "s";
-	msg += " removed";
+	//std::string msg = inttostring(end + 1 - start) + " file";
+	//if(end != start) msg += "s";
+	//msg += " removed";
 
-	gtkpl->GiveStatus(msg);
+	//gtkpl->GiveStatus(msg);
 
 	gtk_clist_thaw(GTK_CLIST(gtkpl->playlist_list));
 	

@@ -39,17 +39,6 @@ int cmp_nocase(const std::string & s, const std::string & s2)
 	return (s2.size() == s.size()) ? 0 : (s.size() < s2.size()) ? -1 : 1;
 }
 
-// Convert an integer to a string
-#include <strstream.h>
-std::string inttostring(int a)
-{
-	// Use ostrstream (because ostringstream often doesn't exist)
-	char buf[100];  // Very big (though we're also bounds checked)
-	ostrstream ost(buf, 100);
-	ost << a << std::ends;
-	return std::string(buf);
-}
-
 /* Threads and usleep does not work, select is very portable */
 #include <sys/time.h>
 #include <sys/types.h>
