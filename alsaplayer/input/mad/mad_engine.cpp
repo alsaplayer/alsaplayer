@@ -277,8 +277,11 @@ static int mad_play_frame(input_object *obj, char *buf)
 								right_ch = pcm->samples[1];
 								while (nsamples--) {
 												*output++ = scale(*left_ch++);
-												if (nchannels == 2) 
-																*output++ = scale(*right_ch++);
+												if (nchannels == 1) 
+																*output++ = scale(*(left_ch-1));
+												else /* nchannels == 2 */
+													*output++ = scale(*right_ch++);
+														
 								}
 				}
 
