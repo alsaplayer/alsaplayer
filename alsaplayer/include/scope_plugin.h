@@ -30,9 +30,9 @@
  * THE VERSION NUMBER IS *NOT* A USER SERVICABLE PART!
  */
 
-#define SCOPE_PLUGIN_VERSION    0x1003
+#define SCOPE_PLUGIN_VERSION    0x1004
 
-#define SCOPE_NICE	15
+#define SCOPE_NICE	10	
 #define SCOPE_SLEEP 20000
 #define SCOPE_BG_RED	0
 #define SCOPE_BG_BLUE	0
@@ -40,11 +40,10 @@
 
 typedef int scope_version_type;
 typedef int(*scope_init_type)();
-typedef int(*scope_open_type)();
 typedef void(*scope_start_type)(void *);
 typedef int(*scope_running_type)();
 typedef void(*scope_stop_type)();
-typedef void(*scope_close_type)();
+typedef void(*scope_shutdown_type)();
 typedef void(*scope_set_data_type)(void *, int);
 typedef void(*scope_set_fft_type)(void *, int, int);
 
@@ -55,11 +54,10 @@ typedef struct _scope_plugin
 	char author[256];
 	void *handle;
 	scope_init_type init;
-	scope_open_type open;
 	scope_start_type start;
 	scope_running_type running;
 	scope_stop_type stop;
-	scope_close_type close;
+	scope_shutdown_type shutdown;
 	scope_set_data_type set_data;
 	scope_set_fft_type set_fft;
 } scope_plugin;
