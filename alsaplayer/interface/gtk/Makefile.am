@@ -5,9 +5,9 @@ if HAVE_GTK
 gtkltlibs = libgtk.la
 gtkldflags = -export-dynamic -avoid-version
 gtksources = EffectsWindow.cpp PlaylistWindow.cpp ScopesWindow.h  \
-				gtk.cpp support.cpp EffectsWindow.h PlaylistWindow.h \
-				gladesrc.cpp ScopesWindow.cpp gladesrc.h support.h \
-				gtk_interface.cpp gtk_interface.h
+	gtk.cpp support.cpp EffectsWindow.h PlaylistWindow.h \
+	gladesrc.cpp ScopesWindow.cpp gladesrc.h support.h \
+	gtk_interface.cpp gtk_interface.h
 
 else
 

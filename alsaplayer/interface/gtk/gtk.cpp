@@ -184,9 +184,11 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 		playlist->UnPause();
 
 	// Scope addons
+	gdk_flush();
 	GDK_THREADS_ENTER();
 	init_main_window(playlist);
 	load_scope_addons();
+	gdk_flush();
 	gtk_main();
 	GDK_THREADS_LEAVE();
 	unload_scope_addons();

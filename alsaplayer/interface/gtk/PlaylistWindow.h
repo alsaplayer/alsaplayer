@@ -54,7 +54,6 @@ class PlaylistWindowGTK
 		// Other methods
 		Playlist *GetPlaylist() { return playlist; } 
 		GtkWidget *GetPlaylist_list() { return playlist_list; }
-		void GiveStatus(std::string status); // Display a status message
 		void Show();  // Show the playlist window
 		void Hide();  // Hide the playlist window
 		void ToggleVisible();  // Show / Hide the playlist window

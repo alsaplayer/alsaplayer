@@ -792,7 +792,14 @@ gint indicator_callback(gpointer data, int locking)
 		sprintf(title_string, "%s - %s", info.title, info.artist);
 		draw_title(title_string);
 	} else {
-		draw_title(info.title);
+		//alsaplayer_error("path = %s", info.path);
+		char *p = strrchr(info.path, '/');
+		if (p) {
+			p++;
+			draw_title(p);
+		} else {
+			draw_title("");
+		}	
 	}
 	update_rect.x = 0;
 	update_rect.y = 0;

@@ -169,7 +169,6 @@ void PlaylistWindowGTK::CbInsert(void *data,std::vector<PlayItem> & items, unsig
 
 	std::vector<PlayItem> item_copy = items;
 
-	gtkpl->GiveStatus("Adding files...");
 	gtk_clist_freeze(GTK_CLIST(gtkpl->playlist_list));
 
 	if(items.size() > 0) {
@@ -204,7 +203,6 @@ void PlaylistWindowGTK::CbRemove(void *data, unsigned start, unsigned end)
 	GDK_THREADS_ENTER();
 	
 	pthread_mutex_lock(&gtkpl->playlist_list_mutex);	
-	gtkpl->GiveStatus("Removing files...");
 	gtk_clist_freeze(GTK_CLIST(gtkpl->playlist_list));
 
 	unsigned i = start;
@@ -229,16 +227,11 @@ void PlaylistWindowGTK::CbClear(void *data)
 	
 	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
 	gtk_clist_clear(GTK_CLIST(gtkpl->playlist_list));
-	gtkpl->GiveStatus("List was cleared");
 	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
 
 	GDK_THREADS_LEAVE();
 }
 
-// Display a status message
-void PlaylistWindowGTK::GiveStatus(std::string status) {
-    //gtk_label_set_text(playlist_status, status.c_str());
-}
 
 // Show the playlist
 void PlaylistWindowGTK::Show() {
@@ -574,10 +567,8 @@ void save_list_ok(GtkWidget *widget, gpointer data)
 	saveerr = playlist->Save(file, PL_FORMAT_M3U);
 	if(saveerr) {
 		// FIXME - pass playlist_window to this routine
-		//playlist_window->GiveStatus("Failed to save playlist");
 	} else {
 		// FIXME - pass playlist_window to this routine
-		//playlist_window->GiveStatus("Playlist saved");
 	}
 }
 
