@@ -28,19 +28,22 @@ INPUT PLUGINS
 -------------
 The program is very much plugin based. New file formats can be added simply 
 by writing a new input plugin. The only requirement is that the data can be
-presented in PCM audio format. There are currently no plans to support
-video or midi data formats (future projects will address this).
-The following plugins are in various states of usability:
+presented in PCM audio format.The following plugins are in various states
+of usability:
 
 - OGG vorbis plugin, works flawlessly, uses the ogg/vorbis libs
+  http://www.vorbis.com/
 - MPEG audio plugin, based on mpg123 0.59r, works quite well, being phased out
   however for:
 - MAD based audio plugin, based on the new MAD MPEG decoder library, uses a 
   tiny bit more CPU, but has much better output quality then mpg123.
+  http://www.mars.org/home/rob/proj/mpeg/
 - CDDA plugin, play back audio CD's by ripping the data digitally off the disk
 - MikMod plugin, play back all MikMod supported module formats, no random
-  seeking in modules yet
+  seeking in modules yet.
+  http://www.mikmod.org/
 - Audiofile library plugin, this one needs a bit of work still
+  http://oss.sgi.com/projects/audiofile/
 
 
 OUTPUT PLUGINS
@@ -76,6 +79,7 @@ distribution:
 
 Nothing stops you from writing a kick ass *FULLSCREEN* (DGA) or even a
 *Hardwarde Accellerated OpenGL* visualization plugin for AlsaPlayer!
+
 
 EFFECTS PLUGINS
 ---------------
