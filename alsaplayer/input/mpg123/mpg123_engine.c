@@ -26,6 +26,7 @@
 #include "mpg123.h"
 #include "mpg123_engine.h"
 #include "input_plugin.h"
+#include "config.h"
 
 #define RESYNC_FRAMES 4
 
@@ -387,7 +388,11 @@ static float mpeg_can_handle(const char *name)
 	if (!strcasecmp(ext, "mp3") ||
 		!strcasecmp(ext, "mp2") ||
 		strstr(name, "http://")) {
+#ifdef PREFER_MAD					
 			return 0.8;
+#else
+			return 1.0;
+#endif		
 	} else {
 			return 0.0;
 	}
