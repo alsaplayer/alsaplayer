@@ -28,7 +28,11 @@ struct md
 	unsigned time_expired;
 	unsigned last_time_expired;
 	unsigned last_req_time;
-	unsigned min_req_interval;
+	unsigned calc_window;
+	unsigned calc_overshoot;
+	unsigned last_calc;
+	unsigned trouble_ahead;
+	int stat_max_buf_full;
 	MidiEvent *event;
 	MidiEvent *current_event;
 	MidiEventList *evlist;
@@ -48,6 +52,12 @@ struct md
 #ifdef POLYPHONY_COUNT
 	int future_polyphony;
 #endif
+	int dont_chorus;
+	int dont_reverb;
+	int dont_cspline;
+	int current_interpolation;
+	int dont_keep_looping;
+
 	int GM_System_On;
 	int XG_System_On;
 	int GS_System_On;

@@ -81,7 +81,7 @@ void b_out(char id, int fd, int *buf, int ocount, struct md *d)
 	d->out_count = d->bboffset = d->bbcount = d->outchunk = 0;
 	d->starting_up = 1;
 	d->flushing = 0;
-	d->output_buffer_full = PRESUMED_FULLNESS;
+	/*d->output_buffer_full = PRESUMED_FULLNESS;*/
 	d->total_bytes = 0;
 	return;
   }

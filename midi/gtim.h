@@ -114,7 +114,7 @@ typedef double FLOAT_T;
 #ifdef ADAGIO
 #define DEFAULT_VOICES	DEFAULT_DSPVOICES
 #else
-#define DEFAULT_VOICES	128
+#define DEFAULT_VOICES	256
 #endif
 #endif
 
@@ -147,12 +147,7 @@ typedef double FLOAT_T;
    You should probably use a larger number for improved performance.
 
 */
-#ifdef __WIN32__
-#define AUDIO_BUFFER_BITS 12
-#else
-/** #define AUDIO_BUFFER_BITS 11 **/
-#define AUDIO_BUFFER_BITS 10
-#endif
+#define AUDIO_BUFFER_BITS 11
 
 /* 1000 here will give a control ratio of 22:1 with 22 kHz output.
    Higher CONTROLS_PER_SECOND values allow more accurate rendering
@@ -345,12 +340,8 @@ typedef char int8;
 
 /* You could specify a complete path, e.g. "/etc/timidity.cfg", and
    then specify the library directory in the configuration file. */
-#ifdef ADAGIO
-#define CONFIG_FILE	TIMID_DIR##"/timidity.cfg"
-#else
 #ifndef CONFIG_FILE
 #define CONFIG_FILE DEFAULT_PATH##"/timidity.cfg"
-#endif
 #endif
 
 /* These affect general volume */
@@ -427,22 +418,10 @@ extern char *sys_errlist[];
 #include <sys/filio.h>
 #endif
 
-#ifdef __WIN32__
-#  include <math.h>
-#  define PI M_PI
-#  undef DECOMPRESSOR_LIST
-#  undef PATCH_EXT_LIST
-#  define PATCH_EXT_LIST { ".pat", 0 }
-#endif
 
 /* The path separator (D.M.) */
-#ifdef __WIN32__
-#  define PATH_SEP '\\'
-#  define PATH_STRING "\\"
-#else
 #  define PATH_SEP '/'
 #  define PATH_STRING "/"
-#endif
 
 #ifdef __osf__
   #include <errno.h>

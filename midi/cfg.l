@@ -422,7 +422,7 @@ cm	[ \t]*("#".*)?\n
 ^{owh}"-k"{owh}[0-9]+	{ if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		j = atoi(yytext+i+2);
-		if (j >= 0 && j <= 3) current_interpolation = j;
+		if (j >= 0 && j <= 3) config_interpolation = j;
 	} }
 ^{owh}"-X"{owh}[0-9]+	{ if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;

@@ -176,7 +176,7 @@ static sample_t *rs_plain(int v, uint32 *countptr, struct md *d)
 	if (ofs + (1L<<FRACTION_BITS) >= se) {
 		v2 = v1;
         }else  v2 = (int32)src[offset+1];
-	if(dont_cspline ||
+	if(d->dont_cspline ||
 	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
@@ -298,7 +298,7 @@ static sample_t *rs_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
   flag_exit_loop =
 	(vp->status & (VOICE_FREE | VOICE_DIE)) ||
 	((vp->status & VOICE_OFF) && (vp->sample->modes & MODES_FAST_RELEASE) ) ||
-	((vp->status & VOICE_OFF) && dont_keep_looping ) ;
+	((vp->status & VOICE_OFF) && d->dont_keep_looping ) ;
 
   overshoot = src[(se>>FRACTION_BITS)-1] / OVERSHOOT_STEP;
   if (overshoot < 0) overshoot = -overshoot;
@@ -322,7 +322,7 @@ static sample_t *rs_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
 	if (ofs + (1L<<FRACTION_BITS) >= se) {
 		v2 = v1;
         }else  v2 = (int32)src[offset+1];
-	if(dont_cspline ||
+	if(d->dont_cspline ||
 	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
@@ -487,7 +487,7 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count, struct md *d)
 	if (ofs + (1L<<FRACTION_BITS) >= se) {
 		v2 = v1;
         }else  v2 = (int32)src[offset+1];
-	if(dont_cspline ||
+	if(d->dont_cspline ||
 	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
@@ -589,7 +589,7 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count, struct md *d)
 	if (ofs + (1L<<FRACTION_BITS) >= se) {
 		v2 = v1;
         }else  v2 = (int32)src[offset+1];
-	if(dont_cspline ||
+	if(d->dont_cspline ||
 	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
@@ -846,7 +846,7 @@ static sample_t *rs_vib_plain(int v, uint32 *countptr, struct md *d)
 	if (ofs + (1L<<FRACTION_BITS) >= se) {
 		v2 = v1;
         }else  v2 = (int32)src[offset+1];
-	if(dont_cspline ||
+	if(d->dont_cspline ||
 	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
@@ -972,7 +972,7 @@ static sample_t *rs_vib_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
   flag_exit_loop =
 	(vp->status & (VOICE_FREE | VOICE_DIE)) ||
 	((vp->status & VOICE_OFF) && (vp->sample->modes & MODES_FAST_RELEASE) ) ||
-	((vp->status & VOICE_OFF) && dont_keep_looping ) ;
+	((vp->status & VOICE_OFF) && d->dont_keep_looping ) ;
 
   overshoot = src[(se>>FRACTION_BITS)-1] / OVERSHOOT_STEP;
   if (overshoot < 0) overshoot = -overshoot;
@@ -1000,7 +1000,7 @@ static sample_t *rs_vib_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
 	if (ofs + (1L<<FRACTION_BITS) >= se) {
 		v2 = v1;
         }else  v2 = (int32)src[offset+1];
-	if(dont_cspline ||
+	if(d->dont_cspline ||
 	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
@@ -1169,7 +1169,7 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
 	if (ofs + (1L<<FRACTION_BITS) >= se) {
 		v2 = v1;
         }else  v2 = (int32)src[offset+1];
-	if(dont_cspline ||
+	if(d->dont_cspline ||
 	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
@@ -1279,7 +1279,7 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
 	if (ofs + (1L<<FRACTION_BITS) >= se) {
 		v2 = v1;
         }else  v2 = (int32)src[offset+1];
-	if(dont_cspline ||
+	if(d->dont_cspline ||
 	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;

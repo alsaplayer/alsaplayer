@@ -49,7 +49,6 @@
 
 #include "tables.h"
 
-#define current_filename d->midi_name
 /*<95GUI_MODIF_BEGIN>*/
 #ifdef CHANNEL_EFFECT
 extern void effect_ctrl_change( MidiEvent* pCurrentEvent, struct md *d );
@@ -70,7 +69,7 @@ extern int intr;
 
 
 #ifdef tplus
-int dont_cspline=0;
+/*int dont_cspline=0;*/
 #endif
 /*int opt_dry = 1;*/
 int opt_dry = 0;
@@ -79,11 +78,11 @@ int opt_volume_curve = 1;
 int opt_stereo_surround = 1;
 int dont_filter_melodic=1;
 int dont_filter_drums=1;
-int dont_chorus=0;
-int dont_reverb=0;
+/*int dont_chorus=0;*/
+/*int dont_reverb=0;*/
 /*int current_interpolation=1; cspline*/
-int current_interpolation=2;
-int dont_keep_looping=0;
+int config_interpolation=2;
+/*int dont_keep_looping=0;*/
 /*static int voice_reserve=0;*/
 
 /*Channel channel[MAXCHAN];*/
@@ -575,17 +574,17 @@ static void recompute_amp(int v, struct md *d)
 static int vc_alloc(int j, int clone_type, struct md *d)
 {
   int i=d->voices; 
-  int vc_count = 0, vc_ret = -1;
+  int cpoly = 0, vc_ret = -1;
 
   while (i--)
     {
       if (i == j) continue;
       if (d->voice[i].status == VOICE_FREE) {
 	vc_ret = i;
-	vc_count++;
       }
+      else cpoly++;
     }
-  if (vc_count > d->voice_reserve || clone_type == STEREO_CLONE) return vc_ret;
+  if (cpoly < d->voices - d->voice_reserve /* || clone_type == STEREO_CLONE*/) return vc_ret;
   return -1;
 }
 
@@ -647,7 +646,7 @@ static void clone_voice(Instrument *ip, int v, MidiEvent *e, uint8 clone_type, i
   if (clone_type == REVERB_CLONE) {
 	 if ( (reverb_options & OPT_REVERB_EXTRA) && reverb < global_echo)
 		reverb = global_echo;
-	 if (/*reverb < 8 ||*/ dont_reverb) return;
+	 if (/*reverb < 8 ||*/ d->dont_reverb) return;
   }
   if (clone_type == CHORUS_CLONE) {
 	 if (variationbank == 32) chorus = 30;
@@ -655,7 +654,7 @@ static void clone_voice(Instrument *ip, int v, MidiEvent *e, uint8 clone_type, i
 	 else if (variationbank == 34) chorus = 90;
 	 if ( (reverb_options & OPT_CHORUS_EXTRA) && chorus < global_detune)
 		chorus = global_detune;
-	 if (/*chorus < 4 ||*/ dont_chorus) return;
+	 if (/*chorus < 4 ||*/ d->dont_chorus) return;
   }
 
   if (!d->voice[v].right_sample) {
@@ -1416,10 +1415,12 @@ static int check_quality(struct md *d)
   static int debug_count = 0;
 #endif
   int obf = d->output_buffer_full, retvalue = 1;
+  int vcs = d->voices;
+  int rsv = 0, permitted;
 
 #ifdef QUALITY_DEBUG
 if (!debug_count) {
-	if (dont_cspline) fprintf(stderr,"[%d-%d]", d->output_buffer_full, d->current_polyphony);
+	if (d->dont_cspline) fprintf(stderr,"[%d-%d]", d->output_buffer_full, d->current_polyphony);
 	else fprintf(stderr,"{%d-%d}", d->output_buffer_full, d->current_polyphony);
 	debug_count = 30;
 }
@@ -1430,63 +1431,75 @@ debug_count--;
   if (d->current_polyphony < d->future_polyphony * 2) obf /= 2;
 #endif
 
-  if (obf < 1) d->voice_reserve = (4*d->voices) / 5;
-  else if (obf <  5) d->voice_reserve = 3*d->voices / 4;
-  else if (obf < 10) d->voice_reserve = 2*d->voices / 3;
-  else if (obf < 20) d->voice_reserve = d->voices / 2;
-  else if (obf < 30) d->voice_reserve = d->voices / 3;
-  else if (obf < 40) d->voice_reserve = d->voices / 4;
-  else if (obf < 50) d->voice_reserve = d->voices / 5;
-  else if (obf < 60) d->voice_reserve = d->voices / 6;
-  /* else d->voice_reserve = 0; */
-  else d->voice_reserve = d->voices / 10; /* to be able to find a stereo clone */
+  permitted = vcs - 16;
+  if (permitted < 0) permitted = 0;
+  if (obf > 0) permitted = permitted * obf / 100;
+  permitted += 16;
+  rsv = vcs - permitted;
 
-  if (!current_interpolation) dont_cspline = 1;
-  else if (obf < 10) dont_cspline = 1;
-  else if (obf > 40) dont_cspline = 0;
+#if 0
+  permitted = 16 + (256-16) * obf / 100;
 
-  if (obf < 5) dont_reverb = 1;
-  else if (obf > 25) dont_reverb = 0;
+  if (obf < 1) rsv = (6*vcs) / 7;	1/7 36  16
+  else if (obf <  5) rsv = 5*vcs / 6;	1/6 42  16+12 = 28
+  else if (obf < 10) rsv = 4*vcs / 5;	1/5 55  16+24 = 40
+  else if (obf < 20) rsv = 3*vcs / 4;	1/4 66  15+48 = 63
+  else if (obf < 30) rsv = 2*vcs / 3;	1/3 85
+  else if (obf < 40) rsv = vcs / 2;	   128
+  else if (obf < 50) rsv = vcs / 3;
+  else if (obf < 60) rsv = vcs / 4;
+  /* else rsv = 0; */
+  else rsv = vcs / 10; /* to be able to find a stereo clone */
+#endif
 
-  if (obf < 8) dont_chorus = 1;
-  else if (obf > 60) dont_chorus = 0;
+  d->voice_reserve = rsv;
 
-  if (opt_dry || obf < 6) dont_keep_looping = 1;
-  else if (obf > 22) dont_keep_looping = 0;
+  if (!d->current_interpolation) d->dont_cspline = 1;
+  else if (obf < 10) d->dont_cspline = 1;
+  else if (obf > 40) d->dont_cspline = 0;
+
+  if (obf < 5) d->dont_reverb = 1;
+  else if (obf > 25) d->dont_reverb = 0;
+
+  if (obf < 8) d->dont_chorus = 1;
+  else if (obf > 60) d->dont_chorus = 0;
+
+  if (opt_dry || obf < 6) d->dont_keep_looping = 1;
+  else if (obf > 22) d->dont_keep_looping = 0;
 
 /*
   if (obf < 20) dont_filter = 1;
   else if (obf > 80) dont_filter = 0;
 */
   if (obf < 60) {
-	reduce_polyphony(d->voices/10, d);
+	reduce_polyphony(vcs/10, d);
   }
   if (obf < 50) {
-	reduce_polyphony(d->voices/10, d);
+	reduce_polyphony(vcs/10, d);
   }
   if (obf < 40) {
-	reduce_polyphony(d->voices/9, d);
+	reduce_polyphony(vcs/9, d);
   }
   if (obf < 30) {
-	reduce_polyphony(d->voices/8, d);
+	reduce_polyphony(vcs/8, d);
   }
   if (obf < 20) {
-	reduce_polyphony(d->voices/6, d);
+	reduce_polyphony(vcs/6, d);
   }
   if (obf < 10) {
-	reduce_polyphony(d->voices/5, d);
+	reduce_polyphony(vcs/5, d);
   }
   if (obf < 8) {
-	reduce_polyphony(d->voices/4, d);
+	reduce_polyphony(vcs/4, d);
   }
   if (obf < 5) {
-	reduce_polyphony(d->voices/4, d);
+	reduce_polyphony(vcs/4, d);
   }
   if (obf < 4) {
-	reduce_polyphony(d->voices/4, d);
+	reduce_polyphony(vcs/4, d);
   }
   if (obf < 2) {
-	reduce_polyphony(d->voices/4, d);
+	reduce_polyphony(vcs/4, d);
 	retvalue = 0;
   }
 
@@ -1520,7 +1533,8 @@ static void note_on(MidiEvent *e, struct md *d)
     }
 
 
-  if (d->voices - cpoly <= d->voice_reserve)
+  /*if (d->voices - cpoly <= d->voice_reserve)*/
+  if (cpoly >= d->voices - d->voice_reserve)
     lowest = -1;
 
   if (lowest != -1)
@@ -2182,7 +2196,7 @@ static int compute_data(uint32 count, struct md *d)
 
   while ((count+d->buffered_count) >= AUDIO_BUFFER_SIZE)
     {
-      if (d->bbcount + AUDIO_BUFFER_SIZE * 2 >= BB_SIZE/2) {
+      if (d->bbcount + AUDIO_BUFFER_SIZE * 2 >= BB_SIZE - output_fragsize) {
 	      d->super_buffer_count = count;
 	      return 0;
       }
@@ -2310,7 +2324,9 @@ static int play_midi(struct md *d)
 
 int play_some_midi(struct md *d)
 {
-  int rc;
+  int rc, basecount;
+
+  basecount = d->bbcount;
 
   for (;;)
     {
@@ -2318,9 +2334,11 @@ int play_some_midi(struct md *d)
 	      compute_data(d->super_buffer_count, d);
 	      return 0;
       }
+      /*
       if (d->flushing_output_device && d->bbcount >= output_fragsize) {
 	      return 0;
       }
+      */
       if (d->flushing_output_device) {
 	      compute_data(0, d);
 	      return RC_TUNE_END;
@@ -2629,7 +2647,9 @@ fprintf(stderr,"d->current_sample=%d d->current_event=%x, %ld left, d->bbcount=%
 	  fprintf(stderr,"play_some returning %d\n", rc);
 	  return rc;
       }
-      if (d->bbcount > output_fragsize && !d->flushing_output_device && d->current_sample < d->sample_count) return 0;
+      if (d->bbcount - basecount > output_fragsize &&
+		      !d->flushing_output_device &&
+		      d->current_sample < d->sample_count) return 0;
     }
 }
 
@@ -2647,7 +2667,7 @@ int play_midi_file(struct md *d)
 */
   if (!(d->fp=fopen(d->midi_path_name, "r"))) return RC_ERROR;
 
-  ctl->file_name(current_filename);
+  ctl->file_name(d->midi_name);
 
   d->is_open = TRUE;
   read_midi_file(d);
@@ -2666,7 +2686,7 @@ int play_midi_file(struct md *d)
   load_missing_instruments();
   if (check_for_rc()) return ctl->read(&val);
 #ifdef tplus
-  dont_cspline = 0;
+  d->dont_cspline = 0;
 #endif
   if (command_cutoff_allowed) dont_filter_melodic = 0;
   else dont_filter_melodic = 1;

@@ -1542,7 +1542,7 @@ YY_RULE_SETUP
 { if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		j = atoi(yytext+i+2);
-		if (j >= 0 && j <= 3) current_interpolation = j;
+		if (j >= 0 && j <= 3) config_interpolation = j;
 	} }
 	YY_BREAK
 case 27:

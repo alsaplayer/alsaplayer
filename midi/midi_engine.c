@@ -256,6 +256,15 @@ static int midi_open(input_object *obj, char *name)
 	d->drumchannels = DEFAULT_DRUMCHANNELS;
 	d->adjust_panning_immediately = 1;
 	d->voice_reserve = 0;
+	d->dont_chorus = 0;
+	d->dont_reverb = 0;
+	d->dont_cspline = 0;
+	d->current_interpolation = config_interpolation;
+	d->dont_keep_looping = 0;
+
+	d->XG_System_reverb_type = 0;
+	d->XG_System_chorus_type = 0;
+	d->XG_System_variation_type = 0;
 	d->GM_System_On = 0;
 	d->XG_System_On = 0;
 	d->GS_System_On = 0;
@@ -265,9 +274,11 @@ static int midi_open(input_object *obj, char *name)
 	d->time_expired = 0;
 	d->last_time_expired = 0;
 	d->last_req_time = 0;
-	d->min_req_interval = 1000;
-
-	d->output_buffer_full = 50;
+	d->last_calc = 0;
+	d->trouble_ahead = 0;
+	d->calc_window = 1000;
+	d->output_buffer_full = 10;
+	d->stat_max_buf_full = 10;
 	d->flushing_output_device = FALSE;
 #ifdef PLAYLOCK
 	if (sem_init(&d->play_lock, 0, 1)) fprintf(stderr,"no semaphore\n");
@@ -349,6 +360,7 @@ void midi_close(input_object *obj)
 	sem_destroy(&d->play_lock);
 #endif
 	if (d->bbuf) free(d->bbuf);
+/*fprintf(stderr,"Max buffer %d percent.\n", d->stat_max_buf_full);*/
 	free(obj->local_data);
 	obj->local_data = NULL;
 #ifdef PLUGDEBUG
@@ -403,7 +415,7 @@ static int midi_play_frame(input_object *obj, char *buf)
 {
         struct md *d;
 	int rc = 0;
-	int need_more;
+	int need_more, obfp, slacktime;
 	unsigned calc_start, req_interval;
 
 #ifdef PLUGDEBUG
@@ -422,28 +434,51 @@ fprintf(stderr,"midi_play_frame to %x\n", buf);
 	time_sync(0,0,d);
 	calc_start = d->time_expired;
 	if (d->last_req_time) req_interval = d->time_expired - d->last_req_time;
-	else req_interval = d->min_req_interval;
-	if (req_interval > 0) {
-	       if (req_interval < d->min_req_interval) d->min_req_interval -= (d->min_req_interval - req_interval) / 2;
-	       else if (req_interval > d->min_req_interval) d->min_req_interval += (req_interval - d->min_req_interval)/ 4;
+	else req_interval = d->calc_window;
+
+	slacktime = req_interval - d->last_calc;
+
+	if (slacktime) {
+		if (d->trouble_ahead) d->trouble_ahead--;
 	}
+	else d->trouble_ahead++;
+
+/* Adjust the window. */
+	if (!slacktime) /*d->calc_window -= d->calc_window / 4*/;
+	else if (slacktime < d->calc_window) d->calc_window -= (d->calc_window - slacktime) / 2;
+	else if (slacktime > d->calc_window)
+		       d->calc_window += (slacktime - d->calc_window)/ 4;
+
 	d->last_req_time = d->time_expired;
 #ifdef TIMEREQDEBUG
 	fprintf(stderr,"mpf: t=%d req int=%d cs=%d poly=%d bbc=%d\n", d->time_expired,
 	     req_interval, d->current_sample, d->current_polyphony, d->bbcount);
 #endif
 
+	obfp = d->bbcount * 100 / BB_SIZE;
+
+/*
+	fprintf(stderr,"mpf: slack=%d req int=%d cwindow=%d poly=%d vperm=%d obfp=%d trouble=%d\n",
+	     slacktime,
+	     req_interval, d->calc_window, d->current_polyphony, d->voices - d->voice_reserve,
+	     obfp, d->trouble_ahead);
+*/
+	d->output_buffer_full = obfp - d->trouble_ahead;
+
+	if (obfp > d->stat_max_buf_full) d->stat_max_buf_full = obfp;
+
 	need_more = TRUE;
 	if (d->bbcount < output_fragsize) {
 		need_more = TRUE;
-		d->output_buffer_full = 10;
 	}
-	else if (req_interval > 3 * d->min_req_interval / 2) need_more = FALSE;
+	else if (!slacktime) need_more = FALSE;
 	else if (d->bbcount > BB_SIZE - 3 * output_fragsize) {
 		need_more = FALSE;
-		d->output_buffer_full = 100;
 	}
+	d->last_calc = 0;
+
 	while (need_more) {
+		int calc_time;
 #ifdef PLUGDEBUG
 		fprintf(stderr,"bbcount of %d < fragsize %d: ", d->bbcount, output_fragsize);
 #endif
@@ -459,8 +494,17 @@ fprintf(stderr,"midi_play_frame to %x\n", buf);
 #ifdef TIMEREQDEBUG
 		fprintf(stderr,"calc time %d for bbc=%d\n", d->time_expired - calc_start, d->bbcount);
 #endif
+		calc_time = d->time_expired - calc_start;
+
+		d->last_calc = calc_time;
+
 		if (rc == RC_TUNE_END) d->flushing_output_device = TRUE;
-		else if (d->bbcount < BB_SIZE/2 && d->time_expired - calc_start <= d->min_req_interval) need_more = TRUE;
+		else if (d->super_buffer_count || calc_time > d->calc_window) /* nothing */;
+		else if (d->bbcount < BB_SIZE - 3 * output_fragsize &&
+			       	d->time_expired - calc_start <= 3*d->calc_window / 4) need_more = TRUE;
+/*
+	fprintf(stderr,"\tcalc %d, need_more=%d, bbcount=%d\n", d->time_expired - calc_start, need_more, d->bbcount);
+*/
 
 #ifdef PLUGDEBUG
 if (rc == RC_TUNE_END) fprintf(stderr,"tune is ending: bbcount after play is %d\n", d->bbcount);
@@ -499,6 +543,7 @@ static int midi_frame_seek(input_object *obj, int frame)
 		tim_time = frame * output_fragsize / 4;
 		if (tim_time < 0) tim_time = 0;
 		if (tim_time > d->sample_count) return 0;
+		play_mode->purge_output(d);
 		result = skip_to(tim_time, d);
 	}
 	else if (!frame) result = 1;

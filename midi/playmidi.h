@@ -254,18 +254,20 @@ extern int opt_stereo_surround;
 extern int dont_filter_melodic;
 extern int dont_filter_drums;
 extern int command_cutoff_allowed;
-extern int dont_chorus;
-extern int dont_reverb;
-extern int current_interpolation;
-extern int dont_keep_looping;
 
-extern int GM_System_On;
-extern int XG_System_On;
-extern int GS_System_On;
+/*extern int dont_chorus;*/
+/*extern int dont_reverb;*/
+/*extern int current_interpolation;*/
+extern int config_interpolation;
+/*extern int dont_keep_looping;*/
 
-extern int XG_System_reverb_type;
-extern int XG_System_chorus_type;
-extern int XG_System_variation_type;
+/*extern int GM_System_On;*/
+/*extern int XG_System_On;*/
+/*extern int GS_System_On;*/
+
+/*extern int XG_System_reverb_type;*/
+/*extern int XG_System_chorus_type;*/
+/*extern int XG_System_variation_type;*/
 
 #define ISDRUMCHANNEL(c) ((d->drumchannels & (1<<(c%16))))
 
