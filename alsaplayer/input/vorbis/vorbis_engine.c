@@ -39,7 +39,9 @@
 struct vorbis_local_data {
 	OggVorbis_File vf;
 	char path[FILENAME_MAX+1];
+	int current_section;
 	int last_section;
+	long bitrate_instant;
 	int bigendianp;
 	int is_local;
 };		
@@ -135,7 +137,6 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 	char pcmout2[BLOCK_SIZE];
 	int pcm_index;
 	int ret;
-	int current_section;
 	int bytes_needed;
 	int mono2stereo = 0;
 	struct vorbis_local_data *data;
@@ -156,7 +157,7 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 	pcm_index = 0;
 	while (bytes_needed > 0) {	
 		ret = ov_read(&data->vf, pcmout + pcm_index, bytes_needed, 
-				data->bigendianp, 2, 1, &current_section);
+				data->bigendianp, 2, 1, &data->current_section);
 		switch (ret) {
 			case 0:
 				return 0;
@@ -169,7 +170,7 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 	if (bytes_needed != 0) {
 		printf("Incomplete frame! (%d)\n", sizeof(pcmout) - bytes_needed);
 	}	
-	if (current_section != data->last_section) {
+	if (data->current_section != data->last_section) {
 		/*
 		 * The info struct is different in each section.  vf
 		 * holds them all for the given bitstream.  This
@@ -182,7 +183,7 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 		if (vi->channels > 2) {
 			return 0;
 		}
-		data->last_section = current_section;
+		data->last_section = data->current_section;
 	}
 	if (mono2stereo) {
 		int16_t *src, *dest;
@@ -261,10 +262,14 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 			strcpy(info->title, data->path);
 			info->artist[0] = 0;
 		}
-		if (vi)
-			sprintf(info->stream_type, "%dKHz %dkbit ogg",
-					vi->rate / 1000, vi->bitrate_nominal / 1000);
-		else
+		if (vi) {
+			long br = ov_bitrate_instant(&data->vf);
+			if (br > 0) 
+				data->bitrate_instant = br;
+			sprintf(info->stream_type, "%dKHz %d kbit ogg",
+					vi->rate / 1000, 
+					data->bitrate_instant / 1000);
+		} else
 			sprintf(info->stream_type, "Unkown OGG VORBIS");
 		info->status[0] = 0;
 	}
@@ -383,7 +388,9 @@ static int vorbis_open(input_object *obj, char *path)
 		return 0;
 	}
 	data = (struct vorbis_local_data *)obj->local_data;
+	data->current_section = -1;
 	data->last_section = -1;
+	data->bitrate_instant = 0;
 	data->bigendianp = is_big_endian();
 	memcpy(&data->vf, &vf_temp, sizeof(vf_temp));
 	memcpy(data->path, path, sizeof(data->path)-1);
