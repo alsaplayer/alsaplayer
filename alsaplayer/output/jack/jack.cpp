@@ -189,7 +189,7 @@ static int jack_open(char *name)
 
 	//alsaplayer_error("c = %s", c);
 	while (!done) {
-		if ((n=strchr(c, ':'))) {
+		if ((n=strchr(c, '/'))) {
 			*n = 0;
 			n++; // Points to next token
 		} else {
@@ -201,14 +201,14 @@ static int jack_open(char *name)
 		//alsaplayer_error("current = \"%s\", left = \"%s\"", t, c);
 		// Check if the token is comma delimited, meaning port names
 		if ((s=strchr(t, ','))) {
+			alsaplayer_error("t=%s", t);
 			*s++ = 0;
-			strncpy(dest_port1, name, 31);
+			strncpy(dest_port1, t, 31);
 			strncpy(dest_port2, s, 31);
 			dest_port1[31] = dest_port2[31] = 0;
 			alsaplayer_error("Using: %s & %s",
 					dest_port1, dest_port2);
-		}
-		if (strcmp(t, "noreconnect") == 0) {
+		} else if (strcmp(t, "noreconnect") == 0) {
 			alsaplayer_error("jack driver will not try to reconnect");
 			jack_reconnect = 0;
 		} else {
