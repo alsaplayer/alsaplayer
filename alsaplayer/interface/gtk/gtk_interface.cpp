@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "AlsaPlayer.h"
 #include <unistd.h>
 #include <sys/types.h>
 #include "config.h"
@@ -923,7 +924,8 @@ void init_main_window(Playlist *pl, GtkFunction f)
 
 	main_window = create_main_window();
 	gtk_window_set_policy(GTK_WINDOW(main_window), false, false, false);
-	gtk_window_set_title(GTK_WINDOW(main_window), "AlsaPlayer "VERSION);
+	gtk_window_set_title(GTK_WINDOW(main_window), global_session_name == NULL ?
+		"AlsaPlayer "VERSION : global_session_name);
 	gtk_window_set_wmclass(GTK_WINDOW(main_window), "AlsaPlayer", "alsaplayer");
 	gtk_widget_realize(main_window);
 

@@ -1,3 +1,15 @@
+Sat Feb 16 12:59:23 CET 2002
+----------------------------
+
+- libalsaplayer becomes reality. Using this lib external programs are able
+  to control an alsaplayer process (set speed, seek, etc)
+- Fix cdda build process	
+- You can now select to which JACK ports alsaplayer (jackplayer) should
+  connect to.
+- When using JACK exit cleanly if we timeout.
+- Code freeze turned out to be coding session :)
+
+
 Fri Feb  8 02:25:49 CET 2002
 ----------------------------
 
