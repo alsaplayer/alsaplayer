@@ -199,7 +199,7 @@ Playlist::~Playlist() {
 	// running - otherwise it might have its playlist torn from underneath it
 	// We currently just wait for the thread to finish
 	if (adder) {
-			printf("Waiting for insert thread to finish\n");
+			//printf("Waiting for insert thread to finish\n");
 	    pthread_join(adder, NULL);
 	}
 	if (player1)

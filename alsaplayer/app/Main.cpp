@@ -49,7 +49,7 @@
 #include "interface_plugin.h"
 #include "utilities.h"
 #include "error.h"
-#include "SocketControl.h"
+#include "ControlSocket.h"
 
 Playlist *playlist = NULL;
 
@@ -64,15 +64,16 @@ static char addon_dir[1024];
 static char *default_pcm_device = "default";
 static pthread_t socket_thread;
 static int socket_fd = 0;
+static int socket_thread_running = 0;
 
 const char *default_output_addons[] = {
-	{ "libalsa.so" },
-	{ "libnas.so" },
-	{ "liboss.so" },
-	{ "libsparc.so" },
-	{ "libesound.so" },
-	{ "libsgi.so" },
-	{ "libnull.so" },
+	{ "alsa" },
+	{ "nas" },
+	{ "oss" },
+	{ "sparc" },
+	{ "esound" },
+	{ "sgi" },
+	{ "null" },
 	NULL };
 
 
@@ -93,18 +94,18 @@ void (*alsaplayer_error)(const char *fmt, ...) = &default_alsaplayer_error;
 
 void socket_looper(void *arg)
 {
-		// not to confuse with global playlist
 		Playlist *playlist = (Playlist *)arg;
 		CorePlayer *player;
 		fd_set set;
 		struct timeval tv;
 		struct sockaddr_un saddr;
-		char *data[16384];
+		char *data;
 		float *float_val;
 		socklen_t len;
 		int fd;
 		ap_msg_t msg;
-		int running = 1;
+		
+		socket_thread_running = 1;
 	
 		if (!playlist) {
 			alsaplayer_error("No playlist for control socket\n");
@@ -117,19 +118,18 @@ void socket_looper(void *arg)
 			if (bind(socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
 				listen(socket_fd, 100);
 			} else {
-				alsaplayer_error("Error listening on socket\n");
+				alsaplayer_error("Error listening on control socket\n");
 				return;
 			}
 		} else {
-			alsaplayer_error("Error setting up socket\n");
+			alsaplayer_error("Error setting up control socket\n");
 			return;
 		}	
-		printf("Waiting for messages...\n");
-		while (running) {
+		while (socket_thread_running) {
 			FD_ZERO(&set);
 			FD_SET(socket_fd, &set);
 			tv.tv_sec = 0;
-			tv.tv_usec = 500000;
+			tv.tv_usec = 100000;
 			len = sizeof (saddr);
 
 			if ((select(socket_fd + 1, &set, NULL, NULL, &tv) <= 0) ||
@@ -137,11 +137,14 @@ void socket_looper(void *arg)
 					continue;
 			// So we have a connection
 			read(fd, &msg, sizeof(ap_msg_t));
-			if (msg.length > 0 && msg.length < sizeof(data)) {
+			if (msg.length && ((data = (char *)malloc(msg.length)) != NULL)) {
 				read(fd, data, msg.length);
 			}	
 			switch(msg.cmd_type) {
-				case CMD_PLAY: alsaplayer_error("PLAY...\n");
+				case CMD_PLAY: 
+					player = playlist->GetCorePlayer();
+					if (player)
+						player->Start();
 					break;
 				case CMD_NEXT: 
 					playlist->Next(1);
@@ -161,14 +164,14 @@ void socket_looper(void *arg)
 					break;
 				case CMD_SET_SPEED:
 					float_val = (float *)data;
-					printf("Setting speed to %.2f\n", *float_val);
+					//printf("Setting speed to %.2f\n", *float_val);
 					player = playlist->GetCorePlayer();
 					if (player)
 						player->SetSpeed(*float_val);
 					break;
 				case CMD_SET_VOLUME:
 					float_val = (float *)data;
-					printf("Setting volume to %.2f\n", *float_val);
+					//printf("Setting volume to %.2f\n", *float_val);
 					player = playlist->GetCorePlayer();
 					if (player)
 						player->SetVolume((int)*float_val);
@@ -179,8 +182,11 @@ void socket_looper(void *arg)
 				default: alsaplayer_error("CMD = %x\n", msg.cmd_type);
 					break;
 			}
+			if (msg.length)
+				free(data);
 			close(fd);	
 		}
+		unlink("/tmp/alsaplayer_0");
 }
 
 void exit_sighandler(int x)
@@ -232,7 +238,7 @@ void load_output_addons(AlsaNode *node, char *module = NULL)
 	else
 	
 	for (int i=0; default_output_addons[i]; i++) {
-		sprintf(path, "%s/output/%s", addon_dir, default_output_addons[i]);
+		sprintf(path, "%s/output/lib%s.so", addon_dir, default_output_addons[i]);
 		if (stat(path, &statbuf) != 0)
 			continue;
 		if ((handle = dlopen(path, RTLD_NOW | RTLD_GLOBAL))) {
@@ -671,6 +677,8 @@ int main(int argc, char **argv)
 			ui->close();
 			//dlclose(ui->handle);
 		}	
+		socket_thread_running = 0;
+		pthread_join(socket_thread, NULL);
 	}	
 _fatal_err:	
 	delete playlist;
