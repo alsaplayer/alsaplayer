@@ -1,6 +1,6 @@
 /* ========== Package information */
 
-/* Package name (libmikmod) */
+/* Package name */
 #undef PACKAGE
 /* Package version */
 #undef VERSION
@@ -31,3 +31,5 @@
 #undef ARCH_ULTRA
 /* Define if the GTK+ interface should be build */
 #undef HAVE_GTK
+/* Define if the Qt interface should be build */
+#undef HAVE_QT
