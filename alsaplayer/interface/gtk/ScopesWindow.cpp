@@ -38,7 +38,7 @@ void dl_close_scopes()
 
 	while (current) {
 		if (current->sp) {
-			//printf("dlclosing %s\n", current->sp->name);
+			printf("dlclosing %s\n", current->sp->name);
 			dlclose(current->sp->handle);
 		}	
 		current = current->next;

@@ -1146,7 +1146,7 @@ void init_main_window(CorePlayer *p, Playlist *pl, GtkFunction f)
 						GTK_SIGNAL_FUNC(speed_cb), p);
 	gtk_adjustment_set_value(adj, 100.0);
 #endif
-	gtk_signal_connect(GTK_OBJECT(main_window), "delete_event", GTK_SIGNAL_FUNC(main_window_delete), f);
+	gtk_signal_connect(GTK_OBJECT(main_window), "delete_event", GTK_SIGNAL_FUNC(main_window_delete), (void *)f);
 
 	// Create root menu
 	root_menu = gtk_menu_new();
@@ -1200,7 +1200,7 @@ void init_main_window(CorePlayer *p, Playlist *pl, GtkFunction f)
 	menu_item = gtk_menu_item_new_with_label("Exit");
 	gtk_menu_append(GTK_MENU(root_menu), menu_item);
 	gtk_signal_connect(GTK_OBJECT(menu_item), "activate",
-					   GTK_SIGNAL_FUNC(exit_cb), f);
+					   GTK_SIGNAL_FUNC(exit_cb), (void *)f);
 	gtk_widget_show(menu_item);
 #if 0	
 	// Connect popup menu
