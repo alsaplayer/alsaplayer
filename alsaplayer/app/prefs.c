@@ -30,7 +30,8 @@ prefs_handle_t *prefs_load(char *filename)
 	prefs_handle_t *prefs;
 	char buf[1024];
 	char *val;
-
+	int error_count = 0;
+	
 	if (!filename)
 		return NULL;
 		
@@ -47,21 +48,32 @@ prefs_handle_t *prefs_load(char *filename)
 			return NULL;
 		}	
 	}
-	while (fgets(buf, 1023, fd)) {
+	while (fgets(buf, 1023, fd) && error_count < 5) {
+		buf[1023] = 0;
 		if (strlen(buf) < 1024)
 			buf[strlen(buf)-1] = 0; /* get rid of '\n' */
-		else
+		else {
+			error_count++;
 			continue;
+		}	
 		if (buf[0] == '#')
 			continue;
 		if ((val = strchr(buf, '='))) {
 			*val = 0; /* replace separator with 0 */
 			val++;
 			prefs_set_string(prefs, buf, val);
-		}
+		} else {
+			error_count++;
+		}	
 	}
 	fclose(fd);
 
+	if (error_count >= 5) { /* too many errors */
+		fprintf(stderr, "*** WARNING: Too many errors in %s\n"
+				            "*** WARNING: It is probably corrupted! Please remove it.\n",
+					filename);
+		return NULL;
+	}	
 	prefs->filename = (char *)malloc(strlen(filename)+1);
 	if (prefs->filename)
 		strcpy(prefs->filename, filename);
