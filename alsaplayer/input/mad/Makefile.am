@@ -1,7 +1,9 @@
 
 EXTRA_DIST = D.dat huffman.h mad.h stream.h fixed.h \
 		imdct_s.dat qc_table.dat synth.h bit.h frame.h layer12.h \
-		rq_table.dat timer.h global.h layer3.h sf_table.dat
+		rq_table.dat timer.h global.h layer3.h sf_table.dat bit.c \
+		frame.c layer12.c stream.c timer.c fixed.c huffman.c \
+		layer3.c synth.c
 
 mad_inltlibs = libmad_in.la
 mad_inldflags = -export-dynamic -avoid-version
