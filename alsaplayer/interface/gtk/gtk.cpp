@@ -46,6 +46,7 @@
 #include "alsaplayer_error.h"
 
 static char addon_dir[1024];
+
 static AlsaSubscriber *scopes = NULL;
 
 static CorePlayer *the_coreplayer = NULL;
@@ -65,7 +66,7 @@ void load_scope_addons()
 
 	scope_plugin_info_type scope_plugin_info;
 
-	sprintf(path, "%s/scopes", addon_dir);
+	snprintf(path, sizeof(path)-1, "%s/scopes", addon_dir);
 
 	DIR *dir = opendir(path);
 	dirent *entry;
@@ -77,6 +78,7 @@ void load_scope_addons()
 				continue;
 			}
 			sprintf(path, "%s/scopes/%s", addon_dir, entry->d_name);
+			//alsaplayer_error(path);
 			if (stat(path, &buf)) continue;
 			if (S_ISREG(buf.st_mode)) {
 				void *handle;
@@ -163,26 +165,18 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 	scopes->Subscribe(the_coreplayer->GetNode(), POS_END);
 	scopes->EnterStream(scope_feeder_func, the_coreplayer);
 
-	if (geteuid() == 0) // Drop root if we run suid root
-		setuid(getuid());
-
 	gtk_set_locale();
 	gtk_init(&argc, &argv);
 	gdk_rgb_init();
 
 	home = getenv("HOME");
-	if (home && strlen(home) < 128) {
-		sprintf(path, "%s/.aprc", home);
-		gtk_rc_parse(path);
-	} else {
-		sprintf(path, "%s/.gtkrc", home);
+	if (home) {
+		snprintf(path, 255, "%s/.gtkrc", home);
 		gtk_rc_parse(path);
 	}
 
-		
 	if (playlist->Length())
 		playlist->UnPause();
-
 	// Scope addons
 	gdk_flush();
 	GDK_THREADS_ENTER();

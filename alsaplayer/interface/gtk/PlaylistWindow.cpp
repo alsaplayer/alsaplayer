@@ -658,12 +658,10 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 	GdkFont *bold_font;
 
 	bold_font = gdk_font_load("-adobe-helvetica-bold-r-normal--12-*-*-*-*-*-*-*");
-	
 	if (!bold_font)
 		assert ((bold_font = gdk_fontset_load("fixed")) != NULL);
 
 	playlist_window = create_playlist_window();
-
 	list = get_widget(playlist_window, "playlist");
 	gtk_object_set_data(GTK_OBJECT(list), "window", playlist_window);
 	gtk_object_set_data(GTK_OBJECT(playlist_window), "list", list);
@@ -675,7 +673,6 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 	style->font = bold_font;
 	gdk_font_ref(style->font);
 	gtk_widget_set_style(GTK_WIDGET(status), style);
-	
 	gtk_widget_show(status);
 	gtk_box_pack_start(GTK_BOX(list_status), status, true, false, 1);
 	
@@ -683,7 +680,6 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 	
 	style = gtk_style_copy(gtk_widget_get_style(list));
 	gtk_widget_set_style(GTK_WIDGET(list), style);	
-
 
 	gtk_clist_set_column_width(GTK_CLIST(list), 0, 16);
 	gtk_clist_set_column_max_width(GTK_CLIST(list), 0, 16);
@@ -702,7 +698,6 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 		GTK_SIGNAL_FUNC(playlist_delete_event), (gpointer)playlist_window_gtk);
 	gtk_signal_connect(GTK_OBJECT(playlist_window), "delete_event",
 		GTK_SIGNAL_FUNC(playlist_delete_event), (gpointer)playlist_window_gtk);
-
 	playlist_window_gtk->add_file = gtk_file_selection_new("Add file(s)");
 	gtk_file_selection_set_filename(GTK_FILE_SELECTION(playlist_window_gtk->add_file), prefs_get_string(ap_prefs, "gtk_interface", "default_playlist_add_path", "/"));
 
@@ -711,7 +706,6 @@ playlist_window_gtk->load_list = gtk_file_selection_new("Load Playlist");
 
 	playlist_window_gtk->save_list = gtk_file_selection_new("Save Playlist");
 	gtk_file_selection_set_filename(GTK_FILE_SELECTION(playlist_window_gtk->save_list), prefs_get_string(ap_prefs, "gtk_interface", "default_playlist_save_path", "/"));
-
 	GtkCList *file_list = GTK_CLIST(GTK_FILE_SELECTION(playlist_window_gtk->add_file)->file_list);
 	gtk_clist_set_selection_mode(file_list, GTK_SELECTION_EXTENDED);
 
