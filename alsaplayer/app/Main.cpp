@@ -569,20 +569,28 @@ int main(int argc, char **argv)
 			load_output_addons(node);
 	}
 
-	
-	if (!node || !node->ReadyToRun()) {
-		alsaplayer_error("failed to load output add-on. Exiting...");
-		return 1;
-	}
+	int output_is_ok = 0;
+	int output_alternate = 0;
 
-	if (!node->SetSamplingRate(use_freq)) {
-		alsaplayer_error("failed to set sampling frequency. Exiting...");
-		return 1;
-	}
-	if (!node->SetStreamBuffers(use_fragsize, use_fragcount, 2)) {
-		alsaplayer_error("failed to set fragment size/count. Exiting...");
-		return 1;
-	}	
+	do {
+		if (!node || !node->ReadyToRun()) {
+			alsaplayer_error("failed to load output add-on. Exiting...");
+			return 1;
+		}
+		if (!node->SetSamplingRate(use_freq) || 
+		   	!node->SetStreamBuffers(use_fragsize, use_fragcount, 2)) {
+			alsaplayer_error("failed to configure output device...trying OSS");
+			/* Special case for OSS, since it's easiest to get going, so try it */
+			if (!output_alternate) {
+				output_alternate = 1;
+				load_output_addons(node, "oss");
+				continue;
+			} else {	
+				return 1;
+			}	
+		}
+		output_is_ok = 1; /* output device initialized */
+	} while (!output_is_ok);
 	
 	// Initialise playlist - must be done before things try to register with it
 	playlist = new Playlist(node);
@@ -643,9 +651,9 @@ int main(int argc, char **argv)
 		// Load socket interface first
 		control_socket_start(playlist);
 		if (global_verbose)
-			fprintf(stdout, "Loading Interface plugin: %s\n", ui->name); 
+			fprintf(stdout, "Interface plugin: %s\n", ui->name); 
 		if (!ui->init()) {
-			alsaplayer_error("Failed to load gtk+ interface. Should fall back to text\n");
+			alsaplayer_error("Failed to load interface plugin. Should fall back to text\n");
 		} else {	
 			ui->start(playlist, argc, argv);
 			ui->close();
