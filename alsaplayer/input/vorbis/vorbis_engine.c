@@ -251,6 +251,7 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 		return 0;
 
 	data = (struct vorbis_local_data *)obj->local_data;
+	strncpy (info->path, data->path, sizeof (info->path));
 
 	if (data) {
 		if ((comment = ov_comment(&data->vf, -1)) != NULL) {
