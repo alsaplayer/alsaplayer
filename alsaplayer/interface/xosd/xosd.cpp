@@ -42,19 +42,28 @@
 #include "utilities.h"
 #include "interface_plugin.h"
 #include "AlsaPlayer.h"
+#include "prefs.h"
 #include "control.h"
 
 #include "xosd.h"
 
 
 #define OSD_FONT	"-adobe-helvetica-medium-r-normal-*-24-*-*-*-*-*-*-*"
-#define OSD_TIMEOUT		5
-#define OSD_LINES			5
-#define OSD_COLOR			"#55ff55"
+#define OSD_COLOR	"#55ff55"
+#define OSD_TIMEOUT	5
+#define OSD_LINES	5
+#define OSD_H_OFF	20
+#define OSD_V_OFF	20
 
 
 static pthread_mutex_t finish_mutex;
 static coreplayer_notifier notifier;
+
+static char *osd_font;
+static char *osd_color;
+static int osd_h_off;
+static int osd_v_off;
+static int osd_timeout;
 
 static volatile bool finished;
 
@@ -67,6 +76,12 @@ void stop_notify(void *data)
 int daemon_init()
 {
 	pthread_mutex_init(&finish_mutex, NULL);
+
+	osd_font = prefs_get_string(ap_prefs, "xosd_interface", "font", OSD_FONT);
+	osd_color = prefs_get_string(ap_prefs, "xosd_interface", "color", OSD_COLOR);
+	osd_h_off = prefs_get_int(ap_prefs, "xosd_interface", "h_offset", OSD_H_OFF);
+	osd_v_off = prefs_get_int(ap_prefs, "xosd_interface", "v_offset", OSD_V_OFF);
+	osd_timeout = prefs_get_int(ap_prefs, "xosd_interface", "timeout", OSD_TIMEOUT);
 	return 1;
 }
 
@@ -155,12 +170,12 @@ int daemon_start(Playlist *playlist, int argc, char **argv)
 					{
 						xosd_set_pos(osd, XOSD_top);
 						xosd_set_align(osd, XOSD_left);
-						xosd_set_colour(osd, OSD_COLOR);
-						xosd_set_font(osd, OSD_FONT);
+						xosd_set_colour(osd, osd_color);
+						xosd_set_font(osd, osd_font);
 						xosd_set_shadow_offset(osd, 1);
-						xosd_set_horizontal_offset(osd, 20);
-						xosd_set_vertical_offset(osd, 20);
-						xosd_set_timeout(osd, OSD_TIMEOUT);
+						xosd_set_horizontal_offset(osd, osd_h_off);
+						xosd_set_vertical_offset(osd, osd_v_off);
+						xosd_set_timeout(osd, osd_timeout);
 					}
 				}
 
@@ -199,7 +214,7 @@ int daemon_start(Playlist *playlist, int argc, char **argv)
 static interface_plugin daemon_plugin =
 {
 	INTERFACE_PLUGIN_VERSION,
-	"XOSD DAEMON interface v0.1",
+	"XOSD DAEMON interface v0.2",
 	"Frank Baumgart",
 	NULL,
 	daemon_init,

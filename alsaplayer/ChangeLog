@@ -1,3 +1,7 @@
+* xosd interface: larger standard font
+* xosd interface: configurable font, timeout, hor/vert. offset and color
+
+
 Thu Apr 24 01:16:41 CEST 2003
 -----------------------------
 * Fix XING header parsing
