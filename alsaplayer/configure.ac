@@ -748,6 +748,7 @@ Configuration:
   Build sgi output plugin:            ${have_sgi}
   Build nas output plugin:            ${have_nas}
   Build vorbis input plugin:          ${have_oggvorbis}
+  Build cdda input plugin:            ${ac_cv_header_linux_cdrom_h}
   Build mikmod input plugin:          ${have_mikmod}
   Build audiofile input plugin:       ${have_audiofile}
   Build flac input plugin:            ${have_flac}
