@@ -366,7 +366,9 @@ static void help()
 	fprintf(stdout,
 		" ]\n"
 		"  -p,--path path          set the path alsaplayer looks for add-ons\n"
+#if 0
 		"  -q,--quiet              quiet operation. no output\n"
+#endif
 		"  -r,--realtime           enable realtime scheduling (with proper rights)\n"
 		"  -s,--session-name name  name this session \"name\"\n"
 		"  -v,--version            print version of this program\n"
@@ -563,9 +565,7 @@ int main(int argc, char **argv)
 				break;
 			case 's':
 				if (strlen(optarg) < 32) {
-					global_session_name = (char *)
-						malloc(strlen(optarg) + 1 );
-					strcpy(global_session_name, optarg);	
+					global_session_name = strdup(optarg);
 				} else {
 					alsaplayer_error("max 32 char session name, ignoring");
 				}
@@ -770,8 +770,7 @@ int main(int argc, char **argv)
 	}
 	if (interface_plugin_info) {
 		ui = interface_plugin_info();
-		
-		
+
 		if (global_verbose)
 			fprintf(stdout, "Interface plugin: %s\n",
 					ui->name);
