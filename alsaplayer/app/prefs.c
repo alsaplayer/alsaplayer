@@ -30,6 +30,45 @@
 extern "C" {
 #endif	
 
+
+int prefs_cmp(const void *p1, const void *p2) 
+{
+	int res;
+	prefs_key_t *a = (prefs_key_t *)p1;
+	prefs_key_t *b = (prefs_key_t *)p2;
+	char *s1, *s2;
+
+	s1 = (char *)malloc(strlen(a->section)+strlen(a->key)+1);
+	s2 = (char *)malloc(strlen(b->section)+strlen(b->key)+1);
+	sprintf(s1, "%s%s", a->section, a->key);
+	sprintf(s2, "%s%s", b->section, b->key);
+	
+	res = strcmp(s1, s2);
+	
+	free(s1);
+	free(s2);
+
+	return res;
+}
+
+prefs_key_t *prefs_sort(prefs_handle_t *prefs)
+{
+	prefs_key_t *array;
+	prefs_key_t *p;
+	int c;
+	
+	array = (prefs_key_t *)malloc(prefs->count * sizeof(prefs_key_t));
+	if (!array)
+		return NULL;
+	for (c=0, p = prefs->keys; c < prefs->count; c++, p = p->next) {
+		array[c] = *p;
+	}
+	qsort(array, prefs->count, sizeof(prefs_key_t), prefs_cmp);	
+	
+	return array;
+}
+
+	
 prefs_handle_t *prefs_load(const char *filename)
 {
 	FILE *fd;
@@ -174,7 +213,8 @@ void prefs_set_string(prefs_handle_t *prefs, const char *section, char *key, cha
 			prefs->last->next = entry;
 		} else { /* First key */
 			prefs->keys = entry;
-		}	
+		}
+		prefs->count++;
 		prefs->last = entry;		
 	}		
 }
@@ -258,11 +298,16 @@ float prefs_get_float(prefs_handle_t *prefs, const char *section, char *key, flo
 int prefs_save(prefs_handle_t *prefs)
 {
 	FILE *fd;
-	prefs_key_t *entry;
-	
+	prefs_key_t *entry = NULL;
+	prefs_key_t *sorted = NULL;
+	int c;
+		
 	if (!prefs || !prefs->filename || !strlen(prefs->filename)) {
 		return -1;
-	}	
+	}
+
+	sorted = prefs_sort(prefs);
+	
 	if ((fd = fopen(prefs->filename, "w")) == NULL) {
 		return -1;
 	}	
@@ -274,11 +319,20 @@ int prefs_save(prefs_handle_t *prefs)
 		"# Only edit this file if the application is not active.\n"
 		"# Any modifications might (will!) be lost otherwise.\n"
 		"#\n");
-			
-	while (entry) {
-		fprintf(fd, "%s.%s=%s\n", entry->section, entry->key, entry->value);
-		entry = entry->next;
-	}
+	if (sorted) {
+		for (c=0; c < prefs->count; c++) {
+			fprintf(fd, "%s.%s=%s\n",
+				sorted[c].section, 
+				sorted[c].key, 
+				sorted[c].value);
+		}
+		free(sorted);
+	} else {	
+		while (entry) {
+			fprintf(fd, "%s.%s=%s\n", entry->section, entry->key, entry->value);
+			entry = entry->next;
+		}
+	}	
 	fclose(fd);
 
 	return 0;

@@ -41,6 +41,7 @@ typedef struct _prefs_key prefs_key_t;
 struct _prefs_handle {
 	char *filename;
 	int loaded;
+	int count;
 	prefs_key_t *keys;
 	prefs_key_t *last;
 };
@@ -59,6 +60,8 @@ int prefs_get_int(prefs_handle_t *prefs, const char *section, char *key, int def
 char *prefs_get_string(prefs_handle_t *prefs, const char *section, char *key, char *default_val);
 float prefs_get_float(prefs_handle_t *prefs, const char *section, char *key, float default_val);
 int prefs_get_bool(prefs_handle_t *prefs, const char *section, char *key, int default_val);
+
+prefs_key_t* prefs_sort(prefs_handle_t *prefs);
 
 int prefs_save(prefs_handle_t *prefs);
 
