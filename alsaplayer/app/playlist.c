@@ -152,6 +152,16 @@ ap_playlist_class_init (ApPlaylistClass *class)
 		  g_cclosure_marshal_VOID__UINT_POINTER,
 		  G_TYPE_NONE,
 		  2, G_TYPE_UINT, G_TYPE_POINTER);
+
+    g_signal_new ("cleared",
+		  G_OBJECT_CLASS_TYPE (class),
+		  G_SIGNAL_RUN_FIRST,
+		  G_STRUCT_OFFSET (ApPlaylistClass, cleared_signal),
+		  NULL,
+		  NULL,
+		  g_cclosure_marshal_VOID__VOID,
+		  G_TYPE_NONE,
+		  0);
 } /* ap_playlist_class_init */
 
 /* - - - -  - - - - - - - - - - - -  - - - - -  - - - - - - -  - - - - - - -*/
@@ -476,6 +486,10 @@ ap_playlist_get_type (void)
  * @brief		Sets whether to pause the playlist or not.
  *
  * @see			ap_playlist_is_paused()
+ *
+ * @note		Playlist should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  */
 void
 ap_playlist_set_pause (ApPlaylist *playlist, gboolean pause)
@@ -514,6 +528,10 @@ ap_playlist_is_paused (ApPlaylist *playlist)
  * @brief		Sets whether to loop the song or not.
  *
  * @see			ap_playlist_is_looping_song()
+ *
+ * @note		    Playlist should be locked by ap_object_lock()
+ *			    before using this function, and unlocked by
+ *			    ap_object_unlock() afterwards.
  */
 void
 ap_playlist_set_loop_song (ApPlaylist *playlist, gboolean loop_song)
@@ -552,6 +570,10 @@ ap_playlist_is_looping_song (ApPlaylist *playlist)
  * @brief		    Sets whether to loop the playlist or not.
  *
  * @see			    ap_playlist_is_looping_playlist()
+ *
+ * @note		    Playlist should be locked by ap_object_lock()
+ *			    before using this function, and unlocked by
+ *			    ap_object_unlock() afterwards.
  */
 void
 ap_playlist_set_loop_playlist (ApPlaylist *playlist, gboolean loop_playlist)
@@ -591,6 +613,10 @@ ap_playlist_is_looping_playlist (ApPlaylist *playlist)
  *
  * You can track end of the updating process
  * via the "updated" signal.
+ *
+ * @note		    Playlist should be locked by ap_object_lock()
+ *			    before using this function, and unlocked by
+ *			    ap_object_unlock() afterwards.
  **/
 void
 ap_playlist_update (ApPlaylist	    *playlist,
@@ -612,6 +638,10 @@ ap_playlist_update (ApPlaylist	    *playlist,
  *
  * You can track end of the inserting process
  * via the "inserted" signal.
+ *
+ * @note		    Playlist should be locked by ap_object_lock()
+ *			    before using this function, and unlocked by
+ *			    ap_object_unlock() afterwards.
  **/
 void
 ap_playlist_insert (ApPlaylist	    *playlist,
@@ -639,4 +669,41 @@ ap_playlist_insert (ApPlaylist	    *playlist,
     }
 
     g_async_queue_push (playlist->insert_queue, queued);
+}
+
+/**
+ * @param playlist	    An #ApPlaylist.
+ *
+ * @brief		    Clear playlist.
+ *
+ * You can track end of the clearing process
+ * via the "cleared" signal.
+ *
+ * @note		    Be careful!!
+ *			    Playlist should be locked by ap_object_lock()
+ *			    before using this function, and unlocked by
+ *			    ap_object_unlock() afterwards.
+ **/
+void
+ap_playlist_clear (ApPlaylist	    *playlist)
+{
+    int i;
+    
+    g_return_if_fail (AP_IS_PLAYLIST (playlist));
+
+    /* Unref all playitems in the queue */
+    for (i=0; i<playlist->queue->len; i++)
+	ap_object_unref (g_array_index (playlist->queue, gpointer, i));
+
+    /* Destroy general queue */
+    g_array_free (playlist->queue, TRUE);
+   
+    /* Create new general queue for playitems. */
+    playlist->queue = g_array_new (FALSE, FALSE, sizeof (gpointer));
+
+    /* TODO TODO TODO TODO: Stop coreplayer[s].
+     * And notify about curritem changes. */
+
+    /* Signal */
+    g_signal_emit_by_name (playlist, "cleared");
 }

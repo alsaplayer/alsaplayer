@@ -47,6 +47,7 @@ extern "C" {
  *		     update by ap_playlist_update() function. Last argument is
  *		     a data pointer which was passed for g_signal_connect().
  *	- @b "inserted".
+ *	- @b "cleared".
  *	- @b "pause-toggled".
  *	- @b "looping-playlist-toggled".
  *	- @b "looping-song-toggled".
@@ -125,7 +126,7 @@ struct _ApPlaylistClass {
      */
     ApObjectClass    ap_object_class;
 
-    /* signals */
+    /* defualt handlers for signals */
     void*   (*pause_toggled_signal)		(ApPlaylist	*playlist,
 						 gboolean	pause,
 						 gpointer	data);
@@ -146,6 +147,9 @@ struct _ApPlaylistClass {
 						 guint		pos,
 						 GPtrArray	*playitem,
 						 gpointer	data);
+
+    void*   (*cleared_signal)			(ApPlaylist	*playlist,
+						 gpointer	data);
 };
 
 GType		    ap_playlist_get_type		(void) G_GNUC_CONST;
@@ -163,6 +167,7 @@ void		    ap_playlist_update			(ApPlaylist	*playlist,
 void		    ap_playlist_insert			(ApPlaylist	*playlist,
 							 GPtrArray	*array,
 							 guint		pos);
+void		    ap_playlist_clear			(ApPlaylist    *playlist);
 
 #ifdef __cplusplus
 }
