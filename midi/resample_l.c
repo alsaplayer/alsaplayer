@@ -609,7 +609,7 @@ static int32 update_vibrato(int v, Voice *vp, int sign, struct md *d)
   if (vp->modulation_increment && mod_amount > 0.0) {
           update_modulation(v, d);
           if (vp->modulation_volume) {
-                freq = (int32)( (double)freq*( mod_amount * (double)(vp->modulation_volume>>22) / 255.0) );
+                freq = (int32)( (double)freq*(1.0 + (mod_amount - 1.0) * (double)(vp->modulation_volume>>22) / 255.0) );
           }
   }
 #endif
