@@ -782,33 +782,18 @@ int main(int argc, char **argv)
 	if (optind < argc) {
 		std::vector < std::string > newitems;
 		while (optind < argc) {
-#if 0
-			if (strcmp(argv[optind], "-") == 0) {
-				// stream from stdin
-				// FIXME: implement
-				alsaplayer_error("warning: streaming from stdin (experimental)");
-				newitems.push_back("-");
-				break;
-			} else {
-#else
-			{
-#endif
-				char *ext;
-				ext = strrchr(argv[optind], '.');
-				if (ext && (strncasecmp(++ext, "m3u", 3) == 0 ||
-						strncasecmp(ext, "pls", 3) == 0)) {
-					playlist->Load(std::string(argv[optind++]),
+			if (is_playlist(argv[optind])) {
+				playlist->Load(std::string(argv[optind++]),
 						playlist->Length(), false);
-				} else {	
-					newitems.push_back(std::string(argv[optind++]));
-				}	
-			}
+			} else {	
+				newitems.push_back(std::string(argv[optind++]));
+			}	
 		}
 		playlist->Insert(newitems, playlist->Length());
 	} else {
 		prefsdir = get_prefsdir();
 		snprintf(thefile, sizeof(prefsdir)-28, "%s/alsaplayer.m3u", prefsdir);
-		playlist->Load(prefsdir, playlist->Length(), false);
+		playlist->Load(thefile, playlist->Length(), false);
 	}
 	playlist->UnPause();
 		
