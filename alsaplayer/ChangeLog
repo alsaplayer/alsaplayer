@@ -1,3 +1,9 @@
+* --enable-tophack switch to configure. This enables some code that fools
+  (simple) CPU measuring tools like top into thinking AlsaPlayer is infinitely
+  fast i.e. top will show that we use 0% CPU even with lots of scopes open!
+  Whenever someone complains about AlsaPlayer CPU usage, just enable this and 
+  the problem will magically disappear *grin*
+* Keyboard shortcuts for playlist: Insert, Delete, Return, Left, Right keys.
 * List available interfaces and output plugins in help screen.
 * New callback API for CorePlayer so interfaces get notified when
   something happens.  

@@ -122,7 +122,7 @@ fi
 
 
 AC_ARG_ENABLE(profiling,
-[   --enable-profiling     Enable profiling (-pg)],, enable_profiling=no)
+[  --enable-profiling      Enable profiling (-pg)],, enable_profiling=no)
 
 if test "$enable_profiling" = yes; then
 DFLAGS="$DFLAGS -pg"
@@ -137,7 +137,7 @@ dnl NLS stuff
 dnl =========
 
 AC_ARG_ENABLE(nls,
-[  --enable-nls           Enabled NLS support (default=yes)],, enable_nls=no)
+[  --enable-nls            Enabled NLS support (default=yes)],, enable_nls=no)
 
 if test "$enable_nls" = yes; then
 echo No nls support yet
