@@ -28,6 +28,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "output_plugin.h"
+#include "error.h"
 
 #define LOW_FRAGS	1	
 
@@ -52,7 +53,7 @@ static int oss_open(char *name)
 		name = "/dev/dsp";
 		}
 	if ((oss_fd = open(name,  O_WRONLY, 0)) == -1) {
-		fprintf(stderr, "OSS: error opening %s: %m\n", name);
+		alsaplayer_error("error opening %s", name);
 		return 0;
 	}
 	return 1;
@@ -94,7 +95,7 @@ static int oss_set_buffer(int fragment_size, int fragment_count, int channels)
 static int oss_set_sample_rate(int rate)
 {
 	if (ioctl(oss_fd,SNDCTL_DSP_SPEED,&rate) < 0) {
-					fprintf(stderr, "OSS: error setting sample_rate\n");
+					alsaplayer_error("error setting sample_rate");
 					return 0;
 	}				
 	return 1;

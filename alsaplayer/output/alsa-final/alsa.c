@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "output_plugin.h"
+#include "error.h"
 
 #define LOW_FRAGS	1	
 //#define QUEUE_COUNT
@@ -49,13 +50,13 @@ static int alsa_open(char *name)
 
 	if ((err = snd_pcm_open(&sound_handle, name, stream, 0)) < 0) {
 
-		fprintf(stderr, "snd_pcm_open: %s (%s)\n", snd_strerror(err),
+		alsaplayer_error("snd_pcm_open: %s (%s)", snd_strerror(err),
 										name);
 		return 0;
 	}
 	err = snd_output_stdio_attach(&errlog, stderr, 0);
 	if (err < 0) {
-		fprintf(stderr, "snd_output_stdio_attach: %s\n", snd_strerror(err));
+		alsaplayer_errro("snd_output_stdio_attach: %s", snd_strerror(err));
 		return 0;
 	}
 	return 1;
@@ -81,14 +82,14 @@ static int alsa_write(void *data, int count)
 #if	1
 	err = snd_pcm_writei(sound_handle, data, count / 4);
 	if (err == -EPIPE) {
-		fprintf(stderr, "ALSA: underrun. resetting stream\n");
+		alsaplayer_error("underrun. resetting stream");
 		snd_pcm_prepare(sound_handle);
 		err = snd_pcm_writei(sound_handle, data, count / 4);
 		if (err != count / 4) {
-			fprintf(stderr, "ALSA write error: %s\n", snd_strerror(err));
+			alsaplayer_error("ALSA write error: %s", snd_strerror(err));
 			return 0;
 		} else if (err < 0) {
-			fprintf(stderr, "ALSA write error: %s\n", snd_strerror(err));
+			alsaplayer_error("ALSA write error: %s", snd_strerror(err));
 			return 0;
 		}	
 	}
@@ -148,7 +149,7 @@ static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
 	}
 	err = snd_pcm_hw_params(sound_handle, hwparams);
 	if (err < 0) {
-		fprintf(stderr, "Unable to install hw params:\n");
+		alsaplayer_error("Unable to install hw params:");
 		snd_pcm_hw_params_dump(hwparams, errlog);
 		return 0;
 	}
@@ -158,7 +159,7 @@ static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
 
 	return 1;
  _err:
-	fprintf(stderr, "Unavailable hw params:\n");
+	alsaplayer_error("Unavailable hw params:");
 	snd_pcm_hw_params_dump(hwparams, errlog);
 	return 0;
 }
