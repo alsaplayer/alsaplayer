@@ -34,7 +34,7 @@ typedef jack_default_audio_sample_t sample_t;
 
 static jack_port_t *my_output_port1;
 static jack_port_t *my_output_port2;
-static jack_client_t *client = NULL;
+static jack_client_t *client = (jack_client_t *)NULL;
 static jack_nframes_t buffer_size;
 static jack_nframes_t sample_rate;
 static jack_nframes_t nr_fragments;
