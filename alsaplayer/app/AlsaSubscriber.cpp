@@ -39,6 +39,7 @@ AlsaSubscriber::AlsaSubscriber()
 {
 	the_node = NULL;
 	the_ID = -1;
+	preferred_pos = POS_BEGIN;
 }
 
 AlsaSubscriber::~AlsaSubscriber()
@@ -49,16 +50,16 @@ AlsaSubscriber::~AlsaSubscriber()
 }
 
 
-void AlsaSubscriber::Subscribe(AlsaNode *node)
+void AlsaSubscriber::Subscribe(AlsaNode *node, int pos)
 {
 	the_node = node; 
+	preferred_pos = pos;
 }
 
 
 void AlsaSubscriber::Unsubscribe()
 {
 	if (the_node && the_node->IsInStream(the_ID)) { 
-		//printf("calling RemoveStreamer(%d) from Unsubscribe()\n", the_ID);
 		the_node->RemoveStreamer(the_ID);
 
 	}	
@@ -70,7 +71,7 @@ void AlsaSubscriber::Unsubscribe()
 void AlsaSubscriber::EnterStream(streamer_type str, void *arg)
 {
 	if (the_node) {
-		the_ID = the_node->AddStreamer(str, arg, 0);
+		the_ID = the_node->AddStreamer(str, arg, preferred_pos);
 		the_node->StartStreaming();
 	}
 }
@@ -79,7 +80,6 @@ void AlsaSubscriber::EnterStream(streamer_type str, void *arg)
 void AlsaSubscriber::ExitStream()
 {
 	if (the_node && the_node->IsInStream(the_ID)) {
-		//printf("calling RemoveStreamer(%d)\n", the_ID);
 		if (!the_node->RemoveStreamer(the_ID)) {
 			printf("ERROR! Failed to remove streamer\n");
 		} else {

@@ -44,7 +44,6 @@
 #include <dlfcn.h>
 #include <sched.h>
 #include <pthread.h>
-#include <signal.h>
 #include <math.h>
 #include "Effects.h"
 #include "utilities.h"
@@ -126,9 +125,7 @@ void CorePlayer::load_input_addons()
 							dlclose(handle);
 						}
 					} else {
-#ifdef DEBUG
-						fprintf(stderr, "Could not find symbol in shared object `%s'\n", path);
-#endif
+						fprintf(stderr, "Could not find input_plugin_info symbol in shared object `%s'\n", path);
 						dlclose(handle);
 					}	
 				} else {
@@ -195,8 +192,6 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	the_object->ready = 0;
 
 	pthread_mutex_init(&the_object->object_mutex, NULL);
-	test_sub = new AlsaSubscriber();
-	test_sub->Subscribe(node);
 	strcpy(addon_dir, ADDON_DIR);
 
 	// Load the input addons
@@ -227,7 +222,6 @@ CorePlayer::~CorePlayer()
 	pthread_mutex_destroy(&counter_mutex);
 	pthread_mutex_destroy(&player_mutex);
 	pthread_mutex_destroy(&the_object->object_mutex);
-	delete test_sub;
 	delete []buffer;
 	delete the_object;
 }
@@ -242,7 +236,7 @@ void CorePlayer::UnregisterPlugins()
 	pthread_mutex_lock(&player_mutex);
 	for (int i = 0; i < plugin_count; i++) {
 		tmp = &plugins[i];
-		fprintf(stdout, "Unloading Input plugin: %s\n", tmp->name); 
+		//fprintf(stdout, "Unloading Input plugin: %s\n", tmp->name); 
 		if (tmp->handle) {
 			dlclose(tmp->handle);
 			tmp->handle = NULL;
@@ -290,7 +284,7 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	if (plugin_count == 1) { // First so assign plugin
 		plugin = tmp;
 	}
-	fprintf(stdout, "Loading Input plugin: %s\n", tmp->name);
+	//fprintf(stdout, "Loading Input plugin: %s\n", tmp->name);
 	pthread_mutex_unlock(&player_mutex);
 	return 1;
 }
@@ -381,6 +375,9 @@ bool CorePlayer::Start(int reset)
 	int tries;
 
 	pthread_mutex_lock(&player_mutex);
+
+	Close();
+	
 	// First check if we have a filename to play
 	if (!Open()) {
 		printf("\nOpen() has failed......\n");
@@ -417,7 +414,6 @@ bool CorePlayer::Start(int reset)
 
 	pthread_create(&producer_thread, NULL,
 		(void * (*)(void *))producer_func, this);
-	//pthread_detach(producer_thread);
 
 	// Wait for up to 5 seconds
 	tries = 500;
@@ -560,14 +556,16 @@ bool CorePlayer::Open()
 	}
 
 	plugin = best_plugin;
-	
+
+	//fprintf(stderr, "Using input plugin: %s\n", plugin->name);
 	if (plugin->open(the_object, file_path)) {
 		result = true;
 		frames_in_buffer = read_buf->buf->GetBufferSizeBytes(plugin->frame_size(the_object)) / plugin->frame_size(the_object);
 	} else {
 		result = false;
 		frames_in_buffer = 0;
-	}	
+		plugin->close(the_object);
+	}
 	the_object->ready = 1;
 
 	return result;	
@@ -817,7 +815,6 @@ void CorePlayer::producer_func(void *data)
 	CorePlayer *obj = (CorePlayer *)data;
 	int frames_read;
 
-	signal(SIGINT, exit_sighandler);
 #ifndef NEW_PLAY
 	obj->the_object->write_buffer = NULL;
 #endif	

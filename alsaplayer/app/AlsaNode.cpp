@@ -1,5 +1,5 @@
 /*  AlsaNode.cpp - AlsaNode virtual Node class
- *  Copyright (C) 1999 Andy Lo A Foe <andy@alsa-project.org>
+ *  Copyright (C) 1999-2001 Andy Lo A Foe <andy@alsa-project.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,7 +39,6 @@ extern void exit_sighandler(int);
 
 AlsaNode::AlsaNode(char *name, int realtime)
 {
-	root_sub = NULL;
 	follow_id = 1;
 	count = 0;
 	plugin_count = 0;
@@ -52,9 +51,7 @@ AlsaNode::AlsaNode(char *name, int realtime)
 	sample_freq = OUTPUT_RATE;
 
 	for (int i = 0; i < MAX_SUB; i++) {
-		subs[i].active = false;
-		subs[i].streamer = NULL;
-		subs[i].ID = -1;
+		memset(&subs[i], 0, sizeof(subscriber));
 	}	
 	
 	pthread_mutex_init(&thread_mutex, NULL);
@@ -104,6 +101,7 @@ void AlsaNode::looper(void *pointer)
 	int read_size = node->GetFragmentSize();
 	bool usleep_hack = true;
 	bool status;
+	int c;
 
 	signal(SIGINT, exit_sighandler);
 
@@ -142,33 +140,30 @@ void AlsaNode::looper(void *pointer)
 		printf("HUH?? error!\n");
 		exit(1);
 	}	
-	
+
+	memset(buffer_data, 0, 16384);
+
 	read_size = node->GetFragmentSize();
 	while (node->looping) {
-		subscriber *next = NULL;
-		subscriber *i = node->root_sub;
-		memset(buffer_data, 0, read_size); // Fresh buffer
-		if (i == NULL) { // Quit immmediately
-			node->plugin->write(buffer_data, read_size);
-			read_size = node->GetFragmentSize(); // Change on the fly
-			continue;
-		}
-		//printf("first = %d\n", i->ID);
-		do {
+		subscriber *i;
+		int c;
+
+		memset(buffer_data, 0, 16384);
+		for (c = 0; c < MAX_SUB; c++) {
+			i = &node->subs[c];
 			if (!i->active) { // Skip inactive streamers
-				i = i->next;
 				continue;
 			}	
-			//printf(".%d.", i->ID);
-			status = i->streamer(i->arg, buffer_data, read_size);
-			next = i->next; 
+			if (i->streamer) {
+				//printf("streaing %d\n", i->ID);
+				status = i->streamer(i->arg, buffer_data, read_size);
+			} else { 
+				continue;
+			}	
 			if (status == false) { // Disable this streamer
 				i->active = false;
 			}
-			i = next;
-			//printf("next = %d\n", i ? i->ID : 0);
-		} while (i != NULL); // Till the last buffer
-		//printf("\n");
+		}
 		node->plugin->write(buffer_data, read_size);
 
 		read_size = node->GetFragmentSize(); // Change on the fly
@@ -178,27 +173,19 @@ void AlsaNode::looper(void *pointer)
 					dosleep(1000);
 		}			
 	}
-	delete []buffer_data;
+	delete buffer_data;
 	pthread_mutex_unlock(&node->thread_mutex);
 	pthread_exit(NULL);
 }
 
-// Note that preferred_pos is ignored for now. Once implemented
-// you will be able to specify where the new Streamer should be
-// inserted (BEGIN, END, RANDOM). We should probably also keep a 
-// record of what the preferred stream of a node is (so RANDOM
-// really isn't random)
-
-
 bool AlsaNode::IsInStream(int the_id)
 {
 	subscriber *i;
+	int c;
 	
-	if (root_sub == NULL)
-		return false;
 	pthread_mutex_lock(&queue_mutex);	
-	for (i = root_sub; i != NULL; i = i->next) {
-		if (i->ID == the_id) {
+	for (c = 0; c < MAX_SUB; c++) {
+		if (subs[c].ID == the_id) {
 			pthread_mutex_unlock(&queue_mutex);
 			return true;
 		}	
@@ -211,7 +198,11 @@ bool AlsaNode::IsInStream(int the_id)
 int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 {
 	int version;
-	
+
+	if (plugin_count == MAX_PLUGIN) {
+		fprintf(stderr, "Maximum number of plugins reached (%d)\n", MAX_PLUGIN);
+		return 0;
+	}	
 	output_plugin *tmp = &plugins[plugin_count];
 	tmp->version = the_plugin->version;
 	if ((version = tmp->version) != OUTPUT_PLUGIN_VERSION) {
@@ -252,122 +243,60 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 
 int AlsaNode::AddStreamer(streamer_type str, void *arg, int preferred_pos)
 {
-	subscriber *new_sub = NULL;
-	
+	int c;
+	subscriber *i;
 	pthread_mutex_lock(&queue_mutex);
-	if (root_sub == NULL) {
-#ifdef DEBUG	
-		printf("Adding first subscriber...\n");
-#endif
-		root_sub = new subscriber;
-		if (!root_sub) {
-			printf("WTF!!!\n");
-			pthread_mutex_unlock(&queue_mutex);
-			return false;
-		}	
-		root_sub->ID = follow_id++;	
-		root_sub->prev = NULL;
-		root_sub->next = NULL;
-		root_sub->streamer = str;
-		root_sub->arg = arg;
-		root_sub->active = true; // Default is stream directly
-		count++;
-		pthread_mutex_unlock(&queue_mutex);
-		return root_sub->ID;
-	}
-	new_sub = new subscriber; // Allocate new node
-	if (!new_sub) {
-		printf("WTF2!!!!!\n");
-		pthread_mutex_unlock(&queue_mutex);
-		return -1;
+
+	switch (preferred_pos) {
+		case POS_BEGIN:
+		case POS_MIDDLE:
+						for (c = 0; c < MAX_SUB; c++) {
+								i = &subs[c];
+								if (!i->active) { // found an empty slot
+										i->ID = follow_id++;	
+										i->streamer = str;
+										i->arg = arg;
+										i->active = true; // Default is stream directly
+										count++;
+										pthread_mutex_unlock(&queue_mutex);
+										return i->ID;
+								}
+						}
+						break;
+			case POS_END:
+						for (c = MAX_SUB-1; c >= 0; c--) {
+								i = &subs[c];
+								if (!i->active) { // found an empty slot
+										i->ID = follow_id++;	
+										i->streamer = str;
+										i->arg = arg;
+										i->active = true; // Default is stream directly
+										count++;
+										pthread_mutex_unlock(&queue_mutex);
+										return i->ID;
+								}
+						}
+						break;
+			default:
+						break;
 	}	
-#ifdef DEBUG		
-	printf("Adding new subscriber...\n");	
-#endif
-	new_sub->ID = follow_id++;
-	new_sub->streamer = str; // Assign streamer
-	new_sub->arg = arg; // Argument
-	new_sub->prev = NULL; // Become the new root
-	new_sub->next = root_sub; // Set up next pointer
-	new_sub->active = true;
-	root_sub->prev = new_sub;
-	root_sub = new_sub;
-#ifdef DEBUG		
-	printf("Sucess..\n");
-#endif
-	count++;
+	printf("Oversubscribed....!\n");
 	pthread_mutex_unlock(&queue_mutex);
-	return new_sub->ID;
+	return -1;
 }
 
 
 bool AlsaNode::RemoveStreamer(int the_id)
 {
-	subscriber *i, *tmp;
-	if (the_id < 0) {
-		printf("request for negative ID removal\n");
-		return true;
-	}	
+	int c;
+	subscriber *i;
+	
 	pthread_mutex_lock(&queue_mutex);
-	for (i = root_sub; i != NULL; i = i->next) {
-		if (!i)
-			break;
+	for (c = 0; c < MAX_SUB; c++) {
+		i = &subs[c];
 		if (i->ID == the_id) {
 			i->active = false;
-			if (i == root_sub) { // root 
-				if (i->next == NULL) { // last one
-					//printf("Removing last streamer\n");
-					delete root_sub;
-					root_sub = NULL;
-					count--;
-					pthread_mutex_unlock(&queue_mutex);
-					if (IsInStream(the_id)) 
-						printf("AAAAARGH1!!!\n");	
-					return true;
-				}
-#ifdef DEBUG				
-				printf("Removing root streamer...\n");
-#endif
-				tmp = root_sub;
-				root_sub = root_sub->next;
-				root_sub->prev = NULL;
-				delete tmp;
-				count--;
-				pthread_mutex_unlock(&queue_mutex);
-				if (IsInStream(the_id))
-					printf("AAAAAARGH2!!!!\n");
-				return true;
-			} else {
-				if (i->next == NULL) { // Last one in loop
-#ifdef DEBUG
-					printf("Removing end streamer...\n");
-#endif
-					tmp = i;	
-					i = i->prev;
-					i->next = NULL;
-					tmp->active = false;
-					tmp->next = NULL;
-					tmp->prev = NULL;
-					tmp->ID = -1;
-					//delete tmp; // WAAH!
-					count--;
-					pthread_mutex_unlock(&queue_mutex);
-					if (IsInStream(the_id))
-						printf("AAAAAAARGH3!!!\n");
-					return true;
-				} else {	
-#ifdef DEBUG
-					printf("Removing mid streamer...\n");
-#endif
-					i->prev->next = i->next;
-					i->next->prev = i->prev;
-					//delete i; // WAAH!
-				}
-			}
-			count--;
 			pthread_mutex_unlock(&queue_mutex);
-			if (IsInStream(the_id)) 
-				printf("AAAAAARGH4!!!\n");
 			return true;
 		}	
 	}

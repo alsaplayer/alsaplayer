@@ -32,11 +32,7 @@
 #include "Playlist.h"
 #include "CorePlayer.h"
 #include "utilities.h"
-/* This is needed for the kludge fix for the Gtk+ deadlock */
 #include "config.h"
-//#ifdef HAVE_GTK
-//#include <gtk/gtk.h>
-//#endif
 
 #define READBUFSIZE 1024
 #define MAXLOADFAILURES 100
@@ -59,7 +55,7 @@ extern void playlist_looper(void *data)
 			if (!pl->Paused() && pl->Length())
 				pl->Next(1);
 		}
-		dosleep(50000);
+		dosleep(100000);
 	}
 }
 
@@ -79,16 +75,16 @@ void insert_thread(void *data) {
 #ifdef DEBUG
 	printf("THREAD-%d=insert thread\n", getpid());
 #endif /* DEBUG */
+
 	PlInsertItems * items = (PlInsertItems *)data;
 	Playlist *playlist = items->playlist;
 
-    // First vetting of the list, and recurse through directories
+  // First vetting of the list, and recurse through directories
 	std::vector<std::string> vetted_items;
 	std::vector<std::string>::const_iterator i = items->items.begin();
 	while(i != items->items.end()) {
 		additems(&(vetted_items), *i++, MAXRECURSEDEPTH);
 	}
-
 	std::vector<PlayItem> newitems;
 	if(vetted_items.size() > 0) {
 		std::vector<std::string>::const_iterator path;
@@ -98,16 +94,15 @@ void insert_thread(void *data) {
 			if(!playlist->CanPlay(*path)) {
 #ifdef DEBUG
 				printf("Can't find a player for `%s'\n", path->c_str());
-#endif /* DEBUG */
+#endif 
 			} else {
 				newitems.push_back(PlayItem(*path));
 			}
 		}
 	}
-
 	// Stop the list being changed while we add these items
 	pthread_mutex_lock(&(playlist->playlist_mutex));
-
+// LAST HERE	
 	// Check position is valid
 	if(playlist->queue.size() < items->position) {
 		items->position = playlist->queue.size();
@@ -116,10 +111,9 @@ void insert_thread(void *data) {
 	playlist->queue.insert(playlist->queue.begin() + items->position,
 						   newitems.begin(),
 						   newitems.end());
-
 	if(playlist->curritem > items->position)
 		playlist->curritem += newitems.size();
-
+#if 1 
 #ifdef DEBUG
 	printf("Curritem = %d, Size = %d\n", playlist->curritem, playlist->queue.size());
 #endif /* DEBUG */
@@ -133,12 +127,13 @@ void insert_thread(void *data) {
 			(*i)->CbInsert(newitems, items->position);
 			(*i)->CbSetCurrent(playlist->curritem);
 			(*i)->CbUnlock();
-		}
+		}	
 	}
 
 	// Free the list again
-	pthread_mutex_unlock(&(playlist->playlist_mutex));
+#endif	
 	delete items;
+	pthread_mutex_unlock(&(playlist->playlist_mutex));
 	pthread_exit(NULL);
 }
 
@@ -285,17 +280,16 @@ void Playlist::Insert(std::vector<std::string> const & paths, unsigned position)
 	PlInsertItems * items = new PlInsertItems(this);
 	items->position = position;
 
+
 	// Copy list
 	std::vector<std::string>::const_iterator i = paths.begin();
 	while(i != paths.end()) {
 		items->items.push_back(*i++);
 	}
 
-#ifdef DEBUG
-	printf("Insert([%d items], %d)\n", items->items.size(), items->position);
-#endif
+	//printf("Insert([%d items], %d)\n", items->items.size(), items->position);
 
-    // Perform request in a sub-thread, so that we don't:
+  // Perform request in a sub-thread, so that we don't:
 	// a) block the user interface
 	// b) risk getting caught in a deadlock when we call the interface to
 	//    inform it of the change
