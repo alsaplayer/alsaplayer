@@ -38,6 +38,7 @@
 #include <dlfcn.h>
 #include <math.h>
 #include <stdarg.h>
+#include <locale.h>
 
 #include "config.h"
 
@@ -454,6 +455,9 @@ int main(int argc, char **argv)
 	signal(SIGFPE, exit_sighandler);	// floating point exc.
 	signal(SIGABRT, exit_sighandler);	// abort()
 
+	// Enable locale support
+	setlocale (LC_ALL, "");
+	
 	// Init global mutexes
 	pthread_mutex_init(&playlist_sort_seq_mutex, NULL);
 	
