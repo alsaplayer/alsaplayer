@@ -8,6 +8,7 @@ config.log
 config.status
 configure
 libtool
+missing
 stamp-h
 aclocal.m4
 acinclude.m4
