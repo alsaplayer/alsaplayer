@@ -83,7 +83,7 @@ private:
 
 	// Added thread
 	pthread_t adder;
-	
+
 	// Flags used by thread to exit neatly
 	bool active;    // True until set to false by destructor
 	bool paused;	// Playlist is paused

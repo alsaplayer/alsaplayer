@@ -64,7 +64,6 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	int pan;
 	AlsaNode *node;
 	AlsaSubscriber *sub;
-	AlsaSubscriber *test_sub;
 
 	// INPUT plugin stuff
 	input_object *the_object;

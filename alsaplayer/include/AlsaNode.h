@@ -33,7 +33,12 @@
 #endif
 #include "output_plugin.h"
 
+#define MAX_PLUGIN	32
 #define MAX_SUB	16
+
+#define POS_BEGIN		0x0
+#define POS_MIDDLE	0x1
+#define POS_END			0x2
 
 typedef bool(*streamer_type)(void *arg, void *buf, int size);
 
@@ -43,14 +48,12 @@ typedef struct _subscriber
 	streamer_type streamer;
 	bool active;
 	void *arg;
-	_subscriber *prev;
-	_subscriber *next;
 } subscriber;
 
 class AlsaNode
 {
  private:
-	output_plugin plugins[32];
+	output_plugin plugins[MAX_PLUGIN];
 	output_plugin *plugin;
 	int plugin_count;
 	subscriber subs[MAX_SUB]; 
@@ -68,7 +71,6 @@ class AlsaNode
 	bool looping;
 	static void looper(void *);
  public:
-	subscriber *root_sub;
 	int sock;
 	void *sound_handle;
 	pthread_t looper_thread;

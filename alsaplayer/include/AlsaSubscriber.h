@@ -28,10 +28,11 @@ class AlsaSubscriber
  private:
 	AlsaNode *the_node;
 	int the_ID;
+	int preferred_pos;
  public:
 	AlsaSubscriber();
 	~AlsaSubscriber();
-	virtual void Subscribe(AlsaNode *node);
+	virtual void Subscribe(AlsaNode *node, int pos=POS_BEGIN);
 	void Unsubscribe();
 	virtual void EnterStream(streamer_type str, void *arg);
 	void ExitStream();	
