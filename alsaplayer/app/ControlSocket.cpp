@@ -268,6 +268,13 @@ void socket_looper(void *arg)
 					ap_message_add_int32(reply, "ack", 1);
 				}
 				break;
+			case AP_GET_FILE_PATH:
+				if (player) {
+					player->GetStreamInfo(&info);
+					ap_message_add_string(reply, "string", info.path);
+					ap_message_add_int32(reply, "ack", 1);
+				}
+				break;
 			case AP_GET_ARTIST:
 				if (player) {
 					player->GetStreamInfo(&info);

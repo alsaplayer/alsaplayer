@@ -67,6 +67,7 @@
 #define AP_SET_PAN		0xcc22
 #define AP_GET_PAN		0xcc23
 #define AP_SORT			0xcc24
+#define AP_GET_FILE_PATH	0xcc25
 /* Add new commands here */
 
 #ifdef __cplusplus
@@ -107,7 +108,7 @@ ap_message_t *ap_message_new();
 ap_key_t *ap_key_new(char *keyid);
 int ap_message_add_float(ap_message_t *, char *, float);
 int ap_message_add_int32(ap_message_t *, char *, int32_t);
-int ap_message_add_string(ap_message_t *, char *, char *);
+int ap_message_add_string(ap_message_t *, char *, const char *);
 void ap_message_delete(ap_message_t *);
 
 int ap_message_send(int fd, ap_message_t *);

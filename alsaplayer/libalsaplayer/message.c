@@ -292,7 +292,7 @@ char *ap_message_find_string(ap_message_t *msg, char *key_id)
 }
 
 
-int ap_message_add_string(ap_message_t *msg, char *key_id, char *val)
+int ap_message_add_string(ap_message_t *msg, char *key_id, const char *val)
 {
 	ap_key_t *new_key;
 	char *str;
@@ -642,6 +642,12 @@ int ap_get_title(int session, char *str)
 {
 	return (ap_get_single_string_command(session,
 				AP_GET_TITLE, str, AP_TITLE_MAX));
+}
+
+int ap_get_file_path(int session, char *str)
+{
+	return (ap_get_single_string_command(session,
+				AP_GET_FILE_PATH, str, AP_FILE_PATH_MAX));
 }
 
 int ap_get_artist(int session, char *str)

@@ -28,6 +28,7 @@
 #define AP_COMMENT_MAX		256
 #define AP_TRACK_NUMBER_MAX	10
 #define AP_YEAR_MAX		10
+#define AP_FILE_PATH_MAX	1024
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,6 +66,7 @@ int ap_get_genre(int session, char *str);
 int ap_get_year(int session, char *str);
 int ap_get_track_number(int session, char *str);
 int ap_get_comment(int session, char *str);
+int ap_get_file_path (int session, char *str);
 
 int ap_set_position(int session, int pos);
 int ap_get_position(int session, int *val);
