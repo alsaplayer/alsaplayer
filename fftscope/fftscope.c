@@ -30,6 +30,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <assert.h>
+#include "prefs.h"
 #include "alsaplayer/scope_plugin.h"
 #include "alsaplayer/utilities.h"
 
@@ -219,7 +220,7 @@ static void run_fftscope(void *data)
 
 
 /* Called to startup the FFTscope */
-static void start_fftscope(void *data)
+static void start_fftscope()
 {
 	if (!is_init) {
 		scope_win = init_fftscope_window();
@@ -231,7 +232,7 @@ static void start_fftscope(void *data)
 	}
 	gtk_widget_show(scope_win);
 	pthread_create(&fftscope_thread, NULL,
-		       (void *(*)(void *)) run_fftscope, data);
+		       (void *(*)(void *)) run_fftscope, NULL);
 }
 
 
@@ -242,6 +243,9 @@ static int init_fftscope()
 
 	memset(act_fft, 0, sizeof(act_fft));
 
+	if (prefs_get_bool(ap_prefs, "fftscope", "active", 0))
+		start_fftscope();
+	
 	return 1;
 }
 
@@ -249,6 +253,7 @@ static int init_fftscope()
 /* Shutdown function. Should deallocate stuff here too */
 static void shutdown_fftscope()
 {
+	prefs_set_bool(ap_prefs, "fftscope", "active", fftscope_running());
 	stop_fftscope();
 }
 
