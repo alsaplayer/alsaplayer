@@ -60,10 +60,10 @@ typedef struct _input_object
 
 typedef struct _stream_info
 {
-	char    stream_type[128];
-	char    author[128];
-	char    title[128];
-	char		status[32];
+	char	stream_type[128];
+	char	author[128];
+	char	title[128];
+	char	status[32];
 } stream_info;
 
 
