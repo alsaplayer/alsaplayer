@@ -48,7 +48,8 @@ static coreplayer_notifier notifier;
 
 static int vol = 0;
 static float speed = 0;
-static bool going = false;
+static int busypipe[2];
+
 
 void stop_notify(void *data)
 {
@@ -93,7 +94,11 @@ int daemon_running()
 
 int daemon_stop()
 {
-	going = false;
+	char dummy;
+
+	// signal finish via pipe
+	write(busypipe[1], &dummy, 1);
+
 	pthread_mutex_lock(&finish_mutex);
 	pthread_mutex_unlock(&finish_mutex);
 	return 1;
@@ -114,7 +119,8 @@ int daemon_start(Playlist *playlist, int argc, char **argv)
 	playlist->Clear();
 	playlist->UnPause();
 
-	going = true;
+	if (pipe(busypipe) < 0)
+		return 1;
 
 	// The notifier is here only for convenience
 	memset(&notifier, 0, sizeof(notifier));
@@ -138,11 +144,14 @@ int daemon_start(Playlist *playlist, int argc, char **argv)
 	if (ap_get_session_name(global_session_id, session_name)) {
 		fprintf(stdout, "Session \"%s\" is ready.\n", session_name);
 	}
-	
-	while(going) {
-		dosleep(10000); // What should we do here?
-	}
-	
+
+	// wait for finish, signalled via pipe
+	fd_set busyset;
+	FD_ZERO(&busyset);
+	FD_SET(busypipe[0], &busyset);
+	select(busypipe[0] + 1, &busyset, NULL, NULL, NULL);
+	close(busypipe[0]);
+	close(busypipe[1]);
 
 	pthread_mutex_unlock(&finish_mutex);
 
@@ -155,8 +164,8 @@ int daemon_start(Playlist *playlist, int argc, char **argv)
 static interface_plugin daemon_plugin =
 {
 	INTERFACE_PLUGIN_VERSION,
-	"DAEMON interface v1.0",
-	"Andy Lo A Foe",
+	"DAEMON interface v1.1",
+	"Andy Lo A Foe/Frank Baumgart",
 	NULL,
 	daemon_init,
 	daemon_start,
