@@ -25,19 +25,25 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include "input_plugin.h"
 #include "mad.h"
 
 #define BLOCK_SIZE 4096	/* We can use any block size we like */
 #define MAX_NUM_SAMPLES 8192
+#define STREAM_BUFFER_SIZE	16384
 
 struct mad_local_data {
-				
+		int mad_fd;				
 		char path[FILENAME_MAX+1];
 		struct mad_synth  synth; 
 	  struct mad_stream stream;
  	  struct mad_frame  frame;
+		uint8_t stream_buffer[STREAM_BUFFER_SIZE];
+		int bytes_in_buffer;
 		int16_t samples[MAX_NUM_SAMPLES];
+		ssize_t offset;
+		int sample_rate;
 };		
 
 
@@ -75,7 +81,7 @@ static int mad_frame_seek(input_object *obj, int frame)
 
 static int mad_frame_size(input_object *obj)
 {
-	if (!obj) {
+	if (!obj || !obj->frame_size) {
 				printf("No frame size!!!!\n");
 				return 0;
 	}
@@ -91,6 +97,7 @@ static int mad_play_frame(input_object *obj, char *buf)
 	int ret;
 	int current_section;
 	int bytes_needed;
+	int bytes_read;
 	int mono2stereo = 0;
 	struct mad_local_data *data;
 	
@@ -101,15 +108,63 @@ static int mad_play_frame(input_object *obj, char *buf)
 			return 0;
 	memset(pcmout,0,sizeof(pcmout));
 
+	//printf("in mad_play_frame()...\n");
+	if (data->bytes_in_buffer < 1024) { // Hmm, this sucks
+					//printf("going to read data into stream_buffer...(in buf = %d)\n", 
+					//									data->bytes_in_buffer);
+					if ((bytes_read = read(data->mad_fd, 
+									data->stream_buffer + data->bytes_in_buffer, 
+									STREAM_BUFFER_SIZE - data->bytes_in_buffer)) < 
+													(STREAM_BUFFER_SIZE - data->bytes_in_buffer)) {
+									printf("Not enough data read (%d)\n", bytes_read);
+					}				
+					data->bytes_in_buffer += bytes_read;
+	}
+	//printf("read %d bytes into stream_buffer (in buf = %d)\n", bytes_read,
+	//								 data->bytes_in_buffer);
+	mad_stream_buffer (&data->stream, data->stream_buffer, data->bytes_in_buffer);
+
+	//printf("going to decode frame\n");
+	if (mad_frame_decode(&data->frame, &data->stream) != 0) {
+					//printf("This part is not finished\n");
+					return 0;
+	}
+	//printf("going to synth frame\n");
+	mad_synth_frame (&data->synth, &data->frame);
+	{
+					struct mad_pcm *pcm = &data->synth.pcm;
+					mad_fixed_t const *left_ch, *right_ch;
+					uint16_t	*output = (uint16_t *)buf;
+					int nsamples = pcm->length;
+					int nchannels = pcm->channels;
+					int num_bytes = data->stream_buffer + 
+									data->bytes_in_buffer - data->stream.next_frame;
+
+					left_ch = pcm->samples[0];
+					right_ch = pcm->samples[1];
+					//printf("going to write out sample data\n");	
+					while (nsamples--) {
+									 *output++ = scale(*left_ch++);
+									 if (nchannels == 2) 
+													 *output++ = scale(*right_ch++);
+					}
+					//printf("going to move data (%d -> %d)\n",
+					//								data->bytes_in_buffer, num_bytes);
+					/* Move data, this is inefficient */
+					data->bytes_in_buffer = num_bytes;
+					memmove(data->stream_buffer, data->stream.next_frame,
+													data->bytes_in_buffer);
+	}
+	
 	return 1;
 }
 
 
-static int mad_frame_to_sec(input_object *obj, int frame)
+static unsigned long mad_frame_to_sec(input_object *obj, int frame)
 {
 	struct mad_local_data *data;
 	int64_t l = 0;
-	int sec = 0;
+	unsigned long sec = 0;
 
 	if (!obj)
 			return 0;
@@ -150,7 +205,7 @@ static int mad_sample_rate(input_object *obj)
 				return 44100;
 		data = (struct mad_local_data *)obj->local_data;
 		
-		return 44100;
+		return data->sample_rate;
 }
 
 static int mad_init() 
@@ -167,11 +222,11 @@ static int mad_channels(input_object *obj)
 				return 2; /* Default to 2, this is flaky at best! */
 		data = (struct mad_local_data *)obj->local_data;
 		
-		return 2;
+		return obj->nr_channels;
 }
 
 
-static float mad_test_support(const char *path)
+static float mad_can_handle(const char *path)
 {
 	char *ext;      
 	ext = strrchr(path, '.');
@@ -189,9 +244,38 @@ static float mad_test_support(const char *path)
 }
 
 
+static ssize_t find_initial_frame(uint8_t *buf, int size)
+{
+	uint8_t *data = buf;			
+
+	int pos = 0;
+	ssize_t header_size = 0;
+	while (pos < (size - 10)) {
+					if ((data[pos] == 0x49 && data[pos+1] == 0x44 && data[pos+2] == 0x33)) {
+									printf("Skipping ID3v2 header (%x %x %x)\n",
+																	data[pos], data[pos+1], data[pos+2]);
+									header_size = 10; /* 10 byte header */
+									if (data[pos + 5] & 0x10)
+													header_size += 20; /* 10 byte extended header */
+									header_size += (data[pos + 6] << 21) + 
+																(data[pos + 7] << 14) +
+																(data[pos + 8] << 7) +
+																data[pos + 9]; /* syncsafe integer */
+									printf("Header size = %d (%x %x %x %x)\n", header_size,
+																	data[pos + 6], data[pos + 7], data[pos + 8],
+																	data[pos + 9]);
+									return header_size;
+					} else {
+									pos++;
+					}				
+	}
+	return 0;
+}
+
 static int mad_open(input_object *obj, char *path)
 {
 		struct mad_local_data *data;
+		int bytes_read;
 		
 		if (!obj)
 				return 0;
@@ -201,14 +285,87 @@ static int mad_open(input_object *obj, char *path)
 				return 0;
 		}
 		data = (struct mad_local_data *)obj->local_data;
-	
+		memset(data, 0, sizeof(struct mad_local_data));
+		
+		if ((data->mad_fd = open(path, O_RDONLY)) < 0) {
+					fprintf(stderr, "mad_open() failed\n");
+					free(obj->local_data);
+					return 0;
+		}
+		if ((bytes_read = read(data->mad_fd,
+					data->stream_buffer, STREAM_BUFFER_SIZE)) < 1024) {
+				// Not enough data available
+				fprintf(stderr, "mad_open() can't read enough initial data\n");
+				close(data->mad_fd);
+				free(obj->local_data);
+				return 0;
+		}		
 		mad_synth_init  (&data->synth);
 		mad_stream_init (&data->stream);
 		mad_frame_init  (&data->frame);
 		
+		data->offset = find_initial_frame(data->stream_buffer, bytes_read);
+
+		if (data->offset < 0) {
+						fprintf(stderr, "mad_open() couldn't find valid MPEG header\n");
+						close(data->mad_fd);
+						free(obj->local_data);
+						return 0;
+		} else {
+						printf("MPEG start offset in file = %d\n", data->offset); 
+						memmove(data->stream_buffer, data->stream_buffer + data->offset, 
+														bytes_read - data->offset);
+						data->bytes_in_buffer -= data->offset;
+		}				
+		
+		mad_stream_buffer(&data->stream, data->stream_buffer, bytes_read);
+				
+		if ((mad_frame_decode(&data->frame, &data->stream) != 0)) {
+					int num_bytes;	
+					if (data->stream.next_frame) {
+						num_bytes = data->stream_buffer + bytes_read - data->stream.next_frame;
+						printf("num_bytes = %d\n", num_bytes);
+						memmove(data->stream_buffer, data->stream.next_frame, num_bytes);
+					}
+					
+					switch (data->stream.error) {
+										case	MAD_ERROR_BUFLEN:
+														printf("MAD_ERROR_BUFLEN...\n");
+														close(data->mad_fd);
+														free(obj->local_data);
+														break;
+										default:
+														printf("No valid frame found at start\n");
+					}
+					close(data->mad_fd);
+					free(obj->local_data);
+					return 0;
+		} else {
+					int mode = (data->frame.header.mode == MAD_MODE_SINGLE_CHANNEL) ?
+									1 : 2;
+					data->sample_rate = data->frame.header.samplerate;
+					
+					mad_synth_frame (&data->synth, &data->frame);
+					
+					{
+						struct mad_pcm *pcm = &data->synth.pcm;			
+						
+						obj->nr_channels = pcm->channels;
+						obj->frame_size = 4608;
+						printf("%d HZ, %d channel mp3! Done for now...\n", 
+														data->sample_rate, obj->nr_channels);
+					}
+		}
+
+		/* Reset decoder */
+		lseek(data->mad_fd, data->offset, SEEK_SET);
+		mad_synth_init  (&data->synth);
+		mad_stream_init (&data->stream);
+		mad_frame_init  (&data->frame);
+		data->bytes_in_buffer = 0;	
 		return 1;
 }
-
+		
 static void mad_close(input_object *obj)
 {
 	struct mad_local_data *data;
@@ -217,9 +374,15 @@ static void mad_close(input_object *obj)
 			return;
 	data = (struct mad_local_data *)obj->local_data;
 
+	if (data->mad_fd) 
+					close(data->mad_fd);
+	
 	mad_synth_finish (&data->synth);
 	mad_frame_finish (&data->frame);
 	mad_stream_finish(&data->stream);
+
+	memset(obj->local_data, 0, sizeof(struct mad_local_data));
+	free(obj->local_data);
 }
 
 
@@ -227,13 +390,13 @@ input_plugin mad_plugin =
 {
 	INPUT_PLUGIN_VERSION,
 	0,
-	{ "MAD plugin v0.1" },
+	{ "MAD plugin v0.9" },
 	{ "Andy Lo A Foe" },
 	NULL,
 	mad_init,
 	NULL,
 	NULL,
-	mad_test_support,
+	mad_can_handle,
 	mad_open,
 	mad_close,
 	mad_play_frame,
