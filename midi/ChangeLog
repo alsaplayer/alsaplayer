@@ -1,3 +1,5 @@
+Fri May  3 04:05:54 HST 2002
+	sndfont.c: in envelope calc. to_msec() safeguard against unreasonably large values
 Wed May  1 03:27:09 HST 2002
 	autocfg.c: must not chdir
 Mon Apr 29 09:34:41 HST 2002

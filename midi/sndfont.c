@@ -1714,7 +1714,7 @@ static int32 calc_root_pitch(Layer *lay, SFInfo *sf, SampleList *sp, int32 cfg_t
 }
 
 
-/* #define EXAMINE_SOME_ENVELOPES */
+/*#define EXAMINE_SOME_ENVELOPES*/
 /*----------------------------------------------------------------
  * convert volume envelope
  *----------------------------------------------------------------*/
@@ -1732,10 +1732,10 @@ static void convert_volume_envelope(Layer *lay, SFInfo *sf, SampleList *sp, int 
 	/* int milli = play_mode->rate/1000; */
 #ifdef EXAMINE_SOME_ENVELOPES
 	static int no_shown = 0;
-no_shown = banknum==128 && preset == 25;
+no_shown = banknum==128 && (preset == 57 || preset == 56);
 if (no_shown) {
 printf("PRESET %d\n",preset);
-	printf("sustainEnv2 %d delayEnv2 %d attackEnv2 %d holdEnv2 %d decayEnv2 %d releaseEnv2 %d\n",
+	printf("vol %f sustainEnv2 %d delayEnv2 %d attackEnv2 %d holdEnv2 %d decayEnv2 %d releaseEnv2 %d\n", vol,
 	lay->val[SF_sustainEnv2],
 	lay->val[SF_delayEnv2],
 	lay->val[SF_attackEnv2],
@@ -1953,7 +1953,11 @@ static double to_msec(Layer *lay, SFInfo *sf, int index)
 	if (lay->set[index]) value = lay->val[index];
 	else value = -12000;
 
+	if (index == SF_attackEnv2 && value > 1000) value = -12000;
+
 	msec = (double)(1000 * pow(2.0, (double)( value ) / 1200.0));
+	/*if (msec > 1000.0) return 1.0;*/
+
 	return msec;
 }
 

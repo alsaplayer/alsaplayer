@@ -278,6 +278,9 @@ static int midi_open(input_object *obj, char *name)
 	d->calc_window = 1000;
 	d->output_buffer_full = 10;
 	d->flushing_output_device = FALSE;
+	d->midi_type[0] = 'G';
+	d->midi_type[1] = 'M';
+	d->midi_type[2] = '\0';
 
 #ifdef PLAYLOCK
 	if (sem_init(&d->play_lock, 0, 1)) fprintf(stderr,"no semaphore\n");
@@ -310,6 +313,14 @@ static int midi_open(input_object *obj, char *name)
 		obj->nr_tracks = 0;
 		obj->nr_channels = 2;
 		obj->frame_size = output_fragsize;
+		if (d->GS_System_On) {
+			d->midi_type[0] = 'G';
+			d->midi_type[1] = 'S';
+		}
+		if (d->XG_System_On) {
+			d->midi_type[0] = 'X';
+			d->midi_type[1] = 'G';
+		}
 	}
 	return rc;
 }
@@ -692,7 +703,7 @@ fprintf(stderr,"midi_stream_info\n");
 	if (!info) return 0;
 
 	sprintf(info->stream_type, "%s midi: %d track%s, %d events",
-		d->XG_System_On? "XG" : ( d->GS_System_On? "GS" : "GM"),
+		d->midi_type,
 		d->track_info, (d->track_info > 1)? "s" : "", d->event_count);
 
 	if (d->author[0]) snprintf(info->author, 80, "%s", d->author);
@@ -703,8 +714,14 @@ fprintf(stderr,"midi_stream_info\n");
 
 	sprintf(info->status, "notes: %3d", d->current_polyphony);
 
-	if (d->title[0]) sprintf(info->title, "%s", d->title);
-	else strcpy(info->title, d->midi_name);	
+	if (d->is_open) {
+		if (d->title[0]) sprintf(info->title, "%s", d->title);
+		else strcpy(info->title, d->midi_name);	
+	}
+	else {
+		if (d->title[0]) sprintf(info->title, "%s [%s]", d->title, d->midi_type);
+		else sprintf(info->title, "%s [%s]", d->midi_name, d->midi_type);	
+	}
 	
 	return 1;
 }
@@ -785,6 +802,7 @@ input_plugin *input_plugin_info(void)
 #ifdef PLUGDEBUG
 fprintf(stderr,"I'm me\n");
 #endif
+	init_midi();
 	return &midi_plugin;
 }
 

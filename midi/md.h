@@ -9,6 +9,7 @@ struct md
 	char midi_path_name[FILENAME_MAX+1];
 	char author[128];
 	char title[128];
+	char midi_type[3];
 	int is_playing;
 	int is_open;
 	unsigned char *bbuf;
