@@ -74,15 +74,42 @@ static void alsa_close()
 	return;
 }
 
+#ifndef timersub
+#define timersub(a, b, result) \
+do { \
+	(result)->tv_sec = (a)->tv_sec - (b)->tv_sec; \
+  (result)->tv_usec = (a)->tv_usec - (b)->tv_usec; \
+  if ((result)->tv_usec < 0) { \
+		--(result)->tv_sec; \
+		(result)->tv_usec += 1000000; \
+	} \
+} while (0)
+#endif
+
+
 static int alsa_write(void *data, int count)
 {
+	snd_pcm_status_t *status;
 	int err;
+	
 	if (!sound_handle)
 		return 0;
-#if	1
 	err = snd_pcm_writei(sound_handle, data, count / 4);
 	if (err == -EPIPE) {
-		alsaplayer_error("underrun. resetting stream");
+		snd_pcm_status_alloca(&status);
+		if ((err = snd_pcm_status(sound_handle, status))<0) {
+			alsaplayer_error("xrun. can't determine length");
+		} else {
+			if (snd_pcm_status_get_state(status) == SND_PCM_STATE_XRUN) {
+				struct timeval now, diff, tstamp;
+				gettimeofday(&now, 0);
+				snd_pcm_status_get_trigger_tstamp(status, &tstamp);
+				timersub(&now, &tstamp, &diff);
+				alsaplayer_error("xrun of at least %.3f msecs. resetting stream",
+					diff.tv_sec * 1000 + diff.tv_usec / 1000.0);
+			} else 
+				alsaplayer_error("xrun. can't determine length");
+		}	
 		snd_pcm_prepare(sound_handle);
 		err = snd_pcm_writei(sound_handle, data, count / 4);
 		if (err != count / 4) {
@@ -93,7 +120,6 @@ static int alsa_write(void *data, int count)
 			return 0;
 		}	
 	}
-#endif
 	return 1;
 }
 
