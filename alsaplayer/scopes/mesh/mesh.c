@@ -294,6 +294,7 @@ scope_plugin meshscope_plugin =
   SCOPE_PLUGIN_VERSION,
   {"Meshscope"},
   {"Stefan Eilemann & Andy Lo A Foe"},
+	NULL,
   init_meshscope,
   open_meshscope,
   start_meshscope,

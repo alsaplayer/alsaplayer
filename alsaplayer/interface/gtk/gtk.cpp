@@ -56,6 +56,7 @@ void load_scope_addons()
 {
 	char path[1024];
 	struct stat buf;
+	scope_plugin *tmp;
 
 	scope_plugin_info_type scope_plugin_info;
 
@@ -87,7 +88,11 @@ void load_scope_addons()
 #ifdef DEBUG					
 						fprintf(stderr, "Loading scope addon: %s\n", path);
 #endif
-						apRegisterScopePlugin(scope_plugin_info());
+						tmp = scope_plugin_info();
+						if (tmp) {
+								tmp->handle = handle;
+								apRegisterScopePlugin(tmp);
+						}		
 					} else {
 						dlclose(handle);
 					}

@@ -449,6 +449,7 @@ scope_plugin fftscope_plugin = {
 	SCOPE_PLUGIN_VERSION,
 	{ "FFTscope" },
 	{ "Richard Boulton"},
+	NULL,
 	init_fftscope,
 	open_fftscope,
 	start_fftscope,

@@ -643,6 +643,7 @@ scope_plugin synaescope_plugin = {
 	SCOPE_PLUGIN_VERSION,
 	{ "Synaescope" },
 	{ "Richard Boulton"},
+	NULL,
 	init_synaescope,
 	open_synaescope,
 	start_synaescope,

@@ -491,6 +491,7 @@ scope_plugin monoscope_plugin = {
 	SCOPE_PLUGIN_VERSION,
 	{ "Monoscope" },
 	{ "Andy Lo A Foe"},
+	NULL,
 	init_monoscope,
 	open_monoscope,
 	start_monoscope,

@@ -25,7 +25,7 @@
  * THE VERSION NUMBER IS *NOT* A USER SERVICABLE PART!
  */
 
-#define SCOPE_PLUGIN_VERSION    0x1001
+#define SCOPE_PLUGIN_VERSION    0x1002
 
 #define SCOPE_NICE	15
 #define SCOPE_SLEEP 20000
@@ -47,6 +47,7 @@ typedef struct _scope_plugin
 	scope_version_type version;		
 	char name[256];
 	char author[256];
+	void *handle;
 	scope_init_type init;
 	scope_open_type open;
 	scope_start_type start;

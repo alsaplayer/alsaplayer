@@ -1,1 +1,1 @@
-SUBDIRS = gtk cli
+SUBDIRS = gtk cli qt

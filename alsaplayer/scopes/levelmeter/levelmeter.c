@@ -314,6 +314,7 @@ scope_plugin levelmeter_plugin = {
 	SCOPE_PLUGIN_VERSION,
 	{ "Levelmeter" },
 	{ "Andy Lo A Foe"},
+	NULL,
 	init_levelmeter,
 	open_levelmeter,
 	start_levelmeter,

@@ -464,6 +464,7 @@ scope_plugin barscope_plugin = {
 	SCOPE_PLUGIN_VERSION,
 	{ "FFTscope II" },
 	{ "Andy Lo A Foe"},
+	NULL,
 	init_fftscope,
 	open_fftscope,
 	start_fftscope,

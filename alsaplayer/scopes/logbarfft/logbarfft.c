@@ -461,6 +461,7 @@ scope_plugin logscope_plugin = {
 	SCOPE_PLUGIN_VERSION,
 	{ "logFFTscope" },
 	{ "Andy Lo A Foe"},
+	NULL,
 	init_fftscope,
 	open_fftscope,
 	start_fftscope,
