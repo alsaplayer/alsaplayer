@@ -134,8 +134,7 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 	}		
 	pcm_index = 0;
 	while (bytes_needed > 0) {	
-		ret = ov_read(&data->vf, pcmout + pcm_index, bytes_needed, 
-			('BIG!'==(('B'<<24)+('I'<<16)+('G'<<8)+'!')), 2, 1, &current_section);
+		ret = ov_read(&data->vf, pcmout + pcm_index, bytes_needed, 0, 2, 1, &current_section);
 		switch (ret) {
 			case 0:
 				return 0;
