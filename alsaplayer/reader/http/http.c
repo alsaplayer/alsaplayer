@@ -137,7 +137,7 @@ static int sleep_for_data (int sock)
     fd_set set;
     struct timeval tv;
     
-    tv.tv_sec = 2;
+    tv.tv_sec = 5;
     tv.tv_usec = 0;
     FD_ZERO (&set);
     FD_SET (sock, &set);
@@ -347,7 +347,7 @@ static int reconnect (http_desc_t *desc)
     }
 
     /* Wait for connection */
-    tv.tv_sec = 2;
+    tv.tv_sec = 10;
     tv.tv_usec = 0;
     FD_ZERO (&set);
     FD_SET (desc->sock, &set);
@@ -391,7 +391,7 @@ static int reconnect (http_desc_t *desc)
 
     /* Check return code */
     rc = atoi (response + 9);
-    if (rc != 200) {
+    if (rc != 200 && rc != 206) {
 	/* Wrong code */
 	if (rc == 404) {
 	    /* 404 */
