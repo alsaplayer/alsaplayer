@@ -39,6 +39,7 @@ static jack_nframes_t latency = 0;
 static jack_transport_info_t transport;
 static char *mix_buffer = NULL;
 static int jack_reconnect = 1;
+static int jack_initialconnect = 1;
 static int jack_transport_aware = 0;
 
 static char dest_port1[128];
@@ -143,24 +144,26 @@ int jack_prepare(void *arg)
 			free(mix_buffer);
 			mix_buffer = NULL;
 			return -1;
-		}       
-		if (global_verbose)
-			alsaplayer_error("connecting to jack ports: %s & %s", dest_port1, dest_port2);
+		}
+		if (jack_initialconnect) {
+			if (global_verbose)
+				alsaplayer_error("connecting to jack ports: %s & %s", dest_port1, dest_port2);
 
-		if (jack_connect (client, jack_port_name(my_output_port1), dest_port1)) {
-			alsaplayer_error("cannot connect output port 1 (%s)",
-				dest_port1);
-			free(mix_buffer);
-			mix_buffer = NULL;
-			return -1;
-		}               
-		if (jack_connect (client, jack_port_name(my_output_port2), dest_port2)) {
-			alsaplayer_error("cannot connect output port 2 (%s)",
-				dest_port2);
-			free(mix_buffer);
-			mix_buffer = NULL;
-			return -1;
-		}               
+			if (jack_connect (client, jack_port_name(my_output_port1), dest_port1)) {
+				alsaplayer_error("cannot connect output port 1 (%s)",
+						dest_port1);
+				free(mix_buffer);
+				mix_buffer = NULL;
+				return -1;
+			}               
+			if (jack_connect (client, jack_port_name(my_output_port2), dest_port2)) {
+				alsaplayer_error("cannot connect output port 2 (%s)",
+						dest_port2);
+				free(mix_buffer);
+				mix_buffer = NULL;
+				return -1;
+			}
+		}
 		return 0;
 	}
 	return -1;
@@ -233,6 +236,9 @@ static int jack_open(const char *name)
 		} else if (strcmp(t, "noreconnect") == 0) {
 			alsaplayer_error("jack: driver will not try to reconnect");
 			jack_reconnect = 0;
+		} else if (strcmp(t, "noconnect") == 0) {
+			alsaplayer_error("jack: not connecting ports");
+			jack_initialconnect = 0;
 		} else if (strcmp(t, "transport") == 0) {
 			alsaplayer_error("jack: alsaplayer is transport aware");
 			jack_transport_aware = 1;
