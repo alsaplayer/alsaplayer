@@ -842,14 +842,14 @@ static int mad_open(input_object *obj, char *path)
 	}
 	strcpy(data->path, path);
 
-	if (strncmp(path, "http", 4) == 0) {
+/*	if (strncmp(path, "http", 4) == 0) {
 			alsaplayer_error("No seeking allowed");
 			obj->flags = 0;
 			data->seekable = 0;
-	} else {	
+	} else {	*/
 		obj->flags = P_SEEK;
 		data->seekable = 1;
-	}
+/*	}*/
 
 	return 1;
 }
