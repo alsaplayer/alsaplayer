@@ -36,6 +36,7 @@
 #include "reader.h"
 #include "alsaplayer_error.h"
 #include "utilities.h"
+#include "prefs.h"
 
 typedef struct http_desc_t_ {
     char *host, *path;
@@ -58,7 +59,8 @@ typedef struct http_desc_t_ {
 #define  HTTP_BLOCK_SIZE  (32*1024)
 
 /* How long should be buffer? (bytes) */
-#define  HTTP_BUFFER_SIZE  (1*1024*1024)
+#define  DEFAULT_HTTP_BUFFER_SIZE  (1*1024*1024)
+int http_buffer_size;
 
 /* --------------------------------------------------------------- */
 /* ---------------------- NETWORK RELATED FUNCTIONS -------------- */
@@ -189,7 +191,7 @@ static void buffer_thread (http_desc_t *desc)
     int going = desc->going;	    /* we should be careful */
     
     /* Internal thread buffer */
-    void *ibuffer = malloc (HTTP_BUFFER_SIZE);
+    void *ibuffer = malloc (HTTP_BLOCK_SIZE);
     
     printf ("STARTing thread for %p\n", desc);
     
@@ -201,7 +203,7 @@ static void buffer_thread (http_desc_t *desc)
 
 	/* check for overflow */
 	going = desc->going;
-	if (desc->len > HTTP_BUFFER_SIZE) {
+	if (desc->len > http_buffer_size) {
 	    printf ("%p]] Overflow\n", desc);
 	    dosleep (250000);
 	    continue;
@@ -453,6 +455,8 @@ static float http_can_handle(const char *uri)
 /* init plugin                                                         */
 static int http_init()
 {
+    http_buffer_size = prefs_get_int (ap_prefs, "http", "buffer_size", DEFAULT_HTTP_BUFFER_SIZE);
+    printf ("buffer size = %d\n", http_buffer_size);
     return 1;
 }
 
@@ -460,6 +464,7 @@ static int http_init()
 /* shutdown plugin                                                     */
 static void http_shutdown()
 {
+    prefs_set_int (ap_prefs, "http", "buffer_size", http_buffer_size);
     return;
 }
 
@@ -531,7 +536,7 @@ static size_t http_read (void *ptr, size_t size, void *d)
 	desc->pos += tocopy;
 
 	/* trying to shrink buffer */
-	if (desc->len + HTTP_BLOCK_SIZE > HTTP_BUFFER_SIZE && desc->pos - desc->begin > HTTP_BUFFER_SIZE/2) {
+	if (desc->len + HTTP_BLOCK_SIZE > http_buffer_size && desc->pos - desc->begin > http_buffer_size/2) {
 	    void *newbuf;
 	    
 	    desc->len -= tocopy;
