@@ -197,6 +197,9 @@ int reader_can_handle (const char *uri) {
     int i = plugin_count;
     reader_plugin *plugin = plugins;
 
+    if (!uri) {
+	    return 0;
+    }
     // Search for best reader plugin
     for (;i--;plugin++) {
 	if (plugin->can_handle (uri) > 0)
@@ -382,7 +385,10 @@ void reader_free_expanded (char **list)
 int reader_readline (reader_type *h, char *buf, int size)
 {
     int len = 0;
-    
+   
+    if (!h || !buf) {
+	    return 0;
+    }
     while (size && !reader_eof(h)) {
 	reader_read (buf, 1, h);
 
