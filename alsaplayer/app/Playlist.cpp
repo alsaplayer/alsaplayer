@@ -134,6 +134,7 @@ void insert_thread(void *data) {
 	// Free the list again
 	pthread_mutex_unlock(&(playlist->playlist_mutex));
 	delete items;
+	pthread_exit(NULL);
 }
 
 
@@ -155,12 +156,17 @@ Playlist::~Playlist() {
 	active = false;
 	pthread_join(playlist_thread, NULL);
 	interfaces.clear();	// Unregister all interfaces
-	pthread_mutex_destroy(&playlist_mutex);
-
+	
 	// FIXME - need to do something to kill off an insert thread, if one is
 	// running - otherwise it might have its playlist torn from underneath it
-	
-	//pthread_destroy(&adder);
+	// We currently just wait for the thread to finish
+	if (adder) {
+			printf("Waiting for insert thread to finish\n");
+	    pthread_join(adder, NULL);
+	}		
+	pthread_mutex_lock(&playlist_mutex); // Acquire the playlist lock
+																			 // Before destroying it
+	pthread_mutex_destroy(&playlist_mutex);
 }
 
 // Return number of items in playlist
