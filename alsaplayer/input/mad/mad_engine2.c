@@ -126,6 +126,7 @@ char const *error_str(enum mad_error error, char *str)
 		case MAD_ERROR_BADHUFFTABLE:	 return ("bad Huffman table select");
 		case MAD_ERROR_BADHUFFDATA:	 return ("Huffman data overrun");
 		case MAD_ERROR_BADSTEREO:	 return ("incompatible block_type for JS");
+		default:;
 	}
 
 	sprintf(str, "error 0x%04x", error);
@@ -166,10 +167,6 @@ static int mad_frame_seek(input_object *obj, int frame)
 {
 	struct mad_local_data *data;
 	struct mad_header header;
-	int64_t pos;
-	int bytes_read;
-	int advance;
-	int num_bytes;
 	int skip;
 	ssize_t byte_offset;
 
@@ -180,8 +177,6 @@ static int mad_frame_seek(input_object *obj, int frame)
 	//alsaplayer_error("Frame seek to %d (highest = %d)", frame, data->highest_frame);
 	
 	if (data) {
-		ssize_t current_pos;
-
 		if (!data->seekable)
 			return 0;
 
@@ -275,8 +270,6 @@ static int mad_frame_size(input_object *obj)
 
 static int mad_play_frame(input_object *obj, char *buf)
 {
-	int ret;
-	int bytes_read;
 	struct mad_local_data *data;
 	struct mad_pcm *pcm;
 	mad_fixed_t const *left_ch;
@@ -351,7 +344,6 @@ static int mad_play_frame(input_object *obj, char *buf)
 static  long mad_frame_to_sec(input_object *obj, int frame)
 {
 	struct mad_local_data *data;
-	int64_t l = 0;
 	unsigned long sec = 0;
 
 	if (!obj)
@@ -367,7 +359,6 @@ static  long mad_frame_to_sec(input_object *obj, int frame)
 
 static int mad_nr_frames(input_object *obj)
 {
-	struct mad_local_data *data;
 	if (!obj)
 		return 0;
 	return obj->nr_frames;
@@ -457,11 +448,9 @@ static void parse_id3 (const char *path, stream_info *info)
 
 	    /* Header */
 	    unsigned char major_version = buf [3];
-	    unsigned char minor_version = buf [4];
 	    int f_unsynchronization = buf [5] & (1<<7);
 	    int f_extended_header = buf [5] & (1<<6);
 	    int f_experimental = buf [5] & (1<<5);
-	    int f_footer = buf [5] & (1<<4);
 	    unsigned int header_size = from_synchsafe4 (buf + 6);
 	    int name_size = buf [3] == 2 ? 3 : 4;
 
@@ -648,7 +637,7 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 		memcpy (info, &data->sinfo, sizeof (data->sinfo));
 		
 		/* Compose path, stream_type and status fields */
-		sprintf(info->stream_type, "%dKHz %-3d kbit %s audio mpeg",
+		sprintf(info->stream_type, "%dKHz %-3ld kbit %s audio mpeg",
 				data->frame.header.samplerate / 1000,
 				data->frame.header.bitrate / 1000,
 				obj->nr_channels == 2 ? "stereo" : "mono");
@@ -656,7 +645,7 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 		if (data->seeking)
 			sprintf(info->status, "Seeking...");
 		else
-			sprintf(info->status, "");
+			*info->status = '\0';
 	}				
 	return 1;
 }
@@ -798,7 +787,6 @@ static int mad_open(input_object *obj, char *path)
 {
 	struct mad_local_data *data;
 	char *p;
-	char fake_read[4];
 	int mode;
 
 	if (!obj)
