@@ -289,7 +289,7 @@ FlacEngine::writeAlsaPlayerBuf (unsigned int apSamps,
 
 bool
 FlacEngine::writeBuf (const FLAC__Frame * frame,
-		      const FLAC__int32 * buffer [],
+		      const FLAC__int32 * const buffer[],
 		      unsigned int flacChannels,
 		      unsigned int bps)
 {

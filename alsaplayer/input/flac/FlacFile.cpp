@@ -166,7 +166,7 @@ FlacFile::seekAbsolute (FLAC__uint64 sample)
 // static
 void
 FlacFile::metaCallBack (const FLAC__FileDecoder * decoder,
-			const FLAC__StreamMetaData * md,
+			const FLAC__StreamMetadata * md,
 			void * client_data)
 {
     FlacFile * f = (FlacFile *) client_data;
@@ -223,15 +223,15 @@ FlacFile::errCallBack (const FLAC__FileDecoder * decoder,
 {
     switch (status)
     {
-    case FLAC__STREAM_DECODER_ERROR_LOST_SYNC:
+    case FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC:
 	alsaplayer_error ("flac: decoder lost sync.\n");
 	break;
 
-    case FLAC__STREAM_DECODER_ERROR_BAD_HEADER:
+    case FLAC__STREAM_DECODER_ERROR_STATUS_BAD_HEADER:
 	alsaplayer_error ("flac: the decoder encountered a bad header.\n");
 	break;
 
-    case FLAC__STREAM_DECODER_ERROR_FRAME_CRC_MISMATCH:
+    case FLAC__STREAM_DECODER_ERROR_STATUS_FRAME_CRC_MISMATCH:
 	alsaplayer_error ("flac: frame CRC error.\n");
 	break;
 
@@ -246,18 +246,18 @@ FlacFile::errCallBack (const FLAC__FileDecoder * decoder,
 FLAC__StreamDecoderWriteStatus
 FlacFile::writeCallBack (const FLAC__FileDecoder * decoder,
 			 const FLAC__Frame * frame,
-			 const FLAC__int32 * buffer [],
+			 const FLAC__int32 * const buffer[],
 			 void * client_data)
 {
     if (!client_data)
-	return FLAC__STREAM_DECODER_WRITE_ABORT;
+	return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
     
     FlacFile * f = (FlacFile *) client_data;
     if (!f || !f->_engine)
-	return FLAC__STREAM_DECODER_WRITE_ABORT;
+	return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
     return f->_engine->writeBuf (frame, buffer, f->channels (), f->bps ()) ? 
-	   FLAC__STREAM_DECODER_WRITE_CONTINUE : 
-	   FLAC__STREAM_DECODER_WRITE_ABORT;
+	   FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE : 
+	   FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
     
 } // FlacFile::writeCallBack
 

@@ -150,7 +150,7 @@ class FlacEngine
     // Write the uncompressed audio data into the buffer set with setBuf.
     //-------------------------------------------------------------------
 
-    bool  writeBuf (const FLAC__Frame * frame, const FLAC__int32 * buffer [],
+    bool  writeBuf (const FLAC__Frame * frame, const FLAC__int32 * const buffer[],
 		    unsigned int flacSamples, unsigned int bps);
 
 

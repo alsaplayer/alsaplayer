@@ -185,13 +185,13 @@ class FlacFile
     //-----------------------------------------------------------------
 
     static void metaCallBack (const FLAC__FileDecoder * decoder,
-			      const FLAC__StreamMetaData * md,
+			      const FLAC__StreamMetadata * md,
 			      void * cilent_data);
 
     static FLAC__StreamDecoderWriteStatus 
 	writeCallBack (const FLAC__FileDecoder * decoder,
 		       const FLAC__Frame * frame,
-		       const FLAC__int32 * buffer [],
+		       const FLAC__int32 * const buffer[],
 		       void * client_data);
 
     static void errCallBack (const FLAC__FileDecoder * decoder,
