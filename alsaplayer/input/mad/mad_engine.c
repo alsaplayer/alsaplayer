@@ -136,10 +136,15 @@ static int mad_frame_seek(input_object *obj, int frame)
 								return 0;
 				data = (struct mad_local_data *)obj->local_data;
 
-				mad_header_init(&header);
-
+				
 				if (data) {
 								ssize_t current_pos;
+							
+								if (!data->seekable)
+												return 0;
+
+								mad_header_init(&header);
+
 								if (frame <= data->highest_frame) {
 												int skip = 0;
 												if (frame > 4) {
@@ -220,7 +225,8 @@ static int mad_play_frame(input_object *obj, char *buf)
 								}
 				}
 				data->current_frame++;
-				if (data->current_frame < (obj->nr_frames + FRAME_RESERVE)) {
+				if (data->current_frame < (obj->nr_frames + FRAME_RESERVE)
+												&& data->seekable) {
 								data->frames[data->current_frame] = 
 												data->stream.this_frame - data->mad_map;
 								if (data->highest_frame < data->current_frame)
@@ -281,7 +287,7 @@ int mad_stream_info(input_object *obj, stream_info *info)
 				data = (struct mad_local_data *)obj->local_data;
 
 				if (data) {
-								strcpy(info->title, "Please note: file info / seeking not yet functional");				
+								strcpy(info->title, "Please note: file info is not yet functional");				
 								sprintf(info->stream_type, "%d-bit %dKHz %s %d Kbit/s Audio MPEG",
 																16, data->frame.header.samplerate / 1000,
 																obj->nr_channels == 2 ? "stereo" : "mono",
@@ -481,7 +487,6 @@ static int mad_open(input_object *obj, char *path)
 					 (data->frames = (ssize_t *)malloc((obj->nr_frames + FRAME_RESERVE) * sizeof(ssize_t))) == NULL) {
 								data->seekable = 0;
 				}	else {
-								printf("Allocated %d index positions\n", obj->nr_frames);
 								data->seekable = 1;
 				}				
 				data->frames[0] = data->offset;
