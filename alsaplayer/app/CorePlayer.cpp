@@ -211,9 +211,10 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	total_frames = 0;
 	streaming = false;
 	producing = false;
+	jumped = false;
 	//plugin_count = 0;
 	plugin = NULL;
-	jumped = jump_point = repitched = write_buf_changed = 0; 
+	jump_point = repitched = write_buf_changed = 0; 
 	new_frame_number = 0;
 	read_direction = DIR_FORWARD;
 	node = the_node;
@@ -578,6 +579,7 @@ bool CorePlayer::Start()
 	}
 	producing = true; // So Read32() doesn't generate an error
 	streaming = true;
+	jumped = false;
 
 	ResetBuffer();
 	
@@ -766,7 +768,7 @@ bool CorePlayer::CanSeek()
 int CorePlayer::Seek(int index)
 {
 	jump_point = index;
-	jumped = 1;
+	jumped = true;
 	return 0;
 }
 
@@ -991,7 +993,7 @@ int CorePlayer::Read32(void *data, int samples)
 	
 	if (jumped) {
 		int i;
-		jumped = 0;
+		jumped = false;
 		new_write_buf = read_buf;
 		// ---- Testing area ----
 		sample_buf *sb;
