@@ -277,6 +277,8 @@ Playlist::Playlist(AlsaNode *the_node) {
 	UnCrossfade();		// and crossfading
 
 	pthread_mutex_init(&playlist_mutex, NULL);
+	pthread_mutex_init(&interfaces_mutex, NULL);
+
 	pthread_create(&playlist_thread, NULL, (void * (*)(void *))playlist_looper, this);
 }	
 
