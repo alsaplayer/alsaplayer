@@ -103,6 +103,10 @@ int jack_prepare(void *arg)
 	char str[32];
 
 	if (strlen(dest_port1) && strlen(dest_port2)) {
+		if (global_verbose) {
+			alsaplayer_error("jack: using ports %s & %s for output",
+				dest_port1, dest_port2);
+		}	
 		if (global_session_name) {
 			snprintf(str, sizeof(str)-1,"%s", global_session_name);
 			str[sizeof(str)-1]=0;
@@ -110,7 +114,7 @@ int jack_prepare(void *arg)
 			sprintf(str, "alsaplayer-%d", getpid());
 		}	
 		if ((client = jack_client_new(str)) == 0) {
-			alsaplayer_error("jack server not running?");
+			alsaplayer_error("jack: server not running?");
 			return -1;
 		}
 		jack_set_process_callback (client, (JackProcessCallback)process, arg);
