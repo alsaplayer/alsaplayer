@@ -459,18 +459,21 @@ static void parse_id3 (const char *path, stream_info *info)
 	    if (f_extended_header) {
 		alsaplayer_error ("FIXME: Extended header founded in mp3."
 				  "Please contact alsaplayer team.\n");
+		reader_close (fd);
 		return;
 	    }
 
 	    if (f_unsynchronization) {
 		alsaplayer_error ("FIXME: f_unsynchronization is set."
 				  "Please contact alsaplayer team.\n");
+		reader_close (fd);
 		return;
 	    }
 
 	    if (f_experimental) {
 		alsaplayer_error ("FIXME: f_experimental is set."
 				  "Please contact alsaplayer team.\n");
+		reader_close (fd);
 		return;
 	    }
 
@@ -576,6 +579,7 @@ static void parse_id3 (const char *path, stream_info *info)
 	    } /* end of frames read */
 	    
 	    /* end parsing */
+	    reader_close (fd);
 	    return;
 	} /* end of id3v2 parsing */
 	

@@ -467,6 +467,7 @@ static void *http_open(const char *uri)
     
     /* Alloc descripor and init members. */
     desc = malloc (sizeof (http_desc_t));
+    desc->going = 0;
     desc->sock = 0;
     desc->size = 0;
     desc->pos = 0;
