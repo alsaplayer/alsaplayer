@@ -1,4 +1,6 @@
-/*  XMMS - Cross-platform multimedia player
+/*  opengl_spectrum.c (C) 2002 by Andy Lo A Foe <andy@alsaplayer.org>
+ 
+ *  Based on code found in xmms:
  *  Copyright (C) 1998-2000  Peter Alm, Mikael Alm, Olle Hallnas, Thomas Nilsson and 4Front Technologies
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -16,13 +18,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/*
- *  Wed May 24 10:49:37 CDT 2000
- *  Fixes to threading/context creation for the nVidia X4 drivers by 
- *  Christian Zander <phoenix@minion.de>
- */
-
-
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <math.h>
@@ -30,9 +25,6 @@
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include <pthread.h>
-#ifdef HAVE_SCHED_SETSCHEDULER
-#include <sched.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -219,16 +211,6 @@ void *draw_thread_func(void *arg)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-#if 0
-#ifdef HAVE_SCHED_SETSCHEDULER
-	if(xmms_check_realtime_priority())
-	{
-		struct sched_param sparam;
-		sparam.sched_priority = sched_get_priority_max(SCHED_OTHER);
-		pthread_setschedparam(pthread_self(), SCHED_OTHER, &sparam);		
-	}
-#endif
-#endif	
 	while(going)
 	{
 		while(XPending(dpy))
@@ -242,18 +224,6 @@ void *draw_thread_func(void *arg)
 			{
 			case ConfigureNotify:
 				glViewport(0,0,event.xconfigure.width, event.xconfigure.height);
-				/*
-				if(oglspectrum_cfg.tdfx_mode && !grabbed_pointer)
-				{
-					
-					XGrabPointer(dpy, window,
-						     True, ButtonPressMask,
-						     GrabModeAsync,
-						     GrabModeAsync,
-						     window, None, CurrentTime);
-					grabbed_pointer = TRUE;
-				}
-				*/
 				configured = TRUE;
 				break;
 			case KeyPress:
@@ -376,11 +346,6 @@ static void start_display(void)
 {
 	int x, y;
 
-	//if(oglspectrum_cfg.tdfx_mode)
-	//	putenv("MESA_GLX_FX=fullscreen");
-	//else
-	//	putenv("MESA_GLX_FX=""");
-	
 	for(x = 0; x < 16; x++)
 	{
 		for(y = 0; y < 16; y++)
@@ -423,12 +388,7 @@ static void stop_display(int join_thread)
 
 static int oglspectrum_init()
 {
-	//oglspectrum_read_config();
-
-	//if(!oglspectrum_cfg.tdfx_mode)
-	//		start_display();
 	pthread_mutex_init(&scope_mutex, NULL);
-	
 	return 1;		
 }	
 
@@ -494,7 +454,7 @@ static void oglspectrum_shutdown()
 scope_plugin oglspectrum_plugin = {
 	SCOPE_PLUGIN_VERSION,
 	{ "Spectrum GL" },
-	{ "Ported from xmms" },
+	{ "Andy Lo A Foe" },
 	NULL,
 	oglspectrum_init,
 	oglspectrum_start,
