@@ -26,8 +26,6 @@
 #include <string.h>
 #include <dlfcn.h>
 #include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
 
 #include "AlsaPlayer.h"
 #include "alsaplayer_error.h"
@@ -200,39 +198,13 @@ reader_type *reader_open (const char *uri)
     reader_plugin *plugin = plugins, *best_plugin = NULL;
     float max_q = 0.0;
     reader_type *h = (reader_type*)malloc (sizeof(reader_type));
-    char decoded_uri [1024];
-    int j;
-
-    // Decode URI
-    for (j=0; j<1024 && *uri; j++, uri++) {
-	if (*uri == '%') {
-	    int c;
-	    char *pos;
-	    char buf [3] = {uri[1], uri[2], '\0'};
-	    
-	    if (uri[1] == '%') {
-		decoded_uri [j] = '%';
-		uri++;
-		continue;
-	    }
-	    
-	    c = strtoul (buf, &pos, 16);
-	    if (*pos == '\0') {
-		decoded_uri [j] = c;
-		uri+=2;
-		continue;
-	    }
-	}
-	decoded_uri [j] = *uri;
-    }
-    decoded_uri [j] = '\0';
 
     // Check for memory
     if (!h)  return NULL;
     
     // Search for best reader plugin
     for (;i--;plugin++) {
-	float q = plugin->can_handle (decoded_uri);
+	float q = plugin->can_handle (uri);
 	
 	if (q == 1.0) {
 	    best_plugin = plugin;
@@ -248,7 +220,7 @@ reader_type *reader_open (const char *uri)
     /* use this plugin */
     if (best_plugin) {
 	h->plugin = best_plugin;
-	h->fd = h->plugin->open (decoded_uri);
+	h->fd = h->plugin->open (uri);
 
 	/* If fail to open */
 	if (h->fd == NULL) {
@@ -263,10 +235,10 @@ reader_type *reader_open (const char *uri)
     free (h);
     
     /* Second chance!!! (try treat it as a file) */
-    if (strncmp (decoded_uri, "file:", 5)) {
+    if (strncmp (uri, "file:", 5)) {
 	char new_uri [1024];
 
-	snprintf (new_uri, 1024, "file:%s", decoded_uri);
+	snprintf (new_uri, 1024, "file:%s", uri);
 	return reader_open (new_uri);
     }
     

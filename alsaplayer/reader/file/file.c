@@ -24,13 +24,47 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
+#include <stdlib.h>
+
 #include "reader.h"
 #include "string.h"
+
+static void decode_uri(const char *src, char *dst, int len)
+{
+    int j;
+    
+    for (j=0; j<len && *src; j++, src++) {
+	if (*src == '%') {
+	    int c;
+	    char *pos;
+	    char buf [3] = {src[1], src[2], '\0'};
+	    
+	    if (src[1] == '%') {
+		dst [j] = '%';
+		src++;
+		continue;
+	    }
+	    
+	    c = strtoul (buf, &pos, 16);
+	    if (*pos == '\0') {
+		dst [j] = c;
+		src+=2;
+		continue;
+	    }
+	}
+	dst [j] = *src;
+    }
+    dst [j] = '\0';
+}
 
 /* open stream, may return NULL */
 static void *file_open(const char *uri)
 {
-    return fopen (&uri[5], "r");
+    char decoded_uri[1024];
+    
+    decode_uri (uri, decoded_uri, 1020);
+    
+    return fopen (&decoded_uri[5], "r");
 }
 
 /* close stream */
@@ -43,11 +77,14 @@ static void file_close(void *d)
 static float file_can_handle(const char *uri)
 {
     struct stat buf;
+    char decoded_uri[1024];
+
+    decode_uri (uri, decoded_uri, 1020);
     
     /* Check for prefix */
-    if (strncmp (uri, "file:", 5))  return 0.0;
+    if (strncmp (decoded_uri, "file:", 5))  return 0.0;
     
-    if (stat(&uri[5], &buf))   return 0.0;
+    if (stat(&decoded_uri[5], &buf))   return 0.0;
     
     /* Is it a type we might have a chance of reading?
      * (Some plugins may cope with playing special devices, eg, a /dev/scd) */
@@ -96,13 +133,16 @@ static long file_tell (void *d)
 static float file_can_expand (const char *uri)
 {
     const char *path;
-    struct stat buf;
+    struct stat buf;   
+    char decoded_uri[1024];
+    
+    decode_uri (uri, decoded_uri, 1020);
     
     /* Check for prefix */
-    if (strncmp (uri, "file:", 5))  return 0.0;
+    if (strncmp (decoded_uri, "file:", 5))  return 0.0;
  
     /* Real path */
-    path = &uri[5];
+    path = &decoded_uri[5];
     if (!*path)  return 0.0;
 
     // Stat file, and don't follow symlinks
@@ -117,11 +157,15 @@ static float file_can_expand (const char *uri)
 static char **file_expand (const char *uri)
 {
     struct dirent *entry;
-    DIR *dir = opendir (&uri[5]);
+    DIR *dir;
     char **expanded = NULL;
     int count = 0;
     char *s;
-   
+    char decoded_uri[1024];
+    
+    decode_uri (uri, decoded_uri, 1020);
+    dir = opendir (&decoded_uri[5]);
+    
     /* Allocate memory for empty list */
     expanded = malloc (sizeof(char*));
     *expanded = NULL;
@@ -136,7 +180,7 @@ static char **file_expand (const char *uri)
 
 	/* compose */
 	s = malloc (sizeof(char) * (2 + strlen(&uri[5]) + strlen(entry->d_name)));
-	strcpy (s, &uri[5]);
+	strcpy (s, &decoded_uri[5]);
 	strcat (s, "/");
 	strcat (s, entry->d_name);
 	expanded [count++] = s;
