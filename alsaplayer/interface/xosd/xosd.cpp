@@ -187,7 +187,7 @@ int daemon_start(Playlist *playlist, int argc, char **argv)
 		dosleep(1000000);
 	}
 
-	xosd_uninit(osd);
+	xosd_destroy(osd);
 	
 	pthread_mutex_unlock(&finish_mutex);
 
