@@ -43,7 +43,6 @@ struct vorbis_local_data {
 	int last_section;
 	long bitrate_instant;
 	int bigendianp;
-	int is_local;
 };		
 
 /* Stolen from Vorbis' lib/vorbisfile.c */
@@ -112,7 +111,7 @@ static int vorbis_frame_seek(input_object *obj, int frame)
 	 * stereo with 16 bits samples.............
 	 */
 	if (data) {
-		if (!data->is_local)
+		if (obj->flags & P_STREAMBASED)
 			return 0;
 		pos = frame * (BLOCK_SIZE >> 2);
 		if (ov_pcm_seek(&data->vf, pos) == 0) 
@@ -401,15 +400,15 @@ static int vorbis_open(input_object *obj, const char *path)
 	memcpy(&data->vf, &vf_temp, sizeof(vf_temp));
 	memcpy(data->path, path, sizeof(data->path)-1);
 
-	data->is_local = 1;
-	obj->flags = P_SEEK;
-#if 0
+	obj->flags = 0;
+	obj->flags |= P_SEEK;
+	obj->flags |= P_PERFECTSEEK;
 	if (strncmp(path, "http://", 7) == 0) {
 		alsaplayer_error("No seeking allowed");
-		data->is_local = 0;
-		obj->flags = 0;
-	}
-#endif
+		obj->flags |= P_STREAMBASED;
+	} else {
+		obj->flags |= P_FILEBASED;
+	}	
 
 	return 1;
 }
