@@ -27,6 +27,7 @@
 #include <dirent.h>
 #include <fstream>
 #include <cstdlib>
+#include <algorithm>
 
 #include "Playlist.h"
 #include "CorePlayer.h"
@@ -361,10 +362,26 @@ void Playlist::Remove(unsigned start, unsigned end) {
 
 
 // Randomize playlist
-void Playlist::Shuffle() {
+void Playlist::Shuffle(int locking) {
 	pthread_mutex_lock(&playlist_mutex);
 
-	std::vector<PlayItem> tmp;
+	random_shuffle(queue.begin(), queue.end());
+	
+	// Tell the subscribing interfaces about the change
+	if(interfaces.size() > 0) {
+		std::set<PlaylistInterface *>::const_iterator i;
+		// Clear and repopulate
+		for(i = interfaces.begin(); i != interfaces.end(); i++) {
+			if (locking)
+				(*i)->CbLock();
+			(*i)->CbClear();
+			(*i)->CbInsert(queue, 0);
+			curritem = 0;
+			(*i)->CbSetCurrent(curritem);
+			if (locking)
+				(*i)->CbUnlock();
+		}
+	}
 
 	pthread_mutex_unlock(&playlist_mutex);
 }	
