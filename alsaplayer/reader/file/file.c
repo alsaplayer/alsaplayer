@@ -89,6 +89,14 @@ static int file_seek (void *d, long offset, int whence)
     return fseek ((FILE*)d, offset, whence);
 }
 
+/*
+ * Return current position in stream.
+*/
+static long file_tell (void *d)
+{
+    return ftell ((FILE*)d);
+}
+
 /* directory test */
 static float file_can_expand (const char *uri)
 {
@@ -162,6 +170,7 @@ reader_plugin file_plugin = {
 	file_close,
 	file_read,
 	file_seek,
+	file_tell,
 	file_can_expand,
 	file_expand
 };

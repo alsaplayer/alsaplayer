@@ -323,6 +323,16 @@ static int curlplugin_seek (void *d, long offset, int whence)
 }
 
 /*
+ * Return current position in stream.
+*/
+static long curlplugin_tell (void *d)
+{
+    curlplugin_info *info = (curlplugin_info*)d;
+
+    return info->pos;
+}
+
+/*
  * Can we expand this uri?
 */
 static float curlplugin_can_expand (const char *uri)
@@ -351,6 +361,7 @@ reader_plugin curlplugin_plugin = {
 	curlplugin_close,
 	curlplugin_read,
 	curlplugin_seek,
+	curlplugin_tell,
 	curlplugin_can_expand,
 	curlplugin_expand
 };

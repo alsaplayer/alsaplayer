@@ -244,6 +244,11 @@ int reader_seek (reader_type *h, long offset, int whence)
     return h->plugin->seek (h->fd, offset, whence);
 }
 
+// Like ftell
+long reader_tell (reader_type *h)
+{
+    return h->plugin->tell (h->fd);
+}
 // try to expand URI.
 // Function returns list of pointers to the expanded URIs.
 // or NULL if this URI is not expandable....
