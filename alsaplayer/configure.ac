@@ -300,7 +300,7 @@ AC_CHECK_HEADERS(jack/jack.h)
 if test "$have_glib" = "yes"
 then
 oldcflags=$CFLAGS
-CFLAGS="$CFLAGS -ldl"
+CFLAGS="$CFLAGS -ldl -L$jack_prefix/lib"
 AC_CHECK_LIB(jack,jack_activate,
 [
 have_jack=yes
