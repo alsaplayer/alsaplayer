@@ -38,6 +38,7 @@
 #include <audio/audiolib.h>
 #include <audio/soundlib.h>
 #include "output_plugin.h"
+#include "alsaplayer_error.h"
 
 typedef struct
 {
@@ -169,6 +170,8 @@ static int nas_write(void *buf,int len)
 {
     int buf_cnt = 0;
 
+    /* alsaplayer_error("nas_write(%x, %d)", buf, len); */
+
     while ((Nas_Info.buf_cnt + (len - buf_cnt)) >  Nas_Info.buf_size) {
         memcpy(Nas_Info.buf + Nas_Info.buf_cnt,
                (int *)buf + buf_cnt,
@@ -181,7 +184,7 @@ static int nas_write(void *buf,int len)
            (int *)buf + buf_cnt,
            (len - buf_cnt));
     Nas_Info.buf_cnt += (len - buf_cnt);
-    
+    //nas_flush();
     return 1;
 }
 
@@ -196,6 +199,10 @@ static int nas_set_buffer(int fragment_size, int fragment_count, int channels)
     /* Sample format hardcoded to 16-bit signed, of native
        byte order, stereo */
 
+    /* alsaplayer_error("nas_set_buffer(%d, %d, %d)", fragment_size, fragment_count, channels); */
+   
+    fragment_count = 3;
+    
     if (((char) *(short *)"x")=='x') /* ugly, but painless */
     {
 	format = AuFormatLinearSigned16LSB; /* little endian */
@@ -283,6 +290,7 @@ static int nas_set_buffer(int fragment_size, int fragment_count, int channels)
 
 static int nas_set_sample_rate(int rate)
 {
+	/* alsaplayer_error("nas_set_sample_rate(%d)", rate); */
 	/* Must be called before nas_set_buffer, or rate change will be ignored */
 	Nas_Info.freq = rate;
 	return rate;
