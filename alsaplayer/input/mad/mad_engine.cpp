@@ -34,6 +34,7 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include "input_plugin.h"
+#include "alsaplayer_error.h"
 
 extern "C" { 	/* Make sure MAD symbols are not mangled
 							 * since we compile them with regular gcc */
@@ -67,6 +68,7 @@ struct mad_local_data {
 				struct mad_frame  frame;
 				int mad_init;
 				ssize_t offset;
+				ssize_t filesize;
 				int samplerate;
 				int bitrate;
 				int seekable;
@@ -247,7 +249,6 @@ static int mad_play_frame(input_object *obj, char *buf)
 				data = (struct mad_local_data *)obj->local_data;
 				if (!data)
 								return 0;
-
 				if (mad_frame_decode(&data->frame, &data->stream) == -1) {
 								if (!MAD_RECOVERABLE(data->stream.error)) {
 												/* printf("MAD error: %s\n", error_str(data->stream.error, data->str)); */
@@ -262,6 +263,12 @@ static int mad_play_frame(input_object *obj, char *buf)
 												&& data->seekable) {
 								data->frames[data->current_frame] = 
 												data->stream.this_frame - data->mad_map;
+								if (data->current_frame && 
+										 (data->frames[data->current_frame] -
+										  data->frames[data->current_frame-1]) < 2) {
+											/* alsaplayer_error("EOF reached"); */
+											return 0;
+								}		
 								if (data->highest_frame < data->current_frame)
 												data->highest_frame = data->current_frame;
 				}				
@@ -515,18 +522,19 @@ static int mad_open(input_object *obj, char *path)
 												data->stat.st_size - data->offset);
 				
 				if ((mad_frame_decode(&data->frame, &data->stream) != 0)) {
+								alsaplayer_error("MAD error: %s", error_str(data->stream.error, data->str));
 								switch (data->stream.error) {
 												case	MAD_ERROR_BUFLEN:
-																printf("MAD_ERROR_BUFLEN...\n");
 																return 0;
 												case MAD_ERROR_LOSTSYNC:
-																printf("MAD_ERROR_LOSTSYNC...%d\n", data->offset);
+																return 0;
+												case MAD_ERROR_BADBITALLOC:
 																return 0;
 												case 0x232:				
 												case 0x235:
 																break;
 												default:
-																printf("MAD debug: no valid frame found at start (pos: %d, error: 0x%x)\n", data->offset, data->stream.error);
+																printf("No valid frame found at start (pos: %d, error: 0x%x)\n", data->offset, data->stream.error);
 																return 0;
 								}
 				}
@@ -544,15 +552,14 @@ static int mad_open(input_object *obj, char *path)
 				/* Calculate some values */
 
 				{
-								ssize_t filesize;			
 								int64_t time;
 								int64_t samples;
 								int64_t frames;
 
-								filesize = data->stat.st_size;
-								filesize -= data->offset;
+								data->filesize = data->stat.st_size;
+								data->filesize -= data->offset;
 
-								time = (filesize * 8) / (data->bitrate);
+								time = (data->filesize * 8) / (data->bitrate);
 
 								samples = 32 * MAD_NSBSAMPLES(&data->frame.header);
 

@@ -19,7 +19,7 @@
 #include "AlsaPlayer.h"
 #include "config.h"
 #include "prefs.h"
-#include "error.h"
+#include "alsaplayer_error.h"
 #include <unistd.h>
 #include <sys/types.h>
 //#define NEW_SCALE

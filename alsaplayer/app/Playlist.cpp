@@ -59,13 +59,20 @@ extern void playlist_looper(void *data)
 					pl->Next(1);
 				}	
 			}
-			if (pl->Crossfading()) {
+			if (pl->Crossfading() && pl->coreplayer->GetSpeed() >= 0.0) {
 				// Cross example
-				if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < 110) {
-						if (pl->player1->IsActive())
+				if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < 300) {
+						if (pl->player1->IsActive() && pl->player2->IsActive()) {
+							pl->player1->Stop();
+							pl->player2->Stop();
+						}	
+						if (pl->player1->IsActive()) {
+								pl->player2->SetSpeed(pl->coreplayer->GetSpeed());
 								pl->coreplayer = pl->player2;
-						else
+						} else {
+								pl->player1->SetSpeed(pl->coreplayer->GetSpeed());
 								pl->coreplayer = pl->player1;
+						}		
 						pl->Next(1);
 				}
 			}

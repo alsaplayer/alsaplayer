@@ -28,7 +28,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "output_plugin.h"
-#include "error.h"
+#include "alsaplayer_error.h"
 
 #define LOW_FRAGS	1	
 

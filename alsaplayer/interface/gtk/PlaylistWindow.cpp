@@ -34,7 +34,7 @@
 #include "gtk_interface.h"
 #include "utilities.h"
 #include "prefs.h"
-#include "error.h"
+#include "alsaplayer_error.h"
 
 // Forward declarations
 

@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "output_plugin.h"
-#include "error.h"
+#include "alsaplayer_error.h"
 
 #define LOW_FRAGS	1	
 //#define QUEUE_COUNT
