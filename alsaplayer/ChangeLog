@@ -1,6 +1,8 @@
+- Changed behaviour of PLAY button in gtk interface
 - Fix MAD playback on big-endian machines.
 - Doubled the set_data and set_fft rate for smoother scope output
 - Changed fft data output slightly
+- New Blurscope and OpenGL Spectrum analyzer scopes, ported over from xmms
 - Retired fftscope and logfftscope scope plugins. They were just (bad) copies
   of logbarscope anyway
 - Fix crashing bug when loading old scopes

@@ -63,6 +63,7 @@ static pthread_t draw_thread;
 static pthread_mutex_t scope_mutex;
 
 static int fft_buf[2][256];
+static void stop_display(int);
 
 static Window create_window(int width, int height)
 {
@@ -114,34 +115,6 @@ static Window create_window(int width, int height)
 	return win;
 }
 
-#if 0
-VisPlugin *get_vplugin_info(void)
-{
-	oglspectrum_vp.description =
-		g_strdup_printf(_("OpenGL Spectrum analyzer %s"), VERSION);
-	return &oglspectrum_vp;
-}
-#endif
-
-#if 0
-void oglspectrum_read_config(void)
-{
-	ConfigFile *cfg;	
-	char *filename;
-
-	oglspectrum_cfg.tdfx_mode = FALSE;
-	
-	filename = g_strconcat(g_get_home_dir(), "/.xmms/config", NULL);
-	cfg = xmms_cfg_open_file(filename);
-	
-	if (cfg)
-	{
-		xmms_cfg_read_boolean(cfg, "OpenGL Spectrum", "tdfx_fullscreen", &oglspectrum_cfg.tdfx_mode);		
-		xmms_cfg_free(cfg);
-	}
-	g_free(filename);
-}
-#endif
 
 static void draw_rectangle(GLfloat x1, GLfloat y1, GLfloat z1, GLfloat x2, GLfloat y2, GLfloat z2)
 {
@@ -291,10 +264,7 @@ void *draw_thread_func(void *arg)
 				{
 				case XK_Escape:
 					
-					/* Ugly hack to get the disable_plugin call in the main thread. */
-					//GDK_THREADS_ENTER();
-					//gtk_idle_add(disable_func, NULL);
-					//GDK_THREADS_LEAVE();
+					going = FALSE;
 					break;
 				case XK_z:
 					//xmms_remote_playlist_prev(oglspectrum_vp.xmms_session);
@@ -356,7 +326,6 @@ void *draw_thread_func(void *arg)
 			case ClientMessage:
 				if ((Atom)event.xclient.data.l[0] == wm_delete_window_atom)
 				{
-					alsaplayer_error("close window event received");
 					going = FALSE;
 				}
 				break;

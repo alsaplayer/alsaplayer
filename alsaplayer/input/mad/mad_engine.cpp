@@ -417,14 +417,15 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 												header_size += 10;
 												//printf("MP3 should start at %d\n", header_size);
 												if (data[header_size] != 0xff) {
-													printf("You have a broken MP3! Searching for next 0xFF\n");
+													alsaplayer_error("broken MP3 or unkown TAG! Searching for next 0xFF");
 													while (header_size < size) {
 														if (data[++header_size] == 0xff &&
 																data[header_size+1] == 0xfb) {
-															//printf("Found 0xff 0xfb at %d\n",  header_size);
+															alsaplayer_error("Found 0xff 0xfb at %d",  header_size);
 															return header_size;
 														}
 													}
+													alsaplayer_error("Not found in first 16K, bad :(");
 												}	
 												return header_size;
 								} else if (data[pos] == 'R' && data[pos+1] == 'I' &&
