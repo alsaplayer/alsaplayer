@@ -225,7 +225,7 @@ static void start_fftscope(void)
 }
 
 
-static int init_fftscope(void)
+static int init_fftscope(void *arg)
 {
 	int i;
 	
