@@ -37,9 +37,9 @@ run_cmd() {
 }
 
 # Check if /usr/local/share/aclocal exists
-if [ -d /usr/local/share/aclocal ]; then
-	ACLOCAL_INCLUDE="$ACLOCAL_INCLUDE -I /usr/local/share/aclocal"
-fi	
+#if [ -d /usr/local/share/aclocal ]; then
+#	ACLOCAL_INCLUDE="$ACLOCAL_INCLUDE -I /usr/local/share/aclocal"
+#fi	
 
 run_cmd cat m4/*.m4 > acinclude.m4
 run_cmd aclocal $ACLOCAL_INCLUDE
