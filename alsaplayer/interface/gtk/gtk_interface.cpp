@@ -925,7 +925,7 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	main_window = create_main_window();
 	gtk_window_set_policy(GTK_WINDOW(main_window), false, false, false);
 	gtk_window_set_title(GTK_WINDOW(main_window), global_session_name == NULL ?
-		"AlsaPlayer "VERSION : global_session_name);
+		"AlsaPlayer" : global_session_name);
 	gtk_window_set_wmclass(GTK_WINDOW(main_window), "AlsaPlayer", "alsaplayer");
 	gtk_widget_realize(main_window);
 

@@ -54,7 +54,7 @@ void scope_entry_destroy_notify(gpointer data)
 {
 }
 
-#define SCOPE_BUFFER	4096
+#define SCOPE_BUFFER	2048
 
 bool  scope_feeder_func(void *arg, void *data, int size) 
 {
@@ -124,8 +124,8 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 		fft_perform(left_actEq, left_fftout, left_fftstate);
 			
 		for (i = 0, left_pos = fft_buf, right_pos = fft_buf + 256; i < 256; i++) {
-			left_pos[i] = (int)(sqrt(left_fftout[i]) * fftmult[i]);
-			right_pos[i] = (int)(sqrt(right_fftout[i]) * fftmult[i]);
+			left_pos[i] = (int)(sqrt(left_fftout[i + 1])) >> 8; //* fftmult[i]);
+			right_pos[i] = (int)(sqrt(right_fftout[i + 1])) >> 8; //* fftmult[i]);
 		}	
 #endif
 		while (se && se->sp && se->active) {
@@ -163,7 +163,7 @@ void apUnregiserScopePlugins()
 		//printf("closing and unloading scope plugin %s\n", current->sp->name);
 		current->active = 0;
 		current->sp->stop();
-		current->sp->close();
+		current->sp->shutdown();
 		current = current->next;
 	}
 	pthread_mutex_unlock(&sl_mutex);
@@ -185,9 +185,8 @@ int apRegisterScopePlugin(scope_plugin *plugin)
 	se->next = (scope_entry *)NULL;
 	se->sp = plugin;
 	if (se->sp->version != SCOPE_PLUGIN_VERSION) {
-			fprintf(stderr, "Wrong version number on plugin v%d, wanted v%d\n",
-				se->sp->version - 0x1000, SCOPE_PLUGIN_VERSION - 0x1000);
-			delete se->sp;
+			fprintf(stderr, "Wrong version number on scope plugin \"%s\" (v%d, wanted v%d)\n",
+				se->sp->name, se->sp->version - 0x1000, SCOPE_PLUGIN_VERSION - 0x1000);
 			delete se;
 			return 0;
 	}		
