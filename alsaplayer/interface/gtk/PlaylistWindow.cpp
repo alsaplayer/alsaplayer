@@ -371,7 +371,7 @@ void add_file_ok(GtkWidget *widget, gpointer data)
 void load_list_ok(GtkWidget *widget, gpointer data)
 {
   PlaylistWindowGTK *playlist_window_gtk = (PlaylistWindowGTK *)data;
-	gtk_widget_hide(GTK_WIDGET(playlist_window_gtk->load_list));
+	//gtk_widget_hide(GTK_WIDGET(playlist_window_gtk->load_list));
 	Playlist *playlist = playlist_window_gtk->GetPlaylist();
 	enum plist_result loaderr;
 
@@ -511,9 +511,24 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 		"clicked", GTK_SIGNAL_FUNC(dialog_cancel), (gpointer)playlist_window_gtk->add_file);
  	gtk_signal_connect(GTK_OBJECT(playlist_window_gtk->add_file), "delete_event",
                 GTK_SIGNAL_FUNC(dialog_delete), NULL);
+	
+	// Modify button text of add_file dialog
+	gtk_object_set(GTK_OBJECT(
+		GTK_FILE_SELECTION(playlist_window_gtk->add_file)->ok_button),
+		"label", "Add", NULL);
+	gtk_object_set(GTK_OBJECT(
+		GTK_FILE_SELECTION(playlist_window_gtk->add_file)->cancel_button),
+		"label", "Close", NULL);
 	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(playlist_window_gtk->add_file)->ok_button),
     	"clicked", GTK_SIGNAL_FUNC(add_file_ok), (gpointer)playlist_window_gtk);
 
+	// Modify button text of load_list dialog
+	gtk_object_set(GTK_OBJECT(
+		GTK_FILE_SELECTION(playlist_window_gtk->load_list)->cancel_button),
+		"label", "Close", NULL);
+	gtk_object_set(GTK_OBJECT(
+		GTK_FILE_SELECTION(playlist_window_gtk->load_list)->ok_button),
+		"label", "Load", NULL);
 	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(playlist_window_gtk->load_list)->cancel_button),
 		"clicked", GTK_SIGNAL_FUNC(dialog_cancel), (gpointer)playlist_window_gtk->load_list);
 	gtk_signal_connect(GTK_OBJECT(playlist_window_gtk->load_list), "delete_event",
@@ -521,6 +536,13 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(playlist_window_gtk->load_list)->ok_button),
 		"clicked", GTK_SIGNAL_FUNC(load_list_ok), (gpointer)playlist_window_gtk);
 
+	// MOdify button text of save_list dialog
+	gtk_object_set(GTK_OBJECT(
+		GTK_FILE_SELECTION(playlist_window_gtk->save_list)->cancel_button),
+		"label", "Close", NULL);
+	gtk_object_set(GTK_OBJECT(
+		GTK_FILE_SELECTION(playlist_window_gtk->save_list)->ok_button),
+		"label", "Save", NULL);
 	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(playlist_window_gtk->save_list)->cancel_button),
 		"clicked", GTK_SIGNAL_FUNC(dialog_cancel), (gpointer)playlist_window_gtk->save_list);
 	gtk_signal_connect(GTK_OBJECT(playlist_window_gtk->save_list), "delete_event",
