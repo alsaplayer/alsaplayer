@@ -6,7 +6,7 @@ ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
 ALSAPLAYER_MICRO_VERSION=61
 
-BETA=-pre3
+BETA=-pre4
 
 ALSAPLAYER_VERSION=$ALSAPLAYER_MAJOR_VERSION.$ALSAPLAYER_MINOR_VERSION.${ALSAPLAYER_MICRO_VERSION}${BETA}
 
@@ -678,6 +678,7 @@ scopes/opengl_spectrum/Makefile
 output/Makefile
 output/alsa-0.5.x/Makefile
 output/alsa-final/Makefile
+output/jack/Makefile
 output/oss/Makefile
 output/esound/Makefile
 output/sgi/Makefile

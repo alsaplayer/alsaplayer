@@ -25,13 +25,14 @@
 #define __output_plugin_h__
 
 #define OUTPUT_PLUGIN_BASE_VERSION	0x1000
-#define OUTPUT_PLUGIN_VERSION	(OUTPUT_PLUGIN_BASE_VERSION + 3)
+#define OUTPUT_PLUGIN_VERSION	(OUTPUT_PLUGIN_BASE_VERSION + 4)
 
 typedef int output_version_type;
 typedef int(*output_init_type)();
 typedef int(*output_open_type)(char *path);
 typedef void(*output_close_type)();
 typedef int(*output_write_type)(void *data, int byte_count);
+typedef int(*output_start_callbacks_type)(void *data);
 typedef int(*output_set_buffer_type)(int frag_size, int frag_count, int channels);
 typedef int(*output_set_sample_rate_type)(int rate);
 typedef int(*output_get_queue_count_type)();
@@ -83,6 +84,13 @@ typedef struct _output_plugin
 	 */ 
 	output_write_type write;
 
+	/**
+	 * @param data pointer to bufs structure in AlsaNode
+	 *
+	 * This function is used for callback based plugins like JACK
+	 */
+	output_start_callbacks_type start_callbacks;
+	
 	/**
 	 * @param frag_size Fragment size to use (in bytes)
 	 * @param frag_count Fragment count to use (in bytes)

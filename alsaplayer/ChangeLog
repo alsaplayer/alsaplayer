@@ -1,3 +1,5 @@
+- JACK plugin is now a *real* plugin. Minor changes to the output 
+  plugin API to accomodate this.
 - Changes for latest JACK, at least 0.28.2 required now.
 - Add genre and album parsing in MAD plugin (Evgeny)
 - Complete reimplentation of socket control API (libalsaplayer)

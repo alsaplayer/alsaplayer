@@ -35,91 +35,11 @@
 #include "AlsaNode.h"
 #include "utilities.h"
 #include "alsaplayer_error.h"
-#ifdef USE_JACK
-#include <jack/jack.h>
-#endif
-
 
 #define MAX_FRAGS	32
 #define LOW_FRAGS	1	
 
 extern void exit_sighandler(int);
-
-#ifdef USE_JACK
-
-void AlsaNode::jack_restarter(void *arg)
-{
-	AlsaNode *node = (AlsaNode *)arg;
-	alsaplayer_error("sleeping 2 second");
-	sleep (2);
-
-	if (node && node->client)
-		jack_client_close(node->client);
-	if (jack_prepare(arg) < 0) {
-		alsaplayer_error("failed reconnecting to jack...exitting");
-		kill(0, SIGTERM);
-	}	
-}
-
-
-void AlsaNode::jack_shutdown (void *arg)
-{
-	AlsaNode *node = (AlsaNode *)arg;
-	pthread_t restarter;
-
-	if (node) {
-		alsaplayer_error("trying to reconnect to jack (spawning thread)");
-		pthread_create(&restarter, NULL, (void * (*)(void *))jack_restarter, arg);
-	}	
-}
-
-
-int AlsaNode::jack_prepare(void *arg)
-{
-	AlsaNode *node = (AlsaNode *)arg;
-	char str[32];
-
-	if (node && strlen(node->dest_port1) && strlen(node->dest_port2)) {
-		if ((node->client = jack_client_new(node->client_name)) == 0) {
-			alsaplayer_error("jack server not running?");
-			return -1;
-		}
-		jack_set_process_callback (node->client, (JackProcessCallback)process, arg);
-		jack_set_buffer_size_callback (node->client, (JackProcessCallback)bufsize, arg);
-		jack_set_sample_rate_callback (node->client, (JackProcessCallback)srate, arg);
-		jack_on_shutdown (node->client, jack_shutdown, arg);
-
-		node->my_output_port1 = jack_port_register (node->client, "out_1",
-				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput|JackPortIsTerminal, 0);		
-		node->my_output_port2 = jack_port_register (node->client, "out_2",
-				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput|JackPortIsTerminal, 0);		
-
-		if (jack_activate (node->client)) {
-			alsaplayer_error("cannot activate client");
-			return -1;
-		}	
-		if (global_verbose)
-			alsaplayer_error("connecting to jack ports: %s & %s", node->dest_port1, node->dest_port2);
-
-		if (jack_connect (node->client, jack_port_name(node->my_output_port1), node->dest_port1)) {
-			alsaplayer_error("cannot connect output port 1");
-			return -1;
-		}		
-		if (jack_connect (node->client, jack_port_name(node->my_output_port2), node->dest_port2)) {
-			alsaplayer_error("cannot connect output port 2");
-			return -1;
-		}		
-
-		node->use_jack = 1;
-
-		node->init = 1;
-
-		return 0;
-	}
-	return -1;
-}
-
-#endif
 
 AlsaNode::AlsaNode(char *name, int realtime)
 {
@@ -129,11 +49,7 @@ AlsaNode::AlsaNode(char *name, int realtime)
 	plugin = NULL;
 	nr_fragments = fragment_size = external_latency = 0;	
 	init = false;
-	sock = -1;
 	use_pcm = name;
-#ifdef USE_JACK	
-	use_jack = 0;
-#endif
 	realtime_sched = realtime;
 	sample_freq = OUTPUT_RATE;
 
@@ -144,21 +60,7 @@ AlsaNode::AlsaNode(char *name, int realtime)
 		sprintf(client_name, "%s", global_session_name);
 	else	
 		sprintf(client_name, "alsaplayer-%d", getpid());
-#ifdef USE_JACK		
-	if (strncmp(name, "jack", 4) == 0) { // Use JACK
-		strcpy(dest_port1, prefs_get_string(ap_prefs, "jack", "output1", "alsa_pcm:out_1"));
-		strcpy(dest_port2, prefs_get_string(ap_prefs, "jack", "output2", "alsa_pcm:out_2"));
-		if (sscanf(name, "jack %31s %31s", dest_port1, dest_port2) == 1) {
-			strcpy(dest_port2, dest_port1);
-		}
-		if (jack_prepare(this) < 0) {
-			alsaplayer_error("failed initial connect attempt to jack\n");
-			init = false;
-		}	else {
-			init = true;
-		}	
-	}
-#endif
+	
 	pthread_mutex_init(&thread_mutex, NULL);
 	pthread_mutex_init(&queue_mutex, NULL);
 }
@@ -167,13 +69,6 @@ AlsaNode::AlsaNode(char *name, int realtime)
 AlsaNode::~AlsaNode()
 {
 	StopStreaming();
-#ifdef USE_JACK
-	if (use_jack) {
-		if (client)
-			jack_client_close (client);
-		return;
-	}	
-#endif
 	assert(plugin);
 	plugin->close();
 }
@@ -182,12 +77,7 @@ AlsaNode::~AlsaNode()
 int AlsaNode::SetSamplingRate(int freq)
 {
 	int actual_rate;
-#ifdef USE_JACK
-	if (use_jack) {
-		//alsaplayer_error("Not setting samplerate for JACK");	
-		return sample_freq;
-	}
-#endif
+	
 	assert(plugin);
 
 	if ((actual_rate = plugin->set_sample_rate(freq))) {
@@ -201,12 +91,6 @@ int AlsaNode::SetSamplingRate(int freq)
 
 int AlsaNode::SetStreamBuffers(int frag_size, int count, int channels)
 {
-#ifdef USE_JACK
-	if (use_jack) {
-		//alsaplayer_error("Not setting buffersize for JACK");
-		return 1;
-	}
-#endif
 	assert(plugin);
 
 	if (plugin->set_buffer(frag_size, count, channels)) {
@@ -218,93 +102,6 @@ int AlsaNode::SetStreamBuffers(int frag_size, int count, int channels)
 	}	
 }
 
-#ifdef USE_JACK
-int AlsaNode::bufsize(jack_nframes_t nframes, void *arg)
-{
-	AlsaNode *node = (AlsaNode *)arg;
-
-	//printf("the maximum buffer size is now %lu\n", nframes);
-	if (node) {
-		node->fragment_size = nframes;
-		node->nr_fragments = 3;
-	}	
-	return 0;
-}
-
-
-int AlsaNode::srate(jack_nframes_t rate, void *arg)
-{
-	AlsaNode *node = (AlsaNode *)arg;
-
-	//printf ("the sample rate is now %lu/sec\n", rate);
-	if (node)
-		node->sample_freq = (int)rate;
-	return 0;
-}
-
-#define SAMPLE_MAX_16BIT  32767.0f
-
-void sample_move_dS_s16 (sample_t *dst, char *src,
-		unsigned long nsamples, unsigned long src_skip) 
-{
-	/* ALERT: signed sign-extension portability !!! */
-	while (nsamples--) {
-		*dst = (*((short *) src)) / SAMPLE_MAX_16BIT;
-		dst++;
-		src += src_skip;
-	}
-}      
-
-//#define STATS  /* Only meaningful if fragments per interrupt is 64 */
-
-int AlsaNode::process(jack_nframes_t nframes, void *arg)
-{
-	AlsaNode *node = (AlsaNode *)arg;
-	char bufsize[16384];
-	static bool realtime_set = 0;
-
-#ifdef USE_REALTIME
-	if (node->realtime_sched && !realtime_set) {
-		struct sched_param sp;
-		memset(&sp, 0, sizeof(sp));
-		sp.sched_priority = sched_get_priority_max(SCHED_FIFO);
-
-		//alsaplayer_error("THREAD-%d=soundcard thread\n", getpid());
-
-		if (sched_setscheduler(0, SCHED_FIFO, &sp) != 0) {
-			alsaplayer_error("failed to setup realtime scheduling!");
-		} else {
-			mlockall(MCL_CURRENT);
-			printf("realtime scheduling active\n");
-		}
-		realtime_set = 1;
-	}	
-#endif
-
-	if (node) {
-		subscriber *i;
-		int c;
-		bool status;
-		sample_t *out1 = (sample_t *) jack_port_get_buffer(node->my_output_port1, nframes);
-		sample_t *out2 = (sample_t *) jack_port_get_buffer(node->my_output_port2, nframes);
-
-		memset(bufsize, 0, sizeof(bufsize));	
-
-		for (c = 0; c < MAX_SUB; c++) {
-			i = &node->subs[c];
-			if (!i->active || !i->streamer) { // Skip inactive streamers
-				continue;
-			}	
-			i->active = i->streamer(i->arg, bufsize, nframes * 2);
-		}
-		sample_move_dS_s16(out1, bufsize, nframes, sizeof(short) << 1);
-		sample_move_dS_s16(out2, bufsize + sizeof(short), nframes, sizeof(short) << 1); 
-	}	
-
-	return 0;
-}
-
-#endif
 
 void AlsaNode::looper(void *pointer)
 {
@@ -420,13 +217,14 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 		alsaplayer_error("Wrong version on plugin (v%d, wanted v%d)",
 				version - 0x1000, OUTPUT_PLUGIN_VERSION - 0x1000);
 		return 0;
-	}	
+	}
 	tmp->name = the_plugin->name;
 	tmp->author = the_plugin->author;
 	tmp->init = the_plugin->init;
 	tmp->open = the_plugin->open;
 	tmp->close = the_plugin->close;
 	tmp->write = the_plugin->write;
+	tmp->start_callbacks = the_plugin->start_callbacks;
 	tmp->set_buffer = the_plugin->set_buffer;
 	tmp->set_sample_rate = the_plugin->set_sample_rate;
 	tmp->get_queue_count = the_plugin->get_queue_count;
@@ -446,6 +244,18 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 		plugin = NULL;
 		return 0; // Unclean but good enough for now
 	}
+
+	/* If this is a callback based plugin, immediately start */
+	if (plugin->start_callbacks) {
+		alsaplayer_error("Callback based plugin");
+		if (!plugin->start_callbacks(subs)) {
+			alsaplayer_error("Callback startup failed");
+			plugin->close();
+			plugin = NULL;
+			return 0;
+		}	
+	}	
+	
 	init = true;
 	if (global_verbose)
 		fprintf(stdout, "Output plugin: %s\n", tmp->name);
@@ -520,11 +330,12 @@ bool AlsaNode::RemoveStreamer(int the_id)
 
 void AlsaNode::StartStreaming()
 {
-#ifdef USE_JACK
-	if (use_jack) {
+
+	assert(plugin);
+
+	if (plugin->start_callbacks)
 		return;
-	}	
-#endif	
+	alsaplayer_error("Going to start looper (%x)", plugin->start_callbacks);		
 	pthread_create(&looper_thread, NULL, (void * (*)(void *))looper, this);
 	pthread_detach(looper_thread);
 }
@@ -532,11 +343,12 @@ void AlsaNode::StartStreaming()
 
 void AlsaNode::StopStreaming()
 {
-#ifdef USE_JACK
-	if (use_jack) {
+	assert(plugin);
+
+	if (plugin->start_callbacks) {
 		return;
 	}	
-#endif
+	
 	looping = false;
 	pthread_cancel(looper_thread);
 	//pthread_join(looper_thread, NULL); // Wait for thread
@@ -552,11 +364,12 @@ bool AlsaNode::ReadyToRun()
 int AlsaNode::GetLatency()
 {
 	int count = 0;
-#ifdef USE_JACK
-	if (use_jack) // Should jack have a hardware buffer length query?
-		return (fragment_size * nr_fragments);
-#endif
+	
 	assert(plugin);
+	if (plugin->start_callbacks) {
+		return (fragment_size * nr_fragments);
+	}	
+	
 	if (plugin->get_queue_count && (count = plugin->get_queue_count()) >= 0) {
 		return count;
 	} else if (plugin->get_latency && (count = plugin->get_latency()) >= 0) {

@@ -17,17 +17,10 @@ SUN_LIBS = -lresolv
 
 endif
 
-if HAVE_JACK
-
-JACK_FLAGS = @GLIB_CFLAGS@ -DUSE_JACK
-JACK_LIBS = @JACK_LIB@ @GLIB_LIBS@
-
-endif
-
-LIBS = -lpthread -ldl $(SUN_LIBS) $(JACK_LIBS)
+LIBS = -lpthread -ldl $(SUN_LIBS)
 
 COMMON_FLAGS = @DFLAGS@ -D_REENTRANT \
-		-DADDON_DIR=\"$(ADDON_DIR)\" @ARCH_CFLAGS@ $(JACK_FLAGS)
+		-DADDON_DIR=\"$(ADDON_DIR)\" @ARCH_CFLAGS@
 
 INCLUDES = -I$(top_srcdir)/alsaplayer -I$(top_srcdir)/libalsaplayer
 

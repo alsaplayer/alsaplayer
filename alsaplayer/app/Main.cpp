@@ -128,7 +128,7 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 	output_plugin_info_type output_plugin_info;
 
 	if (module) {
-		sprintf(path, "%s/output/lib%s.so", addon_dir, module);
+		sprintf(path, "%s/output/lib%s_out.so", addon_dir, module);
 		printf("Loading output plugin: %s\n", path);
 		if (stat(path, &statbuf) != 0)	// Error reading object
 			return;
@@ -195,9 +195,9 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 	}	
 	// If we arrive here it means we haven't found any suitable output-addons
 	alsaplayer_error
-	    ("I could not find a suitable output module on your\n"
-	     "       system. Make sure they're in \"%s/output/\".\n"
-	     "       Use the -o parameter to select one.", addon_dir);
+	    ("\nI could not find a suitable output module on your\n"
+	     "system. Make sure they're in \"%s/output/\".\n"
+	     "Use the -o parameter to select one.\n", addon_dir);
 }
 
 

@@ -36,16 +36,6 @@
 #include <esd.h>
 #endif
 
-#ifdef USE_JACK
-
-#include <glib.h>
-#include <jack/jack.h>
-
-typedef jack_default_audio_sample_t sample_t;
-//typedef nframes_t jack_nframes_t;
-
-#endif
-
 #include "output_plugin.h"
 
 #define MAX_PLUGIN	32
@@ -82,33 +72,12 @@ class AlsaNode
 	int external_latency;
 	char *use_pcm;
 	char client_name[32];
-#ifdef USE_JACK	
-	bool use_jack;	/* This changes the internal workings of the class */
-	jack_port_t *my_output_port1;
-	jack_port_t *my_output_port2;
-	jack_client_t *client;
-	jack_nframes_t buffer_size;
-	jack_nframes_t sample_rate;
-	static int bufsize(jack_nframes_t nframes, void *arg);
-	static int srate(jack_nframes_t nframes, void *arg);
-	static int process (jack_nframes_t nframes, void *arg);
-	static int jack_prepare(void *arg);
-	static void jack_shutdown(void *arg);
-	static void jack_restarter(void *arg);
-	char dest_port1[32];
-	char dest_port2[32];
-#endif	
 	bool realtime_sched;
 	bool init;
 	bool looping;
 	static void looper(void *);
- public:
-	int sock;
-	void *sound_handle;
 	pthread_t looper_thread;
-	streamer_type streamer;	
-	void *argument;
-
+ public:		
 	AlsaNode(char *name, int realtime=0);
 	~AlsaNode();
 	int SetSamplingRate(int freq);
