@@ -93,7 +93,7 @@ static void default_alsaplayer_error(const char *fmt, ...) {
 	fputc('\n', stderr);
 }
 
-__attribute__((format(printf,1,2))) void (*alsaplayer_error) (const char *fmt, ...) = &default_alsaplayer_error;
+void (*alsaplayer_error) (const char *fmt, ...) = &default_alsaplayer_error;
 
 void alsaplayer_set_error_function(void (*func)(const char *, ...))
 {
