@@ -1,1 +1,1 @@
-SUBDIRS = file curl http
+SUBDIRS = file http
