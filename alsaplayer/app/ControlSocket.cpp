@@ -236,6 +236,20 @@ void socket_looper(void *arg)
 					ap_message_add_int32(reply, "ack", 1);
 				}
 				break;
+			case AP_GET_STREAM_TYPE:
+				if (player) {
+					player->GetStreamInfo(&info);
+					ap_message_add_string(reply, "string", info.stream_type);
+					ap_message_add_int32(reply, "ack", 1);
+				}
+				break;
+			case AP_GET_STATUS:
+				if (player) {
+					player->GetStreamInfo(&info);
+					ap_message_add_string(reply, "string", info.status);
+					ap_message_add_int32(reply, "ack", 1);
+				}
+				break;
 			case AP_GET_SESSION_NAME:
 				if (global_session_name) {
 					ap_message_add_string(reply, "string", global_session_name);

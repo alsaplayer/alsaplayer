@@ -617,6 +617,7 @@ int ap_get_title(int session, char *str)
 	return (ap_get_single_string_command(session,
 				AP_GET_TITLE, str, AP_TITLE_MAX));
 }
+
 int ap_get_artist(int session, char *str)
 {
 	return (ap_get_single_string_command(session, 
@@ -635,6 +636,17 @@ int ap_get_album(int session, char *str)
 				AP_GET_ALBUM, str, AP_ALBUM_MAX));
 }
 
+int ap_get_stream_type(int session, char *str)
+{
+	return (ap_get_single_string_command(session,
+				AP_GET_STREAM_TYPE, str, AP_STREAM_TYPE_MAX));
+}
+
+int ap_get_status(int session, char *str)
+{
+	return (ap_get_single_string_command(session,
+				AP_GET_STATUS, str, AP_STATUS_MAX));
+}
 
 int ap_ping(int session)
 {

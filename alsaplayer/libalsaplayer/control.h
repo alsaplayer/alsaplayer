@@ -18,11 +18,13 @@
 #ifndef __CONTROL_H__
 #define __CONTROL_H__
 
-#define AP_SESSION_MAX	256
-#define AP_TITLE_MAX	256
-#define AP_ARTIST_MAX	256
-#define AP_ALBUM_MAX	256
-#define AP_GENRE_MAX	256
+#define AP_SESSION_MAX		256
+#define AP_TITLE_MAX		256
+#define AP_ARTIST_MAX		256
+#define AP_ALBUM_MAX		256
+#define AP_GENRE_MAX		256
+#define AP_STREAM_TYPE_MAX	256
+#define AP_STATUS_MAX		256
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,6 +62,8 @@ int ap_set_frame(int session, int frame);
 int ap_get_frame(int session, int *val);
 int ap_get_frames(int session, int *val);
 
+int ap_get_stream_type(int session, char *str);
+int ap_get_status(int session, char *str);
 
 #ifdef __cplusplus
 }

@@ -58,6 +58,8 @@
 #define AP_GET_POS_SECOND               0xcc19
 #define AP_SET_POS_FRAME                0xcc1a
 #define AP_GET_POS_FRAME                0xcc1b
+#define AP_GET_STREAM_TYPE              0xcc1c
+#define AP_GET_STATUS			0xcc1d
 /* Add new commands here */
 
 #ifdef __cplusplus
