@@ -39,14 +39,14 @@
 #include "alsaplayer_error.h"
 
 static const char *default_output_addons[] = {
-	{"alsa"},
-	{"jack"},
-	{"oss"},
-	{"nas"},
-	{"sparc"},
-	{"sgi"},
-	{"esound"},
-	{"null"},
+	"alsa",
+	"jack",
+	"oss",
+	"nas",
+	"sparc",
+	"sgi",
+	"esound",
+	"null",
 	NULL
 };
 
