@@ -238,9 +238,9 @@ static void list_available_plugins(const char *plugindir)
 			if (first) { // don't print comma
 				first = false;
 			} else {
-				fprintf(stdout, " | ");
+				printf(" | ");
 			}
-			fprintf(stdout, "%s", name);
+			printf("%s", name);
 		}
 	}
 }
@@ -249,7 +249,7 @@ static void list_available_plugins(const char *plugindir)
 
 static void help()
 {
-	fprintf(stdout,
+	printf(
 		"\n"
 		"Usage: alsaplayer [options] [filename <filename> ...]\n"
 		"\n"
@@ -259,10 +259,10 @@ static void help()
 		"  -c,--config file        use given config file for this session\n"
 		"  -h,--help               print this help message\n"
 		"  -i,--interface iface    use specific interface [default=gtk]. choices:\n");
-	fprintf(stdout,
+	printf(
 		"                          [ ");
 	list_available_plugins("interface");
-	fprintf(stdout,
+	printf(
 		" ]\n"
 		"  -I,--script file        script to pass to interface plugin\n"
 		"  -n,--session n          use this session id [default=0]\n"
@@ -296,10 +296,10 @@ static void help()
 		"  -g,--fragcount n      fragment count [default=8]\n"
 		"  -o,--output output    use specific output driver [default=alsa]. choices:\n"
 		"  -r,--realtime         enable realtime scheduling (with proper rights)\n", OUTPUT_RATE);
-	fprintf(stdout,
+	printf(
 		"                        [ ");
 	list_available_plugins("output");
-	fprintf(stdout,
+	printf(
 		" ]\n"
 		"\n"
 		"Experimental options:\n"
@@ -312,7 +312,7 @@ static void help()
 
 static void version()
 {
-	fprintf(stdout, "%s %s\n", PACKAGE, VERSION);
+	printf("%s %s\n", PACKAGE, VERSION);
 }
 
 
@@ -622,7 +622,7 @@ int main(int argc, char **argv)
 
 
 	if (global_verbose)
-		fprintf(stdout, "%s\n", copyright_string);
+		puts(copyright_string);
 
 	if (!global_pluginroot) {
 		global_pluginroot = strdup (ADDON_DIR);
@@ -858,24 +858,13 @@ int main(int argc, char **argv)
 			goto _fatal_err;
 		}
 	} else {
-		if (!(interface_plugin_info =
-					load_interface(prefs_get_string
-						(ap_prefs, "main",
-						 "default_interface", "gtk")))) {
-			if (!
-					(interface_plugin_info =
-					 load_interface(prefs_get_string
-						 (ap_prefs, "main",
-						  "fallback_interface",
-						  "text")))) {
-				alsaplayer_error
-					("Failed to load text interface. This is bad (%s,%s,%s)",
-					 prefs_get_string(ap_prefs, "main",
-						 "default_interface",
-						 "gtk"),
-					 prefs_get_string(ap_prefs, "main",
-						 "default_interface",
-						 "gtk"),
+		if (!(interface_plugin_info = load_interface(prefs_get_string
+						(ap_prefs, "main", "default_interface", "gtk")))) {
+			if (!(interface_plugin_info = load_interface(prefs_get_string
+						 (ap_prefs, "main", "fallback_interface", "text")))) {
+				alsaplayer_error("Failed to load text interface. This is bad (%s,%s,%s)",
+					 prefs_get_string(ap_prefs, "main", "default_interface", "gtk"),
+					 prefs_get_string(ap_prefs, "main", "default_interface", "gtk"),
 					global_pluginroot);
 				goto _fatal_err;
 			}
@@ -885,11 +874,9 @@ int main(int argc, char **argv)
 		ui = interface_plugin_info();
 
 		if (global_verbose)
-			fprintf(stdout, "Interface plugin: %s\n",
-					ui->name);
+			printf("Interface plugin: %s\n", ui->name);
 		if (!ui->init()) {
-			alsaplayer_error
-				("Failed to load interface plugin. Should fall back to text\n");
+			alsaplayer_error("Failed to load interface plugin. Should fall back to text\n");
 		} else {
 			control_socket_start(playlist, ui);
 			ui->start(playlist, argc, argv);
