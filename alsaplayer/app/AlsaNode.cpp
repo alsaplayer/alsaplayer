@@ -221,7 +221,7 @@ int AlsaNode::SetStreamBuffers(int frag_size, int count, int channels)
 }
 
 #ifdef USE_JACK
-int AlsaNode::bufsize(nframes_t nframes, void *arg)
+int AlsaNode::bufsize(jack_nframes_t nframes, void *arg)
 {
 	AlsaNode *node = (AlsaNode *)arg;
 
@@ -234,7 +234,7 @@ int AlsaNode::bufsize(nframes_t nframes, void *arg)
 }
 
 
-int AlsaNode::srate(nframes_t rate, void *arg)
+int AlsaNode::srate(jack_nframes_t rate, void *arg)
 {
 	AlsaNode *node = (AlsaNode *)arg;
 
@@ -259,7 +259,7 @@ void sample_move_dS_s16 (sample_t *dst, char *src,
 
 //#define STATS  /* Only meaningful if fragments per interrupt is 64 */
 
-int AlsaNode::process(nframes_t nframes, void *arg)
+int AlsaNode::process(jack_nframes_t nframes, void *arg)
 {
 	AlsaNode *node = (AlsaNode *)arg;
 	char bufsize[16384];

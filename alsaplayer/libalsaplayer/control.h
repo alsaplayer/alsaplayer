@@ -18,6 +18,12 @@
 #ifndef __CONTROL_H__
 #define __CONTROL_H__
 
+#define AP_SESSION_MAX	256
+#define AP_TITLE_MAX	256
+#define AP_ARTIST_MAX	256
+#define AP_ALBUM_MAX	256
+#define AP_GENRE_MAX	256
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,14 +43,14 @@ int ap_clear_playlist(int session);
 int ap_add_path(int session, char *path);
 
 int ap_set_speed(int session, float speed);
-float *ap_get_speed(int session);
+int ap_get_speed(int session, float *val);
 
-char *ap_get_session_name(int session);
+int ap_get_session_name(int session, char *str);
 
-char *ap_get_title(int session);
-char *ap_get_artist(int session);
-char *ap_get_album(int session);
-char *ap_get_genre(int session);
+int ap_get_title(int session, char *str);
+int ap_get_artist(int session, char *str);
+int ap_get_album(int session, char *str);
+int ap_get_genre(int session, char *str);
 
 
 #ifdef __cplusplus

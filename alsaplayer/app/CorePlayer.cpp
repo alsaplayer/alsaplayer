@@ -671,6 +671,19 @@ bool CorePlayer::Load(const char *path = NULL)
 
 	memset(the_object, 0, sizeof(the_object));
 	if (plugin->open(the_object, file_path)) {
+		if (plugin->frame_size(the_object) > BUF_SIZE) {
+			alsaplayer_error("CRITICAL ERROR: this plugin advertised a buffer size\n"
+					 "larger than %d bytes. This is not supported by AlsaPlayer!\n"
+					 "Contact the author to fix this problem.\n"
+					 "TECHNICAL: A possible solution is to divide the frame size\n"
+					 "in 2 and double the number of effective frames. This can be\n"
+					 "handled relatively easily in the plugin (hopefully).\n\n"
+					 "We will retreat, as chaos and despair await us on\n"
+					 "on this chosen path........................................", BUF_SIZE);
+			result = false;
+			frames_in_buffer = 0;
+			plugin->close(the_object);
+		}	
 		result = true;
 		frames_in_buffer = read_buf->buf->GetBufferSizeBytes(plugin->frame_size(the_object)) / plugin->frame_size(the_object);
 	} else {

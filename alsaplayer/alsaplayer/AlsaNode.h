@@ -35,10 +35,17 @@
 #ifdef USE_ESD
 #include <esd.h>
 #endif
+
 #ifdef USE_JACK
+
 #include <glib.h>
 #include <jack/jack.h>
+
+typedef jack_default_audio_sample_t sample_t;
+//typedef nframes_t jack_nframes_t;
+
 #endif
+
 #include "output_plugin.h"
 
 #define MAX_PLUGIN	32
@@ -80,11 +87,11 @@ class AlsaNode
 	jack_port_t *my_output_port1;
 	jack_port_t *my_output_port2;
 	jack_client_t *client;
-	nframes_t buffer_size;
-	nframes_t sample_rate;
-	static int bufsize(nframes_t nframes, void *arg);
-	static int srate(nframes_t nframes, void *arg);
-	static int process (nframes_t nframes, void *arg);
+	jack_nframes_t buffer_size;
+	jack_nframes_t sample_rate;
+	static int bufsize(jack_nframes_t nframes, void *arg);
+	static int srate(jack_nframes_t nframes, void *arg);
+	static int process (jack_nframes_t nframes, void *arg);
 	static int jack_prepare(void *arg);
 	static void jack_shutdown(void *arg);
 	static void jack_restarter(void *arg);

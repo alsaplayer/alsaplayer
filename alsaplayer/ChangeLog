@@ -1,3 +1,4 @@
+- Changes for latest JACK, at least 0.28.2 required now.
 - Add genre and album parsing in MAD plugin (Evgeny)
 - Complete reimplentation of socket control API (libalsaplayer)
   This breaks all old libalsaplayer apps, fortunately there aren't that many

@@ -7,23 +7,15 @@
 int main (int argc, char *argv[])
 {
 	int i;
-	char *artist = NULL;
-	char *title = NULL;
+	char artist[AP_ARTIST_MAX];
+	char title[AP_TITLE_MAX];
 	float speed = 0.0;
-	float *qspeed = NULL;
 	int session_id = 0;
-	
 
-	artist = ap_get_artist(session_id);
-	title = ap_get_title(session_id);
-
-	if (artist && title) {
-		printf("File playing: %s - %s\n", artist, title);
+	if (ap_get_title(session_id, title) &&
+	    ap_get_artist(session_id, artist)) {
+		printf("File playing: %s - %s\n", title, artist);
 	}
-	if (artist)
-		free(artist);
-	if (title)
-		free(title);
 	
 	if (argc == 2) {
 		if (sscanf (argv[1], "%f", &speed) == 1) {
@@ -36,11 +28,8 @@ int main (int argc, char *argv[])
 			}
 		}
 	}
-	qspeed = ap_get_speed(session_id);
-
-	if (qspeed) {
-		printf ("Current speed = %.2f\n", *qspeed);
-		free(qspeed);
+	if (ap_get_speed(session_id, &speed)) {
+		printf ("Current speed = %.2f\n", speed);
 	}	
 	return 0;
 }
