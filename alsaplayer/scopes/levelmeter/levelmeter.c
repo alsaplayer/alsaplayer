@@ -269,6 +269,7 @@ static void run_levelmeter(void *data)
 	nice(SCOPE_NICE);	
 	levelmeter8(scope_win);	
 	pthread_mutex_unlock(&levelmeter_mutex);
+	pthread_exit(NULL);
 }
 
 
@@ -286,7 +287,6 @@ static void start_levelmeter(void *data)
 	gtk_widget_show(scope_win);
 	pthread_create(&levelmeter_thread, NULL,
 		(void * (*)(void *))run_levelmeter, data);
-	//pthread_detach(levelmeter_thread);
 }
 
 static int init_levelmeter()
@@ -302,6 +302,7 @@ static int open_levelmeter()
 
 static void close_levelmeter()
 {
+	stop_levelmeter();
 }
 
 
