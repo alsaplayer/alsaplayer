@@ -806,8 +806,9 @@ Playlist::Load(std::string const &uri, unsigned position, bool force)
 		if (*path == '#') {
 		    // Comment... skip it for now
 		    continue;
-		} else if (*path=='/' || reader_can_handle (path)) {
-		    // This is a absolute path or URI
+		} else if (*path=='/') {
+		     newfile = std::string("file://") + std::string(path);    
+		} else if (reader_can_handle (path)) {
 		    newfile = std::string(path);
 		} else if (*path == '\0') {
 		    // No path
@@ -817,11 +818,9 @@ Playlist::Load(std::string const &uri, unsigned position, bool force)
 		    // This is probably realtive URI or not supported URI type.
 		    newfile = base + std::string(path);
 		}
-
 		// Test result
 		if (!reader_can_handle (newfile.c_str()))
 		    continue;
-
 		// Add this file
 		newfiles.push_back(newfile);
 		successes++;
