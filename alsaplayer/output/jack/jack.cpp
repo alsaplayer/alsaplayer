@@ -56,7 +56,7 @@ static int jack_prepare(void *arg);
 static void jack_shutdown(void *arg);
 static void jack_restarter(void *arg);
 
-#define SAMPLE_MAX_16BIT  32767.0f
+#define SAMPLE_MAX_16BIT  32768.0f
 
 void sample_move_dS_s16 (sample_t *dst, char *src,
 		unsigned long nsamples, unsigned long src_skip) 
