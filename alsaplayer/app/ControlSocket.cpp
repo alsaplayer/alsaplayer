@@ -404,6 +404,10 @@ static void socket_looper(void *arg)
 				}
 				ap_message_add_int32(reply, "ack", 1);
 				break;
+			case AP_GET_PLAYLIST_LENGTH:
+				ap_message_add_int32(reply, "int", (int32_t)playlist->Length());
+				ap_message_add_int32(reply, "ack", 1);
+				break;
 			case AP_GET_SONG_LENGTH_SECOND:
 				if (player) {
 					total_time = player->GetCurrentTime(player->GetFrames());

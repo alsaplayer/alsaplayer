@@ -569,6 +569,11 @@ int ap_get_length(int session, int *length)
 	return (ap_cmd_get_int(session, AP_GET_SONG_LENGTH_SECOND, length));
 }
 
+int ap_get_playlist_length(int session, int *length)
+{
+	return (ap_cmd_get_int(session, AP_GET_PLAYLIST_LENGTH, length));
+}
+
 int ap_set_frame(int session, int frame)
 {
 	return (ap_cmd_set_int(session, AP_SET_POS_FRAME, frame));
