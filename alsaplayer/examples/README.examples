@@ -1,0 +1,22 @@
+This directory contains some sample source code for using libalsaplayer
+
+add.c     Add files to a running alsaplayer
+clear.c   Clear playlist
+seek.c    Seek in songs
+speed.c   Set playback speed/pause, negative parameter is allowed ;-)
+time.c    Displays position info for a session
+
+All these examples can be build as follows:
+
+$ gcc -o example example.c `pkg-config alsaplayer --cflags --libs`
+
+Where example is any of the above filenames (sans extension). If pkg-config
+gives you errors you might need to set PKG_CONFIG_PATH:
+
+$ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig
+
+(if you used /usr/local as the prefix path for alsaplayer)
+
+Questions, etc. can be send to the alsaplayer-devel mailing list
+
+-andy
