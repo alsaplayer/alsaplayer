@@ -52,7 +52,7 @@
 #include "utilities.h"
 #include "prefs.h"
 #include "alsaplayer_error.h"
-#include "external.cpp"		/* This is a dirty hack */
+#include "message.c"		/* This is a dirty hack */
 
 Playlist *playlist = NULL;
 
@@ -521,9 +521,8 @@ int main(int argc, char **argv)
 			} else
 				strcpy(queue_name, argv[count]);
 			count++;
-			ap_result = ap_set_string(use_session,
-				AP_SET_STRING_ADD_FILE, queue_name);
-			alsaplayer_error("ap_result = %d", ap_result);	
+			ap_result = ap_add_path(use_session, queue_name);
+			//alsaplayer_error("ap_result = %d", ap_result);	
 		}
 		if (ap_result)
 			return 0;

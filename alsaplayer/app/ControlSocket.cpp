@@ -45,12 +45,13 @@ void socket_looper(void *arg)
 	struct timeval tv;
 	struct sockaddr_un saddr;
 	stream_info info;
-	void *data;
-	float float_val;
-	char *path;
 	char session_name[32];
-	int long_val;
-	int int_val;
+	long total_time;
+	void *data;
+	float *float_val;
+	char *path;
+	int *long_val;
+	int *int_val;
 	socklen_t len;
 	int fd;
 	int session_id = 0;
@@ -71,7 +72,6 @@ void socket_looper(void *arg)
 	if ((socket_fd = socket(AF_UNIX, SOCK_STREAM, 0)) != -1) {
 		saddr.sun_family = AF_UNIX;
 		while (session_id < MAX_AP_SESSIONS && !session_ok) {
-			float_val = 0.0;
 			if (!ap_ping(session_id)) {
 				sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
 						"anonymous" : pwd->pw_name, session_id);
@@ -127,6 +127,8 @@ void socket_looper(void *arg)
 	
 		//alsaplayer_error("server: got something (%x)", msg->header.cmd);
 	
+		player = playlist->GetCorePlayer();
+	
 		switch(msg->header.cmd) {
 			case AP_PING:
 				ap_message_add_int32(reply, "pong", 28);
@@ -138,29 +140,155 @@ void socket_looper(void *arg)
 				ap_message_add_int32(reply, "ack", 1);
 				break;
 			case AP_PLAY: 
+				if (player && !player->IsPlaying()) {
+					ap_message_add_int32(reply, "ack",
+						player->Start());
+				}
+				break;
 			case AP_NEXT: 
+				playlist->Next(1);
+				ap_message_add_int32(reply, "ack", 1);
+				break;
 			case AP_PREV:
+				playlist->Prev(1);
+				ap_message_add_int32(reply, "ack", 1);
+				break;
 			case AP_STOP:
+				if (player)
+					player->Stop();
+				ap_message_add_int32(reply, "ack", 1);
+				break;
 			case AP_PAUSE:
+				if (player)
+					player->SetSpeed(0.0);
+				ap_message_add_int32(reply, "ack", 1);
+				break;
 			case AP_UNPAUSE:
+				if (player)
+					player->SetSpeed(1.0);
+				ap_message_add_int32(reply, "ack", 1);
+				break;
 			case AP_CLEAR_PLAYLIST:
+				playlist->Clear(1);
+				ap_message_add_int32(reply, "ack", 1);
+				break;
 			case AP_QUIT:
+				// Woah, this is very dirty! XXX FIXME XXX
+				exit(0);
+				break;
 			case AP_SET_SPEED:
+				if ((float_val=ap_message_find_float(msg, "speed"))) {
+					player = playlist->GetCorePlayer();
+					if (player) {
+						player->SetSpeed(*float_val);
+						ap_message_add_int32(reply, "ack", 1);	
+					}	
+				}
+				break;
 			case AP_GET_SPEED:
+				if (player) {
+					ap_message_add_float(reply, "speed", player->GetSpeed());
+					ap_message_add_int32(reply, "ack", 1);
+				}	
+				break;
 			case AP_SET_VOLUME:
+				if ((float_val=ap_message_find_float(msg, "volume"))) {
+					player = playlist->GetCorePlayer();
+					if (player) {
+						player->SetVolume((int)*float_val);
+						ap_message_add_int32(reply, "ack", 1);
+					}
+				}
+				break;
 			case AP_GET_VOLUME:
-			case AP_GET_TITLE:	
-			case AP_GET_SONG_NAME:
+				if (player) {
+					ap_message_add_float(reply, "volume", player->GetVolume());
+					ap_message_add_int32(reply, "ack", 1);
+				}	
+				break;
+			case AP_GET_TITLE:
+				if (player) {
+					player->GetStreamInfo(&info);
+					ap_message_add_string(reply, "title", info.title);
+					ap_message_add_int32(reply, "ack", 1);
+				}
+				break;
 			case AP_GET_ARTIST:
+				if (player) {
+					player->GetStreamInfo(&info);
+					ap_message_add_string(reply, "artist", info.artist);
+					ap_message_add_int32(reply, "ack", 1);
+				}
+				break;
 			case AP_GET_ALBUM:
+				if (player) {
+					player->GetStreamInfo(&info);
+					ap_message_add_string(reply, "album", info.album);
+					ap_message_add_int32(reply, "ack", 1);
+				}
+				break;
 			case AP_GET_GENRE:
+				if (player) {
+					player->GetStreamInfo(&info);
+					ap_message_add_string(reply, "genre", info.genre);
+					ap_message_add_int32(reply, "ack", 1);
+				}
+				break;
 			case AP_GET_SESSION_NAME:
-			case AP_GET_POS_SECOND:
+				if (global_session_name) {
+					ap_message_add_string(reply, "name", global_session_name);
+				} else {
+					sprintf(session_name, "alsaplayer-%d", global_session_id);
+					ap_message_add_string(reply, "name", session_name);
+				}
+				ap_message_add_int32(reply, "ack", 1);
+				break;
+			case AP_GET_POS_SECOND:	
+				if (player) {
+					ap_message_add_int32(msg, "pos", 
+						player->GetCurrentTime() / 100);
+					ap_message_add_int32(reply, "ack", 1);
+				}	
+				break;
 			case AP_SET_POS_SECOND:
+				if (player) {
+					if ((int_val = ap_message_find_int32(msg, "pos"))) {
+						*int_val *= player->GetSampleRate();
+						*int_val /= player->GetFrameSize();
+						*int_val *= player->GetChannels();
+						*int_val *= 2; // 16-bit ("2" x 8-bit)
+						player->Seek(*int_val);
+					}
+				}
+				ap_message_add_int32(reply, "ack", 1);
+				break;
 			case AP_GET_SONG_LENGTH_SECOND:
+				if (player) {
+					total_time = player->GetCurrentTime(player->GetFrames());
+					ap_message_add_int32(reply, "pos", (int32_t)(total_time / 100));
+					ap_message_add_int32(reply, "ack", 1);
+				}
+				break;
 			case AP_GET_SONG_LENGTH_FRAME:
+				if (player) {
+					ap_message_add_int32(reply, "frames", player->GetFrames());
+					ap_message_add_int32(reply, "ack", 1);
+				}
+				break;
 			case AP_GET_POS_FRAME:
+				if (player) {
+					ap_message_add_int32(reply, "frame", player->GetPosition());
+					ap_message_add_int32(reply, "ack", 1);
+				}
+				break;
 			case AP_SET_POS_FRAME:
+				if (player) {
+					if ((int_val = ap_message_find_int32(msg, "pos"))) {
+						player->Seek(*int_val);
+						ap_message_add_int32(reply, "ack", 1);
+					}
+				}
+				break;
 			default: alsaplayer_error("CMD unknown or not implemented= %x",
 					msg->header.cmd);
 				 break;
