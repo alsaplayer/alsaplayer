@@ -583,7 +583,7 @@ bool CorePlayer::Start()
 	//alsaplayer_error("Prebuffering...");
 	// Wait for up to 4 seconds
 	tries = 100;
-	while (--tries && (AvailableBuffers() < 4) && producing) { 
+	while (--tries && (AvailableBuffers() < 2) && producing) { 
 		//alsaplayer_error("Waiting for buffers...");
 		dosleep(40000);
 	}
@@ -1131,7 +1131,7 @@ void CorePlayer::producer_func(void *data)
 			//alsaplayer_error("producer: waiting for free buffer");
 			pthread_mutex_lock(&obj->counter_mutex);
 			//alsaplayer_error("producer: unblocked");
-			dosleep(800000);
+			//dosleep(800000);
 		}	
 	}
 	//alsaplayer_error("Exitting producer_func (producing = %d)", obj->producing);
