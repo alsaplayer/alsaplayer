@@ -126,6 +126,7 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 
 	going = true;
 
+	// FIXME: document the purpose of this sleep
 	sleep(2);
 
 	memset(&notifier, 0, sizeof(notifier));
@@ -207,7 +208,7 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 	}
 	fprintf(stdout, "...done playing\n");
 	pthread_mutex_unlock(&finish_mutex);
-	
+
 	//playlist->UnRegisterNotifier(&notifier);
 	return 0;
 }
