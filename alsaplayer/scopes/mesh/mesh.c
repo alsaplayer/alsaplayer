@@ -32,8 +32,8 @@ GLfloat lightZeroPosition[] =
 {0.0, 0.0, 0.0, 1.0};
 GLfloat lightZeroColor[] =
 {1.0, 1.0, 1.0, 1.0};
-static int lighting = 0;
-static int solid = 0;
+static int lighting = 1;
+static int solid = 1;
 static int fft_buf[512];
 
 void stop_meshscope ()
@@ -83,6 +83,8 @@ static Window create_window (int width, int height)
   win = XCreateWindow (meshscope_dpy, root, 0, 0, width, height,
                        0, visinfo->depth, InputOutput,
                        visinfo->visual, mask, &attr);
+	XmbSetWMProperties(meshscope_dpy, win, "OpenGL MESH Plugin",
+			"OpenGL MESH Plugin", NULL, 0, NULL, NULL, NULL);
   wm_delete_window_atom = wm_protocols[0] = XInternAtom (meshscope_dpy, "WM_DELETE_WINDOW", False);
   XSetWMProtocols (meshscope_dpy, win, wm_protocols, 1);
 
