@@ -40,7 +40,7 @@
 
 static GtkWidget *init_playlist_window(PlaylistWindowGTK *, Playlist *pl);
 static void destroy_notify(gpointer data);
-static void new_list_item(const char *path, gchar **list_item);
+static void new_list_item(const PlayItem *item, gchar **list_item);
 static GdkColor *select_color = NULL;
 static GdkColor *default_color = NULL;
 static int current_entry = -1;
@@ -112,6 +112,29 @@ void PlaylistWindowGTK::CbUnlock()
 	GDK_THREADS_LEAVE();
 }
 
+void PlaylistWindowGTK::CbUpdated(PlayItem & item, unsigned position) {
+	char tmp[1024];
+	int secs;
+
+	pthread_mutex_lock(&playlist_list_mutex);
+
+	gtk_clist_freeze(GTK_CLIST(playlist_list));
+	//printf("Updating %d (%s, %d)\n", position, item.author.c_str(), item.playtime);
+	if (item.author.size() && item.title.size()) {
+		sprintf(tmp, "%s - %s", item.author.c_str(), item.title.c_str());
+		gtk_clist_set_text(GTK_CLIST(playlist_list), position,
+				1, g_strdup(tmp));
+	}
+	if (item.playtime >= 0) {
+		sprintf(tmp, "%02d:%02d", item.playtime / 60, item.playtime % 60);
+		gtk_clist_set_text(GTK_CLIST(playlist_list), position,
+				2, g_strdup(tmp));
+	}	
+		
+	gtk_clist_thaw(GTK_CLIST(playlist_list));
+	pthread_mutex_unlock(&playlist_list_mutex);
+}
+
 // Insert new items into the displayed list
 void PlaylistWindowGTK::CbInsert(std::vector<PlayItem> & items, unsigned position) {
 #ifdef DEBUG
@@ -130,12 +153,14 @@ void PlaylistWindowGTK::CbInsert(std::vector<PlayItem> & items, unsigned positio
 		std::vector<PlayItem>::const_iterator item;
 		for(item = items.begin(); item != items.end(); item++, position++) {
 			// Make a new item
-			gchar *list_item[3];
-			new_list_item(item->filename.c_str(), list_item);
+			gchar *list_item[4];
+			new_list_item(item, list_item);
 
 			// Add it to the playlist
 			int index = gtk_clist_insert(GTK_CLIST(playlist_list), position, list_item);
 			gtk_clist_set_shift(GTK_CLIST(playlist_list), index, 1, 2, 2);
+			gtk_clist_set_shift(GTK_CLIST(playlist_list), index, 2, 2, 2);
+
 
 			index ++;
 		}
@@ -305,6 +330,31 @@ void clear_cb(GtkWidget *widget, gpointer data)
 		playlist->Clear();
 }
 
+gint list_resize(GtkWidget *widget, GdkEventConfigure *event, gpointer data)
+{
+	GtkWidget *list = (GtkWidget *)data;	
+	GtkWidget *window;
+	static gint old_width = -1;
+	gint w, h;
+	
+	window = (GtkWidget *)gtk_object_get_data(GTK_OBJECT(list), "window");
+	
+	if (list) {
+		// For some reason the clist widget is always a few events
+		// behind reality. What fun! :-(
+		if (widget->allocation.width != old_width) {
+			if (window) {
+				gdk_window_get_size(window->window, &w, &h);
+				//alsaplayer_error("(%d, %d)", w, h);
+				gtk_clist_set_column_width(GTK_CLIST(list),
+						1, w-195);	
+
+			}	
+		}
+		old_width = widget->allocation.width;
+	}	 
+}
+
 // Called when window gets closed, so we don't try to close it again later.
 static gboolean
 playlist_delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
@@ -325,13 +375,22 @@ void close_cb(GtkWidget *widget, gpointer data)
 }
 
 // Make a new item to go in the list
-static void new_list_item(const char *path, gchar **list_item)
+static void new_list_item(const PlayItem *item, gchar **list_item)
 {
 	gchar *dirname;
 	gchar *filename;
-	gchar *new_path = (gchar *)g_strdup(path);
+	gchar *new_path = (gchar *)g_strdup(item->filename.c_str());
+	char pt[1024];
 
 	list_item[0] = NULL;
+
+	if (item->playtime >= 0) {
+		sprintf(pt, "%02d:%02d", (item->playtime > 0) ? item->playtime / 60 : 0,
+			(item->playtime > 0) ? item->playtime % 60 : 0);
+	} else {
+		sprintf(pt, "No time");
+	}
+	list_item[2] = (gchar *)g_strdup(pt);
 	// Strip directory names
 	dirname = strrchr(new_path, '/');
 	if (dirname) {
@@ -339,10 +398,15 @@ static void new_list_item(const char *path, gchar **list_item)
 			filename = (gchar *)g_strdup(dirname);
 	} else
 			filename = (gchar *)g_strdup(new_path);
-
+	if (item->title.size() && item->author.size()) {
+		sprintf(pt, "%s - %s", item->author.c_str(), 
+			item->title.c_str());
+	} else {
+		sprintf(pt, "%s", filename);
+	}	
 	// Put data in list_item
-	list_item[1] = filename;
-	list_item[2] = new_path;
+	list_item[1] = (gchar *)g_strdup(pt);
+	list_item[3] = new_path;
 }
 
 
@@ -513,7 +577,7 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 	if (!bold_font)
 		assert ((bold_font = gdk_fontset_load("fixed")) != NULL);
 
-  playlist_window = create_playlist_window();
+	playlist_window = create_playlist_window();
 
 	list = get_widget(playlist_window, "playlist");
 	gtk_object_set_data(GTK_OBJECT(list), "window", playlist_window);
@@ -534,10 +598,21 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 	
 	style = gtk_style_copy(gtk_widget_get_style(list));
 	gtk_widget_set_style(GTK_WIDGET(list), style);	
+
+
 	gtk_clist_set_column_width(GTK_CLIST(list), 0, 16);
+	gtk_clist_set_column_max_width(GTK_CLIST(list), 0, 16);
+
+	gtk_clist_set_column_min_width(GTK_CLIST(list), 1, 250);
+
+	gtk_clist_set_column_width(GTK_CLIST(list), 2, 20);
+	gtk_clist_set_column_max_width(GTK_CLIST(list), 2, 20);
+
 	gtk_clist_set_row_height(GTK_CLIST(list), 20);
 
-	
+	gtk_signal_connect(GTK_OBJECT(playlist_window), "configure_event",
+		GTK_SIGNAL_FUNC(list_resize), list);
+
 	gtk_signal_connect(GTK_OBJECT(playlist_window), "destroy",
 		GTK_SIGNAL_FUNC(playlist_delete_event), (gpointer)playlist_window_gtk);
 	gtk_signal_connect(GTK_OBJECT(playlist_window), "delete_event",

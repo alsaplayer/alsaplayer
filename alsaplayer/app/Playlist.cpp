@@ -41,7 +41,82 @@
 
 static void additems(std::vector<std::string> *items, std::string path, int depth);
 
-extern void playlist_looper(void *data)
+
+void info_looper(void *data)
+{
+	Playlist *playlist = (Playlist *)data;
+	CorePlayer *myplayer;
+	stream_info info;
+	char tmp[1024];
+	int t_sec, t_min, count;
+
+	std::set<PlaylistInterface *>::const_iterator i;
+	
+	if (!playlist) return;
+
+	myplayer = new CorePlayer(NULL);
+
+	if (!myplayer) return;
+
+	//alsaplayer_error("new info_looper()");
+
+	for(i = playlist->interfaces.begin();
+			i != playlist->interfaces.end(); i++) {
+		(*i)->CbLock();
+	}
+	playlist->Lock();
+
+	//alsaplayer_error("locked()");
+	std::vector<PlayItem>::iterator p = playlist->queue.begin();
+	count = 0;
+	while (p != playlist->queue.end()) {
+		//printf("Looping...\n");
+		if (!(*p).Parsed()) {
+			
+			if (myplayer->Open((*p).filename.c_str())) { // Examine file
+				t_sec = myplayer->GetCurrentTime(myplayer->GetFrames());
+				if (t_sec) {
+					t_sec /= 100;
+					(*p).playtime = t_sec;
+				} else {
+					(*p).playtime = -1;
+				}		
+				if (myplayer->GetStreamInfo(&info)) {
+					(*p).title = info.title;
+					(*p).author = info.author;
+					/*
+					sprintf(tmp, "%s - %s - %2d:%02d", 
+						strlen(info.author) ? info.author : "No author",
+						strlen(info.title) ? info.title : "No title",
+						((*p).playtime > 0) ? t_sec / 60 : 0,
+						((*p).playtime > 0) ? t_sec % 60 : 0);
+					alsaplayer_error("Found: %s", tmp);
+					*/
+				}
+				myplayer->Close();	
+			}
+			(*p).SetParsed();
+			// Notify interface of update
+			for(i = playlist->interfaces.begin();
+			i != playlist->interfaces.end(); i++) {
+				(*i)->CbUpdated((*p), count);
+			}
+		}	
+		p++;
+		count++;
+	}	
+
+	playlist->Unlock();
+	for(i = playlist->interfaces.begin();
+			i != playlist->interfaces.end(); i++) {
+			(*i)->CbUnlock();
+	}
+	delete myplayer;
+	//alsaplayer_error("exit info_looper()");
+}
+
+
+void playlist_looper(void *data)
 {
 #ifdef DEBUG
 	printf("THREAD-%d=playlist thread\n", getpid());
@@ -93,7 +168,7 @@ class PlInsertItems {
 };
 
 // Thread which performs an insert to playlist
-void insert_thread(void *data) {
+void insert_looper(void *data) {
 	std::set<PlaylistInterface *>::const_iterator i;
 #ifdef DEBUG
 	printf("THREAD-%d=insert thread\n", getpid());
@@ -174,6 +249,10 @@ void insert_thread(void *data) {
 			(*i)->CbUnlock();
 	}	
 	delete items;
+
+	// TEST
+	info_looper(playlist);
+	
 	pthread_exit(NULL);
 }
 
@@ -408,10 +487,9 @@ void Playlist::Insert(std::vector<std::string> const & paths, unsigned position)
 	// b) risk getting caught in a deadlock when we call the interface to
 	//    inform it of the change
 	pthread_create(&adder, NULL,
-				   (void * (*)(void *))insert_thread, (void *)items);
+				   (void * (*)(void *))insert_looper, (void *)items);
 	pthread_detach(adder);
 
-	//insert_thread(items);
 }
 
 // Add some items start them playing

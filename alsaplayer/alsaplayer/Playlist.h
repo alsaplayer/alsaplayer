@@ -34,11 +34,20 @@ enum plist_format {PL_FORMAT_M3U};
 
 class PlayItem
 {
+	private:
+		bool parsed;
 	public:
 		PlayItem(std::string filename_new) {
 			filename = filename_new;
+			playtime = 0;
+			parsed = false;
 		}
+		bool Parsed() { return parsed; }
+		void SetParsed() { parsed = true; }
 		std::string filename;
+		std::string title;
+		std::string author;
+		int playtime;
 };
 
 class PlaylistInterface
@@ -63,6 +72,8 @@ class PlaylistInterface
 		// Note: CbSetCurrent will be called after this callback.
 		virtual void CbInsert(std::vector<PlayItem> &items, unsigned pos) = 0;
 
+		virtual void CbUpdated(PlayItem &item, unsigned pos) = 0;
+		
 		// Tracks from position start to end inclusive were removed
 		// Note: CbSetCurrent will be called after this callback.
 		virtual void CbRemove(unsigned, unsigned) = 0;
@@ -74,7 +85,8 @@ class PlaylistInterface
 class Playlist
 {
 friend void playlist_looper(void *data);
-friend void insert_thread(void *);
+friend void insert_looper(void *);
+friend void info_looper(void *);
 private:
 		CorePlayer *player1;
 		CorePlayer *player2;

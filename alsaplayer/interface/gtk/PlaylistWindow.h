@@ -44,6 +44,7 @@ class PlaylistWindowGTK : public virtual PlaylistInterface
 		// Callbacks called by playlist when its state changes
 		void CbSetCurrent(unsigned);
 		void CbInsert(std::vector<PlayItem> &, unsigned);
+		void CbUpdated(PlayItem &, unsigned);
 		void CbRemove(unsigned, unsigned);
 		void CbLock();
 		void CbUnlock();

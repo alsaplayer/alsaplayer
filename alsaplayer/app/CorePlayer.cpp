@@ -387,6 +387,7 @@ int CorePlayer::GetStreamInfo(stream_info *info)
 
 	Lock();
 	if (plugin && plugin->stream_info && info && the_object) {
+		memset(info, 0, sizeof(stream_info)); // Clear struct
 		result = plugin->stream_info(the_object, info);
 	}
 	Unlock();
@@ -404,6 +405,11 @@ bool CorePlayer::Start(int reset)
 	float result;
 	int output_rate;
 	int tries;
+
+	if (!node) {
+		alsaplayer_error("CorePlayer does not have a node");
+		return false;
+	}	
 
 	Lock();
 	Close();

@@ -302,6 +302,7 @@ create_playlist_window (void)
   GtkWidget *playlist;
   GtkWidget *label2;
   GtkWidget *label3;
+  GtkWidget *label100;
   GtkWidget *vbox6;
   GtkWidget *add_button;
   GtkWidget *load_button;
@@ -339,7 +340,7 @@ create_playlist_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (scrolledwindow1);
   gtk_box_pack_start (GTK_BOX (hbox16), scrolledwindow1, TRUE, TRUE, 0);
-  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow1), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow1), GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
   viewport1 = gtk_viewport_new (NULL, NULL);
   gtk_widget_ref (viewport1);
@@ -349,7 +350,7 @@ create_playlist_window (void)
   gtk_container_add (GTK_CONTAINER (scrolledwindow1), viewport1);
   gtk_viewport_set_shadow_type (GTK_VIEWPORT (viewport1), GTK_SHADOW_NONE);
 
-  playlist = gtk_clist_new (2);
+  playlist = gtk_clist_new (3);
   gtk_widget_ref (playlist);
   gtk_object_set_data_full (GTK_OBJECT (playlist_window), "playlist", playlist,
                             (GtkDestroyNotify) gtk_widget_unref);
@@ -357,6 +358,7 @@ create_playlist_window (void)
   gtk_container_add (GTK_CONTAINER (viewport1), playlist);
   gtk_clist_set_column_width (GTK_CLIST (playlist), 0, 80);
   gtk_clist_set_column_width (GTK_CLIST (playlist), 1, 80);
+  gtk_clist_set_column_width (GTK_CLIST (playlist), 2, 80);
   gtk_clist_column_titles_hide (GTK_CLIST (playlist));
 
   label2 = gtk_label_new ("label2");
@@ -372,6 +374,13 @@ create_playlist_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (label3);
   gtk_clist_set_column_widget (GTK_CLIST (playlist), 1, label3);
+
+  label100 = gtk_label_new ("label100");
+  gtk_widget_ref (label100);
+  gtk_object_set_data_full (GTK_OBJECT (playlist_window), "label100", label100,
+                            (GtkDestroyNotify) gtk_widget_unref);
+  gtk_widget_show (label100);
+  gtk_clist_set_column_widget (GTK_CLIST (playlist), 2, label100);
 
   vbox6 = gtk_vbox_new (FALSE, 6);
   gtk_widget_ref (vbox6);

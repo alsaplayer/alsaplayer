@@ -246,17 +246,18 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 			if ((comment = ov_comment(&data->vf, -1)) != NULL) {
 				t = vorbis_comment_query(comment, "title", 0);
 				a = vorbis_comment_query(comment, "artist", 0);
-				sprintf(info->title, "%s by %s",
+				sprintf(info->title, "%s",
 					t ? t : "Unkown song", a ? a : "Unknown artist");
+				sprintf(info->author, "%s", a ? a : "Unkown artist");	
 			} else {
 					strcpy(info->title, data->path);
+					info->author[0] = 0;
 			}
 			if (vi)
 				sprintf(info->stream_type, "%dKHz %dkbit ogg",
 							vi->rate / 1000, vi->bitrate_nominal / 1000);
 			else
 				sprintf(info->stream_type, "Unkown OGG VORBIS");
-			info->author[0] = 0;
 			info->status[0] = 0;
 	}
 	return 1;
