@@ -624,8 +624,10 @@ int main(int argc, char **argv)
 			goto _fatal_err;
 		}	
 	} else {
-		if (!(interface_plugin_info = load_interface("gtk"))) {
-			if (!(interface_plugin_info = load_interface("text"))) {
+		if (!(interface_plugin_info = 
+				load_interface(prefs_get_string(ap_prefs, "default_interface","gtk")))) {
+			if (!(interface_plugin_info = 
+				load_interface(prefs_get_string(ap_prefs, "fallback_interface","text")))) {
 				alsaplayer_error("Failed to load text interface. This is bad\n");
 				goto _fatal_err;
 			}
