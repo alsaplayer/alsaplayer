@@ -202,7 +202,7 @@ int interface_text_start(Playlist *playlist, int /* argc */, char ** /* argv */)
 				fprintf(stdout, "(%ld:%02ld) ", t_min, t_sec);
 				i -= 8;		
 			} else {
-				fprintf(stdout, "(streaming) ", t_min, t_sec);
+				fprintf(stdout, "(streaming) ");
 				i -= 8;
 			}	
 			if (*info.artist)
