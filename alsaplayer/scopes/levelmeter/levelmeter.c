@@ -151,6 +151,7 @@ static void the_levelmeter(GtkWidget *win)
 	}
 	GDK_THREADS_ENTER();
 	levelmeter_hide();
+	gdk_flush();
 	GDK_THREADS_LEAVE();
 }
 

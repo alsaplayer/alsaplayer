@@ -344,6 +344,7 @@ static void help()
 		"\n"
 		"Available options:\n"
 		"\n"
+		"  -b,--background         fork to background (useful for daemon interfaces)\n"
 		"  -d,--device string      select card and device [default=\"default\"]\n"
 		"  -e,--enqueue file(s)    queue files in running alsaplayer\n"
 		"  -f,--fragsize n         fragment size in bytes [default=4096]\n"
@@ -430,8 +431,9 @@ int main(int argc, char **argv)
 
 	int opt;
 	int option_index;
-	const char *options = "d:ef:F:g:hi:I:l:n:p:qrs:vRSPVxo:";
+	const char *options = "bd:ef:F:g:hi:I:l:n:p:qrs:vRSPVxo:";
 	struct option long_options[] = {
+		{ "background", 0, 0, 'b' },
 		{ "device", 1, 0, 'd' },
 		{ "enqueue", 0, 0, 'e' },
 		{ "fragsize", 1, 0, 'f' },
@@ -492,6 +494,17 @@ int main(int argc, char **argv)
 
 	while ((opt = getopt_long(argc, argv, options, long_options, &option_index)) != EOF) {
 		switch(opt) {
+			case 'b': switch(fork()) {
+					case -1: // Child, but error
+						alsaplayer_error("Could not fork to background");
+						break;
+					case 0: // Child, continue as normal
+						break;
+					default:
+						// Parent, exit
+						exit(0);
+				}		
+				break;		
 			case 'd':
 				device_param = optarg;
 				break;

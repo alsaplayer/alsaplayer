@@ -172,6 +172,7 @@ void the_monoscope()
 
 	GDK_THREADS_ENTER();
 	monoscope_hide();
+	gdk_flush();
 	GDK_THREADS_LEAVE();
 }
 

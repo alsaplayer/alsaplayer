@@ -267,12 +267,14 @@ static void the_bscope()
 		
 		GDK_THREADS_ENTER();
 		gdk_draw_indexed_image(area->window,area->style->white_gc,0,0,WIDTH,HEIGHT,GDK_RGB_DITHER_NONE,rgb_buf + BPL + 1,(WIDTH + 2),cmap);
+		gdk_flush();
 		GDK_THREADS_LEAVE();
 	
 		dosleep(SCOPE_SLEEP);
 	}
 	GDK_THREADS_ENTER();
 	bscope_hide();
+	gdk_flush();
 	GDK_THREADS_LEAVE();
 }
 

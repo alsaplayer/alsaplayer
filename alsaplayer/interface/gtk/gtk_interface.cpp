@@ -163,6 +163,7 @@ void notifier_lock()
 
 void notifier_unlock()
 {
+	gdk_flush();
 	GDK_THREADS_LEAVE();
 }
 

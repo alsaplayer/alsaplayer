@@ -1,3 +1,7 @@
+* New --background parameter to put alsaplayer in the background at startup
+* Accept m3u (playlist) files on the command line
+* JACK output plugin fixes; use jack's samplerate, properly deactive before
+  disconnecting from jack.
 * CDDA player now adds all tracks to the playlist, instead of playing the
   audio CD as one huge CD track. Idea from Patrick Shirkey.
 * Fix small reentrancy problem in CDDA plugin
