@@ -6,7 +6,7 @@ ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
 ALSAPLAYER_MICRO_VERSION=57
 
-BETA=-pre1
+BETA=-pre2
 
 ALSAPLAYER_VERSION=$ALSAPLAYER_MAJOR_VERSION.$ALSAPLAYER_MINOR_VERSION.${ALSAPLAYER_MICRO_VERSION}${BETA}
 
@@ -544,12 +544,11 @@ interface/gtk/gui/Makefile
 interface/text/Makefile
 scopes/Makefile
 scopes/monoscope/Makefile
-scopes/fftscope/Makefile
 scopes/levelmeter/Makefile
 scopes/spacescope/Makefile
-scopes/barfft/Makefile
 scopes/logbarfft/Makefile
 scopes/synaescope/Makefile
+scopes/blurscope/Makefile
 output/Makefile
 output/alsa-0.5.x/Makefile
 output/alsa-final/Makefile
