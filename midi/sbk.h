@@ -87,8 +87,9 @@ typedef struct _SFInfo {
  * functions
  *----------------------------------------------------------------*/
 
-void load_sbk(FILE *fp, SFInfo *sf);
-void free_sbk(SFInfo *sf);
-void sbk_to_text(char *text, int type, int val, SFInfo *sf);
+extern void load_sbk(FILE *fp, SFInfo *sf);
+extern void free_sbk(SFInfo *sf);
+extern void sbk_to_text(char *text, int type, int val, SFInfo *sf);
+extern void autocfg();
 
 #endif

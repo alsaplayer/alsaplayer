@@ -1,0 +1,202 @@
+.TH midi-in 1 "8 Sep 1995" \" -*-nroff-*-
+.SH NAME
+midi-in \- plugin midi synthesizer for alsaplayer
+.P
+.SH SYNOPSIS
+.B midi_in
+is not called from the command line
+.P
+.SH DESCRIPTION
+midi-in is derived from
+TiMidity, which is a MIDI to WAVE converter using Gravis
+Ultrasound\-compatible patch files or AWE\-compatible SoundFonts
+to generate digital audio data from
+General MIDI, GS, or XG midi files.
+.P
+.SH OPTIONS
+There are no command line options.
+.SH FILES
+midi-in looks for the configuration file \fItimidity.cfg\fP at
+startup, before processing any options.
+.P
+Configuration files define the mapping of MIDI programs to instrument
+files.  Multiple files may be specified, and statements in later ones
+will override earlier ones.  The following statements can be used in a
+configuration file:
+.TP
+.BI \-p " voices"
+Sets polyphony (maximum number of simultaneous voices) to
+\fIvoices\fP.
+.TP
+.BI \-A " amplification"
+Multiplies the master volume by \fIamplification\fP%.
+.TP
+.BI \-X " curve"
+With the value 0, the midi expression controller affects the volume
+linearly.  With 1 (the default) or 2, it affects volume exponentially.
+.TP
+.BI \-V " curve"
+With the value 0, the midi volume controller affects the volume
+linearly.  With 1 (the default) or 2, it affects volume exponentially.
+.TP
+.BI \-C " ratio"
+Sets the ratio of sampling and control frequencies.  This determines how
+often envelopes are recalculated -- small ratios yield better quality
+but use more CPU time.
+.TP
+.BI \-s " frequency"
+Sets the resampling frequency.  Not all sound devices are capable of
+all frequencies -- an approximate frequency may be selected, depending
+on the implementation.
+.TP
+.B \-k " number"
+Select interpolation algorithm for resampling: 0 for linear interpolation,
+1 for cspline interpolation, 2 for LaGrange interpolation, 3 for
+cspline interpolation with low-pass filtering.
+.TP
+.B \-r " number"
+Set maximum of ram in megabytes to use up keeping patches from previously
+played midi files.  This should presumably be less than your total ram
+plus disk cache size.  The default is 60 megabytes.  It probably doesn't
+matter unless you're using big sf2 soundfont patchsets.
+.TP
+.BI dir " directory"
+Adds \fIdirectory\fP to the search path in the same manner as the
+\fB\-L\fP command line option.
+.TP
+.BI source " file"
+Reads another configuration file, then continues processing the
+current one.
+.TP
+.BI fff " file"
+Reads the parameters in a Gravis/Forte\-compatible InterWave file.
+The file name is assumed to end in ".fff", which need not be
+given.  An accompanying ".dat" file containing waveform data must
+be in the same directory as the ".fff" file.  Preceding patch
+mappings must list all patches that are to be loaded from the
+files, and the preceding \fBbank\fP/\fBdrumset\fP keywords must
+be followed by \fBfff\fP.
+.TP
+.BI sf " file [option]"
+Reads the parameters and waveforms in an AWE\-compatible SoundFont
+file.  Both ".sbk" and ".sf2" SoundFonts can be used.  Preceding patch
+mappings must list all patches that are to be loaded from the
+file, and the preceding \fBbank\fP/\fBdrumset\fP keywords must
+be followed by \fBsf\fP.
+The options allowed are:
+.RS
+.TP
+\fIbanknumber\fP
+The bank number given in the first preceding
+"bank"/"drumset" statement is to be used in place of
+the bank \fIbanknumber\fP given in the SoundFont itself.
+.RE
+.TP
+.BI bank " number [option]"
+Selects the tone bank to modify.  Patch mappings that follow will
+affect this tone bank.
+The options allowed are \fBfff\fP and \fBsbk\fP, which were described above.
+.TP
+.BI drumset " number [option]"
+Selects the drum set to modify.  Patch mappings that follow will affect
+this drum set.
+The options allowed are \fBfff\fP and \fBsbk\fP, which were described above.
+.TP
+.BI sfx
+Selects the XG non-rhythm SFX bank to modify.
+Patch mappings that follow will affect this tone bank.
+.TP
+.BI drumsfx1
+.TP
+.BI drumsfx2
+Select the XG rhythm SFX banks to modify.
+Patch mappings that follow will affect these tone banks.
+.TP
+.I "number file [options]"
+Specifies that the the MIDI program \fInumber\fP in the current tone
+bank or drum set should be played using the patch \fIfile\fP.
+\fIoptions\fP may be any of the following:
+.RS
+.TP
+\fBamp=\fP\fIamplification\fP
+Amplifies the instrument's volume by \fIamplification\fP percent.
+If no value is specified, one will be automatically determined whenever
+the instrument is loaded.
+.TP
+\fBnote=\fP\fInote\fP
+Specifies a fixed MIDI note to use when playing the instrument.
+If \fInote\fP is 0, the instrument will be played at whatever note
+the Note On event triggering it has. For percussion instruments, if no
+value is specified in the configuration file, the default in the patch
+file will be used.
+.TP
+\fBtuning=\fP\fIcents\fP
+Changes the pitch of the instrument. \fIcents\fP is a signed quantity in
+units of 1/100th of a semitone, so, e.g., specify "+1200" to go up
+an octave.  The number must begin with a "+" or a "-".
+.TP
+\fBpan=\fP\fIpanning\fP
+Sets the instrument's default panning. 
+\fIpanning\fP may be \fBleft\fP, \fBright\fP, \fBcenter\fP, or an
+integer between -100 and 100, designating full left and full right
+respectively. 
+If no value is specified, the default in the patch file will be used. 
+Note that panning controls in MIDI files will override this value.
+.TP
+\fBkeep=\fP{\fBloop\fP|\fBenv\fP}
+Strangely shaped envelopes are removed
+automatically from melodic instruments in GUS patches. \fBkeep\fP can be used
+to prevent stripping envelope or loop data.  (Stripping envelopes was
+originally the default for TiMidity, but in this version it's not.  So
+these options are no longer useful -- they are kept for compatibility.
+G.L.)
+.TP
+\fBstrip=\fP{\fBloop\fP|\fBenv\fP|\fBtail\fP}
+Force removal of loop or envelope information from all patches in the
+instrument, or strip the tail, i.e. all data after the loop. Some
+third-party instruments have garbage after the loop, as evidenced by a
+clicking noise whenever the instrument is played, so adding the
+\fBstrip=tail\fP option will markedly improve sound quality.
+.RE
+.LP
+.P
+\fBNOTE:\fP Whenever any filename ends in one of the compiled\-in
+compression identifiers, such as \fI.gz\fP, or \fI.sht\fP, midi-in
+will pipe the file through the appropriate decompressor.  MIDI files
+often compress very well, so the ability to handle compressed files
+can be useful.
+.P
+.SH COPYRIGHT
+Copyright (C) 1995 Tuukka Toivonen.
+.br
+See AUTHORS below for additional copyrights.
+.P
+midi-in is free software; you can redistribute it
+and/or modify it under the terms of the \fIGNU General Public
+License\fP as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+.P
+midi-in is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+\fIGNU General Public License\fP for more details.
+.SH AVAILABILITY
+.SH BUGS
+.P
+Eats more CPU time than a small CPU-time-eating animal.
+.SH AUTHORS
+Tuukka Toivonen <toivonen@clinet.fi>
+.br
+AWE SoundFont support by Takashi
+Iwai <iwai@dragon.mm.t.u-tokyo.ac.jp>
+.br
+IW patchset support, karaoke, AWE/XG enhancements, much reworking of the code,
+conversion to alsaplayer plugin
+by Greg Lee <greg@ling.lll.hawaii.edu>
+.br
+Effects filter by Nicolas Witczak <witczak@geocities.fr>, see
+URL \fIhttp://www.geocities.com/SiliconValley/Lab/6307/\fP).
+.br
+Portamento, mod wheel, and other enhancements from TiMidity++
+Copyright (C) 1999 Masanao Izumo <mo@goice.co.jp>.  See
+URL \fIhttp://www.goice.co.jp/member/mo/hack-progs/timidity.html\fP.

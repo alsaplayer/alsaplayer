@@ -1003,7 +1003,7 @@ YY_MALLOC_DECL
 YY_DECL
 	{
 	register yy_state_type yy_current_state;
-	register char *yy_cp = NULL, *yy_bp = NULL;
+	register char *yy_cp, *yy_bp;
 	register int yy_act;
 
 #line 71 "./cfg.l"
@@ -1128,7 +1128,7 @@ YY_RULE_SETUP
 	if (yytext[i] == '"') {
 		i++;
 		for (j = i; j < yyleng && yytext[j] != '"'; j++) ;
-		j--;
+		/*j--;*/
 	}
 	else for (j = i; j < yyleng && !isspace(yytext[j]); j++) ;
 	sfname = strncpy( (char *)malloc(j-i+1), yytext+i, j-i );
@@ -2638,13 +2638,13 @@ int read_config_file(const char *name, int prescan)
 	include_stack_ptr = 0;
 	rcf_count = 1;
 
-	if (prescanning) {
-	   current_config_file = (char *)safe_malloc(strlen(name)+1);
-	   strcpy(current_config_file, name);
-	}
-
 	yyin = open_file(name, 1, OF_VERBOSE, rcf_count);
 	if (!yyin) return -1;
+
+	if (prescanning) {
+	   current_config_file = (char *)safe_malloc(strlen(current_filename)+1);
+	   strcpy(current_config_file, current_filename);
+	}
 
 	current_toneset = current_drumset = 0;
 	doing_drums = doing_sf = 0;
