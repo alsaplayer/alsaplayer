@@ -102,6 +102,8 @@ static pthread_t indicator_thread;
 gint global_effects_show = 0;
 gint global_scopes_show = 0;
 
+static int vol_scale[] = {
+				0,1,2,4,7,12,18,26,35,45,56,69,83,100 };
 
 #ifdef SUBSECOND_DISPLAY
 #define INDICATOR_WIDTH 80
@@ -242,8 +244,11 @@ void draw_volume()
 	else {
 		count = UPDATE_COUNT;
 		old_vol = val;
-		p->SetVolume(val);
+		//p->SetVolume(val);
 	}	
+	int idx = val;
+  idx = (idx < 0) ? 0 : ((idx > 13) ? 13 : idx);
+	val = vol_scale[idx];
 
 	val ? sprintf(str, "Volume: %d%%  ", val) : sprintf(str, "Volume: mute");
 
@@ -515,8 +520,11 @@ void volume_cb(GtkWidget *widget, gpointer data)
 	GtkAdjustment *adj = (GtkAdjustment *)widget;
 	CorePlayer *p = (CorePlayer *)data;
 
+
 	if (p) {
-		p->SetVolume((int)adj->value);
+		int idx = (int)adj->value;
+		idx = (idx < 0) ? 0 : ((idx > 13) ? 13 : idx);
+		p->SetVolume(vol_scale[idx]);
 	}
 }
 

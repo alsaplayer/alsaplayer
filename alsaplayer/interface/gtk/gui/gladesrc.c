@@ -263,7 +263,7 @@ create_main_window (void)
   gtk_box_pack_start (GTK_BOX (volume_frame), volume_pix_frame, FALSE, TRUE, 0);
   gtk_widget_set_usize (volume_pix_frame, 18, -2);
 
-  vol_scale = gtk_hscale_new (GTK_ADJUSTMENT (gtk_adjustment_new (90, 0, 101, 1, 1, 1)));
+  vol_scale = gtk_hscale_new (GTK_ADJUSTMENT (gtk_adjustment_new (14, 0, 14, 1, 1, 1)));
   gtk_widget_ref (vol_scale);
   gtk_object_set_data_full (GTK_OBJECT (main_window), "vol_scale", vol_scale,
                             (GtkDestroyNotify) gtk_widget_unref);

@@ -50,13 +50,13 @@ PlaylistWindowGTK::PlaylistWindowGTK(Playlist * pl) {
 		gtk_object_get_data(GTK_OBJECT(playlist_list), "status");
 	showing = false;
 
-	//playlist->Register(this);
+	playlist->Register(this);
 }
 
 PlaylistWindowGTK::~PlaylistWindowGTK() {
 	Hide();
 	gtk_clist_clear(GTK_CLIST(playlist_list));
-	//playlist->UnRegister(this);
+	playlist->UnRegister(this);
 }
 
 // Set item currently playing
