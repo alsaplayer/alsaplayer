@@ -1,3 +1,6 @@
+Thu Feb  6 06:49:35 CET 2003
+----------------------------
+* New: Initial CDDB parsing for CDDA plugin (Anders)
 * New: xosd interface ("-i xosd")
 * New: lightweight ap-control program (see examples directory) to control
   alsaplayer operation
@@ -17,6 +20,7 @@
 * New -c option, which lets you select a specific config file for use
 * New ap_jump_to() libalsaplayer function which allows jumping to specific
   playlist tracks.
+* New libalsaplayer functions for looping control
 * Fix playlist loading
 * Fix FLAC playback support
 * Fix crashing bug when fragment size was bigger than 16K
