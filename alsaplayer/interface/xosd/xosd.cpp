@@ -47,10 +47,9 @@
 #include "xosd.h"
 
 
-#define OSD_FONT	"-*-*-medium-r-*-*-20-*-*-*-*-*-*-*"
+#define OSD_FONT	"-adobe-helvetica-medium-r-normal-*-24-*-*-*-*-*-*-*"
 #define OSD_TIMEOUT		5
 #define OSD_LINES			5
-//#define OSD_COLOR		"LawnGreen"
 #define OSD_COLOR			"#55ff55"
 
 
