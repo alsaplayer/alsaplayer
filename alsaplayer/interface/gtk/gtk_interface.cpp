@@ -772,8 +772,12 @@ void exit_cb(GtkWidget *widget, gpointer data)
 		GDK_THREADS_LEAVE();
 		f(NULL);
 		GDK_THREADS_ENTER();
-	}	
+	}
+	// This is more HACK stuff, but then again GTK IS A BIG FREAKING HACK!
+	GDK_THREADS_LEAVE();
 	gtk_main_quit();
+	gdk_flush();
+	GDK_THREADS_ENTER();
 }
 
 void scopes_cb(GtkWidget *widget, gpointer data)

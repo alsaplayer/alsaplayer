@@ -179,6 +179,7 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 	GDK_THREADS_ENTER();
 	load_scope_addons();
 	gtk_main();
+	gdk_flush();
 	GDK_THREADS_LEAVE();
 
 	playlist->Pause();
