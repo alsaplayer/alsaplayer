@@ -1,5 +1,6 @@
 /*  reader.h
  *  Copyright (C) 2002 Evgeny Chukreev <codedj@echo.ru>
+ *  Copyright (C) 2003 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,7 +40,7 @@
  *  whenever structural changes are made to the API. This value should
  *  only be changed by the maintainers.
  */
-#define READER_PLUGIN_VERSION	(READER_PLUGIN_BASE_VERSION + 3)
+#define READER_PLUGIN_VERSION	(READER_PLUGIN_BASE_VERSION + 4)
 
 /** 
  * reader plugin binary version. Must be set to READER_PLUGIN_VERSION 
@@ -79,6 +80,7 @@ typedef void *(*reader_open_type)(const char *uri);
 typedef void(*reader_close_type)(void *d);
 
 /* TODO: describe */
+typedef size_t (*reader_metadata_type)(void *d, size_t size, void *);
 typedef size_t (*reader_read_type)(void *ptr, size_t size, void *d);
 typedef int (*reader_seek_type)(void *d, long offset, int whence);
 typedef long (*reader_tell_type)(void *d);
@@ -114,6 +116,7 @@ typedef struct _reader_plugin
 	reader_open_type open;
 	reader_close_type close;
 	reader_read_type read;
+	reader_metadata_type metadata;
 	reader_seek_type seek;
 	reader_tell_type tell;
 	reader_can_expand_type can_expand;
@@ -140,6 +143,7 @@ int reader_can_handle (const char *uri);
 reader_type *reader_open (const char *uri);
 int reader_close (reader_type *h);
 
+size_t reader_metadata (reader_type *h, size_t size, void *);
 size_t reader_read (void *ptr, size_t size, reader_type *h);
 int reader_seek (reader_type *h, long offset, int whence);
 long reader_tell (reader_type *h);

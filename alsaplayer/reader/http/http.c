@@ -42,6 +42,7 @@
 
 typedef struct http_desc_t_ {
     char *host, *path;
+    char *metadata;
     int port;
     int sock;
     long size, pos;
@@ -54,6 +55,7 @@ typedef struct http_desc_t_ {
     int going;			    /* True if buffer is filling. */
     pthread_t thread;		    /* Thread which fill the buffer. */
     pthread_mutex_t buffer_lock;    /* Lock to share buffer in threads */
+    pthread_mutex_t meta_lock;	    /* Metadata lock */
     pthread_cond_t read_condition;  /* Notice reader_read about new block. */
     pthread_cond_t fast_condition;  /* Give me data as soon as possible. */
     int error;			    /* Error status (0 - none). */
@@ -214,8 +216,16 @@ static void buffer_thread (http_desc_t *desc)
 {
     pthread_mutex_t mut;			/* Temporary mutex. */
     int going = desc->going;			/* We should be careful. */
-    void *ibuffer = malloc (HTTP_BLOCK_SIZE);	/* Internal thread buffer. */
-
+    int BLOCK_SIZE = HTTP_BLOCK_SIZE;
+    void *ibuffer = malloc (BLOCK_SIZE << 1);	/* Internal thread buffer. */
+    int rest = 0;
+    int metasize = 0, metapos = 0, extra_read = 0;
+    char *p;
+	    
+    if (desc->icy_metaint) {
+	    BLOCK_SIZE = (HTTP_BLOCK_SIZE > desc->icy_metaint) ? desc->icy_metaint : HTTP_BLOCK_SIZE;
+    }
+    
     /* Init */
     pthread_mutex_init (&mut, NULL);
     
@@ -223,9 +233,10 @@ static void buffer_thread (http_desc_t *desc)
     while (going) {
 	void *newbuf;
 	int readed;
-	
+
 	/* check for overflow */
 	going = desc->going;
+	rest = metasize = 0;
 	if (desc->len > http_buffer_size) {
 	    /* Notice waiting function that the new block of data has arrived */
 	    pthread_cond_signal (&desc->read_condition);
@@ -239,7 +250,7 @@ static void buffer_thread (http_desc_t *desc)
 	}
 	
 	/* read to internal buffer */
-        readed = read_data (desc->sock, ibuffer, HTTP_BLOCK_SIZE);
+        readed = read_data (desc->sock, ibuffer, BLOCK_SIZE);
 
 	/* reasons to stop */
 	if (readed == 0) {
@@ -250,11 +261,49 @@ static void buffer_thread (http_desc_t *desc)
 	    desc->going = 0;
 	    going = 0;
 	}
-
+	
 	if (desc->icy_metaint > 0 && 
-		((desc->buffer_pos+readed) % desc->icy_metaint) == 0) {
-		alsaplayer_error("Metadata block!");
-		desc->buffer_pos = 0;
+		(desc->buffer_pos+readed) >  desc->icy_metaint) {
+		//alsaplayer_error("Metadata block is next!");
+		rest = (desc->buffer_pos+readed) - desc->icy_metaint;
+		//alsaplayer_error("Rest = %d (%d, %d)", rest, readed, readed-rest);
+	
+		p = ((char *)ibuffer);
+		p += (readed-rest);
+		metapos = (readed-rest);
+		if (rest) {
+			metasize = *(int8_t *)p;
+			metasize <<= 4;
+			//alsaplayer_error("Metasize = %d", metasize);
+			if (rest < metasize) {
+				/* alsaplayer_error("Uh oh, big trouble ahead, or maybe not?"); */
+				extra_read = read_data (desc->sock, ibuffer+readed, metasize);
+				readed += extra_read;
+				rest += extra_read;
+			}	
+			if (metasize > 4080) { 
+				alsaplayer_error("Invalid metasize (%d)", metasize);
+			} else if (metasize > 0) {
+				p++;
+				p[metasize] = '\0';
+				//alsaplayer_error("%s", p);
+				pthread_mutex_lock (&desc->meta_lock);
+				if (desc->metadata) {
+					free(desc->metadata);
+				}	
+				desc->metadata = (char *)malloc(strlen(p)+1);
+				memcpy(desc->metadata, p, strlen(p));
+				pthread_mutex_unlock (&desc->meta_lock);
+			} else {
+				//alsaplayer_error("Metadata is zero length");
+			}
+		} else {
+			alsaplayer_error("Rest = 0???");
+		}
+		metasize++; /* Length byte */
+	} else {
+		//alsaplayer_error("----> %d", ((desc->buffer_pos+readed) % desc->icy_metaint));
+		desc->buffer_pos += readed;
 	}	
 	/* These operations are fast. -> doesn't break reader_read */
 	if (readed > 0) {
@@ -262,10 +311,17 @@ static void buffer_thread (http_desc_t *desc)
 	    pthread_mutex_lock (&desc->buffer_lock);
 	
 	    /* enlarge buffer */
-	    newbuf = malloc (desc->len + HTTP_BLOCK_SIZE);
+	    newbuf = malloc (desc->len + (BLOCK_SIZE * 2)); /* HTTP_BLOCK_SIZE */
 	    memcpy (newbuf, desc->buffer, desc->len);
-	    memcpy (newbuf + desc->len, ibuffer, readed);
-	
+	    if (metasize) {
+		    //alsaplayer_error("Memcpy with metasize = %d (metapos = %d, buffer_pos = %d, rest = %d, readed = %d)", metasize, metapos, rest - metasize, rest, readed);
+		    memcpy(newbuf + desc->len, ibuffer, metapos);
+		    memcpy(newbuf + desc->len + metapos, ibuffer+metapos+metasize, rest - metasize);
+		    readed -= metasize;
+		    desc->buffer_pos = rest - metasize;
+	    } else {    
+		    memcpy (newbuf + desc->len, ibuffer, readed);
+	    }
 	    /* switch buffers */
 	    free (desc->buffer);
 	    desc->buffer = newbuf;
@@ -387,11 +443,11 @@ static int reconnect (http_desc_t *desc, char *redirect)
 			     "Connection: close\r\n"
 			     "User-Agent: %s/%s\r\n"
 			     "Range: bytes=%ld-\r\n"
-			     "Icy-Metadata:0\r\n"
+			     "Icy-Metadata:1\r\n"
 			     "\r\n",
 			     desc->path, desc->host, PACKAGE, VERSION,
 			     desc->pos);
-    
+    //alsaplayer_error("%s", request); 
     write (desc->sock, request, strlen (request));
     desc->begin = desc->pos;
  
@@ -407,10 +463,15 @@ static int reconnect (http_desc_t *desc, char *redirect)
     } else if (!strncmp (response, "ICY 200 OK", 10)) {
     	desc->seekable = 0;
 	rc = 200;
-    } else {	    
-	alsaplayer_error ("HTTP: Wrong server protocol for http://%s:%u%s",
-		desc->host, desc->port, desc->path);
-	alsaplayer_error("ERROR:\n%s", response);
+	//alsaplayer_error("%s", response);
+    } else if (!strncmp (response, "ICY 400 Server Full", 19)) {
+	rc = 400;
+    } else {
+	if (strlen(response)) {	
+		alsaplayer_error ("HTTP: Wrong server protocol for http://%s:%u%s",
+			desc->host, desc->port, desc->path);
+		alsaplayer_error("ERROR:\n\"%s\"", response);
+	}	
 	return 1;
     }
 
@@ -437,7 +498,12 @@ static int reconnect (http_desc_t *desc, char *redirect)
 			    }		    
 		    }
 		    return 1;
-	    }	    
+	    }
+	} else if (rc == 400) {
+		alsaplayer_error("Server is full.");
+		if (redirect)
+			redirect[0] = 0;
+		return 1;
 	} else {
 		/* unknown */
 		alsaplayer_error ("HTTP: We don't support %d response code: http://%s:%u%s",
@@ -460,6 +526,7 @@ static int reconnect (http_desc_t *desc, char *redirect)
     s = strstr (response, "\r\nicy-metaint:");
     if (s) {
 	desc->icy_metaint = atoi(s+14);
+	alsaplayer_error("Found metaint: %d", desc->icy_metaint);
     } else {
     	desc->icy_metaint = 0;
     }	
@@ -473,7 +540,7 @@ static int reconnect (http_desc_t *desc, char *redirect)
 #if 1
     if (!desc->seekable) {
 	alsaplayer_error("Prebuffering...");    
-        //dosleep (3000000);
+        dosleep (2000000);
     }
 #endif
     return 0;
@@ -497,6 +564,7 @@ static void http_close(void *d)
     /* free resources */
     if (desc->host)  free (desc->host);
     if (desc->path)  free (desc->path);
+    if (desc->metadata) free (desc->metadata);
     if (desc->sock)  close (desc->sock);
     if (desc->buffer)  free (desc->buffer);
     
@@ -518,10 +586,13 @@ static void *http_open(const char *uri)
     desc->size = 0;
     desc->pos = 0;
     desc->buffer = NULL;
+    desc->buffer_pos = 0;
     desc->begin = 0;
     desc->len = 0;
-    desc->direction = 0;  
+    desc->direction = 0; 
+    desc->metadata = NULL;
     pthread_mutex_init (&desc->buffer_lock, NULL);
+    pthread_mutex_init (&desc->meta_lock, NULL);
     pthread_cond_init (&desc->read_condition, NULL);
     pthread_cond_init (&desc->fast_condition, NULL);
 
@@ -578,6 +649,29 @@ static void http_shutdown()
 {
     return;
 }
+
+
+/* ***************************************************************** */
+/* read metadata from stream					     */
+static size_t http_metadata (void *d, size_t size, void *data)
+{
+	http_desc_t *desc = (http_desc_t*)d;
+	size_t msize;
+
+	pthread_mutex_lock (&desc->meta_lock);
+	
+	if (!desc->metadata) {
+		pthread_mutex_unlock (&desc->meta_lock);
+		return 0;
+	}	
+	msize = strlen(desc->metadata);
+	if (msize > size)
+		msize = size;
+	memcpy(data, desc->metadata, size);
+	pthread_mutex_unlock (&desc->meta_lock);
+	return size;
+}
+
 
 /* ***************************************************************** */
 /* read from stream                                                  */
@@ -744,7 +838,7 @@ static int http_eof (void *d)
 /* info about this plugin */
 reader_plugin http_plugin = {
 	READER_PLUGIN_VERSION,
-	"HTTP reader v1.0",
+	"HTTP reader v1.2",
 	"Evgeny Chukreev",
 	NULL,
 	http_init,
@@ -753,6 +847,7 @@ reader_plugin http_plugin = {
 	http_open,
 	http_close,
 	http_read,
+	http_metadata,
 	http_seek,
 	http_tell,
 	http_can_expand,

@@ -270,6 +270,14 @@ int reader_close (reader_type *h)
     return 0;
 }
 
+
+// Like nothing else :)
+size_t reader_metadata (reader_type *h, size_t size, void *data)
+{
+    return h->plugin->metadata (h->fd, size, data);
+}
+
+
 // Like fread
 size_t reader_read (void *ptr, size_t size, reader_type *h)
 {

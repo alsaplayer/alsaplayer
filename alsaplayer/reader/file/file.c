@@ -116,6 +116,13 @@ static void file_shutdown()
     return;
 }
 
+static size_t file_metadata (void *ptr, size_t size, void *d)
+{
+	/* Not implemented */
+	return 0;
+}
+
+
 /* read from stream */
 static size_t file_read (void *ptr, size_t size, void *d)
 {
@@ -229,7 +236,7 @@ static long file_length (void *d)
 /* info about this plugin */
 reader_plugin file_plugin = {
 	READER_PLUGIN_VERSION,
-	"File reader v1.0",
+	"File reader v1.1",
 	"Evgeny Chukreev",
 	NULL,
 	file_init,
@@ -238,6 +245,7 @@ reader_plugin file_plugin = {
 	file_open,
 	file_close,
 	file_read,
+	file_metadata,
 	file_seek,
 	file_tell,
 	file_can_expand,
