@@ -1,0 +1,12 @@
+Mon Apr  8 14:20:49 HST 2002
+	remove slang_c.c (useless leftover that wasn't compiled)
+	configure.ac: make location of timidity/ dir configurable, etc.
+	readinfo.c: now equals readmidi.c with one extra #define
+	readmidi.c: has the needed #ifdefs (see above)
+	midi_engine.c: _open and _close can now be done independent of playing
+		_frame_seek now works
+	dumb_a.c: remove debugging printout stmt
+	gtim.h: restore #include "config.h"
+	playmidi.c: change default interpolation to LaGrange
+		change default dryness to wet
+	README: say something relevant

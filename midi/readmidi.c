@@ -45,7 +45,26 @@
 #include "controls.h"
 #include "tables.h"
 
+#ifdef INFO_ONLY
+static
+#endif
 int32 quietchannels=0;
+
+#ifdef INFO_ONLY
+static int GM_System_On;
+static int XG_System_On;
+static int GS_System_On;
+
+static int XG_System_reverb_type;
+static int XG_System_chorus_type;
+static int XG_System_variation_type;
+
+static Channel channel[MAXCHAN];
+static signed char drumvolume[MAXCHAN][MAXNOTE];
+static signed char drumpanpot[MAXCHAN][MAXNOTE];
+static signed char drumreverberation[MAXCHAN][MAXNOTE];
+static signed char drumchorusdepth[MAXCHAN][MAXNOTE];
+#endif
 
 /* to avoid some unnecessary parameter passing */
 static MidiEventList *evlist;
@@ -67,6 +86,9 @@ static int midi_port_number;
    large multiples, so it's simpler to have two roomy ints */
 static int32 sample_increment, sample_correction; /*samples per MIDI delta-t*/
 
+#ifdef INFO_ONLY
+static
+#endif
 unsigned char sfxdrum1[100] = {
 0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,
@@ -80,6 +102,9 @@ unsigned char sfxdrum1[100] = {
 0,0,0,0,0,0,0,0,0,0
 };
 
+#ifdef INFO_ONLY
+static
+#endif
 unsigned char sfxdrum2[100] = {
 0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,
@@ -183,6 +208,9 @@ static uint32 getvl(void)
 #endif
 
 /**********************************/
+#ifdef INFO_ONLY
+static
+#endif
 struct meta_text_type *meta_text_list = NULL;
 
 static void free_metatext()
@@ -326,7 +354,9 @@ static int sysex(uint32 len, uint8 *syschan, uint8 *sysa, uint8 *sysb)
       	    ctl->cmsg(CMSG_TEXT, VERB_VERBOSE, "XG System On", len);
 	    XG_System_On=1;
 	    #ifdef tplus
+#ifndef INFO_ONLY
 	    vol_table = xg_vol_table;
+#endif
 	    #endif
 	  }
 	else if (adhi == 2 && adlo == 1)
@@ -403,7 +433,9 @@ static int sysex(uint32 len, uint8 *syschan, uint8 *sysa, uint8 *sysb)
       	    ctl->cmsg(CMSG_TEXT, VERB_VERBOSE, "GS System On", len);
 	    GS_System_On=1;
 	    #ifdef tplus
+#ifndef INFO_ONLY
 	    vol_table = gs_vol_table;
+#endif
 	    #endif
 	  }
 	else if (dta==0x15 && (cd&0xf0)==0x10)
@@ -1108,6 +1140,7 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
       else switch (meep->event.type)
 	{
 	case ME_PROGRAM:
+#ifndef INFO_ONLY
 	  if (current_kit[meep->event.channel])
 	    {
 	      if (current_kit[meep->event.channel]==126)
@@ -1163,6 +1196,9 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
 	      else
 		skip_this_event=1;
 	    }
+#else
+	  skip_this_event=1;
+#endif
 	  break;
 
 	case ME_NOTEON:
@@ -1178,6 +1214,7 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
 	  if (meep->event.channel == 15 && current_program[15] == SPECIAL_PROGRAM)
 	    channel[15].kit = current_kit[15] = 127;
 #endif
+#ifndef INFO_ONLY
 	  if (current_kit[meep->event.channel])
 	    {
 	      int dset = current_set[meep->event.channel];
@@ -1222,6 +1259,7 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
 	      if (!channel[meep->event.channel].name) channel[meep->event.channel].name=
 		    tonebank[banknum]->tone[current_program[chan]].name;
 	    }
+#endif
 	  break;
 
 	case ME_TONE_KIT:
@@ -1236,6 +1274,7 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
 	    }
 	  else if (meep->event.a == 126)
 	    {
+#ifndef INFO_ONLY
 	      if (drumset[SFXDRUM1]) /* Is this a defined tone bank? */
 	        new_value=meep->event.a;
 	      else
@@ -1245,6 +1284,7 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
 	          skip_this_event=1;
 	          break;
 		}
+#endif
 	      current_set[meep->event.channel]=SFXDRUM1;
 	      current_kit[meep->event.channel]=new_value;
 	      break;
@@ -1262,6 +1302,7 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
 	      skip_this_event=1;
 	      break;
 	    }
+#ifndef INFO_ONLY
 	  if (tonebank[SFXBANK]) /* Is this a defined tone bank? */
 	    new_value=SFX_BANKTYPE;
 	  else 
@@ -1271,6 +1312,7 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
 	      skip_this_event=1;
 	      break;
 	    }
+#endif
 	  if (current_banktype[meep->event.channel]!=new_value)
 	    current_banktype[meep->event.channel]=new_value;
 	  else
@@ -1290,6 +1332,7 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
 		   "XG variation bank %d", meep->event.a);
 	      new_value=meep->event.a=0;
 	  }
+#ifndef INFO_ONLY
 	  else if (tonebank[meep->event.a]) /* Is this a defined tone bank? */
 	    new_value=meep->event.a;
 	  else 
@@ -1298,6 +1341,7 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
 		   "Tone bank %d is undefined", meep->event.a);
 	      new_value=meep->event.a=0;
 	    }
+#endif
 
 	  if (current_bank[meep->event.channel]!=new_value)
 	    current_bank[meep->event.channel]=new_value;
@@ -1364,7 +1408,11 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
   return groomed_list;
 }
 
+#ifdef INFO_ONLY
+MidiEvent *read_midi_file_info(FILE *mfp, uint32 *count, uint32 *sp)
+#else
 MidiEvent *read_midi_file(FILE *mfp, uint32 *count, uint32 *sp)
+#endif
 {
   uint32 len;
   int32 divisions;
@@ -1378,7 +1426,9 @@ MidiEvent *read_midi_file(FILE *mfp, uint32 *count, uint32 *sp)
   evlist=0;
   free_metatext();
   GM_System_On=GS_System_On=XG_System_On=0;
+#ifndef INFO_ONLY
   vol_table = def_vol_table;
+#endif
   XG_System_reverb_type=XG_System_chorus_type=XG_System_variation_type=0;
   memset(&drumvolume,-1,sizeof(drumvolume));
   memset(&drumchorusdepth,-1,sizeof(drumchorusdepth));

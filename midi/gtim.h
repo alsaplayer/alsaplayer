@@ -20,7 +20,7 @@
 */
 
 
-//#include "../../config.h"
+#include "config.h"
 
 #ifndef TRUE
 #define TRUE 1

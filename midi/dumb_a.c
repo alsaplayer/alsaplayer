@@ -90,7 +90,7 @@ static void flush_output(void)
 
 static void purge_output(void)
 {
-fprintf(stderr,"dumb purge\n");
+/*fprintf(stderr,"dumb purge\n");*/
   b_out(dpm.id_character, dpm.fd, 0, -1);
 }
 

@@ -67,7 +67,8 @@ extern int intr;
 #ifdef tplus
 int dont_cspline=0;
 #endif
-int opt_dry = 1;
+/*int opt_dry = 1;*/
+int opt_dry = 0;
 int opt_expression_curve = 1;
 int opt_volume_curve = 1;
 int opt_stereo_surround = 1;
@@ -75,7 +76,8 @@ int dont_filter_melodic=1;
 int dont_filter_drums=1;
 int dont_chorus=0;
 int dont_reverb=0;
-int current_interpolation=1;
+/*int current_interpolation=1; cspline*/
+int current_interpolation=2;
 int dont_keep_looping=0;
 static int voice_reserve=0;
 
