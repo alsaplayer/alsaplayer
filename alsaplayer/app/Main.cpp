@@ -56,7 +56,7 @@ int global_verbose = 0;
 
 static char addon_dir[1024];
 
-static char *default_pcm_device = "hw:0,0";
+static char *default_pcm_device = "default";
 
 const char *default_output_addons[] = {
 	{ "libalsa.so" },
@@ -201,24 +201,25 @@ static void help()
 "\n"	
 "Available options:\n"
 "\n"
-"  -d,--device string          select card and device [default=hw:0,0]\n"
-"  -f,--fragsize #             fragment size in bytes [default=4096]\n"
-"  -F,--frequency #            output frequency [default=%d]\n"
-"  -g,--fragcount #            fragment count [default=8]\n"
-"  -h,--help                   print this help message\n"
-"  -i,--interface iface        load in the iface interface [default=gtk]\n"
-"  -l,--volume #               set software volume [0-100]\n"
-"  -p,--path [path]            print/set the path alsaplayer looks for add-ons\n" 
-"  -q,--quiet                  quiet operation. no output\n"
-"  -r,--realtime               enable realtime scheduling (must be SUID root)\n"
-"  -v,--version                print version of this program\n"
+"  -d,--device string      select card and device [default=\"default\"]\n"
+"  -f,--fragsize #         fragment size in bytes [default=4096]\n"
+"  -F,--frequency #        output frequency [default=%d]\n"
+"  -g,--fragcount #        fragment count [default=8]\n"
+"  -h,--help               print this help message\n"
+"  -i,--interface iface    load in the iface interface [default=gtk]\n"
+"  -l,--volume #           set software volume [0-100]\n"
+"  -p,--path [path]        print/set the path alsaplayer looks for add-ons\n" 
+"  -q,--quiet              quiet operation. no output\n"
+"  -r,--realtime           enable realtime scheduling (must be SUID root)\n"
+"  -v,--version            print version of this program\n"
 "\n"
 "Testing options:\n"
 "\n"
-"  --reverb      	                 use reverb function (CPU intensive!)\n"
-"  -S, --loopsong                        Loop file\n"
-"  -P, --looplist                        Loop Playlist\n"
-"  -o,--output [alsa|oss|nas|sgi|sparc]  Use ALSA, OSS, NAS, SGI or Sparc driver for output\n"
+"  --reverb      	         use reverb function (CPU intensive!)\n"
+"  -S,--loopsong           loop file\n"
+"  -P,--looplist           loop Playlist\n"
+"  -x,--crossfade          crossfade between playlist entries (experimental)\n"
+"  -o,--output [alsa|oss|nas|sgi|...]  Use ALSA, OSS, NAS, SGI, etc. driver for output\n"
 "\n", OUTPUT_RATE
 	);
 }
@@ -252,6 +253,7 @@ int main(int argc, char **argv)
 	int last_arg = 0;
 	int arg_pos = 0;
 	int use_vol = 100;
+	int use_crossfade = 0;
 	//CorePlayer *p;
 	//char path[256], *home;
 	char use_interface[256];
@@ -302,6 +304,11 @@ int main(int argc, char **argv)
 				   strcmp(argv[arg_pos], "-v") == 0) {
 			version();
 			return 0;
+		} else if (strcmp(argv[arg_pos], "--crossfade") == 0 ||
+						strcmp(argv[arg_pos], "-x") == 0) {
+						use_crossfade = 1;
+						arg_pos++;
+						last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--path") == 0 ||
 				   strcmp(argv[arg_pos], "-p") == 0) {
 			if (arg_pos+1 == argc) { // Last option so display and exit
@@ -495,6 +502,11 @@ int main(int argc, char **argv)
 	// Loop Playlist
 	if (use_loopList) {	 
 	 playlist->LoopPlaylist();
+	}
+
+	// Cross fading
+	if (use_crossfade) {
+		playlist->Crossfade();
 	}
 
 	interface_plugin_info_type interface_plugin_info;

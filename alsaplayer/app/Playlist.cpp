@@ -58,13 +58,15 @@ extern void playlist_looper(void *data)
 					pl->Next(1);
 				}	
 			}
-			// Cross example
-			if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < 110) {
-					if (pl->player1->IsActive())
-							pl->coreplayer = pl->player2;
-					else
-							pl->coreplayer = pl->player1;
-					pl->Next(1);
+			if (pl->Crossfading()) {
+				// Cross example
+				if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < 110) {
+						if (pl->player1->IsActive())
+								pl->coreplayer = pl->player2;
+						else
+								pl->coreplayer = pl->player1;
+						pl->Next(1);
+				}
 			}
 		}	
 		dosleep(100000);
@@ -177,7 +179,8 @@ Playlist::Playlist(AlsaNode *the_node) {
 
 	UnLoopSong();			// Default values
 	UnLoopPlaylist();	// for looping
-	
+	UnCrossfade();		// and crossfading
+
 	pthread_mutex_init(&playlist_mutex, NULL);
 	pthread_create(&playlist_thread, NULL,
 				   (void * (*)(void *))playlist_looper, this);
