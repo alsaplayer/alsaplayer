@@ -92,7 +92,7 @@ then
 fi])
 
 if test "$prefer_mad" = yes; then
-	AC_DEFINE(PREFER_MAD)
+	AC_DEFINE(PREFER_MAD, 1, [Define if you prefer MAD over mpg123])
 fi	
 
 dnl ===============
@@ -488,43 +488,43 @@ ARCH_CFLAGS="$CFLAGS $EXTRA_OPT_CFLAGS"
 
 if test "$ARCH_TYPE" = "i486" || test "$ARCH_TYPE" = "i586" || test "$ARCH_TYPE" = "i686"
 then
-	AC_DEFINE(ARCH_X86)
+	AC_DEFINE(ARCH_X86, 1, [Define if on x86 platform])
 fi
 
 if test "$ARCH_TYPE" = "i486"
 then
-        AC_DEFINE(ARCH_486)
+        AC_DEFINE(ARCH_486, 1, [Define if on a 486 platform])
 fi
 
 if test "$ARCH_TYPE" = "i586"
 then
-        AC_DEFINE(ARCH_586)
+        AC_DEFINE(ARCH_586, 1, [Define if on a 586 platform])
 fi
 
 if test "$ARCH_TYPE" = "i686"
 then
-        AC_DEFINE(ARCH_686)
+        AC_DEFINE(ARCH_686, 1, [Define if on a 686 platform])
 #		EXTRA_CPU_CFLAGS=$(if $CC -march=i686 -S -o /dev/null -xc /dev/null > /dev/null; then echo "-march=i686"; fi)
 fi
 
 if test "$ARCH_TYPE" = "ppc"
 then
-		AC_DEFINE(ARCH_PPC)
+		AC_DEFINE(ARCH_PPC, 1, [Define if on a PPC platform])
 fi
 
 if test "$ARCH_TYPE" = "sun4u"
 then
-		AC_DEFINE(ARCH_ULTRA)
+		AC_DEFINE(ARCH_ULTRA, 1, [Define if on a SUN ULTRA platform])
 fi
 
 if test "$have_gtk" = "yes"
 then
-		AC_DEFINE(HAVE_GTK)
+		AC_DEFINE(HAVE_GTK, 1, [Define if we have gtk+])
 fi		
 
 dnl if test "$have_qt" = "yes"
 dnl then
-dnl		AC_DEFINE(HAVE_QT)
+dnl		AC_DEFINE(HAVE_QT, 1, [Define if we have Qt])
 dnl fi		
 
 dnl ================================================================
@@ -536,11 +536,11 @@ AM_CONFIG_HEADER(config.h)
 
 case "$host" in
 	i?86-* | k?-* | athlon-*) dnl catch i386,i486,i586,i686,k6,k7
-		AC_DEFINE(FPM_INTEL)
+		AC_DEFINE(FPM_INTEL, 1, [Define if we are on Intel])
 	;;	
 	*-*)
 		echo "host_alias = $host_alias"
-		AC_DEFINE(FPM_64BIT)
+		AC_DEFINE(FPM_64BIT, 1, [Use this otherwise])
 	;;	
 esac
 
