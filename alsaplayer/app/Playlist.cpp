@@ -58,7 +58,7 @@ extern void playlist_looper(void *data)
 			}	
 		}
 		// Cross example
-		if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < 150) {
+		if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < 110) {
 				if (pl->player1->IsActive())
 						pl->coreplayer = pl->player2;
 				else
