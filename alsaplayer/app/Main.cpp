@@ -754,7 +754,11 @@ int main(int argc, char **argv)
 		} else {
 			ui->start(playlist, argc, argv);
 			ui->close();
-			dlclose(ui->handle);
+			// Unfortunately gtk+ is a pig when it comes to
+			// cleaning up its resources; it doesn't!
+			// so we can never safely dlclose gtk+ based 
+			// user interface.
+			//dlclose(ui->handle);
 		}
 		control_socket_stop();
 	}
