@@ -424,6 +424,7 @@ int main(int argc, char **argv)
 	int use_vol = 100;
 	int use_session = 0;
 	int do_crossfade = 0;
+	int was_playing = 0;
 	char *use_output = NULL;
 	char *use_interface = NULL;
 
@@ -620,8 +621,11 @@ int main(int argc, char **argv)
 			}
 		}
 		if (do_replace) {
+			ap_is_playing(use_session, &was_playing);
+			if (was_playing) {
+				ap_stop(use_session);
+			}
 			ap_clear_playlist(use_session);
-			ap_stop(use_session);
 		}	
 		
 		count = optind;
@@ -656,6 +660,8 @@ int main(int argc, char **argv)
 			ap_result = ap_add_path(use_session, queue_name);
 			//alsaplayer_error("ap_result = %d", ap_result);	
 		}
+		if (was_playing)
+			ap_jump_to(use_session, 1);
 		if (ap_result)
 			return 0;
 	}

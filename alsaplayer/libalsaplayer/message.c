@@ -574,6 +574,11 @@ int ap_set_frame(int session, int frame)
 	return (ap_cmd_set_int(session, AP_SET_POS_FRAME, frame));
 }
 
+int ap_jump_to(int session, int pos)
+{
+	return (ap_cmd_set_int(session, AP_JUMP_TO, pos));
+}
+
 int ap_get_frame(int session, int *val)
 {
 	return (ap_cmd_get_int(session, AP_GET_POS_FRAME, val));

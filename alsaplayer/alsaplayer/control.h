@@ -83,6 +83,7 @@ int ap_get_status(int session, char *str);
 int ap_is_playing(int session, int *val);
 
 int ap_sort (int session, char *seq);
+int ap_jump_to(int session, int pos);
 
 #ifdef __cplusplus
 }

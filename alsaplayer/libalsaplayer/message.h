@@ -69,6 +69,8 @@
 #define AP_SORT			0xcc24
 #define AP_GET_FILE_PATH	0xcc25
 #define AP_ADD_PLAYLIST		0xcc26
+#define AP_JUMP_TO		0xcc27
+
 /* Add new commands here */
 
 #ifdef __cplusplus

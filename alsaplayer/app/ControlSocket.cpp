@@ -143,6 +143,7 @@ static void socket_looper(void *arg)
 				if ((path = ap_message_find_string(msg, "path1"))) {
 					playlist->AddAndPlay(strdup(path));
 				}
+				playlist->UnPause();
 				ap_message_add_int32(reply, "ack", 1);
 				break;
 			case AP_SORT:
@@ -166,6 +167,7 @@ static void socket_looper(void *arg)
 				break;
 			case AP_PLAY: 
 				if (player) {
+					playlist->UnPause();
 					if (player->IsPlaying()) {
 						if (player->GetSpeed() == 0.0) {
 							player->SetSpeed(1.0);
@@ -185,24 +187,36 @@ static void socket_looper(void *arg)
 				break;
 			case AP_NEXT: 
 				playlist->Next();
+				playlist->UnPause();
 				ap_message_add_int32(reply, "ack", 1);
 				break;
 			case AP_PREV:
 				playlist->Prev();
+				playlist->UnPause();
 				ap_message_add_int32(reply, "ack", 1);
 				break;
+			case AP_JUMP_TO:
+				if ((int_val = ap_message_find_int32(msg, "int"))) {
+					playlist->Play(*int_val);
+					playlist->UnPause();
+					ap_message_add_int32(reply, "ack", 1);
+				} else {
+					ap_message_add_int32(reply, "ack", 0);
+				}	
+				break;
 			case AP_STOP:
-				if (player)
-					player->Stop();
+				playlist->Stop();
 				ap_message_add_int32(reply, "ack", 1);
 				break;
 			case AP_PAUSE:
+				playlist->Pause();
 				if (player)
 					player->Pause();
 				ap_message_add_int32(reply, "ack", 1);
 				break;
 			case AP_UNPAUSE:
-				if (player)
+				playlist->UnPause();
+				if (player) 
 					player->UnPause();
 				ap_message_add_int32(reply, "ack", 1);
 				break;
