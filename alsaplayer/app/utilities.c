@@ -21,6 +21,8 @@
 */ 
 
 #include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
 #include "utilities.h"
 #include "alsaplayer_error.h"
 
@@ -43,11 +45,40 @@ void parse_file_uri_free(char *p)
 		free(p);
 }
 
+char *get_homedir()
+{
+	char *homedir = NULL;
+
+	if ((homedir = getenv("HOME")) == NULL) {
+		homedir = strdup("/tmp");
+	}
+	return homedir;
+}
+
+char *get_prefsdir()
+{
+	static char *prefs_path;
+	static int prefs_path_init = 0;
+	char *homedir;
+
+	if (prefs_path_init) {
+		return prefs_path;
+	}
+	homedir = get_homedir();
+	prefs_path = (char *)malloc(strlen(homedir) + 14);
+	if (!prefs_path) 
+		return NULL;
+	sprintf(prefs_path, "%s/.alsaplayer", homedir);
+	prefs_path_init = 1;
+	return prefs_path;
+}
+
+
 char *parse_file_uri(const char *furi)
 {
 	char *res;
 	char escape[4];
-	int r,w, t, percent, e;
+	int r,w, t, percent, e, val;
 	if (!furi)
 		return NULL;
 	if ((strncmp(furi, "file:", 5) != 0)) {
@@ -62,6 +93,8 @@ char *parse_file_uri(const char *furi)
 	while (r < t) {
 		switch(furi[r]) {
 			case '%':
+				alsaplayer_error("found percent: (%s) (%s)",
+						furi, res);
 				if (percent) {
 					res[w++] = '%';
 					percent = 0;
@@ -72,15 +105,14 @@ char *parse_file_uri(const char *furi)
 				break;
 			default:
 				if (percent) {
-					if (isdigit(furi[r])) {
-						escape[e++] = furi[r];
-						escape[e]=0;
-					}
+					escape[e++] = furi[r];
+					escape[e]=0;
 					if (e == 2) {
-						if (atoi(escape) == 20) {
-							res[w++] = ' ';
+						if ((sscanf(escape, "%x", &val) == 1)) {
+							alsaplayer_error("Whoop! found '%c'", val);
+							res[w++] = val;
 						} else {
-							alsaplayer_error("unandled percent escape (%d,%c)", atoi(escape), atoi(escape));
+							alsaplayer_error("unandled percent escape (%s)", escape);
 						}
 						percent = 0;
 					}
