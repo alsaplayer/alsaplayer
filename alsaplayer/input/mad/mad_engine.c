@@ -90,7 +90,6 @@ struct mad_local_data {
 	int seeking;
 	int eof;
 	int parsed_id3;
-	int is_remote;
 	char str[17];
 };		
 
@@ -651,13 +650,10 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 
 	if (data) {
 		if (!data->parsed_id3) {
-	            if (strncmp(data->path, "http://", 7) != 0) {
-			    // Some data we parse only once
+	            if (obj->flags & P_FILEBASED) 
 			    parse_id3 (data->path, &data->sinfo);
-		    } else {
-			    data->is_remote = 1;
+		    if (obj->flags & P_STREAMBASED) 
 			    strcpy(data->sinfo.status, "Streaming");
-		    }
 		    strncpy (data->sinfo.path, data->path, sizeof(data->sinfo.path));
 		    data->parsed_id3 = 1;
 		}
@@ -816,13 +812,21 @@ static int mad_open(input_object *obj, const char *path)
 		obj->local_data = NULL;
 		return 0;
 	}
+	obj->flags = 0;
+	
+	if (strncasecmp(path, "http://", 7) == 0) {
+		obj->flags |= P_STREAMBASED;
+	} else {
+		obj->flags |= P_FILEBASED;
+	}
 	if (!reader_seekable(data->mad_fd)) {
-		obj->flags = 0;
 		data->seekable = 0;
 	} else {
-		obj->flags = P_SEEK;
+		obj->flags |= P_SEEK;
+		obj->flags |= P_PERFECTSEEK;
 		data->seekable = 1;
 	}
+	obj->flags |= P_REENTRANT;
 
 	mad_synth_init  (&data->synth);
 	mad_stream_init (&data->stream);
