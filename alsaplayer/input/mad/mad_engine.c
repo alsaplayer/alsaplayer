@@ -101,43 +101,33 @@ static int mad_play_frame(input_object *obj, char *buf)
 	data = (struct mad_local_data *)obj->local_data;
 	if (!data)
 			return 0;
-#ifdef MAD_DEBUG
-	printf("in mad_play_frame()...\n");
-#endif
+	
 	if (data->bytes_in_buffer < 3072) { /* Hmm, this sucks */
-#ifdef MAD_DEBUG					
-					printf("going to read data into stream_buffer...(in buf = %d)\n", 
-														data->bytes_in_buffer);
-#endif					
 					if ((bytes_read = read(data->mad_fd, 
 									data->stream_buffer + data->bytes_in_buffer, 
 									STREAM_BUFFER_SIZE - data->bytes_in_buffer)) < 
 													(STREAM_BUFFER_SIZE - data->bytes_in_buffer)) {
-									printf("Not enough data read (%d)\n", bytes_read);
-					}				
-					data->bytes_in_buffer += bytes_read;
-#ifdef MAD_DEBUG	
-					printf("read %d bytes into stream_buffer (in buf = %d)\n", bytes_read,
-											 data->bytes_in_buffer);
-#endif
+									printf("MAD debug: not enough data read (%d, %d)\n",
+																	bytes_read, data->bytes_in_buffer);
+					}
+					if (bytes_read > 0)
+									data->bytes_in_buffer += bytes_read;
 	}				
 	mad_stream_buffer (&data->stream, data->stream_buffer, data->bytes_in_buffer);
 #ifdef MAD_DEBUG
-	printf("going to decode frame\n");
+	printf("MAD debug: going to decode frame\n");
 #endif
 	if (mad_frame_decode(&data->frame, &data->stream) == -1) {
-#ifdef MAD_DEBUG			
 					if (!MAD_RECOVERABLE(data->stream.error)) {
-									printf("Serious error: %d\n", data->stream.error);
+									printf("MAD result: %d\n", data->stream.error);
 									mad_frame_mute(&data->frame);
 									return 0;
-					}				
-					printf("This part is not finished\n");
-#endif					
-					return 0;
+					}	else {
+							printf("MAD result: %d\n", data->stream.error);
+					}		
 	}
 #ifdef MAD_DEBUG	
-	printf("going to synth frame\n");
+	printf("MAD debug: going to synth frame\n");
 #endif	
 	mad_synth_frame (&data->synth, &data->frame);
 	{
@@ -152,7 +142,7 @@ static int mad_play_frame(input_object *obj, char *buf)
 					left_ch = pcm->samples[0];
 					right_ch = pcm->samples[1];
 #ifdef MAD_DEBUG					
-					printf("going to write out sample data\n");	
+					printf("MAD debug: going to write out sample data\n");	
 #endif					
 					while (nsamples--) {
 									 *output++ = scale(*left_ch++);
@@ -160,7 +150,7 @@ static int mad_play_frame(input_object *obj, char *buf)
 													 *output++ = scale(*right_ch++);
 					}
 #ifdef MAD_DEBUG					
-					printf("going to move data (%d -> %d)\n",
+					printf("MAD debug: going to move data (%d -> %d)\n",
 													data->bytes_in_buffer, num_bytes);
 #endif					
 					/* Move data, this is inefficient */
@@ -205,7 +195,8 @@ int mad_stream_info(input_object *obj, stream_info *info)
 	if (!obj || !info)
 			return 0;
 	data = (struct mad_local_data *)obj->local_data;
-	
+
+	strcpy(info->stream_type, "Please note: file info / seeking not done yet");				
 	return 1;
 }
 
@@ -265,7 +256,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 	ssize_t header_size = 0;
 	while (pos < (size - 10)) {
 					if ((data[pos] == 0x49 && data[pos+1] == 0x44 && data[pos+2] == 0x33)) {
-									printf("Skipping ID3v2 header (%x %x %x)\n",
+									printf("-----------------------\nMAD debug: skipping ID3v2 header (%x %x %x)\n",
 																	data[pos], data[pos+1], data[pos+2]);
 									
 									header_size = (data[pos + 6] << 21) + 
@@ -273,17 +264,17 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 																(data[pos + 8] << 7) +
 																data[pos + 9]; /* syncsafe integer */
 									if (data[pos + 5] & 0x10) {
-													printf("extended header found\n");
+													printf("MAD debug: extended header found\n");
 													header_size += 10; /* 10 byte extended header */
 									}
 									header_size += 10;
-									printf("Header size = %d (%x %x %x %x)\n", header_size,
+									printf("MAD debug: header size = %d (%x %x %x %x)\n", header_size,
 																	data[pos + 6], data[pos + 7], data[pos + 8],
 																	data[pos + 9]);
 									return header_size;
 					} else if (data[pos] == 'R' && data[pos+1] == 'I' &&
 										 data[pos+2] == 'F' && data[pos+3] == 'F') {
-									printf("Skipping RIFF header\n");
+									printf("-----------------------\nMAD debug: skipping RIFF header\n");
 									pos+=4;
 									while (pos < size) {
 												if (data[pos] == 'd' && data[pos+1] == 'a' &&
@@ -293,7 +284,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 												} else
 																pos++;
 									}
-									printf("Invalid header\n");
+									printf("MAD debug: invalid header\n");
 									return -1;
 					} else {
 									pos++;
@@ -343,7 +334,6 @@ static int mad_open(input_object *obj, char *path)
 						free(obj->local_data);
 						return 0;
 		} else {
-						printf("MPEG start offset in file = %d\n", data->offset); 
 						memmove(data->stream_buffer, data->stream_buffer + data->offset, 
 														bytes_read - data->offset);
 						data->bytes_in_buffer -= data->offset;
@@ -355,7 +345,7 @@ static int mad_open(input_object *obj, char *path)
 					int num_bytes;	
 					if (data->stream.next_frame) {
 						num_bytes = data->stream_buffer + bytes_read - data->stream.next_frame;
-						printf("num_bytes = %d\n", num_bytes);
+						printf("MAD debug: num_bytes = %d\n", num_bytes);
 						memmove(data->stream_buffer, data->stream.next_frame, num_bytes);
 					}
 					
@@ -366,7 +356,7 @@ static int mad_open(input_object *obj, char *path)
 														free(obj->local_data);
 														break;
 										default:
-														printf("No valid frame found at start\n");
+														printf("MAD debug: no valid frame found at start\n");
 					}
 					close(data->mad_fd);
 					free(obj->local_data);
@@ -383,7 +373,7 @@ static int mad_open(input_object *obj, char *path)
 						
 						obj->nr_channels = pcm->channels;
 						obj->frame_size = 4608;
-						printf("%d HZ, %d channel mp3! Done for now...\n", 
+						printf("MAD debug: %d HZ, %d channel mp3. Lets play it!\n", 
 														data->sample_rate, obj->nr_channels);
 					}
 		}
