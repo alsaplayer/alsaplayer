@@ -277,7 +277,6 @@ void CorePlayer::ResetBuffer()
 
 CorePlayer::~CorePlayer()
 {
-	input_plugin *tmp;
 	int i;
 
 	UnregisterPlugins();
@@ -400,7 +399,7 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 		error_count++;
 	}
 	if (error_count) {
-	    	alsaplayer_error("At least %d error(s) were detected");
+	    	alsaplayer_error("At least %d error(s) were detected", error_count);
 		//Unlock();
 		return 0;
 	}	
