@@ -31,9 +31,11 @@
 #include "scope_config.h"
 #include "fft.h"
 
+#define BARS 32
+
 static sound_sample actEq[FFT_BUFFER_SIZE];
 static sound_sample oldEq[FFT_BUFFER_SIZE];
-static int maxbar[16];
+static int maxbar[BARS];
 static double fftout[FFT_BUFFER_SIZE / 2 + 1];
 static double fftmult;
 static fft_state *fftstate;
@@ -45,8 +47,10 @@ static pthread_mutex_t fftscope_mutex;
 static int is_init = 0;
 static int running = 0;
 
-static int xranges[] = {1, 2, 3, 4, 6, 8, 11, 15, 21,
-			29, 40, 54, 74, 101, 137, 187, 255};
+//static int xranges[] = {1, 2, 3, 4, 6, 8, 11, 15, 21,
+//			29, 40, 54, 74, 101, 137, 187, 255};
+static int xranges[] = {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 15, 17, 19, 21, 23, 25, 29, 33, 37, 40, 44, 48, 54, 61, 67, 74, 90, 101, 137, 158, 187, 255};
+
 
 
 static void fftscope_hide();
@@ -94,7 +98,7 @@ while (running) { \
 \
     fft_perform(oldEq, fftout, fftstate); \
 \
-    for (i=0; i < 16; i++) { \
+    for (i=0; i < BARS; i++) { \
 	val = 0; \
 	for (j = xranges[i]; j < xranges[i + 1]; j++) { \
 		k = (guint)(sqrt(fftout[j]) * fftmult);\
@@ -110,7 +114,7 @@ while (running) { \
 	} \
 	loc = bits + 256 * 127; \
 	for (h = val; h > 0; h--) {\
-	    for (j = 16 * i + 0; j < 16 * i + 15; j++) { \
+	    for (j = (256 / BARS) * i + 0; j < (256 / BARS) * i + ((256 / BARS) - 1); j++) { \
 		*(loc + j) = colEq[val-h]; \
 	    } \
 	    loc -=256; \
@@ -444,7 +448,7 @@ static int init_fftscope()
 
 	fftmult *= 3; // Adhoc parameter, looks about right for me.
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < BARS; i++) {
 		maxbar[ i ] = 0;
 	}	
 	return 1;
