@@ -190,8 +190,6 @@ static int mad_frame_seek(input_object *obj, int frame)
 		return 0;
 	data = (struct mad_local_data *)obj->local_data;
 
-	//alsaplayer_error("Frame seek to %d (highest = %d)", frame, data->highest_frame);
-	
 	if (!data || !data->seekable)
 		return 0;
 
@@ -205,8 +203,8 @@ static int mad_frame_seek(input_object *obj, int frame)
 			skip = 3;
 		}
 		byte_offset = data->frames[frame-skip];
-		// Prepare the buffer for a read
-		//alsaplayer_error("Filling buffer offset = %d (%d)", byte_offset, frame-skip);
+
+		/* Prepare the buffer for a read */
 		fill_buffer(data, byte_offset);
 		mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
 		skip++;
@@ -237,8 +235,6 @@ static int mad_frame_seek(input_object *obj, int frame)
 				fill_buffer(data, 0);
 				mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
 				data->seeking = 0;
-				//alsaplayer_error("Error while seeking (%d, %d)", data->highest_frame,
-				//		data->bytes_avail);
 				return 0;
 			}				
 		}
@@ -297,26 +293,32 @@ static int mad_play_frame(input_object *obj, char *buf)
 	if (!data)
 		return 0;
 	if (data->bytes_avail < 3072) {
-		//alsaplayer_error("Filling buffer = %d,%d",
-		//		data->bytes_avail,
-		//		data->map_offset + MAD_BUFSIZE - data->bytes_avail);
-		fill_buffer(data, -1); //data->map_offset + MAD_BUFSIZE - data->bytes_avail);
+		/*
+		alsaplayer_error("Filling buffer = %d,%d",
+				data->bytes_avail,
+				data->map_offset + MAD_BUFSIZE - data->bytes_avail);
+		*/
+		fill_buffer(data, -1); /* data->map_offset + MAD_BUFSIZE - data->bytes_avail); */
 		mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
 	} else {
-		//alsaplayer_error("bytes_avail = %d", data->bytes_avail);
+		/* alsaplayer_error("bytes_avail = %d", data->bytes_avail); */
 	}
 	if (mad_frame_decode(&data->frame, &data->stream) == -1) {
 		if (!MAD_RECOVERABLE(data->stream.error)) {
-			//alsaplayer_error("MAD error: %s (%d). fatal", 
-			//	error_str(data->stream.error, data->str),
-			//	data->bytes_avail);
+			/*
+			alsaplayer_error("MAD error: %s (%d). fatal", 
+				error_str(data->stream.error, data->str),
+				data->bytes_avail);
+			*/	
 			mad_frame_mute(&data->frame);
 			return 0;
 		} else {
 			if (reader_eof(data->mad_fd)) {
 				return 0;
 			}	
-			//alsaplayer_error("MAD error: %s (not fatal)", error_str(data->stream.error, data->str)); 
+			/*
+			alsaplayer_error("MAD error: %s (not fatal)", error_str(data->stream.error, data->str)); 
+			*/
 		}
 	}
 	data->current_frame++;
@@ -344,7 +346,9 @@ static int mad_play_frame(input_object *obj, char *buf)
 				nchannels, 
 				obj->nr_channels,
 				data->current_frame);
-			//return 0;
+			mad_frame_mute(&data->frame);
+			memset(buf, 0, obj->frame_size);
+			return 1;
 		}	
 		obj->nr_channels = nchannels;
 		if (data->samplerate != data->frame.header.samplerate) {
@@ -352,16 +356,20 @@ static int mad_play_frame(input_object *obj, char *buf)
 				data->samplerate, 
 				data->frame.header.samplerate,
 				data->current_frame);
+			mad_frame_mute(&data->frame);
+			memset(buf, 0, obj->frame_size);
+			return 1;
 		}	
 		data->samplerate = data->frame.header.samplerate;
 		left_ch = pcm->samples[0];
 		right_ch = pcm->samples[1];
 		while (nsamples--) {
 			*output++ = my_scale(*(left_ch++));
-			if (nchannels == 1) 
+			if (nchannels == 1) {
 				*output++ = my_scale(*(left_ch-1));
-			else /* nchannels == 2 */
+			} else { /* nchannels == 2 */
 				*output++ = my_scale(*(right_ch++));
+			}	
 
 		}
 	}
@@ -711,7 +719,7 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 		memcpy (info, &data->sinfo, sizeof (data->sinfo));
 		
 		/* Compose path, stream_type and status fields */
-		sprintf(info->stream_type, "MPEG Audio, %dKHz, %s, %-3ldkbit",
+		sprintf(info->stream_type, "MP3, %dKHz, %s, %-3ldkbit",
 				data->frame.header.samplerate / 1000,
 				obj->nr_channels == 2 ? "stereo" : "mono",
 				data->frame.header.bitrate / 1000);
@@ -786,11 +794,10 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 					|| data[pos+1] == 0xf3 
 					|| data[pos+1] == 0xe2
 					|| data[pos+1] == 0xe3)) {
-			//alsaplayer_error("found header at %d", pos);
 			return pos;
 		}	
 		if (pos == 0 && data[pos] == 0x0d && data[pos+1] == 0x0a) {
-			return -1; // Let MAD figure this out
+			return -1; /* Let MAD figure this out */
 		}	
 		if (pos == 0 && (data[pos] == 'I' && data[pos+1] == 'D' && data[pos+2] == '3')) {
 			header_size = (data[pos + 6] << 21) + 
@@ -801,9 +808,9 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 				ext_header = 1;
 				header_size += 10; /* 10 byte extended header */
 			}
-			//printf("ID3v2.%c detected with header size %d (at pos %d)\n",  0x30 + data[pos + 3], header_size, pos);
+			/* printf("ID3v2.%c detected with header size %d (at pos %d)\n",  0x30 + data[pos + 3], header_size, pos); */
 			if (ext_header) {
-				//printf("Extended header detected\n");
+				/* printf("Extended header detected\n"); */
 			}
 			header_size += 10;
 
@@ -815,7 +822,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 		} else if (data[pos] == 'R' && data[pos+1] == 'I' &&
 				data[pos+2] == 'F' && data[pos+3] == 'F') {
 			pos+=4;
-			//alsaplayer_error("Found a RIFF header");
+			/* alsaplayer_error("Found a RIFF header"); */
 			while (pos < size) {
 				if (data[pos] == 'd' && data[pos+1] == 'a' &&
 						data[pos+2] == 't' && data[pos+3] == 'a') {
