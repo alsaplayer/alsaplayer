@@ -261,23 +261,22 @@ static int fftscope_running()
 
 
 /* The C struct that contains all our functions */
-scope_plugin fftscope_plugin = {
-	SCOPE_PLUGIN_VERSION,	/* Plugin version number */
-	{"FFTscope"},		/* Name of the scope */
-	{"Andy Lo-A-Foe & Richard Boulton"},	/* Author(s) */
-	NULL,			/* Filled in by HOST */
-	init_fftscope,		/* Init */
-	start_fftscope,		/* Start */
-	fftscope_running,	/* Running */
-	stop_fftscope,		/* Stop */
-	shutdown_fftscope,	/* Shutdown */
-	NULL,			/* set_data (PCM), not used for this plugin */
-	fftscope_set_fft	/* set_fft (FFT), this function receives FFT data */
-};
+static scope_plugin fftscope_plugin;
 
 
 /* Our entry point so the HOST can get to the above struct */
 scope_plugin *scope_plugin_info()
 {
+	memset(&fftscope_plugin, 0, sizeof(scope_plugin));
+	fftscope_plugin.version = SCOPE_PLUGIN_VERSION;
+	fftscope_plugin.name = "FFTscope";
+	fftscope_plugin.author = "Andy Lo-A-Foe & Richard Boulton";
+	fftscope_plugin.init = init_fftscope;
+	fftscope_plugin.start = start_fftscope;
+	fftscope_plugin.running = fftscope_running;
+	fftscope_plugin.stop = stop_fftscope;
+	fftscope_plugin.shutdown = shutdown_fftscope;
+	fftscope_plugin.set_fft = fftscope_set_fft;
+	/* We don't assign set_data since it's not needed for this plugin */
 	return &fftscope_plugin;
 }
