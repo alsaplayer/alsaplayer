@@ -51,6 +51,7 @@ typedef struct http_desc_t_ {
 
     /* Info about reading */
     int direction;		/* Reading direction. */
+    int played_parts;		/* How much parts (of 16) use for played data */
     long pos;			/* Current position where reader is */
 
     /* Buffer stuff */
@@ -117,7 +118,7 @@ static int cond_timedwait_relative (pthread_cond_t *cond, pthread_mutex_t *mut, 
 static int calc_time_to_wait (http_desc_t *desc)
 {
     int timetowait;
-    int suggested_len = http_buffer_size;
+    int suggested_len = ((long int)http_buffer_size * (long int)(16-desc->played_parts)) / 16;
     int useless_buffer_len = desc->pos - desc->begin;
     int useful_buffer_len = desc->len - useless_buffer_len;
 
@@ -142,10 +143,12 @@ static int calc_time_to_wait (http_desc_t *desc)
 /* ------------------------------------------------ */
 void shrink_buffer (http_desc_t *desc)
 {
+    int low_pos = desc->begin + ((long int)http_buffer_size * (long int)desc->played_parts) / 16;
+    
     /* trying to shrink buffer */
-    if (desc->len + HTTP_BLOCK_SIZE > http_buffer_size && desc->pos - desc->begin > http_buffer_size/2) {
+    if (desc->len + HTTP_BLOCK_SIZE > http_buffer_size && desc->pos > low_pos) {
 	void *newbuf;
-	int shrinking_len = (desc->pos - desc->begin) - http_buffer_size / 2 + HTTP_BLOCK_SIZE;
+	int shrinking_len = desc->pos - low_pos;
      
 	desc->len -= shrinking_len;
 	desc->begin += shrinking_len;
@@ -157,6 +160,24 @@ void shrink_buffer (http_desc_t *desc)
 	/* replace old buffer */
 	free (desc->buffer);
 	desc->buffer = newbuf;
+    }
+}
+
+/* ------------------------------------------------ */
+void status_notify (http_desc_t *desc)
+{
+    char sbuf[1024];
+
+    if (!desc->dont_wait && desc->status) {
+	int bck_len = desc->pos - desc->begin;
+	int fwd_len = desc->len - bck_len;
+	
+	if (desc->seekable)
+	    snprintf (sbuf, 1023, "Buf %dK | %dK", fwd_len/1024, bck_len/1024);
+	else
+	    snprintf (sbuf, 1023, "Buf %dK", fwd_len/1024);
+
+	desc->status (desc->data, sbuf);
     }
 }
 
@@ -330,6 +351,9 @@ static void buffer_thread (http_desc_t *desc)
 	pthread_mutex_lock (&desc->buffer_lock);
 	shrink_buffer (desc);
 	pthread_mutex_unlock (&desc->buffer_lock);
+
+	/* let them know about our state, heh */
+	status_notify (desc);
 
 	/* check for overflow */
 	if (desc->len > http_buffer_size) {
@@ -646,32 +670,13 @@ static int reconnect (http_desc_t *desc, char *redirect)
     	desc->icy_metaint = 0;
     }	
     
+    /* Setup played parts */
+    desc->played_parts = desc->seekable ? 5 : 0;
+    
     /* Attach thread to fill a buffer */
     desc->going = 1;
     pthread_create (&desc->buffer_thread, NULL, (void* (*)(void *)) buffer_thread, desc);
 
-    /* Prebuffer if this is stream */
-#if 1
-    if (!desc->seekable) {
-	    int oldsize = 0;
-	    if (desc->status) {
-		    char str[32];
-		    desc->status(desc->data, "Prebuffering"); 
-		    while (desc->going && desc->len < HTTP_BLOCK_SIZE && 
-				    desc->status) {
-			    if (desc->len != oldsize) {
-				    sprintf(str, "Buffering %dK", 
-						    desc->len / 1024);
-				    oldsize = desc->len;
-				    desc->status(desc->data, str);
-			    }	
-			    dosleep(100000);
-		    }
-		    sprintf(str, "Buffering %dK", HTTP_BLOCK_SIZE / 1024); 
-		    desc->status(desc->data, str);
-	    }
-    }	
-#endif
     return 0;
 } /* end of: reconnect */
 
@@ -878,6 +883,9 @@ static size_t http_read (void *ptr, size_t size, void *d)
     if (tocopy) {
 	memcpy (ptr, desc->buffer + desc->pos - desc->begin, tocopy);
 	desc->pos += tocopy;
+
+	/* let them know about new state, heh */
+	status_notify (desc);
     }
     
     /* Allow buffer_thread to use buffer. */
