@@ -20,9 +20,9 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/mman.h>
-#include <signal.h>
-#include <string.h>
-#include <stdlib.h>
+#include <csignal>
+#include <cstring>
+#include <cstdlib>
 #include "AlsaNode.h"
 #include "AlsaPlayer.h"
 #include "output_plugin.h"
@@ -41,8 +41,8 @@ static int jack_reconnect = 1;
 static char dest_port1[128];
 static char dest_port2[128];
 
-static int srate(jack_nframes_t nframes, void *arg);
-static int process (jack_nframes_t nframes, void *arg);
+static int srate(jack_nframes_t, void *);
+static int process (jack_nframes_t, void *);
 static int jack_prepare(void *arg);
 static void jack_shutdown(void *arg);
 static void jack_restarter(void *arg);
@@ -145,7 +145,7 @@ int jack_prepare(void *arg)
 }
 
 
-int srate(jack_nframes_t rate, void *arg)
+int srate(jack_nframes_t rate, void *)
 {
 	sample_rate = rate;
 	return 0;
@@ -153,7 +153,7 @@ int srate(jack_nframes_t rate, void *arg)
 
 
 
-static int jack_init()
+static int jack_init(void)
 {
 	// Always return ok for now
 	strncpy(dest_port1, prefs_get_string(ap_prefs,
@@ -242,7 +242,7 @@ static void jack_close()
 }
 
 
-static int jack_set_buffer(int fragment_size, int fragment_count, int channels)
+static int jack_set_buffer(int /*fragment_size*/, int /*fragment_count*/, int /*channels*/)
 {
 	return 1;
 }
@@ -263,8 +263,7 @@ int process(jack_nframes_t nframes, void *arg)
 	subscriber *subs = (subscriber *)arg;
 	char bufsize[32768];
 	static bool realtime_set = 0;
-#if 1
-#if 1 
+	
 	if (!realtime_set) {
 		struct sched_param sp;
 		memset(&sp, 0, sizeof(sp));
@@ -280,7 +279,6 @@ int process(jack_nframes_t nframes, void *arg)
 		}
 		realtime_set = 1;
 	}       
-#endif
 	if (subs) {
 		subscriber *i;
 		int c;
@@ -301,7 +299,6 @@ int process(jack_nframes_t nframes, void *arg)
 		sample_move_dS_s16(out1, bufsize, nframes, sizeof(short) << 1);
 		sample_move_dS_s16(out2, bufsize + sizeof(short), nframes, sizeof(short) << 1); 
 	}       
-#endif
 	return 0;
 }
 

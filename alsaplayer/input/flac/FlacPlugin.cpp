@@ -20,10 +20,10 @@
 
 
 #include <string>
-#include <stdio.h>
+#include <cstdio>
 #include <malloc.h>
-#include <string.h>
-#include <math.h>
+#include <cstring>
+#include <cmath>
 #include "input_plugin.h"
 #include "alsaplayer_error.h"
 
@@ -31,8 +31,6 @@
 #include "FlacSeekableStream.h"
 #include "FlacEngine.h"
 #include "FlacTag.h"
-
-using namespace std;
 
 static int
 flac_channels (input_object * obj)

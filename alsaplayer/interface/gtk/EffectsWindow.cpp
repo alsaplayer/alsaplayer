@@ -24,7 +24,7 @@ extern int global_effects_show;
 extern int global_reverb_delay;
 extern int global_reverb_feedback;
 
-void effects_scale_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
+void effects_scale_cb(GtkWidget *widget, GdkEvent *, gpointer data)
 {
 	GtkAdjustment *adj;
 	gint *val;
@@ -37,7 +37,7 @@ void effects_scale_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 }
 
 
-void effects_delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+void effects_delete_event(GtkWidget *widget, GdkEvent *, gpointer data)
 {
         gint x, y;
        	static gint e_windows_x_offset = 0;
@@ -54,7 +54,7 @@ void effects_delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 }
 
 
-void reverb_off(GtkWidget *widget, gpointer data)
+void reverb_off(GtkWidget *, gpointer data)
 {
 	GtkWidget *feedback_scale;
 	GtkAdjustment *adj;

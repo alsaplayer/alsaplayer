@@ -51,8 +51,8 @@ static int is_init = 0;
 static int running = 0;
 static convolve_state *state = NULL;
 
-static void monoscope_hide();
-static int monoscope_running();
+static void monoscope_hide(void);
+static int monoscope_running(void);
 
 static const int default_colors[] = {
     10, 20, 30,
@@ -183,7 +183,7 @@ static void test_cb(GtkWidget *widget, gpointer data)
 }
 
 
-void stop_monoscope();
+void stop_monoscope(void);
 
 static gboolean close_monoscope_window(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
@@ -195,7 +195,7 @@ static gboolean close_monoscope_window(GtkWidget *widget, GdkEvent *event, gpoin
 }
 
 
-GtkWidget *init_monoscope_window()
+GtkWidget *init_monoscope_window(void)
 {
 	GtkWidget *monoscope_win;
 	GdkColor color;
@@ -245,7 +245,7 @@ GtkWidget *init_monoscope_window()
 }
 
 
-void monoscope_hide()
+void monoscope_hide(void)
 {
 	gint x, y;
 	
@@ -259,7 +259,7 @@ void monoscope_hide()
 }
 
 
-void stop_monoscope()
+void stop_monoscope(void)
 {
 	running = 0;
 	pthread_join(monoscope_thread, NULL);
@@ -277,7 +277,7 @@ void run_monoscope(void *data)
 }
 
 
-void start_monoscope()
+void start_monoscope(void)
 {
 	if (!is_init) {
 		is_init = 1;
@@ -292,7 +292,7 @@ void start_monoscope()
 }
 
 
-static int init_monoscope()
+static int init_monoscope(void)
 {
 	state = convolve_init();
 	if(!state) return 0;
@@ -306,7 +306,7 @@ static int init_monoscope()
 	return 1;
 }
 
-static void shutdown_monoscope()
+static void shutdown_monoscope(void)
 {
 	prefs_set_bool(ap_prefs, "monoscope", "active", monoscope_running());
 
@@ -314,17 +314,10 @@ static void shutdown_monoscope()
 		stop_monoscope();
 	/*	
 		if (state)
-						convolve_close(state);		
-*/						
-/*
-	if (scope_win) {
-					gtk_widget_destroy(scope_win);
-					scope_win = NULL;
-	}
-*/	
+	*/						
 }
 
-static int monoscope_running()
+static int monoscope_running(void)
 {
 	return running;
 }
@@ -344,7 +337,7 @@ scope_plugin monoscope_plugin = {
 };
 
 
-scope_plugin *scope_plugin_info()
+scope_plugin *scope_plugin_info(void)
 {
 	return &monoscope_plugin;
 }	

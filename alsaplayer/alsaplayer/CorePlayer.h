@@ -113,7 +113,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	void update_pitch();
 	static void producer_func(void *data);
 	static bool streamer_func(void *, void *, int);
-	int pcm_worker(sample_buf *dest, int start, int lin=0);
+	int pcm_worker(sample_buf *dest, int start);
 	int Read32(void *, int);
 	int SetDirection(int dir);
 	int GetDirection() { return read_direction; }

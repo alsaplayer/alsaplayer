@@ -24,12 +24,10 @@
 
 #include "alsaplayer_error.h"
 
-using namespace std;
-
 namespace Flac
 {
 
-FlacSeekableStream::FlacSeekableStream (const string & name, reader_type * f)
+FlacSeekableStream::FlacSeekableStream (const std::string & name, reader_type * f)
     : FlacStream (name, f),
       _decoder (0)
 {
@@ -189,7 +187,7 @@ FlacSeekableStream::metaCallBack (const FLAC__SeekableStreamDecoder * decoder,
 void
 FlacSeekableStream::errCallBack (const FLAC__SeekableStreamDecoder * decoder,
 				 FLAC__StreamDecoderErrorStatus status,
-				 void * client_data)
+				 void * /*client_data */)
 {
     switch (status)
     {
@@ -226,7 +224,7 @@ FlacSeekableStream::errCallBack (const FLAC__SeekableStreamDecoder * decoder,
 
 // static
 FLAC__StreamDecoderWriteStatus
-FlacSeekableStream::writeCallBack (const FLAC__SeekableStreamDecoder * decoder,
+FlacSeekableStream::writeCallBack (const FLAC__SeekableStreamDecoder * /*decoder*/,
 				   const FLAC__Frame * frame,
 				   const FLAC__int32 * const buffer[],
 				   void * client_data)
@@ -246,7 +244,7 @@ FlacSeekableStream::writeCallBack (const FLAC__SeekableStreamDecoder * decoder,
 
 // static
 FLAC__SeekableStreamDecoderReadStatus
-FlacSeekableStream::readCallBack (const FLAC__SeekableStreamDecoder * decoder,
+FlacSeekableStream::readCallBack (const FLAC__SeekableStreamDecoder * /*decoder*/,
 				  FLAC__byte buffer[],
 				  unsigned * bytes,
 				  void * client_data)
@@ -268,7 +266,7 @@ FlacSeekableStream::readCallBack (const FLAC__SeekableStreamDecoder * decoder,
 
 // static
 FLAC__SeekableStreamDecoderSeekStatus 
-FlacSeekableStream::seekCallBack (const FLAC__SeekableStreamDecoder * decoder,
+FlacSeekableStream::seekCallBack (const FLAC__SeekableStreamDecoder * /*decoder*/,
 				  FLAC__uint64 offset,
 				  void * client_data)
 {
@@ -287,7 +285,7 @@ FlacSeekableStream::seekCallBack (const FLAC__SeekableStreamDecoder * decoder,
 
 // static
 FLAC__SeekableStreamDecoderTellStatus 
-FlacSeekableStream::tellCallBack (const FLAC__SeekableStreamDecoder * decoder,
+FlacSeekableStream::tellCallBack (const FLAC__SeekableStreamDecoder * /*decoder*/,
 				  FLAC__uint64 * offset,
 				  void * client_data)
 {
@@ -308,7 +306,7 @@ FlacSeekableStream::tellCallBack (const FLAC__SeekableStreamDecoder * decoder,
 
 // static
 FLAC__SeekableStreamDecoderLengthStatus
-FlacSeekableStream::lengthCallBack (const FLAC__SeekableStreamDecoder * decoder,
+FlacSeekableStream::lengthCallBack (const FLAC__SeekableStreamDecoder * /*decoder*/,
 				    FLAC__uint64 * len,
 				    void * client_data)
 {
@@ -329,7 +327,7 @@ FlacSeekableStream::lengthCallBack (const FLAC__SeekableStreamDecoder * decoder,
 
 // static
 FLAC__bool
-FlacSeekableStream::eofCallBack (const FLAC__SeekableStreamDecoder * decoder,
+FlacSeekableStream::eofCallBack (const FLAC__SeekableStreamDecoder * /*decoder*/,
 				 void * client_data)
 {
     if (!client_data)

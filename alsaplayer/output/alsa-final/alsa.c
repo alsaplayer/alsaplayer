@@ -38,7 +38,7 @@ static int frag_count = 16;
 static int nr_channels = 2;
 static unsigned int output_rate = 44100;
 
-static int alsa_init()
+static int alsa_init(void)
 {
 	// Always return ok for now
 	sound_handle = NULL;
@@ -68,7 +68,7 @@ static int alsa_open(const char *name)
 }
 
 
-static void alsa_close()
+static void alsa_close(void)
 {
 	if (sound_handle) {
 		snd_pcm_drain(sound_handle);
@@ -214,7 +214,7 @@ static unsigned int alsa_set_sample_rate(unsigned int rate)
 	return output_rate;
 }
 
-static int alsa_get_queue_count()
+static int alsa_get_queue_count(void)
 {
 	snd_pcm_status_t *status;
 	snd_pcm_uframes_t avail;
@@ -229,7 +229,7 @@ static int alsa_get_queue_count()
 	return ((int)avail);
 }
 
-static int alsa_get_latency()
+static int alsa_get_latency(void)
 {
 	//alsaplayer_error("frag_size = %d, frag_count = %d", frag_size, frag_count);
 	return (frag_size * frag_count);

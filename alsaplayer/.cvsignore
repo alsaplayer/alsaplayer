@@ -20,3 +20,4 @@ ltmain.sh
 stamp-h.in
 .cvsignore
 alsaplayer.spec
+autom4te-2.53.cache

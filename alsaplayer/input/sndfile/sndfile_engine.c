@@ -49,7 +49,7 @@ static char *getfilenamefrompath (const char *path)
 	if (p != NULL)
 		p++;
 	else
-		p = path;
+		p = (char *)path;
 
 	return p;
 }
@@ -141,7 +141,7 @@ static int sndfile_play_frame (input_object *obj, char *buf)
 	size_t	bytes_to_read;
 	size_t	items_read;
 	size_t	samples;
-	int i;
+	size_t	i;
 	void	*buffer;
 	short *src;
 	short *dest;
@@ -309,9 +309,6 @@ static float sndfile_can_handle (const char *name)
 
 static int sndfile_stream_info (input_object *obj, stream_info *info)
 {
-	int	sampleWidth;
-	double	sampleRate;
-	char	*fileType;
 	struct sf_local_data	*data;
 
 	if (!obj || !info)
@@ -333,12 +330,12 @@ static int sndfile_stream_info (input_object *obj, stream_info *info)
 	return 1;
 }
 
-static int sndfile_init ()
+static int sndfile_init (void)
 {
 	return 1;
 }
 
-static void sndfile_shutdown ()
+static void sndfile_shutdown (void)
 {
 	return;
 }

@@ -19,9 +19,9 @@
  *  $Id$
  *
 */ 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "Effects.h"
 
 static char buf[DELAY_BUF_SIZE];	

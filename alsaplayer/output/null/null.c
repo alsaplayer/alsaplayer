@@ -25,7 +25,7 @@
 #include "alsaplayer_error.h"
 #include "utilities.h"
 
-static int null_init()
+static int null_init(void)
 {
 	alsaplayer_error("NOTE: THIS IS THE NULL PLUGIN."
 					"      YOU WILL NOT HEAR SOUND!!");
@@ -38,7 +38,7 @@ static int null_open(const char *name)
 }
 
 
-static void null_close()
+static void null_close(void)
 {
 	return;
 }
@@ -62,7 +62,7 @@ static unsigned int null_set_sample_rate(unsigned int rate)
 	return rate;
 }
 
-static int null_get_latency()
+static int null_get_latency(void)
 {
 	return 4096;
 }

@@ -21,10 +21,10 @@
 */ 
 
 #include "SampleBuffer.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
 #include "alsaplayer_error.h"
 
 // NOTE: THIS IS FOR STEREO 16-BIT SAMPLES ONLY

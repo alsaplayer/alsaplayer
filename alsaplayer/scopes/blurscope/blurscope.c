@@ -50,9 +50,9 @@ static gint16 audio_data[2][256];
 static guchar rgb_buf[(WIDTH + 2) * (HEIGHT + 2)];
 static GdkRgbCmap *cmap = NULL; 
 
-static int bscope_running();
+static int bscope_running(void);
 
-static void inline draw_pixel_8(guchar *buffer,gint x, gint y, guchar c)
+static inline void draw_pixel_8(guchar *buffer,gint x, gint y, guchar c)
 {
 	buffer[((y + 1) * BPL) + (x + 1)] = c;
 }
@@ -101,7 +101,7 @@ void generate_cmap(void)
 	}
 }
 
-static void stop_bscope()
+static void stop_bscope(void)
 {
 	running = 0;
 	pthread_join(bscope_thread, NULL);
@@ -234,7 +234,7 @@ static void bscope_set_data(void *audio_buffer, int size)
 }
 
 
-static void the_bscope()
+static void the_bscope(void)
 {
 	running = 1;
 	
@@ -279,7 +279,7 @@ static void the_bscope()
 }
 
 
-void bscope_hide()
+void bscope_hide(void)
 {
 	gint x, y;	
 	if (window) {
@@ -300,7 +300,7 @@ static void run_bscope(void *data)
 
 
 
-static void start_bscope()
+static void start_bscope(void)
 {
 	if (pthread_mutex_trylock(&bscope_mutex) != 0) {
 			printf("blurscope already running\n");
@@ -313,7 +313,7 @@ static void start_bscope()
 }
 
 
-static int init_bscope()
+static int init_bscope(void)
 {
 	bscope_init();
 
@@ -331,23 +331,8 @@ static int bscope_running()
 
 
 static scope_plugin bscope_plugin;
-/*
-= {
-	SCOPE_PLUGIN_VERSION,
-	"Blurscope",
-	"Andy Lo A Foe",
-	NULL,
-	init_bscope,
-	start_bscope,
-	bscope_running,
-	stop_bscope,
-	shutdown_bscope,
-	bscope_set_data,
-	NULL
-};
-*/
 
-scope_plugin *scope_plugin_info()
+scope_plugin *scope_plugin_info(void)
 {
 	memset(&bscope_plugin, 0, sizeof(scope_plugin));
 	bscope_plugin.version = SCOPE_PLUGIN_VERSION;

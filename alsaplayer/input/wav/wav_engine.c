@@ -57,7 +57,7 @@ struct wav_local_data
 };
 
 
-static void init_wav()
+static void init_wav(void)
 {
 	return;
 }
@@ -225,7 +225,8 @@ static int wav_play_frame(input_object *obj, char *buf)
 				us = (unsigned char *)tmpbuf;
 				d = (short *)audiobuf;
 				for (i=0; i < APLAY_FRAME_SIZE; i+=4) {
-					*d++ = c = ((*us ^ 0x80) << 8) | *us++;
+					*d++ = c = ((*us ^ 0x80) << 8) | *us;
+					us++;
 					*d++ = c;
 				}
 #endif
@@ -339,9 +340,11 @@ static long wav_frame_to_sec(input_object *obj, int frame)
 
 static float wav_can_handle(const char *name)
 {
+/*	
 	WaveHeader wp;
 	FILE *fd;
 	struct stat st;
+*/	
 	char *ext;
 
 	ext = strrchr (name, '.');
@@ -393,12 +396,12 @@ static int wav_stream_info(input_object *obj, stream_info *info)
 	return 1;
 }
 
-static int wav_init()
+static int wav_init(void)
 {
 	return 1;
 }
 
-static void wav_shutdown()
+static void wav_shutdown(void)
 {
 	return;
 }

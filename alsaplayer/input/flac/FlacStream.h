@@ -155,7 +155,7 @@ class FlacStream
     // Seeks are unsupported.  Returns false.
     //-------------------------------------------------------------------
 
-    virtual bool                seekAbsolute (FLAC__uint64 sample);
+    virtual bool                seekAbsolute (FLAC__uint64);
 
 
  protected:

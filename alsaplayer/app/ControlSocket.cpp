@@ -16,15 +16,15 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */ 
 #include "AlsaPlayer.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/un.h>
-#include <signal.h>
+#include <csignal>
 #include <pwd.h>
 #include "control.h"
 #include "message.h"

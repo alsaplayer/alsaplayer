@@ -28,15 +28,15 @@
 #define OUTPUT_PLUGIN_VERSION	(OUTPUT_PLUGIN_BASE_VERSION + 5)
 
 typedef int output_version_type;
-typedef int(*output_init_type)();
+typedef int(*output_init_type)(void);
 typedef int(*output_open_type)(const char *path);
-typedef void(*output_close_type)();
+typedef void(*output_close_type)(void);
 typedef int(*output_write_type)(void *data, int byte_count);
 typedef int(*output_start_callbacks_type)(void *data);
 typedef int(*output_set_buffer_type)(int frag_size, int frag_count, int channels);
 typedef unsigned int(*output_set_sample_rate_type)(unsigned int rate);
-typedef int(*output_get_queue_count_type)();
-typedef int(*output_get_latency_type)();
+typedef int(*output_get_queue_count_type)(void);
+typedef int(*output_get_latency_type)(void);
 
 typedef struct _output_plugin
 {
@@ -125,6 +125,6 @@ typedef struct _output_plugin
 	output_get_latency_type get_latency;
 } output_plugin;
 
-typedef output_plugin*(*output_plugin_info_type)();
+typedef output_plugin*(*output_plugin_info_type)(void);
 
 #endif

@@ -36,7 +36,7 @@ extern "C" {
 
 int ap_find_session(char *session_name, int *session);
 int ap_session_running(int session);
-int ap_version();
+int ap_version(void);
 
 int ap_play(int session);
 int ap_stop(int session);

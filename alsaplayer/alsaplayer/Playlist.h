@@ -190,10 +190,10 @@ public:
 	void SetCurrent(unsigned pos);	// Set current item
 
 	// Insert items at position - 0 = beginning, 1 = after first item, etc
-	void Insert(std::vector<std::string> const &, unsigned, bool wait_for_insert=false);
+	void Insert(std::vector<std::string> const &, unsigned);
 
 	// To insert just one item:
-	void Insert(std::string const &, unsigned, bool wait_for_insert=false);
+	void Insert(std::string const &, unsigned);
 
 	// Add several items and play them immediately
 	// (Avoids possible concurrency problems)
@@ -253,10 +253,10 @@ public:
 	void UnRegister(playlist_interface *);
 };
 
-inline void Playlist::Insert(std::string const &path, unsigned pos, bool wait_for_insert) {
+inline void Playlist::Insert(std::string const &path, unsigned pos) {
 	std::vector<std::string> items;
 	items.push_back(path);
-	Insert(items, pos, wait_for_insert);
+	Insert(items, pos);
 }
 
 inline void Playlist::AddAndPlay(std::string const &path) {

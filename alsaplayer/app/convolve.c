@@ -144,7 +144,7 @@ static void convolve_run (stack_entry * top, unsigned size, double * scratch)
 
 		do {
 			double * s_left, * s_right;
-			int i;
+			unsigned i;
 
 			/* Halve the size. */
 			size >>= 1;

@@ -569,7 +569,7 @@ void Playlist::Unlock()
 
 
 // Request to put a new item at end of playlist
-void Playlist::Insert(std::vector<std::string> const & paths, unsigned position, bool wait_for_insert) {
+void Playlist::Insert(std::vector<std::string> const & paths, unsigned position) {
 	// Prepare to do insert
 	PlInsertItems * items = new PlInsertItems(this);
 	items->position = position;
@@ -596,7 +596,7 @@ void Playlist::AddAndPlay(std::vector<std::string> const &paths) {
 	int next_pos = Length() + 1;
 
 	// Now add the new items
-	Insert(paths, Length(), true); // Wait for insert to finish
+	Insert(paths, Length()); // Wait for insert to finish
 
 	Play(next_pos);
 }

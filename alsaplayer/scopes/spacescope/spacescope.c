@@ -48,8 +48,8 @@ static gint is_init = 0;
 static gint running = 0;
 
 
-static void spacescope_hide();
-static int spacescope_running();
+static void spacescope_hide(void);
+static int spacescope_running(void);
 
 void spacescope_set_data(void *audio_buffer, int size)
 {
@@ -71,7 +71,7 @@ void spacescope_set_data(void *audio_buffer, int size)
 }
 
 
-void the_spacescope()
+void the_spacescope(void)
 {
 	gint foo, bar;
 	char *oldset = oldEq;
@@ -103,20 +103,20 @@ void the_spacescope()
 	GDK_THREADS_LEAVE();	 
 }
 
-void stop_spacescope();
+void stop_spacescope(void);
 
 static gboolean close_spacescope_window(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-				GDK_THREADS_LEAVE();				
-				stop_spacescope();
-				GDK_THREADS_ENTER();
-				
-				return TRUE;
+	GDK_THREADS_LEAVE();				
+	stop_spacescope();
+	GDK_THREADS_ENTER();
+
+	return TRUE;
 }
 
 
 
-GtkWidget *init_spacescope_window()
+GtkWidget *init_spacescope_window(void)
 {
 	GtkWidget *spacescope_win;
 	GdkColor color;
@@ -166,7 +166,7 @@ GtkWidget *init_spacescope_window()
 	return spacescope_win;
 }  
 
-void spacescope_hide()
+void spacescope_hide(void)
 {
 	gint x, y;
 	 
@@ -177,7 +177,7 @@ void spacescope_hide()
 	}
 }
 
-void stop_spacescope()
+void stop_spacescope(void)
 {
 	running = 0;
 	pthread_join(spacescope_thread, NULL);
@@ -192,7 +192,7 @@ void run_spacescope(void *data)
 }
 
 
-void start_spacescope()
+void start_spacescope(void)
 {
 	if (!is_init) {
 		is_init = 1;
@@ -208,14 +208,14 @@ void start_spacescope()
 }
 
 
-static int init_spacescope()
+static int init_spacescope(void)
 {
 	if (prefs_get_bool(ap_prefs, "spacescope", "active", 0))
 			start_spacescope();
 	return 1;
 }
 
-static void shutdown_spacescope()
+static void shutdown_spacescope(void)
 {
 	prefs_set_bool(ap_prefs, "spacescope", "active", spacescope_running());
 	
@@ -233,7 +233,7 @@ static void shutdown_spacescope()
 }
 
 
-static int spacescope_running()
+static int spacescope_running(void)
 {
 	return running;
 }
@@ -254,7 +254,7 @@ scope_plugin spacescope_plugin = {
 };
 
 
-scope_plugin *scope_plugin_info()
+scope_plugin *scope_plugin_info(void)
 {
 	return &spacescope_plugin;
 }		

@@ -28,8 +28,8 @@
 #include "FlacEngine.h"
 
 #include <iostream>
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 #include "FlacStream.h"
 #include "CorePlayer.h"
 #include "alsaplayer_error.h"

@@ -91,33 +91,33 @@ typedef int scope_version_type;
  * all data structures needed for the scope plugin. Return value should be
  * 1 on success, 0 if initialization fails.
  */
-typedef int(*scope_init_type)();
+typedef int(*scope_init_type)(void);
 
 /**
  * This function will be called when the HOST wants to activate the scope.
  * It should pop up the scope window and start rendering the PCM or FFT data
  */
-typedef void(*scope_start_type)();
+typedef void(*scope_start_type)(void);
 
 /**
  * This function should tell the HOST if the scope is running i.e. on-screen
  * and rendering. A value of 1 should be returned if this is the case, 0 if 
  * the scope is not active.
  */
-typedef int(*scope_running_type)();
+typedef int(*scope_running_type)(void);
 
 /**
  * This function should stop and close the scope window if it was running.
  * It should just return if the scope is not running.
  */
-typedef void(*scope_stop_type)();
+typedef void(*scope_stop_type)(void);
 
 /**
  * The shutdown function is called just before the plugin is unloaded or just
  * before the HOST decides to exit. All data structures allocated in the init
  * routine should be freed here. 
  */
-typedef void(*scope_shutdown_type)();
+typedef void(*scope_shutdown_type)(void);
 
 /**
  * @param buffer pointer to buffer data
@@ -212,6 +212,6 @@ typedef struct _scope_plugin
  * returns a pointer to a scope_plugin structure that is filled with pointers 
  * to your function implementations.
  */
-typedef scope_plugin*(*scope_plugin_info_type)();
+typedef scope_plugin*(*scope_plugin_info_type)(void);
 
 #endif

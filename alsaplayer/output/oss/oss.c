@@ -34,7 +34,7 @@ static int oss_fd;
 static int oss_card;
 static int oss_device;
 
-static int oss_init()
+static int oss_init(void)
 {
 	// Always return ok for now
 	oss_fd = -1;
@@ -56,7 +56,7 @@ static int oss_open(const char *name)
 }
 
 
-static void oss_close()
+static void oss_close(void)
 {
 	close(oss_fd);
 	return;

@@ -115,7 +115,7 @@ struct _ap_message {
 typedef struct _ap_message ap_message_t;
 
 
-ap_message_t *ap_message_new();
+ap_message_t *ap_message_new(void);
 ap_key_t *ap_key_new(const char *keyid);
 int ap_message_add_float(ap_message_t *, char *, float);
 int ap_message_add_int32(ap_message_t *, char *, int32_t);

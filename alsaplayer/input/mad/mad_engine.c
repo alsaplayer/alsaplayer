@@ -486,7 +486,7 @@ static void parse_id3 (const char *path, stream_info *info)
 		unsigned int size;
 		
 		/* Get name of this frame */
-		if (reader_read (buf, name_size, fd) != name_size) {
+		if (reader_read (buf, name_size, fd) != (unsigned)name_size) {
 		    reader_close (fd);
 		    return;
 		}
@@ -709,7 +709,7 @@ static int mad_sample_rate(input_object *obj)
 	return 44100;
 }
 
-static int mad_init() 
+static int mad_init(void) 
 {
 	return 1;
 }		
@@ -807,10 +807,11 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 			pos++;
 		}				
 	}
-	printf("MAD debug: potential problem file or unhandled info block, next 4 bytes =  %x %x %x %x (index = %d, size = %d)\n",
+	printf("MAD debug: potential problem file or unhandled info block,"
+			" next 4 bytes =  %x %x %x %x (index = %d, size = %d)\n",
 			data[header_size], data[header_size+1],
 			data[header_size+2], data[header_size+3],
-			header_size, size);
+			(int)header_size, size);
 	return -1;
 }
 
@@ -951,7 +952,7 @@ first_frame:
 
 		obj->frame_size = (int) samples << 2; /* Assume 16-bit stereo */
 		frames = data->samplerate * (time+1) / samples;
-		obj->nr_frames = data->xing.frames ? data->xing.frames : (int) frames;
+		obj->nr_frames = data->xing.frames ? (int) data->xing.frames : (int) frames;
 		obj->nr_tracks = 1;
 	}
 	/* Determine if nr_frames makes sense */
@@ -1006,7 +1007,7 @@ static void mad_close(input_object *obj)
 }
 
 
-static void mad_shutdown()
+static void mad_shutdown(void)
 {
 	return;
 }

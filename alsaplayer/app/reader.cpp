@@ -23,9 +23,8 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <string.h>
+#include <cstring>
 #include <dlfcn.h>
-#include <string.h>
 
 #include "AlsaPlayer.h"
 #include "alsaplayer_error.h"

@@ -117,7 +117,7 @@ static int parse_uri (const char *uri, char **host, int *port, char **path)
 	l = colon - uri - 7;
     } else {
 	/* Calculate host part length */
-	l = slash  ?  slash - uri - 7  :  strlen (uri+7);
+	l = slash  ?  slash - uri - 7  :  (int)strlen (uri+7);
     }
    
     /* Reset port if URI looks like 'foo.bar:/aaa.mp3' */
@@ -277,7 +277,7 @@ static void buffer_thread (http_desc_t *desc)
 			//alsaplayer_error("Metasize = %d", metasize);
 			if (rest < metasize) {
 				/* alsaplayer_error("Uh oh, big trouble ahead, or maybe not?"); */
-				extra_read = read_data (desc->sock, ibuffer+readed, metasize);
+				extra_read = read_data (desc->sock, (char *)ibuffer+readed, metasize);
 				readed += extra_read;
 				rest += extra_read;
 			}	
@@ -315,12 +315,12 @@ static void buffer_thread (http_desc_t *desc)
 	    memcpy (newbuf, desc->buffer, desc->len);
 	    if (metasize) {
 		    //alsaplayer_error("Memcpy with metasize = %d (metapos = %d, buffer_pos = %d, rest = %d, readed = %d)", metasize, metapos, rest - metasize, rest, readed);
-		    memcpy(newbuf + desc->len, ibuffer, metapos);
-		    memcpy(newbuf + desc->len + metapos, ibuffer+metapos+metasize, rest - metasize);
+		    memcpy((char *)newbuf + desc->len, ibuffer, metapos);
+		    memcpy((char *)newbuf + desc->len + metapos, (char *)ibuffer+metapos+metasize, rest - metasize);
 		    readed -= metasize;
 		    desc->buffer_pos = rest - metasize;
 	    } else {    
-		    memcpy (newbuf + desc->len, ibuffer, readed);
+		    memcpy ((char *)newbuf + desc->len, ibuffer, readed);
 	    }
 	    /* switch buffers */
 	    free (desc->buffer);
@@ -645,7 +645,7 @@ static float http_can_handle(const char *uri)
 
 /* ******************************************************************* */
 /* init plugin                                                         */
-static int http_init()
+static int http_init(void)
 {
     http_buffer_size = prefs_get_int (ap_prefs, "http", "buffer_size", DEFAULT_HTTP_BUFFER_SIZE);
 
@@ -657,7 +657,7 @@ static int http_init()
 
 /* ******************************************************************* */
 /* shutdown plugin                                                     */
-static void http_shutdown()
+static void http_shutdown(void)
 {
     return;
 }
@@ -714,7 +714,7 @@ static size_t http_read (void *ptr, size_t size, void *d)
 	readed = desc->begin + desc->len - desc->pos;
 	
 	/* done? */
-	if (readed > 0 && readed >= size) {
+	if (readed > 0 && readed >= (int)size) {
 	    tocopy = size;
 	    break;
 	}
@@ -747,7 +747,7 @@ static size_t http_read (void *ptr, size_t size, void *d)
     /* If there are data to copy */
     if (tocopy) {
 	/* copy result */
-	memcpy (ptr, desc->buffer + desc->pos - desc->begin, tocopy);
+	memcpy (ptr, (char *)desc->buffer + desc->pos - desc->begin, tocopy);
 	desc->pos += tocopy;
 
 	/* trying to shrink buffer */
@@ -759,7 +759,7 @@ static size_t http_read (void *ptr, size_t size, void *d)
 	    
 	    /* allocate new buffer with the part of old one */
 	    newbuf = malloc (desc->len);    
-	    memcpy (newbuf, desc->buffer + tocopy, desc->len);
+	    memcpy (newbuf, (char *)desc->buffer + tocopy, desc->len);
 
 	    /* replace old buffer */
 	    free (desc->buffer);

@@ -37,6 +37,7 @@
 #include <dirent.h>
 #include <pwd.h>
 #include <endian.h>
+#include <inttypes.h>
 #ifdef HAVE_LINUX_CDROM_H
 #include <linux/cdrom.h>
 #endif
@@ -499,7 +500,7 @@ char * cddb_save_to_disk(char *subdir, int cdID, char *message)
     i++;
   i++;
 	
-  for (; i < strlen (message); i++, j++)
+  for (; i < (int)strlen (message); i++, j++)
     new[j] = message[i];
 	
   /* save it into the disc */
@@ -516,7 +517,7 @@ char * cddb_save_to_disk(char *subdir, int cdID, char *message)
     }
 	
   /* copy the new string content into the file */
-  for (i = 0; i < strlen (new); i++)
+  for (i = 0; i < (int)strlen (new); i++)
     fputc (new[i], destination);
 	
   /* free path's memory */
@@ -783,7 +784,7 @@ void cddb_read_file (char *file)
 		  if (! token) { printf ("error: TTITLE has no arguments\n");	continue; }
 						
 		  /* seek for the \r character */
-		  for (i = 0; i < strlen (token); i++) 
+		  for (i = 0; i < (int)strlen (token); i++) 
 		    {
 		      if ((token[i] == '\n') || (token[i] == '\r'))
 			break;
@@ -876,7 +877,7 @@ void cddb_update_info(struct cd_trk_list *tl)
 }
 
 
-static int cdda_init()
+static int cdda_init(void)
 {
 	char *prefsdir;
 
@@ -906,13 +907,13 @@ static float cdda_can_handle(const char *name)
 
 void cd_adder(void *data) {
 	int i;
-	int nr_tracks;
+	intptr_t nr_tracks;
 	char track_name[1024];
 	
 	if (!data)
 		return;
 	
-	nr_tracks = (int)data;
+	nr_tracks = (intptr_t)data;
 	
 	for (i=1;i <= nr_tracks;i++) {
 		sprintf(track_name, "Track %02d.cdda", i);
@@ -978,7 +979,7 @@ static int cdda_open(input_object *obj, const char *name)
 	if (strcmp(fname, "CD.cdda") == 0) {
 		pthread_t cd_add;
 		
-		pthread_create(&cd_add, NULL, (void *(*)(void *))cd_adder, (void *)data->tl.max);
+		pthread_create(&cd_add, NULL, (void *(*)(void *))cd_adder, (void *)(intptr_t)data->tl.max);
 
 		pthread_detach(cd_add);
 		return 1;
@@ -1175,7 +1176,7 @@ static int cdda_nr_tracks(input_object *obj)
 	return data->tl.max;
 }
 
-static void cdda_shutdown()
+static void cdda_shutdown(void)
 {
 	return;
 }
@@ -1217,7 +1218,7 @@ static input_plugin cdda_plugin;
 extern "C" {
 #endif
 
-input_plugin *input_plugin_info()
+input_plugin *input_plugin_info(void)
 {
 	memset(&cdda_plugin, 0, sizeof(input_plugin));
 	cdda_plugin.version = INPUT_PLUGIN_VERSION;

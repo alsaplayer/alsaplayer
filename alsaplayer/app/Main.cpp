@@ -22,12 +22,12 @@
  *
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <assert.h>
+#include <cstdio>
+#include <cstdlib>
+#include <csignal>
+#include <cassert>
 #include <unistd.h>
-#include <string.h>
+#include <cstring>
 #include <getopt.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -36,8 +36,8 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <dlfcn.h>
-#include <math.h>
-#include <stdarg.h>
+#include <cmath>
+#include <cstdarg>
 #include <locale.h>
 
 #include "config.h"
@@ -93,7 +93,7 @@ static void default_alsaplayer_error(const char *fmt, ...) {
 	fputc('\n', stderr);
 }
 
-void (*alsaplayer_error) (const char *fmt, ...) = &default_alsaplayer_error;
+__attribute__((format(printf,1,2))) void (*alsaplayer_error) (const char *fmt, ...) = &default_alsaplayer_error;
 
 void alsaplayer_set_error_function(void (*func)(const char *, ...))
 {

@@ -29,7 +29,7 @@
 
 static int esound_socket = -1;
 
-static int esound_init()
+static int esound_init(void)
 {
 	char *host = NULL;
 	char *name = NULL;
@@ -76,7 +76,7 @@ static int esound_open(const char *path)
 }
 
 
-static void esound_close()
+static void esound_close(void)
 {
 	return;
 }
@@ -102,7 +102,7 @@ static unsigned int esound_set_sample_rate(unsigned int rate)
 	return rate;
 }
 
-static int esound_get_latency()
+static int esound_get_latency(void)
 {
 	return ((256*256));	// Hardcoded, but esd sucks ass
 }

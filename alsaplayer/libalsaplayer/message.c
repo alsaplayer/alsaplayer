@@ -50,14 +50,17 @@ int ap_connect_session (int session)
 		sprintf (saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
 				"anonymous" : pwd->pw_name, session);
 		if (connect (socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
+			if(socket_fd<0)
+				close(socket_fd);
 			return socket_fd;
 		}
 	}
+	close(socket_fd);
 	return -1;
 }
 
 
-ap_message_t *ap_message_new()
+ap_message_t *ap_message_new(void)
 {
 	ap_message_t *msg;
 
@@ -363,7 +366,6 @@ int ap_session_running(int session)
 
 int ap_find_session(char *session_name, int *session)
 {
-	int i = 0;
 	char remote_name[AP_SESSION_MAX];
 	char test_path[1024];
 	char tmp[1024];
@@ -371,7 +373,7 @@ int ap_find_session(char *session_name, int *session)
 	struct passwd *pwd;
 	DIR *dir;
 	struct dirent *entry;
-	int session_id;
+	int session_id=0;
 
 	if (!session_name)
 		return 0;
@@ -388,15 +390,13 @@ int ap_find_session(char *session_name, int *session)
 			if (strncmp(entry->d_name, test_path, strlen(test_path)) == 0) {
 				sprintf(tmp, "%s%%d", test_path);
 				if (sscanf(entry->d_name, tmp, &session_id) == 1) {
-					if (ap_session_running(i) == 1) {
-						if (ap_get_session_name(i, remote_name)) {
+					if (ap_session_running(session_id) == 1) {
+						if (ap_get_session_name(session_id, remote_name)) {
 							if (strcmp(remote_name, session_name) == 0) {
-								*session = i;
+								*session = session_id;
 								closedir(dir);
 								return 1;
-							} else {
-								i++;
-							}	
+							} 
 						}	
 					}
 				}

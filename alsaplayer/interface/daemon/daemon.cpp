@@ -17,12 +17,12 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */ 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <assert.h>
+#include <cstdio>
+#include <cstdlib>
+#include <csignal>
+#include <cassert>
 #include <unistd.h>
-#include <string.h>
+#include <cstring>
 #include <pthread.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -31,7 +31,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <dlfcn.h>
-#include <math.h>
+#include <cmath>
 
 #include "config.h"
 
@@ -51,24 +51,24 @@ static float speed = 0;
 static int busypipe[2];
 
 
-void stop_notify(void *data)
+void stop_notify(void *)
 {
 }
 
 
-void speed_changed(void *data, float new_speed)
+void speed_changed(void *, float new_speed)
 {
 	speed = new_speed;
 }
 
 
-void volume_changed(void *data, int new_vol)
+void volume_changed(void *, int new_vol)
 {
 	vol = new_vol;
 }
 
 
-void position_notify(void *data, int frame)
+void position_notify(void *, int /*frame*/)
 {
 	//fprintf(stdout, "Frame: %6d  Vol: %3d   Speed: %.0f    \r", 
 	//	frame, vol, speed * 100.0);
@@ -76,14 +76,14 @@ void position_notify(void *data, int frame)
 }
 
 
-int daemon_init()
+int daemon_init(void)
 {
 	pthread_mutex_init(&finish_mutex, NULL);
 	return 1;
 }
 
 
-int daemon_running()
+int daemon_running(void)
 {
 	if (pthread_mutex_trylock(&finish_mutex) != 0)
 		return 1;
@@ -92,7 +92,7 @@ int daemon_running()
 }
 
 
-int daemon_stop()
+int daemon_stop(void)
 {
 	char dummy;
 
@@ -104,14 +104,14 @@ int daemon_stop()
 	return 1;
 }
 
-void daemon_close()
+void daemon_close(void)
 {
 	pthread_mutex_destroy(&finish_mutex);
 	return;
 }
 
 
-int daemon_start(Playlist *playlist, int argc, char **argv)
+int daemon_start(Playlist *playlist, int /*argc*/, char ** /*argv*/)
 {
 	char session_name[AP_SESSION_MAX];
 

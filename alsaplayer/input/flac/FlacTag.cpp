@@ -32,7 +32,7 @@ namespace Flac
 
 // static
 bool
-FlacTag::hasTag (const string & path)
+FlacTag::hasTag (const std::string & path)
 {
     if (FlacId3Tag::hasId3 (path))
 	return true;
@@ -44,7 +44,7 @@ FlacTag::hasTag (const string & path)
 
 // static
 FlacTag *
-FlacTag::newTag (const string & name)
+FlacTag::newTag (const std::string & name)
 {
     try
     {
@@ -63,7 +63,7 @@ FlacTag::newTag (const string & name)
 
 // static
 FlacTag
-FlacTag::tag (const string & name)
+FlacTag::tag (const std::string & name)
 {
     if (FlacId3Tag::hasId3 (name))
 	return FlacId3Tag (name);
@@ -73,7 +73,7 @@ FlacTag::tag (const string & name)
 } // FlacTag::tag
 
 
-FlacTag::FlacTag (const string & name)
+FlacTag::FlacTag (const std::string & name)
     : _name (name)
 {
 } // FlacTag::FlacTag

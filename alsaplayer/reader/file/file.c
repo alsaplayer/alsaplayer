@@ -105,13 +105,13 @@ static float file_can_handle(const char *uri)
 }
 
 /* init plugin */
-static int file_init()
+static int file_init(void)
 {
     return 1;
 }
 
 /* shutdown plugin */
-static void file_shutdown()
+static void file_shutdown(void)
 {
     return;
 }

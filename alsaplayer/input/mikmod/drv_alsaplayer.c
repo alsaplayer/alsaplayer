@@ -20,17 +20,17 @@
 
 #include "mikmod.h"
 
-static BOOL alsaplayer_Init ()
+static BOOL alsaplayer_Init (void)
 {
 	return VC_Init ();
 }
 
-static void alsaplayer_Exit ()
+static void alsaplayer_Exit (void)
 {
 	VC_Exit();
 }
 
-static void alsaplayer_Update ()
+static void alsaplayer_Update (void)
 {
 	/* 
 	   No need to use this extra level of indirection;
@@ -38,7 +38,7 @@ static void alsaplayer_Update ()
 	 */
 }
 
-static BOOL alsaplayer_IsThere ()
+static BOOL alsaplayer_IsThere (void)
 {
 	return 1;
 }

@@ -26,9 +26,9 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h>

@@ -16,9 +16,9 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */ 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/stat.h>
@@ -274,19 +274,19 @@ void PlaylistWindowGTK::ToggleVisible() {
 
 // GTK Callbacks
 
-void thread_next(void *data)
+void thread_next(void *)
 {
 	ap_next(global_session_id);
 }
 
-void thread_prev(void *data)
+void thread_prev(void *)
 {
 	ap_prev(global_session_id);
 }
 
 
 // Called when "prev" button is pressed
-extern void playlist_window_gtk_prev(GtkWidget *widget, gpointer data) {
+extern void playlist_window_gtk_prev(GtkWidget *, gpointer data) {
 #if 0	
 	Playlist * playlist = (Playlist *) data;
 	if(playlist) {
@@ -307,9 +307,9 @@ extern void playlist_window_gtk_prev(GtkWidget *widget, gpointer data) {
 
 
 // Called when "next" button is pressed
+#if 0 
 void playlist_window_gtk_next(GtkWidget *widget, gpointer data)
 {
-#if 0	
 	Playlist * playlist = (Playlist *) data;
 	if(playlist) {
 		playlist->Pause();
@@ -319,6 +319,8 @@ void playlist_window_gtk_next(GtkWidget *widget, gpointer data)
 		playlist->UnPause();
 	}
 #else
+void playlist_window_gtk_next(GtkWidget *, gpointer)
+{	
 	pthread_t	worker_thread;
 	pthread_create(&worker_thread, NULL,
 			(void * (*)(void *))thread_next, NULL);
@@ -329,7 +331,7 @@ void playlist_window_gtk_next(GtkWidget *widget, gpointer data)
 
 
 // Called when playlist is clicked to select an item
-void playlist_click(GtkWidget *widget, gint row, gint column, 
+void playlist_click(GtkWidget *widget, gint /* row */, gint /* column */, 
 					GdkEvent *bevent, gpointer data)
 {
 	Playlist *playlist = (Playlist *) data;
@@ -355,7 +357,7 @@ void playlist_play_current(Playlist *playlist, GtkWidget *list)
 }
 
 // Called when remove button is clicked
-void playlist_remove(GtkWidget *widget, gpointer data)
+void playlist_remove(GtkWidget *, gpointer data)
 {
 	PlaylistWindowGTK *playlist_window_gtk = (PlaylistWindowGTK *) data;
 	Playlist *playlist = NULL;
@@ -402,7 +404,7 @@ void playlist_remove(GtkWidget *widget, gpointer data)
 
 
 // Called when shuffle button clicked
-void shuffle_cb(GtkWidget *widget, gpointer data)
+void shuffle_cb(GtkWidget *, gpointer data)
 {
 	Playlist *playlist = (Playlist *)data;
 	if (playlist) {
@@ -423,7 +425,7 @@ void clear_cb(GtkWidget *widget, gpointer data)
 	}	
 }
 
-gint list_resize(GtkWidget *widget, GdkEventConfigure *event, gpointer data)
+gint list_resize(GtkWidget *widget, GdkEventConfigure *, gpointer data)
 {
 	GtkWidget *list = (GtkWidget *)data;	
 	GtkWidget *window;
@@ -460,7 +462,7 @@ playlist_delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 	return TRUE;
 }
 
-void close_cb(GtkWidget *widget, gpointer data)
+void close_cb(GtkWidget *, gpointer data)
 {
 	PlaylistWindowGTK * playlist_window_gtk = (PlaylistWindowGTK *) data;
 	if (playlist_window_gtk) {
@@ -508,7 +510,7 @@ static void new_list_item(const PlayItem *item, gchar **list_item)
 
 
 // Called when files have been selected for adding to playlist
-void add_file_ok(GtkWidget *widget, gpointer data)
+void add_file_ok(GtkWidget *, gpointer data)
 {
 	gchar *sel;
 	PlaylistWindowGTK * playlist_window_gtk = (PlaylistWindowGTK *) data;
@@ -571,7 +573,7 @@ void add_file_ok(GtkWidget *widget, gpointer data)
 }
 
 // Called when a file has been selected to be loaded as a playlist
-void load_list_ok(GtkWidget *widget, gpointer data)
+void load_list_ok(GtkWidget *, gpointer data)
 {
   PlaylistWindowGTK *playlist_window_gtk = (PlaylistWindowGTK *)data;
 	//gtk_widget_hide(GTK_WIDGET(playlist_window_gtk->load_list));
@@ -604,7 +606,7 @@ void load_list_ok(GtkWidget *widget, gpointer data)
 	}
 }
 
-void save_list_ok(GtkWidget *widget, gpointer data)
+void save_list_ok(GtkWidget *, gpointer data)
 {
 	PlaylistWindowGTK *playlist_window_gtk = (PlaylistWindowGTK *)data;
 	gtk_widget_hide(GTK_WIDGET(playlist_window_gtk->save_list));
@@ -633,7 +635,7 @@ void save_list_ok(GtkWidget *widget, gpointer data)
 // Old stuff below here - this needs to be sorted out
 //
 
-void dialog_cancel(GtkWidget *widget, gpointer data)
+void dialog_cancel(GtkWidget *, gpointer data)
 {
 	GtkWidget *dialog = (GtkWidget *)data;
 
@@ -682,7 +684,7 @@ void playlist_window_keypress(GtkWidget *widget, GdkEventKey *event, gpointer da
 }
 
 
-void dialog_popup(GtkWidget *widget, gpointer data)
+void dialog_popup(GtkWidget *, gpointer data)
 {
         GtkWidget *dialog = (GtkWidget *)data;
         gtk_widget_show(dialog);
@@ -690,13 +692,13 @@ void dialog_popup(GtkWidget *widget, gpointer data)
 
 
 
-void key_press_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+void key_press_event(GtkWidget *, GdkEvent *event, gpointer data)
 {
 	//printf("Key down\n");
 }
 
 
-void button_press_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+void button_press_event(GtkWidget *widget, GdkEvent *, gpointer data)
 {
 	gtk_widget_grab_focus(widget);
 }
@@ -704,12 +706,12 @@ void button_press_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 
 gint dnd_drop_event(GtkWidget *widget,
 		GdkDragContext   * context,
-		gint              x,
-		gint              y,
+		gint              /* x */,
+		gint              /* y */,
 		GtkSelectionData *selection_data,
 		guint             info,
-		guint             *time,
-		void *data)
+		guint             * /* time */,
+		void * /* data */)
 {
 	char *uri = NULL;
 	char *filename = NULL;
@@ -748,10 +750,10 @@ gint dnd_drop_event(GtkWidget *widget,
 			free(uri);
 			break;
 		default:
-			alsaplayer_error("Unkown drop!");
+			alsaplayer_error("Unknown drop!");
 			break;
 	}               
-	return 0;
+	return 1;
 }
 
 

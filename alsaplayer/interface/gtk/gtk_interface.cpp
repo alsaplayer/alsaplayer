@@ -127,41 +127,41 @@ void position_notify(void *data, int pos);
 void notifier_lock();
 void notifier_unlock();
 
-void speed_changed(void *data, float speed)
+void speed_changed(void *, float speed)
 {
 	notifier_lock();
 	draw_speed(speed);
 	notifier_unlock();
 }
 
-void pan_changed(void *data, int pan)
+void pan_changed(void *, int pan)
 {
 	notifier_lock();
 	draw_pan(pan);
 	notifier_unlock();
 }
 
-void volume_changed(void *data, int vol)
+void volume_changed(void *, int vol)
 {
 	notifier_lock();
 	draw_volume(vol);
 	notifier_unlock();
 }
 
-void position_notify(void *data, int pos)
+void position_notify(void *, int pos)
 {
 	notifier_lock();
 	indicator_callback(NULL, 0);
 	notifier_unlock();
 }
 
-void notifier_lock()
+void notifier_lock(void)
 {
 	GDK_THREADS_ENTER();
 }
 
 
-void notifier_unlock()
+void notifier_unlock(void)
 {
 	gdk_flush();
 	GDK_THREADS_LEAVE();
@@ -179,7 +179,7 @@ void start_notify(void *data)
 }
 
 
-gboolean main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
+gboolean main_window_delete(GtkWidget *, GdkEvent *event, gpointer data)
 {
 	global_update = -1;
 
@@ -201,12 +201,12 @@ gboolean main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 }
 
 
-void press_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+void press_event(GtkWidget *, GdkEvent *, gpointer)
 {
 	global_update = 0;
 }
 
-void volume_move_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+void volume_move_event(GtkWidget *, GdkEvent *, gpointer)
 {
 	//draw_volume();
 }
@@ -320,14 +320,14 @@ void draw_volume(int vol)
 
 
 
-void pan_move_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+void pan_move_event(GtkWidget *, GdkEvent *, gpointer)
 {
 	global_draw_volume = 0;
 	//draw_balance();
 }
 
 
-void pan_release_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+void pan_release_event(GtkWidget *, GdkEvent *, gpointer)
 {
 	global_draw_volume = 1;
 }
@@ -368,7 +368,7 @@ void draw_pan(int val)
 }
 
 
-void speed_move_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+void speed_move_event(GtkWidget *, GdkEvent *, gpointer)
 {
 	//draw_speed();
 }
@@ -412,7 +412,7 @@ void draw_speed(float speed)
 }	
 
 
-void val_release_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+void val_release_event(GtkWidget *widget, GdkEvent *, gpointer)
 {
 	update_struct *ustr = &global_ustr;
 	GdkRectangle update_rect;
@@ -433,7 +433,7 @@ void val_release_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 }
 
 
-void release_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+void release_event(GtkWidget *widget, GdkEvent *, gpointer)
 {
 	GtkAdjustment *adj;
 	update_struct *ustr = &global_ustr;
@@ -446,7 +446,7 @@ void release_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 }
 
 
-void move_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+void move_event(GtkWidget *, GdkEvent *, gpointer data)
 {
 	indicator_callback(data, 0);
 }
@@ -517,7 +517,7 @@ void smoother(void *data)
 }
 
 
-void forward_play_cb(GtkWidget *widget, gpointer data)
+void forward_play_cb(GtkWidget *, gpointer data)
 {
 	GtkAdjustment *adj;
 	int smooth_trans;
@@ -536,7 +536,7 @@ void forward_play_cb(GtkWidget *widget, gpointer data)
 }
 
 
-void reverse_play_cb(GtkWidget *widget, gpointer data)
+void reverse_play_cb(GtkWidget *, gpointer data)
 {
 	GtkAdjustment *adj;
 	int smooth_trans;
@@ -556,7 +556,7 @@ void reverse_play_cb(GtkWidget *widget, gpointer data)
 }
 
 
-void pause_cb(GtkWidget *widget, gpointer data)
+void pause_cb(GtkWidget *, gpointer data)
 {
 	GtkAdjustment *adj;
 	int smooth_trans;
@@ -584,7 +584,7 @@ void pause_cb(GtkWidget *widget, gpointer data)
 }
 
 
-void stop_cb(GtkWidget *widget, gpointer data)
+void stop_cb(GtkWidget *, gpointer data)
 {
 	Playlist *pl = (Playlist *)data;
 	CorePlayer *p = pl->GetCorePlayer();
@@ -617,7 +617,7 @@ void play_cb(GtkWidget *widget, gpointer data)
 }
 
 
-void eject_cb(GtkWidget *wdiget, gpointer data)
+void eject_cb(GtkWidget *, gpointer data)
 {
 	Playlist *pl = (Playlist *)data;
 	CorePlayer *p = pl->GetCorePlayer();
@@ -662,7 +662,7 @@ void pan_cb(GtkWidget *widget, gpointer data)
 }
 
 
-gint indicator_callback(gpointer data, int locking)
+gint indicator_callback(gpointer, int locking)
 {
 	update_struct *ustr;
 	Playlist *pl;
@@ -814,7 +814,7 @@ gint indicator_callback(gpointer data, int locking)
 }
 
 
-void cd_cb(GtkWidget *widget, gpointer data)
+void cd_cb(GtkWidget *, gpointer data)
 {
 	Playlist *pl = (Playlist *)data;
 	CorePlayer *p = pl->GetCorePlayer();
@@ -833,7 +833,7 @@ void cd_cb(GtkWidget *widget, gpointer data)
 }
 
 
-void exit_cb(GtkWidget *widget, gpointer data)
+void exit_cb(GtkWidget *, gpointer data)
 {
 	GtkFunction f = (GtkFunction)data;
 	global_update = -1;
@@ -850,7 +850,7 @@ void exit_cb(GtkWidget *widget, gpointer data)
 	GDK_THREADS_ENTER();
 }
 
-void scopes_cb(GtkWidget *widget, gpointer data)
+void scopes_cb(GtkWidget *, gpointer data)
 {
 	GtkWidget *win = (GtkWidget *)data;
 	int x, y;
@@ -869,7 +869,7 @@ void scopes_cb(GtkWidget *widget, gpointer data)
 }
 
 
-void effects_cb(GtkWidget *widget, gpointer data)
+void effects_cb(GtkWidget *, gpointer data)
 {
 	GtkWidget *win = (GtkWidget *)data;
 	int x, y;
@@ -889,7 +889,7 @@ void effects_cb(GtkWidget *widget, gpointer data)
 }
 
 
-void play_file_ok(GtkWidget *widget, gpointer data)
+void play_file_ok(GtkWidget *, gpointer data)
 {
 	Playlist *playlist = (Playlist *)data;
 	CorePlayer *p = playlist->GetCorePlayer();
@@ -950,7 +950,7 @@ void play_file_ok(GtkWidget *widget, gpointer data)
 	gtk_widget_hide(GTK_WIDGET(play_dialog));
 }
 
-void play_file_cancel(GtkWidget *widget, gpointer data)
+void play_file_cancel(GtkWidget *, gpointer data)
 {
 	gint x,y;
 
@@ -961,7 +961,7 @@ void play_file_cancel(GtkWidget *widget, gpointer data)
 }
 
 
-gboolean play_file_delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+gboolean play_file_delete_event(GtkWidget *widget, GdkEvent *, gpointer)
 {
 	gint x, y;
 
@@ -972,7 +972,7 @@ gboolean play_file_delete_event(GtkWidget *widget, GdkEvent *event, gpointer dat
 	return TRUE;
 }
 
-void playlist_cb(GtkWidget *widget, gpointer data)
+void playlist_cb(GtkWidget *, gpointer data)
 {
 	PlaylistWindowGTK *pl = (PlaylistWindowGTK *)data;
 	pl->ToggleVisible();
@@ -1016,7 +1016,7 @@ GtkWidget *xpm_label_box(gchar * xpm_data[], GtkWidget *to_win)
 }
 
 
-void on_expose_event (GtkWidget * widget, GdkEvent * event, gpointer data)
+void on_expose_event (GtkWidget * widget, GdkEvent *, gpointer data)
 {
   gint x, y;
 
@@ -1033,7 +1033,7 @@ void on_expose_event (GtkWidget * widget, GdkEvent * event, gpointer data)
     }
 }
 
-gint pixmap_expose(GtkWidget *widget, GdkEventExpose *event, gpointer data)
+gint pixmap_expose(GtkWidget *widget, GdkEventExpose *event, gpointer)
 {
 	GdkPixmap *the_pixmap = val_ind;
 	gdk_draw_pixmap(widget->window,
@@ -1046,7 +1046,7 @@ gint pixmap_expose(GtkWidget *widget, GdkEventExpose *event, gpointer data)
 }
 
 
-gint val_area_configure(GtkWidget *widget, GdkEventConfigure *event, gpointer data)
+gint val_area_configure(GtkWidget *widget, GdkEventConfigure *, gpointer)
 {
 	if (val_ind) {
 		global_update = 0;

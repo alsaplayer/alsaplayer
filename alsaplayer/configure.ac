@@ -22,6 +22,7 @@ have_gtk=no
 have_gtk2=no
 have_glib=no
 dnl have_qt=no
+have_opengl=no
 have_audiofile=no
 have_oggvorbis=no
 have_flac=no
@@ -41,6 +42,7 @@ use_libmad=no
 use_libid3tag=no
 prefer_mad=yes
 enable_nls=yes
+enable_opengl=yes
 
 if test "x$x_includes" = "xNONE"
 then
@@ -133,10 +135,10 @@ AC_ARG_ENABLE(opengl,
 if test "x$enable_opengl" = xyes; then
 	LIBS_save=$LIBS
 	OPENGL_LIBS=error
-	AC_CHECK_LIB(GL, glBegin, OPENGL_LIBS="-lGL")
+	AC_CHECK_LIB(GL, glBegin, OPENGL_LIBS="-lGL -lpthread")
 	
 	if test "x$OPENGL_LIBS" = xerror; then
-		AC_CHECK_LIB(MesaGL, glBegin, OPENGL_LIBS="-lMesaGL")
+		AC_CHECK_LIB(MesaGL, glBegin, OPENGL_LIBS="-lMesaGL -lpthread")
 	fi
 
 	have_opengl_headers=yes

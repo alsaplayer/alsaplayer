@@ -30,10 +30,10 @@
 #include <sched.h>
 #endif
 #include <dlfcn.h>
-#include <assert.h>
-#include <signal.h>
+#include <cassert>
+#include <csignal>
 #include <unistd.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include "AlsaNode.h"
 #include "utilities.h"
 #include "alsaplayer_error.h"

@@ -37,7 +37,7 @@ struct mikmod_local_data {
 /* Unfortunately libmikmod is *NOT* reentrant :-( */
 static pthread_mutex_t mikmod_mutex;
 
-static int mikmod_init ()
+static int mikmod_init (void)
 {
 	static int inited = 0;
 	if (inited) return 1;
@@ -62,7 +62,7 @@ static int mikmod_init ()
 }
 
 
-static void mikmod_shutdown()
+static void mikmod_shutdown(void)
 {
 	return;
 }
@@ -268,7 +268,7 @@ input_plugin mikmod_plugin = {
 };
 
 
-input_plugin *input_plugin_info ()
+input_plugin *input_plugin_info (void)
 {
 	return &mikmod_plugin;
 }

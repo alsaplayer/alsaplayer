@@ -53,17 +53,17 @@ static char *getfilenamefrompath (const char *path)
 	if (p != NULL)
 		p++;
 	else
-		p = path;
+		p = (char *)path;
 
 	return p;
 }
 
-static void init_audiofile ()
+static void init_audiofile (void)
 {
 	return;
 }
 
-static int audiofile_open (input_object *obj, char *name)
+static int audiofile_open (input_object *obj, const char *name)
 {
 	static int audiofile_init_done = 0;
 	struct af_local_data	*data;
@@ -247,9 +247,9 @@ static int audiofile_channels (input_object *obj)
 }
 
 
-static unsigned long audiofile_frame_to_sec (input_object *obj, int frame)
+static long audiofile_frame_to_sec (input_object *obj, int frame)
 {
-	unsigned long	result = 0;
+	long	result = 0;
 
 	struct af_local_data	*data;
 
@@ -265,11 +265,11 @@ static unsigned long audiofile_frame_to_sec (input_object *obj, int frame)
 	if (!data)
 		return result;
 	
-	result = (unsigned long) (frame * FRAME_COUNT /
+	result = (frame * FRAME_COUNT /
 		(data->frameSize * data->sampleRate / 100));
 
 #ifdef DEBUG
-	printf("audiofile_frame_to_sec: result %d\n", result);
+	printf("audiofile_frame_to_sec: result %ld\n", result);
 #endif
 
 	return result;
@@ -277,8 +277,6 @@ static unsigned long audiofile_frame_to_sec (input_object *obj, int frame)
 
 static float audiofile_can_handle (const char *name)
 {
-	AFfilehandle	file;
-
 	const char *fname = strrchr(name, '/');
 
 	if (!fname)
@@ -334,12 +332,12 @@ static int audiofile_stream_info (input_object *obj, stream_info *info)
 	return 1;
 }
 
-static int audiofile_init ()
+static int audiofile_init (void)
 {
 	return 1;
 }
 
-static void audiofile_shutdown()
+static void audiofile_shutdown(void)
 {
 	return;
 }

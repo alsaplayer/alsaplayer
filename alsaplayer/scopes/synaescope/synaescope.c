@@ -1,4 +1,4 @@
-/*  synaescope.cpp
+/*  synaescope.c
  *  Copyright (C) 1999 Richard Boulton <richard@tartarus.org>
  *  Further support (C) 2002 Andy Lo A Foe <andy@alsaplayer.org>
  *
@@ -76,7 +76,7 @@ static int running = 0;
 static void synaescope_hide(void);
 static void synaes_fft(double *x, double *y);
 static void synaescope_coreGo(void);
-static int synaescope_running();
+static int synaescope_running(void);
 
 static const int default_colors[] = {
     10, 20, 30,
@@ -106,8 +106,8 @@ static void synaescope_set_data(void *audio_buffer, int size)
 
 #define SYNAESCOPE_DOLOOP() \
 while (running) { \
-    outptr = output; \
-	    int w; \
+    unsigned char *outptr = output; \
+    int w; \
 \
     synaescope_coreGo(); \
 \
@@ -186,13 +186,13 @@ static void synaescope_coreGo(void) {
         *ptr = (*ptr * 14 >> 4) & 0x0f0f0f0f;
             /* Should be 29/32 to be consistent. Who cares. This is totally */
             /* hacked anyway.  */
-        /*
+/*
 	unsigned char *subptr = (unsigned char*)(ptr++);
         subptr[0] = (int)subptr[0] * 29 / 32;
         subptr[1] = (int)subptr[0] * 29 / 32;
         subptr[2] = (int)subptr[0] * 29 / 32;
         subptr[3] = (int)subptr[0] * 29 / 32;
-	*/
+*/
       }
     } 
     ptr++;
@@ -274,7 +274,6 @@ static void synaescope_coreGo(void) {
 
 static void synaescope32(void *data)
 {
-	unsigned char *outptr;
 	guint32 *bits;
 	guint32 colEq[256];
 	int i;
@@ -337,7 +336,6 @@ static void synaescope16(void *data)
 	GdkVisual *v;
 	GdkGC *gc;
 	GdkColor bg_color;
-	unsigned char *outptr;
 	
 	win = (GdkWindow *)data;
 	GDK_THREADS_ENTER();
@@ -383,7 +381,6 @@ static void synaescope16(void *data)
 
 static void synaescope8(void *data)
 {
-	unsigned char *outptr;
 	guint8 *bits;
 	guint8 colEq[256];
 	int i;
@@ -446,7 +443,7 @@ static void test_cb(GtkWidget *widget, gpointer data)
 }
 
 
-static void stop_synaescope();
+static void stop_synaescope(void);
 
 static gboolean close_synaescope_window(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
@@ -457,7 +454,7 @@ static gboolean close_synaescope_window(GtkWidget *widget, GdkEvent *event, gpoi
 		return TRUE;
 }
 
-static GtkWidget *init_synaescope_window()
+static GtkWidget *init_synaescope_window(void)
 {
 	GtkWidget *synaescope_win;
 	GtkStyle *style;
@@ -501,7 +498,7 @@ static GtkWidget *init_synaescope_window()
 }
 
 
-static void synaescope_hide()
+static void synaescope_hide(void)
 {
 	gint x, y;
 	
@@ -513,7 +510,7 @@ static void synaescope_hide()
 }
 
 
-static void stop_synaescope()
+static void stop_synaescope(void)
 {
 	running = 0;
 	pthread_join(synaescope_thread, NULL);
@@ -546,7 +543,7 @@ static void run_synaescope(void *data)
 }
 
 
-static void start_synaescope()
+static void start_synaescope(void)
 {
 	if (pthread_mutex_trylock(&synaescope_mutex) != 0) {
 		printf("synaescope already running\n");
@@ -573,7 +570,7 @@ static int bitReverser(int i) {
     return sum;
 }
 
-static int init_synaescope()
+static int init_synaescope(void)
 {
     int i;
 
@@ -633,7 +630,7 @@ static void synaes_fft(double *x, double *y) {
 }
 
 
-static void shutdown_synaescope()
+static void shutdown_synaescope(void)
 {
 	prefs_set_bool(ap_prefs, "synaescope", "active", synaescope_running());
 	
@@ -642,7 +639,7 @@ static void shutdown_synaescope()
 }
 
 
-static int synaescope_running()
+static int synaescope_running(void)
 {
 	return running;
 }
@@ -662,7 +659,7 @@ scope_plugin synaescope_plugin = {
 };
 
 
-scope_plugin *scope_plugin_info()
+scope_plugin *scope_plugin_info(void)
 {
 	return &synaescope_plugin;
 }

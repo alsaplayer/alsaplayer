@@ -29,9 +29,9 @@
 
 #include "AlsaPlayer.h"
 #include "CorePlayer.h"
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
+#include <cstdio>
+#include <cstring>
+#include <cassert>
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
@@ -45,7 +45,7 @@
 #include <dlfcn.h>
 #include <sched.h>
 #include <pthread.h>
-#include <math.h>
+#include <cmath>
 #include "Effects.h"
 #include "utilities.h"
 #include "alsaplayer_error.h"
@@ -1075,7 +1075,7 @@ int CorePlayer::Read32(void *data, int samples)
 }
 
 
-int CorePlayer::pcm_worker(sample_buf *dest, int start, int len)
+int CorePlayer::pcm_worker(sample_buf *dest, int start)
 {
 	int frames_read = 0;
 	int bytes_written = 0;

@@ -174,7 +174,6 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 	int bytes_needed;
 	int mono2stereo = 0;
 	struct vorbis_local_data *data;
-	vorbis_info* vi;
 
 	if (!obj || !obj->local_data)
 		return 0;
@@ -242,7 +241,6 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 static  long vorbis_frame_to_sec(input_object *obj, int frame)
 {
 	struct vorbis_local_data *data;
-	int64_t l;
 	int sec;
 
 	if (!obj || !obj->local_data)
@@ -316,9 +314,9 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 			if (br > 0) 
 				data->bitrate_instant = br;
 			sprintf(info->stream_type, "OGG Vorbis, %dKHz, %s, %-3dkbit",
-					vi->rate / 1000, 
+					(int)(vi->rate / 1000), 
 					 obj->nr_channels == 1 ? "mono":"stereo",
-					data->bitrate_instant / 1000);
+					(int)(data->bitrate_instant / 1000));
 		} else {
 			strcpy(info->stream_type, "Unkown OGG VORBIS");
 		}	
@@ -328,7 +326,7 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 }
 
 
-static int vorbis_init() 
+static int vorbis_init(void) 
 {
 	return 1;
 }		
@@ -355,8 +353,10 @@ static int vorbis_channels(input_object *obj)
 
 static float vorbis_can_handle(const char *path)
 {
+#if FANCY_CHECKING	
 	FILE *stream;
 	OggVorbis_File vfile;
+#endif	
 	char *ext;
 
 	ext = strrchr(path, '.');
@@ -459,7 +459,7 @@ static void vorbis_close(input_object *obj)
 }
 
 
-static void vorbis_shutdown()
+static void vorbis_shutdown(void)
 {
 	return;
 }

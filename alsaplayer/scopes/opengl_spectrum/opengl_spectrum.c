@@ -59,10 +59,8 @@ static pthread_mutex_t scope_mutex;
 static int window_w;
 static int window_h;
 
-static int fft_buf[2][256];
-
 static void stop_display(int);
-static void oglspectrum_start();
+static void oglspectrum_start(void);
 
 static Window create_window(int width, int height)
 {
@@ -417,7 +415,7 @@ static void oglspectrum_cleanup(void)
 	stop_display(1);
 }
 
-static void oglspectrum_start()
+static void oglspectrum_start(void)
 {
 	if (pthread_mutex_trylock(&scope_mutex) != 0) {
 		alsaplayer_error("spectrum already running");
@@ -461,12 +459,12 @@ static void oglspectrum_set_fft(void *fft_buffer, int samples, int channels)
 	}
 }
 
-static int oglspectrum_running()
+static int oglspectrum_running(void)
 {
 	return going;
 }
 
-static void oglspectrum_shutdown()
+static void oglspectrum_shutdown(void)
 {
 	prefs_set_bool(ap_prefs, "opengl_spectrum", "active", oglspectrum_running());
 	if (oglspectrum_running()) {
@@ -490,7 +488,7 @@ scope_plugin oglspectrum_plugin = {
 };
 
 
-scope_plugin *scope_plugin_info()
+scope_plugin *scope_plugin_info(void)
 {
 	return &oglspectrum_plugin;
 }

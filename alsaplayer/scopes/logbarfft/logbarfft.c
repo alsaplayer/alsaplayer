@@ -53,8 +53,8 @@ static int xranges[] = {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 15, 17, 19, 21, 23, 
 #endif
 static int xranges[] = {0, 1, 2, 3, 5, 7, 10, 14, 20, 28, 40, 54, 74, 101, 137, 187, 255};
 
-static void fftscope_hide();
-static int fftscope_running();
+static void fftscope_hide(void);
+static int fftscope_running(void);
 
 static const int default_colors[] = {
     10, 20, 30,
@@ -71,7 +71,7 @@ void logscope_set_fft(void *fft_data, int samples, int channels)
 	memcpy(fft_buf, fft_data, sizeof(int) * samples * channels);
 }
 
-static void the_fftscope()
+static void the_fftscope(void)
 {
 	guchar *loc;
 	guchar bits [256 * 129];
@@ -94,7 +94,7 @@ static void the_fftscope()
 				val += k;
 			}
 			if(val > 127) val = 127;
-			if (val > maxbar[ i ]) 
+			if (val > (guint)maxbar[ i ]) 
 				maxbar[ i ] = val;
 			else {
 				k = maxbar[ i ] - (4 + (8 / (128 - maxbar[ i ])));
@@ -122,19 +122,19 @@ static void the_fftscope()
 }
 
 
-static void stop_fftscope();
+static void stop_fftscope(void);
 
 static gboolean close_fftscope_window(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-				GDK_THREADS_LEAVE();
-        stop_fftscope();
-				GDK_THREADS_ENTER();
+	GDK_THREADS_LEAVE();
+	stop_fftscope();
+	GDK_THREADS_ENTER();
 
-		return TRUE;
+	return TRUE;
 }
 
 
-static GtkWidget *init_fftscope_window()
+static GtkWidget *init_fftscope_window(void)
 {
 	GtkWidget *fftscope_win;
 	GdkColor color;
@@ -180,7 +180,7 @@ static GtkWidget *init_fftscope_window()
 }
 
 
-static void fftscope_hide()
+static void fftscope_hide(void)
 {
 	gint x, y;
 	
@@ -192,7 +192,7 @@ static void fftscope_hide()
 }
 
 
-static void stop_fftscope()
+static void stop_fftscope(void)
 {
 	running = 0;
 	pthread_join(fftscope_thread, NULL);
@@ -210,7 +210,7 @@ static void run_fftscope(void *data)
 }
 
 
-static void start_fftscope()
+static void start_fftscope(void)
 {
 	if (!is_init) {
 		is_init = 1;
@@ -225,7 +225,7 @@ static void start_fftscope()
 }
 
 
-static int init_fftscope()
+static int init_fftscope(void)
 {
 	int i;
 	
@@ -239,7 +239,7 @@ static int init_fftscope()
 	return 1;
 }
 
-static void shutdown_fftscope()
+static void shutdown_fftscope(void)
 {
 	prefs_set_bool(ap_prefs, "logbarfft", "active", fftscope_running());
 
@@ -247,7 +247,7 @@ static void shutdown_fftscope()
 		stop_fftscope();
 }
 
-static int fftscope_running()
+static int fftscope_running(void)
 {
 	return running;
 }
@@ -267,7 +267,7 @@ scope_plugin logscope_plugin = {
 };
 
 
-scope_plugin *scope_plugin_info()
+scope_plugin *scope_plugin_info(void)
 {
 	return &logscope_plugin;
 }

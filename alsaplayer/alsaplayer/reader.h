@@ -50,12 +50,12 @@ typedef int reader_version_type;
 /**
  * Init plugin 
  */
-typedef int (*reader_init_type)();   
+typedef int (*reader_init_type)(void);   
 
 /**
  * Prepare the plugin for removal
  */
-typedef void(*reader_shutdown_type)();
+typedef void(*reader_shutdown_type)(void);
 
 /**
  * @param uri URI to stream
@@ -168,6 +168,6 @@ void reader_free_expanded (char **list);
  * C++ make sure you 'extern "C"' the reader_plugin_info() function or
  * else the HOST will not be able to load the plugin.
  */
-typedef reader_plugin *(*reader_plugin_info_type)();
+typedef reader_plugin *(*reader_plugin_info_type)(void);
 
 #endif

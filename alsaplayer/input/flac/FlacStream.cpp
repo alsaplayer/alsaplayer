@@ -26,14 +26,12 @@
 #include <string.h>
 #include "alsaplayer_error.h"
 
-using namespace std;
-
 namespace Flac
 {
 
 // static
 bool
-FlacStream::isFlacStream (const string & name)
+FlacStream::isFlacStream (const std::string & name)
 {
     // XXX dhess - need a better way of doing this.
 
@@ -41,13 +39,13 @@ FlacStream::isFlacStream (const string & name)
     if (!ext)
 	return false;
     ext++;
-    string x (ext);
+    std::string x (ext);
     return x == "flac" || x == "fla";
     
 } // FlacStream::isFlacStream
 
 
-FlacStream::FlacStream (const string & name, reader_type * f)
+FlacStream::FlacStream (const std::string & name, reader_type * f)
      : _engine (0),
       _mcbSuccess (false),
       _datasource (f),
@@ -200,7 +198,7 @@ FlacStream::metaCallBack (const FLAC__StreamDecoder * decoder,
 
 // static
 void
-FlacStream::errCallBack (const FLAC__StreamDecoder * decoder,
+FlacStream::errCallBack (const FLAC__StreamDecoder *,
 		       FLAC__StreamDecoderErrorStatus status,
 		       void * client_data)
 {
@@ -239,7 +237,7 @@ FlacStream::errCallBack (const FLAC__StreamDecoder * decoder,
 
 // static
 FLAC__StreamDecoderWriteStatus
-FlacStream::writeCallBack (const FLAC__StreamDecoder * decoder,
+FlacStream::writeCallBack (const FLAC__StreamDecoder *,
 			 const FLAC__Frame * frame,
 			 const FLAC__int32 * const buffer[],
 			 void * client_data)
@@ -259,7 +257,7 @@ FlacStream::writeCallBack (const FLAC__StreamDecoder * decoder,
 
 // static
 FLAC__StreamDecoderReadStatus
-FlacStream::readCallBack (const FLAC__StreamDecoder * decoder,
+FlacStream::readCallBack (const FLAC__StreamDecoder *,
 			  FLAC__byte buffer[],
 			  unsigned * bytes,
 			  void * client_data)

@@ -51,7 +51,7 @@ void dl_close_scopes()
 	}	
 }
 
-void scope_entry_destroy_notify(gpointer data)
+void scope_entry_destroy_notify(gpointer)
 {
 }
 
@@ -229,7 +229,7 @@ int apRegisterScopePlugin(scope_plugin *plugin)
 }
 
 
-static void close_all_cb(GtkWidget *widget, gpointer data)
+static void close_all_cb(GtkWidget *, gpointer data)
 {
 	GtkWidget *list = (GtkWidget *)data;
 
@@ -246,7 +246,7 @@ static void close_all_cb(GtkWidget *widget, gpointer data)
 }
 
 
-static void close_scope_cb(GtkWidget *widget, gpointer data)
+static void close_scope_cb(GtkWidget *, gpointer data)
 {
 	GtkWidget *list = (GtkWidget *)data;
 	
@@ -266,7 +266,7 @@ static void close_scope_cb(GtkWidget *widget, gpointer data)
 }
 
 
-static void open_scope_cb(GtkWidget *widget, gpointer data)
+static void open_scope_cb(GtkWidget *, gpointer data)
 {
 	GtkWidget *list = (GtkWidget *)data;
 	
@@ -321,7 +321,7 @@ static void exclusive_open_cb(GtkWidget *widget, gpointer data)
 }
 
 
-void scopes_list_button_press(GtkWidget *widget, GdkEvent *bevent, gpointer data)
+void scopes_list_button_press(GtkWidget *widget, GdkEvent *bevent, gpointer)
 {
 	GtkWidget *menu_item;
 	GtkWidget *the_menu;
@@ -387,8 +387,8 @@ void scopes_list_button_press(GtkWidget *widget, GdkEvent *bevent, gpointer data
 	//alsaplayer_error("Row = %d, Col = %d", row, col);	
 }
 
-void scopes_list_click(GtkWidget *widget, gint row, gint column,
-	GdkEvent *bevent, gpointer data)
+void scopes_list_click(GtkWidget *widget, gint row, gint /* column */,
+	GdkEvent *bevent, gpointer /* data */)
 {
 	if (bevent && bevent->type == GDK_2BUTTON_PRESS) {
 		scope_entry *se = (scope_entry *)
@@ -415,7 +415,7 @@ void scopes_list_click(GtkWidget *widget, gint row, gint column,
 }
 
 
-void scopes_window_ok_cb(GtkWidget *button_widget, gpointer data)
+void scopes_window_ok_cb(GtkWidget * /*button_widget*/, gpointer data)
 {
 	gint x, y;
 	static gint s_windows_x_offset = 0;
@@ -434,7 +434,7 @@ void scopes_window_ok_cb(GtkWidget *button_widget, gpointer data)
 
 }
 
-gboolean scopes_window_delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+gboolean scopes_window_delete_event(GtkWidget *widget, GdkEvent * /*event*/, gpointer /* data */)
 {
         gint x, y;
 

@@ -181,12 +181,12 @@ typedef int input_flags_type;
 /**
  * Init plugin 
  */
-typedef int(*input_init_type)();
+typedef int(*input_init_type)(void);
 
 /**
  * Prepare the plugin for removal
  */
-typedef void(*input_shutdown_type)();
+typedef void(*input_shutdown_type)(void);
 
 /**
  * Handle for plugin. Filled in by the host
@@ -341,6 +341,6 @@ typedef struct _input_plugin
  * C++ make sure you 'extern "C"' the input_plugin_info() function or
  * else the HOST will not be able to load the plugin.
  */
-typedef input_plugin*(*input_plugin_info_type)();
+typedef input_plugin*(*input_plugin_info_type)(void);
 
 #endif

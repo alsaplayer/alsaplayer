@@ -28,6 +28,7 @@
 #include <string.h>
 #include <assert.h>
 #include <pthread.h>
+#include <stdlib.h>
 #include "scope_config.h"
 #include "prefs.h"
 
@@ -56,8 +57,8 @@ static gint running = 0;/* this global variable determines when
                            and lock our whole app */
 
 
-static void levelmeter_hide();
-static int levelmeter_running();
+static void levelmeter_hide(void);
+static int levelmeter_running(void);
 
 static void levelmeter_set_data(void *audio_buffer, int size)
 {
@@ -156,7 +157,7 @@ static void the_levelmeter(GtkWidget *win)
 }
 
 
-static void stop_levelmeter();
+static void stop_levelmeter(void);
 
 static gboolean close_levelmeter_window(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
@@ -174,7 +175,7 @@ static void popup(GtkWidget *widget, GdkEvent *event, gpointer data)
 }
 
 
-static GtkWidget *init_levelmeter_window()
+static GtkWidget *init_levelmeter_window(void)
 {
 	GtkWidget *levelmeter_win;
 	GdkColor color, col;
@@ -252,7 +253,7 @@ static GtkWidget *init_levelmeter_window()
 
 
 
-void levelmeter_hide()
+void levelmeter_hide(void)
 {
 	gint x, y;	
 	if (scope_win) {
@@ -263,7 +264,7 @@ void levelmeter_hide()
 }
 
 
-static void stop_levelmeter()
+static void stop_levelmeter(void)
 {
 	running = 0;
 	pthread_join(levelmeter_thread, NULL);
@@ -280,7 +281,7 @@ static void run_levelmeter(void *data)
 
 
 
-static void start_levelmeter()
+static void start_levelmeter(void)
 {
     if (!is_init) {
 		scope_win = init_levelmeter_window();
@@ -297,7 +298,7 @@ static void start_levelmeter()
 		(void * (*)(void *))run_levelmeter, NULL);
 }
 
-static int init_levelmeter()
+static int init_levelmeter(void)
 {
 	if (prefs_get_bool(ap_prefs, "levelmeter", "active", 0))
 		start_levelmeter();
@@ -305,7 +306,7 @@ static int init_levelmeter()
 }
 
 
-static void shutdown_levelmeter()
+static void shutdown_levelmeter(void)
 {
 	prefs_set_bool(ap_prefs, "levelmeter", "active", levelmeter_running());
 	
@@ -351,7 +352,7 @@ scope_plugin levelmeter_plugin = {
 };
 
 
-scope_plugin *scope_plugin_info()
+scope_plugin *scope_plugin_info(void)
 {
 	return &levelmeter_plugin;
 }

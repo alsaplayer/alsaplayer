@@ -22,6 +22,7 @@
 
 #include <ctype.h>
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "utilities.h"
 #include "alsaplayer_error.h"
@@ -30,6 +31,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+
 void dosleep(unsigned int msec)
 {
 	struct timeval time;
@@ -45,7 +47,7 @@ void parse_file_uri_free(char *p)
 		free(p);
 }
 
-char *get_homedir()
+char *get_homedir(void)
 {
 	char *homedir = NULL;
 
@@ -55,7 +57,7 @@ char *get_homedir()
 	return homedir;
 }
 
-char *get_prefsdir()
+char *get_prefsdir(void)
 {
 	static char *prefs_path;
 	static int prefs_path_init = 0;

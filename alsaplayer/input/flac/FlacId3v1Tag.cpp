@@ -24,11 +24,9 @@
 
 #include "FlacId3Tag.h"
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "reader.h"
-
-using namespace std;
 
 static bool
 findId3Tag (reader_type * f, char * tag)
@@ -58,7 +56,7 @@ typedef struct {
 
 // static
 bool
-FlacId3Tag::hasId3 (const string & name)
+FlacId3Tag::hasId3 (const std::string & name)
 {
     static char tag[128];
 
@@ -73,7 +71,7 @@ FlacId3Tag::hasId3 (const string & name)
 } // FlacId3Tag::hasId3
 
 
-FlacId3Tag::FlacId3Tag (const string & name)
+FlacId3Tag::FlacId3Tag (const std::string & name)
     : FlacTag (name)
 {
     reader_type * f = reader_open (name.c_str ());
