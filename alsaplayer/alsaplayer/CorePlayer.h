@@ -40,12 +40,12 @@
 
 #define MAX_PLUGINS 16
 
-typedef void(*volume_changed_type)(int new_vol);
-typedef void(*speed_changed_type)(float new_speed);
-typedef void(*pan_changed_type)(int new_pan);
-typedef void(*position_notify_type)(int pos);
-typedef void(*stop_notify_type)();
-typedef void(*start_notify_type)();		
+typedef void(*volume_changed_type)(void *, int new_vol);
+typedef void(*speed_changed_type)(void *, float new_speed);
+typedef void(*pan_changed_type)(void *, int new_pan);
+typedef void(*position_notify_type)(void *, int pos);
+typedef void(*stop_notify_type)(void *);
+typedef void(*start_notify_type)(void *);		
 
 typedef struct _coreplayer_notifier
 {
@@ -133,7 +133,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	CorePlayer(AlsaNode *node=(AlsaNode *)NULL);
 	~CorePlayer();
 
-	void RegisterNotifier(coreplayer_notifier *);
+	void RegisterNotifier(coreplayer_notifier *, void *data);
 	void UnRegisterNotifier(coreplayer_notifier *);
 
 	AlsaNode *GetNode() { return node; }

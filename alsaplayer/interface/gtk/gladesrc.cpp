@@ -220,7 +220,7 @@ create_main_window (void)
   gtk_box_pack_start (GTK_BOX (hbox36), forward_button, TRUE, TRUE, 0);
   gtk_widget_set_usize (forward_button, 22, 20);
 
-  pitch_scale = gtk_hscale_new (GTK_ADJUSTMENT (gtk_adjustment_new (100, -333, 334, 1, 1, 1)));
+  pitch_scale = gtk_hscale_new (GTK_ADJUSTMENT (gtk_adjustment_new (100, -400, 401, 1, 1, 1)));
   gtk_widget_ref (pitch_scale);
   gtk_object_set_data_full (GTK_OBJECT (main_window), "pitch_scale", pitch_scale,
                             (GtkDestroyNotify) gtk_widget_unref);

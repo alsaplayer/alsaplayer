@@ -123,32 +123,32 @@ gint indicator_callback(gpointer data, int locking);
 void draw_speed(float speed);
 void draw_pan(int pan);
 void draw_volume(int vol);
-void position_notify(int pos);
+void position_notify(void *data, int pos);
 void notifier_lock();
 void notifier_unlock();
 
-void speed_changed(float speed)
+void speed_changed(void *data, float speed)
 {
 	notifier_lock();
 	draw_speed(speed);
 	notifier_unlock();
 }
 
-void pan_changed(int pan)
+void pan_changed(void *data, int pan)
 {
 	notifier_lock();
 	draw_pan(pan);
 	notifier_unlock();
 }
 
-void volume_changed(int vol)
+void volume_changed(void *data, int vol)
 {
 	notifier_lock();
 	draw_volume(vol);
 	notifier_unlock();
 }
 
-void position_notify(int pos)
+void position_notify(void *data, int pos)
 {
 	notifier_lock();
 	indicator_callback(NULL, 0);
@@ -167,9 +167,14 @@ void notifier_unlock()
 }
 
 
-void stop_notify()
+void stop_notify(void *data)
 {
 	//alsaplayer_error("Song was stopped");
+}
+
+void start_notify(void *data)
+{
+	//alsaplayer_error("Song was started");
 }
 
 
@@ -1356,9 +1361,10 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	notifier.pan_changed = pan_changed;
 	notifier.volume_changed = volume_changed;
 	notifier.stop_notify = stop_notify;
+	notifier.start_notify = start_notify;
 	notifier.position_notify = position_notify;
 
 	GDK_THREADS_LEAVE();
-	playlist->RegisterNotifier(&notifier);
+	playlist->RegisterNotifier(&notifier, NULL);
 	GDK_THREADS_ENTER();
 }

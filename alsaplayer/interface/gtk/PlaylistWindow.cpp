@@ -476,8 +476,6 @@ void add_file_ok(GtkWidget *widget, gpointer data)
 	Playlist *playlist = playlist_window_gtk->GetPlaylist();
 	GList *next = file_list->selection;
 
-	alsaplayer_error("In add_file_ok()");
-
 	if (!playlist) {
 		return;
 	}	

@@ -210,8 +210,8 @@ static int mad_frame_seek(input_object *obj, int frame)
 		while (data->highest_frame < frame) {
 			if (mad_header_decode(&header, &data->stream) == -1) {
 				if (!MAD_RECOVERABLE(data->stream.error)) {
-					printf("MAD debug: error seeking to %d, going to %d\n",
-							data->current_frame, data->highest_frame);
+					//printf("MAD debug: error seeking to %d, going to %d\n",
+					//		data->current_frame, data->highest_frame);
 					mad_stream_buffer(&data->stream,
 							data->mad_map + data->offset +
 							data->frames[data->highest_frame],

@@ -228,7 +228,7 @@ public:
 	void Register(PlaylistInterface *);
 	void Register(playlist_interface *);
 
-	void RegisterNotifier(coreplayer_notifier *);
+	void RegisterNotifier(coreplayer_notifier *, void *data);
 	void UnRegisterNotifier(coreplayer_notifier *);
 	
 	// Unregister - must do this before a registered interface is deleted

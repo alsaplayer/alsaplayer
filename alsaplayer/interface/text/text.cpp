@@ -46,6 +46,36 @@
 static char addon_dir[1024];
 static int going = 0;
 static pthread_mutex_t finish_mutex;
+static coreplayer_notifier notifier;
+
+static int vol = 0;
+static float speed = 0;
+
+void stop_notify(void *data)
+{
+	fprintf(stdout, "\n\n");
+}
+
+
+void speed_changed(void *data, float new_speed)
+{
+	speed = new_speed;
+}
+
+
+void volume_changed(void *data, int new_vol)
+{
+	vol = new_vol;
+}
+
+
+void position_notify(void *data, int frame)
+{
+	fprintf(stdout, "Frame: %6d  Vol: %3d   Speed: %.0f    \r", 
+		frame, vol, speed * 100.0);
+	fflush(stdout);	
+}
+
 
 int interface_text_init()
 {
@@ -96,9 +126,20 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 
 	going = 1;
 
+	memset(&notifier, 0, sizeof(notifier));
+	notifier.speed_changed = speed_changed;
+	notifier.volume_changed = volume_changed;
+	notifier.position_notify = position_notify;
+	notifier.stop_notify = stop_notify;
+
+	//fprintf(stdout, "\n");
+	//playlist->RegisterNotifier(&notifier, NULL);
+
 	// Fall through console player
 	pthread_mutex_lock(&finish_mutex);
 
+	
+#if 1
 	while(going && (coreplayer = playlist->GetCorePlayer()) &&
 			(coreplayer->IsActive() || coreplayer->IsPlaying() ||
 			 playlist->GetCurrent() != playlist->Length())) {
@@ -107,11 +148,13 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 		while (coreplayer->IsActive() || coreplayer->IsPlaying()) {
 			int cur_val, block_val, i;
 			coreplayer->GetStreamInfo(&info);
-			if (strcmp(info.title, old_info.title) != 0) {
+			if (strlen(info.title) && strcmp(info.title, old_info.title) != 0) {
 				if (strlen(info.artist))
 					fprintf(stdout, "\nPlaying: %s - %s\n", info.artist, info.title);
-				else	
+				else if (strlen(info.title))
 					fprintf(stdout, "\nPlaying: %s\n", info.title);
+				else
+					fprintf(stdout, "\nPlaying: (no information available)\n");
 				memcpy(&old_info, &info, sizeof(stream_info));
 			}
 			block_val = secs = coreplayer->GetCurrentTime(coreplayer->GetFrames());
@@ -145,9 +188,13 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 		}
 		dosleep(1000000);
 		fprintf(stdout, "\n\n");
-	}	
+	}
+#endif	
 	fprintf(stdout, "...done playing\n");
 	pthread_mutex_unlock(&finish_mutex);
+
+	playlist->UnRegisterNotifier(&notifier);
+	
 	return 0;
 }
 
