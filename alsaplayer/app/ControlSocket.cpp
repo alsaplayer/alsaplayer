@@ -1,21 +1,32 @@
+/*  ControlSocket.cpp
+ *  Copyright (C) 2002 Andy Lo A Foe <andy@alsaplayer.org>
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+*/ 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include "ControlSocket.h"
 #include "Playlist.h"
+#include "error.h"
 
 static pthread_t socket_thread;
 static int socket_thread_running = 0;
-
-
-void socket_thread_start(Playlist *p)
-{
-	pthread_create(&socket_thread, NULL, (void * (*)(void *))socket_looper, playlist);
-}
-
-
-void socket_thread_stop()
-{
-	socket_thread_running = 0;
-	pthread_join(socket_thread, NULL);
-}
 
 void socket_looper(void *arg)
 {
@@ -127,6 +138,19 @@ void socket_looper(void *arg)
 			close(fd);	
 		}
 		unlink("/tmp/alsaplayer_0");
+}
+
+
+void control_socket_start(Playlist *playlist)
+{
+	pthread_create(&socket_thread, NULL, (void * (*)(void *))socket_looper, playlist);
+}
+
+
+void control_socket_stop()
+{
+	socket_thread_running = 0;
+	pthread_join(socket_thread, NULL);
 }
 
 
