@@ -570,6 +570,7 @@ input/audiofile/Makefile
 include/Makefile
 docs/Makefile
 extra/Makefile
+m4/Makefile
 libalsaplayer/Makefile
 ])
 
