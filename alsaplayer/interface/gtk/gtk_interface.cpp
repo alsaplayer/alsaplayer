@@ -583,8 +583,15 @@ gint indicator_callback(gpointer data)
 	drawable = ustr->drawing_area->window;
 
 	adj = GTK_RANGE(ustr->pos_scale)->adjustment;
-	adj->lower = 0;
-	adj->upper = p->GetFrames() - 32; // HACK!!
+	if (p->CanSeek()) {
+		adj->lower = 0;
+		adj->upper = p->GetFrames() - 32; // HACK!!
+		gtk_widget_set_sensitive(GTK_WIDGET(ustr->pos_scale), true);
+	} else {
+		adj->lower = adj->upper = 0;
+		gtk_adjustment_set_value(adj, 0);
+		gtk_widget_set_sensitive(GTK_WIDGET(ustr->pos_scale), false);
+	}	
 	memset(&info, 0, sizeof(stream_info));
 
 	color.red = color.blue = color.green = 0;

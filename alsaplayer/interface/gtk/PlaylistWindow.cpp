@@ -41,6 +41,9 @@
 static GtkWidget *init_playlist_window(PlaylistWindowGTK *, Playlist *pl);
 static void destroy_notify(gpointer data);
 static void new_list_item(const char *path, gchar **list_item);
+static GdkColor *select_color = NULL;
+static GdkColor *default_color = NULL;
+static int current_entry = -1;
 
 // Member functions
 
@@ -73,7 +76,28 @@ void PlaylistWindowGTK::CbSetCurrent(unsigned current) {
 #ifdef DEBUG
 	printf("CbSetCurrent(%d)\n", current);
 #endif /* DEBUG */
-	gtk_clist_select_row(GTK_CLIST(playlist_list), current - 1, 1);
+	if (!select_color) {
+		select_color = (GdkColor *)g_malloc(sizeof(GdkColor));
+		if (select_color) {
+			select_color->red = 200 << 8;
+			select_color->blue = 0;
+			select_color->green = 0;
+			gdk_color_alloc(gdk_colormap_get_system(), select_color);
+		}
+	}
+	if (!default_color) {
+		default_color = (GdkColor *)g_malloc(sizeof(GdkColor));
+		if (default_color) {
+			default_color->red = default_color->green = default_color->blue = 0;
+			gdk_color_alloc(gdk_colormap_get_system(), select_color);
+		}
+	}
+		
+	gtk_clist_set_foreground(GTK_CLIST(playlist_list), current_entry - 1, default_color);
+	current_entry = current;	
+	
+	//gtk_clist_select_row(GTK_CLIST(playlist_list), current_entry - 1, 1);
+	gtk_clist_set_foreground(GTK_CLIST(playlist_list), current_entry - 1, select_color);	
 }
 
 void PlaylistWindowGTK::CbLock()
