@@ -66,7 +66,7 @@
  *  whenever structural changes are made to the API. This value should
  *  only be changed by the maintainers.
  */
-#define INPUT_PLUGIN_VERSION	(INPUT_PLUGIN_BASE_VERSION + 15)
+#define INPUT_PLUGIN_VERSION	(INPUT_PLUGIN_BASE_VERSION + 16)
 
 /**
  * This is a structure that keeps frequently used parameters of an
@@ -166,6 +166,26 @@ typedef struct _stream_info
 	 * The path of the stream
 	 */
 	char	path[1024];
+	/**
+	 * The number of channels 
+	 */
+	int	channels;
+	/**
+	 * The number of tracks
+	 */
+	int	tracks;
+	/**
+	 * The current track;
+	 */
+	int 	current_track;
+	/**
+	 * The sampling rate
+	 */
+	int	sample_rate;
+	/**
+	 * The bitrate
+	 */
+	int	bitrate;
 } stream_info;
 
 /** 

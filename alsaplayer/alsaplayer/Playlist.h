@@ -147,7 +147,7 @@ private:
 	bool loopingSong;	//  Loop the current song
 	bool loopingPlaylist;	// Loop the Playlist
 	bool crossfade; // Crossfade the playlist
-	
+	AlsaNode *our_node; // Node	
 	CorePlayer *coreplayer; // Core player - set this
 
 	std::vector<PlayItem> queue;	// List of files to play
@@ -164,9 +164,9 @@ private:
 	void Lock();
 	void Unlock();
 
+	bool PlayFile(PlayItem const &);
 public:	
 	void Stop();
-	bool PlayFile(PlayItem const &);
 	bool CanPlay(std::string const &);
 	bool Eof();
 	
@@ -176,7 +176,8 @@ public:
 
 	// Get CorePLayer object
 	CorePlayer *GetCorePlayer() { return coreplayer; }
-
+	AlsaNode *GetNode() { return our_node; }
+	
 	// Get the number of items in the playlist (0 if playlist is empty)
 	int Length();
 

@@ -40,7 +40,7 @@
  * whenever structural changes are made to the API. This value should
  * only be changed by the maintainers.
  */
-#define SCOPE_PLUGIN_VERSION    (SCOPE_PLUGIN_BASE_VERSION + 6)
+#define SCOPE_PLUGIN_VERSION    (SCOPE_PLUGIN_BASE_VERSION + 7)
 
 /**
  * The default nice level scope plugins should be set at. Most scope plugins
@@ -90,8 +90,10 @@ typedef int scope_version_type;
  * The init function of a scope plugin. This function should initialize 
  * all data structures needed for the scope plugin. Return value should be
  * 1 on success, 0 if initialization fails.
+ *
+ * @param Set to NULL. This currently used for internal plugins only
  */
-typedef int(*scope_init_type)(void);
+typedef int(*scope_init_type)(void *arg);
 
 /**
  * This function will be called when the HOST wants to activate the scope.

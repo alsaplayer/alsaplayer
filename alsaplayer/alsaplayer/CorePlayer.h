@@ -77,7 +77,6 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	int write_buf_changed;
 	int read_direction;
 	int frames_in_buffer;
-	int jumped;
 	int jump_point;
 	int last_read;
 	bool streaming;
@@ -86,6 +85,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	float pitch_point;
 	float pitch;
 	float pitch_multi;
+	bool jumped;
 	bool producing;
 	int volume;
 	int pan;
