@@ -46,16 +46,25 @@ extern void playlist_looper(void *data)
 	printf("THREAD-%d=playlist thread\n", getpid());
 #endif /* DEBUG */
 	Playlist *pl = (Playlist *)data;
+	CorePlayer *coreplayer;
 	if(!pl) return;
-	CorePlayer *coreplayer = (CorePlayer *)(pl->coreplayer);
-	if(!coreplayer) return;
-
+	
 	while(pl->active) {
+		if (!(coreplayer = (CorePlayer *)(pl->coreplayer)))
+			return;
 		if (!coreplayer->IsActive()) {
 			if (!pl->Paused() && pl->Length()) {
 				pl->Next(1);
 			}	
 		}
+		// Cross example
+		if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < 150) {
+				if (pl->player1->IsActive())
+						pl->coreplayer = pl->player2;
+				else
+						pl->coreplayer = pl->player1;
+				pl->Next(1);
+		}		
 		dosleep(100000);
 	}
 }
