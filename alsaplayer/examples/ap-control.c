@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <alsaplayer/control.h>
+#include <control.h>
 
 
 static void usage(void)
