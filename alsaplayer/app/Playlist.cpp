@@ -940,6 +940,7 @@ void Playlist::Stop() {
 bool Playlist::PlayFile(PlayItem const & item) {
 	bool result;
 
+	Pause();
 	coreplayer->Stop();
 	result = coreplayer->Load(item.filename.c_str());
 	if (result) {
@@ -947,7 +948,8 @@ bool Playlist::PlayFile(PlayItem const & item) {
 		if (coreplayer->GetSpeed() == 0.0) { // Unpause
 			coreplayer->SetSpeed(1.0);
 		}	
-	}	
+	}
+	UnPause();
 	return result;
 }
 
