@@ -54,14 +54,6 @@ extern "C" { 	/* Make sure MAD symbols are not mangled
 }
 #endif
 
-#ifdef HAVE_ID3TAG_H
-#ifndef HAVE_LIBID3TAG
-#error "id3tag.h was present but libid3tag.so is apparantly missing :-("
-#endif
-#include "id3tag.h"
-#include <assert.h>
-#endif
-
 #include "xing.h"
 
 #define BLOCK_SIZE 4096
@@ -381,191 +373,131 @@ static int mad_nr_frames(input_object *obj)
 	return obj->nr_frames;
 }
 
-#ifdef HAVE_LIBID3TAG
+/* Strip spaces from right to left */
+static void rstrip (char *s) {
+	int len = strlen (s);
 
-#define _(text) text
-#define N_(text) text
-#define gettext(text) text
-/*
- * NAME:	show_id3()
- * DESCRIPTION:	display an ID3 tag
- * This code was lifted from the player.c file in the libmad distribution
- */
-	static
-void parse_id3(struct id3_tag const *tag, stream_info *sinfo)
-{
-	unsigned int i;
-	struct id3_frame const *frame;
-	id3_ucs4_t const *ucs4;
-	id3_latin1_t *latin1;
-	char const spaces[] = "          ";
-
-	struct {
-		char const *id;
-		char const *name;
-	} const info[] = {
-		{ ID3_FRAME_TITLE,  N_("Title")     },
-		{ "TIT3",           0               },  /* Subtitle */
-		{ "TCOP",           0,              },  /* Copyright */
-		{ "TPRO",           0,              },  /* Produced */
-		{ "TCOM",           N_("Composer")  },
-		{ ID3_FRAME_ARTIST, N_("Artist")    },
-		{ "TPE2",           N_("Orchestra") },
-		{ "TPE3",           N_("Conductor") },
-		{ "TEXT",           N_("Lyricist")  },
-		{ ID3_FRAME_ALBUM,  N_("Album")     },
-		{ ID3_FRAME_YEAR,   N_("Year")      },
-		{ ID3_FRAME_TRACK,  N_("Track")     },
-		{ "TPUB",           N_("Publisher") },
-		{ ID3_FRAME_GENRE,  N_("Genre")     },
-		{ "TRSN",           N_("Station")   },
-		{ "TENC",           N_("Encoder")   }
-	};
-
-	/* text information */
-
-	for (i = 0; i < sizeof(info) / sizeof(info[0]); ++i) {
-		union id3_field const *field;
-		unsigned int nstrings, namelen, j;
-		char const *name;
-
-		frame = id3_tag_findframe(tag, info[i].id, 0);
-		if (frame == 0)
-			continue;
-
-		field    = &frame->fields[1];
-		nstrings = id3_field_getnstrings(field);
-
-		name = info[i].name;
-		if (name)
-			name = gettext(name);
-
-		namelen = name ? strlen(name) : 0;
-		assert(namelen < sizeof(spaces));
-
-		for (j = 0; j < nstrings; ++j) {
-			ucs4 = id3_field_getstrings(field, j);
-			assert(ucs4);
-
-			if (strcmp(info[i].id, ID3_FRAME_GENRE) == 0)
-				ucs4 = id3_genre_name(ucs4);
-
-			latin1 = id3_ucs4_latin1duplicate(ucs4);
-			if (latin1 == 0)
-				goto fail;
-
-			if (j == 0 && name) {
-				if (strcmp(name, "Title") == 0) {
-					snprintf(sinfo->title, sizeof(sinfo->title), "%s", latin1);
-				} else if (strcmp(name, "Artist") == 0) {
-					snprintf(sinfo->artist, sizeof(sinfo->artist), "%s", latin1);
-				} else if (strcmp(name, "Album") == 0) {
-					snprintf(sinfo->album, sizeof(sinfo->album), "%s", latin1);
-				} else if (strcmp(name, "Genre") == 0) {
-					snprintf(sinfo->genre, sizeof(sinfo->genre), "%s", latin1);
-				} else if (strcmp(name, "Track") == 0) {
-					snprintf(sinfo->track, sizeof(sinfo->track), "%s", latin1);
-				} else if (strcmp(name, "Year") == 0) {
-					snprintf(sinfo->year, sizeof(sinfo->year), "%s", latin1);
-				} else {
-					//alsaplayer_error("%s%s: %s", &spaces[namelen], name, latin1);
-				}
-			} else {
-				if (strcmp(info[i].id, "TCOP") == 0 ||
-						strcmp(info[i].id, "TPRO") == 0) {
-					//alsaplayer_error("%s  %s %s\n", spaces, (info[i].id[1] == 'C') ?
-					//		_("Copyright (C)") : _("Produced (P)"), latin1);
-				}
-				else
-					;//alsaplayer_error("%s  %s\n", spaces, latin1);
-			}
-
-			free(latin1);
-		}
-	}
-
-	/* comments */
-
-	i = 0;
-	while ((frame = id3_tag_findframe(tag, ID3_FRAME_COMMENT, i++))) {
-		id3_latin1_t *ptr, *newline;
-		int first = 1;
-
-		ucs4 = id3_field_getstring(&frame->fields[2]);
-		assert(ucs4);
-
-		if (*ucs4)
-			continue;
-
-		ucs4 = id3_field_getfullstring(&frame->fields[3]);
-		assert(ucs4);
-
-		latin1 = id3_ucs4_latin1duplicate(ucs4);
-		if (latin1 == 0)
-			goto fail;
-
-		snprintf (sinfo->comment, sizeof(sinfo->comment), "%s", latin1);
-		
-		free(latin1);
-		break;
-	}
-
-	if (0) {
-fail:
-		alsaplayer_error(_("not enough memory to display tag"));
+	while (len && s[len-1] == ' ') {
+	    len --;
+	    s[len] = '\0';
 	}
 }
-#endif
+
+static char *genres[] = {
+    "Blues", "Classic Rock", "Country", "Dance", "Disco", "Funk", "Grunge",
+    "Hip-Hop", "Jazz", "Metal", "New Age", "Oldies", "Other", "Pop", "R&B",
+    "Rap", "Reggae", "Rock", "Techno", "Industrial", "Alternative", "Ska",
+    "Death Metal", "Pranks", "Soundtrack", "Euro-Techno", "Ambient", "Trip-Hop",
+    "Vocal", "Jazz+Funk", "Fusion", "Trance", "Classical", "Instrumental",
+    "Acid", "House", "Game", "Sound Clip", "Gospel", "Noise", "AlternRock",
+    "Bass", "Soul", "Punk", "Space", "Meditative", "Instrumental Pop",
+    "Instrumental Rock", "Ethnic", "Gothic", "Darkwave", "Techno-industrial",
+    "Electronic", "Pop-Folk", "Eurodance", "Dream", "Southern Rock", "Comedy",
+    "Cult", "Gangsta", "Top 40", "Christian Rap", "Pop/Funk", "Jungle",
+    "Native American", "Cabaret", "New Wave", "Psychadelic", "Rave",
+    "Showtunes", "Trailer", "Lo-Fi", "Tribal", "Acid Punk", "Acid Jazz",
+    "Polka", "Retro", "Musical", "Rock & Roll", "Hard Rock", "Folk",
+    "Folk/Rock", "National Folk", "Swing", "Fast-Fusion", "Bebob", "Latin",
+    "Revival", "Celtic", "Bluegrass", "Avantegarde", "Gothic Rock",
+    "Progressive Rock", "Psychedelic Rock", "Symphonic Rock", "Slow Rock",
+    "Big Band", "Chorus", "Easy Listening", "Acoustic", "Humour", "Speech",
+    "Chanson", "Opera", "Chamber Music", "Sonata", "Symphony", "Booty Bass",
+    "Primus", "Porn Groove", "Satire", "Slow Jam", "Club", "Tango", "Samba",
+    "Folklore", "Ballad", "Power Ballad", "Rythmic Soul", "Freestyle", "Duet",
+    "Punk Rock", "Drum Solo", "A capella", "Euro-House", "Dance Hall", "Goa",
+    "Drum & Bass", "Club House", "Hardcore", "Terror", "Indie", "BritPop",
+    "NegerPunk", "Polsk Punk", "Beat", "Christian Gangsta", "Heavy Metal",
+    "Black Metal", "Crossover", "Contemporary C", "Christian Rock", "Merengue",
+    "Salsa", "Thrash Metal", "Anime", "JPop", "SynthPop", ""};
+
+/* Trying to fill info from id3 tagged file */
+static void parse_id3 (const char *path, stream_info *info)
+{
+	void *fd;
+	char id3v1 [128];
+	unsigned char g;
+
+	/* Open stream */
+	fd = reader_open (path);
+	if (!fd)  return;
+
+	/* --------------------------------------------------- */
+	/* Trying to load id3v1 tags                           */
+	if (reader_seek (fd, -128, SEEK_END) == -1) {
+	    reader_close (fd);
+	    return;
+	}
+
+	if (reader_read (id3v1, 128, fd) != 128) {
+	    reader_close (fd);
+	    return;
+	}
+
+	if (memcmp(id3v1, "TAG", 3)==0) {
+	    /* ID3v1 frame found */
+
+	    /* title */
+	    strncpy (info->title, id3v1 + 3, 30);
+	    rstrip (info->title);
+
+	    /* artist */
+	    strncpy (info->artist, id3v1 + 33, 30);
+	    rstrip (info->artist);
+
+	    /* album */
+	    strncpy (info->album, id3v1 + 63, 30);
+	    rstrip (info->album);
+
+	    /* year */
+	    strncpy (info->year, id3v1 + 93, 4);
+	    rstrip (info->year);
+
+	    /* comment */
+	    strncpy (info->comment, id3v1 + 97, 28);
+	    rstrip (info->comment);
+
+	    /* track number */
+	    if (id3v1[125] == '\0')
+		snprintf (info->track, sizeof (info->track), "%u", id3v1[126]);
+
+	    /* genre */
+	    g = id3v1 [127];
+	    if (sizeof (genres) <= id3v1[127])
+		snprintf (info->genre, sizeof (info->genre), "(%u)", g);
+	    else
+		snprintf (info->genre, sizeof (info->genre), "%s", genres[g]);
+	}
+	
+	reader_close (fd);
+}
 
 static int mad_stream_info(input_object *obj, stream_info *info)
 {
 	struct mad_local_data *data;	
-#ifdef HAVE_LIBID3TAG
-	struct id3_file *id3;
-	struct id3_tag *tag;
-	struct id3_frame *frame;
-	union id3_field const *field;
-	id3_ucs4_t const *ucs4;
-	id3_latin1_t *latin1;
-#endif				
 
 	if (!obj || !info)
 		return 0;
+
 	data = (struct mad_local_data *)obj->local_data;
 
 	if (data) {
-#ifdef HAVE_LIBID3TAG								
-		if (!data->parsed_id3) { /* Parse only one time */
-			id3 = id3_file_open(data->path, ID3_FILE_MODE_READONLY);
-			if (id3) {
-				tag = id3_file_tag(id3);
-				if (tag) {
-					parse_id3(tag, &data->sinfo);
-				}
-				id3_file_close(id3);
-			}
-			data->parsed_id3 = 1;
+		if (!data->parsed_id3) {
+		    // Some data we parse only once
+		    parse_id3 (data->path, &data->sinfo);
+		     
+		    strncpy (data->sinfo.path, data->path, sizeof(data->sinfo.path));
+		    data->parsed_id3 = 1;
 		}
-		if (strlen(data->sinfo.title))
-			snprintf(info->title, sizeof(info->title), "%s", data->sinfo.title);
-		if (strlen(data->sinfo.artist))
-			snprintf(info->artist, sizeof(info->artist), "%s", data->sinfo.artist);
-		if (strlen(data->sinfo.album))
-			snprintf(info->album, sizeof(info->album), "%s", data->sinfo.album);
-		if (strlen(data->sinfo.genre))
-			snprintf(info->genre, sizeof(info->genre), "%s", data->sinfo.genre);
-		if (strlen(data->sinfo.track))
-			snprintf(info->track, sizeof(info->track), "%s", data->sinfo.track);
-		if (strlen(data->sinfo.year))
-			snprintf(info->year, sizeof(info->year), "%s", data->sinfo.year);
-		if (strlen(data->sinfo.comment))
-			snprintf(info->comment, sizeof(info->comment), "%s", data->sinfo.comment);
-#endif
-		snprintf(info->path, sizeof(info->path), "%s", data->path);
+		
+		/* Restore permanently filled info */
+		memcpy (info, &data->sinfo, sizeof (data->sinfo));
+		
+		/* Compose path, stream_type and status fields */
 		sprintf(info->stream_type, "%dKHz %-3d kbit %s audio mpeg",
 				data->frame.header.samplerate / 1000,
 				data->frame.header.bitrate / 1000,
 				obj->nr_channels == 2 ? "stereo" : "mono");
+
 		if (data->seeking)
 			sprintf(info->status, "Seeking...");
 		else
