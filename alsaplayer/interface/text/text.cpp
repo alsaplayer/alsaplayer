@@ -153,10 +153,10 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 		while (going && (coreplayer->IsActive() || coreplayer->IsPlaying())) {
 			int cur_val, block_val, i;
 			coreplayer->GetStreamInfo(&info);
-			if (strlen(info.title) && strcmp(info.title, old_info.title) != 0) {
-				if (strlen(info.artist))
+			if (*info.title && strcmp(info.title, old_info.title) != 0) {
+				if (*info.artist)
 					fprintf(stdout, "\nPlaying: %s - %s\n", info.artist, info.title);
-				else if (strlen(info.title))
+				else if (*info.title)
 					fprintf(stdout, "\nPlaying: %s\n", info.title);
 				else
 					fprintf(stdout, "\nPlaying: (no information available)\n");

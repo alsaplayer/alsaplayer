@@ -58,12 +58,12 @@ AlsaNode::AlsaNode(const char *name, const char *args, int realtime)
 	sample_freq = OUTPUT_RATE;
 
 	// Parse driver name,args
-	if (name && strlen(name)) {
+	if (name && *name) {
 		len = strlen(name);
 		driver_name = new char[len+1];
 		strcpy(driver_name, name);
 	}
-	if (args && strlen(args)) {
+	if (args && *args) {
 		len = strlen(args);
 		driver_args = new char[len+1];
 		strcpy(driver_args, args);
