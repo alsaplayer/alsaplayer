@@ -1050,7 +1050,6 @@ int CorePlayer::Read32(void *data, int size)
 	return size;
 }
 
-extern int thack;
 
 int CorePlayer::pcm_worker(sample_buf *dest, int start, int len)
 {
@@ -1058,37 +1057,37 @@ int CorePlayer::pcm_worker(sample_buf *dest, int start, int len)
 	int bytes_written = 0;
 	char *sample_buffer;
 
-	if (dest && the_object && the_object->ready) {
-		int count = dest->buf->GetBufferSizeBytes(plugin->frame_size(the_object));
-		dest->buf->Clear();
-		if (last_read == start) {
-		} else {
-			FrameSeek(start);
-		}
-		if (start < 0) {
-			return -1;
-		}
-		sample_buffer = (char *)dest->buf->buffer_data;
-		while (count > 0 && producing) {
-			if (!plugin->play_frame(the_object, sample_buffer + bytes_written)) {
-				dest->start = start;
-#ifdef DEBUG
-				alsaplayer_error("frames read = %d", frames_read);
-#endif
-				return frames_read;
-			} else {
-				bytes_written += plugin->frame_size(the_object); // OPTIMIZE!
-				frames_read++;
-			}
-			count -= plugin->frame_size(the_object);
-		}
-		dest->start = start;
-		last_read = dest->start + frames_read;
-		dest->buf->SetSamples(bytes_written >> 2);
-		return frames_read;
-	} else {
+	if (!dest || !the_object || !the_object->ready) {
 		return -1;
-	}		
+	}
+
+	int count = dest->buf->GetBufferSizeBytes(plugin->frame_size(the_object));
+	dest->buf->Clear();
+	if (last_read != start) {
+		FrameSeek(start);
+	}
+	if (start < 0) {
+		return -1;
+	}
+	sample_buffer = (char *)dest->buf->buffer_data;
+	while (count > 0 && producing) {
+		if (!plugin->play_frame(the_object, sample_buffer + bytes_written)) {
+			dest->start = start;
+#ifdef DEBUG
+			alsaplayer_error("frames read = %d", frames_read);
+#endif
+			return frames_read;
+		} else {
+			bytes_written += plugin->frame_size(the_object); // OPTIMIZE!
+			frames_read++;
+		}
+		count -= plugin->frame_size(the_object);
+	}
+	dest->start = start;
+	last_read = dest->start + frames_read;
+	dest->buf->SetSamples(bytes_written >> 2);
+
+	return frames_read;
 }
 
 
