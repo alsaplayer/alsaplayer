@@ -254,7 +254,7 @@ static int midi_open(input_object *obj, char *name)
 	d->XG_System_On = 0;
 	d->GS_System_On = 0;
 
-	d->author[0] = '\0';
+	d->artist[0] = '\0';
 	d->title[0] = '\0';
 
 	d->xmp_epoch = -1;
@@ -693,10 +693,10 @@ fprintf(stderr,"midi_stream_info\n");
 		d->midi_type,
 		d->track_info, (d->track_info > 1)? "s" : "", d->event_count);
 
-	if (d->author[0]) snprintf(info->author, 80, "%s", d->author);
+	if (d->artist[0]) snprintf(info->artist, 80, "%s", d->artist);
 	else {
-		if (!d->is_open && d->title[0]) sprintf(info->author,"*");
-		else info->author[0] = '\0';
+		if (!d->is_open && d->title[0]) sprintf(info->artist,"*");
+		else info->artist[0] = '\0';
 	}
 
 	if (d->is_playing && !d->flushing_output_device)
@@ -738,8 +738,8 @@ typedef struct _input_plugin
 {
 	input_version_type version;	
 	input_flags_type	flags;
-	char name[256];
-	char author[256];
+	char *name;
+	char *author;
 	void *handle;
 	input_init_type init;
 	input_shutdown_type shutdown;

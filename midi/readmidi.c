@@ -475,7 +475,7 @@ static int dumpstring(uint32 len, const char *label, int type, struct md *d)
    ctl->cmsg(CMSG_TEXT, VERB_VERBOSE, "%s%s", label, s);
 
    if (type != 3 && d->is_open && len > 10 && strstr(s, " by ") && !strstr(s, "opyright") && !strstr(s, "(C)")) {
-     if (!d->author[0]) strncpy(d->author, s, 40);
+     if (!d->artist[0]) strncpy(d->artist, s, 40);
    }
    if (type == 3 && len > 6 && d->curr_track == 0 && !d->title[0] && !strstr(s, "untitled")) {
 	   strncpy(d->title, s, 80);
