@@ -685,10 +685,10 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 		memcpy (info, &data->sinfo, sizeof (data->sinfo));
 		
 		/* Compose path, stream_type and status fields */
-		sprintf(info->stream_type, "%dKHz %-3ld kbit %s audio mpeg",
+		sprintf(info->stream_type, "MPEG Audio, %dKHz, %s, %-3ldkbit",
 				data->frame.header.samplerate / 1000,
-				data->frame.header.bitrate / 1000,
-				obj->nr_channels == 2 ? "stereo" : "mono");
+				obj->nr_channels == 2 ? "stereo" : "mono",
+				data->frame.header.bitrate / 1000);
 
 		if (data->seeking)
 			sprintf(info->status, "Seeking...");
@@ -903,11 +903,14 @@ static int mad_open(input_object *obj, const char *path)
 				break;
 			case MAD_ERROR_BADBITALLOC:
 				return 0;
+			case MAD_ERROR_BADCRC:
+				alsaplayer_error("%s", error_str(data->stream.error, data->str));
 			case 0x232:				
 			case 0x235:
 				break;
 			default:
-				printf("No valid frame found at start (pos: %d, error: 0x%x --> %x %x %x %x) (%s)\n", data->offset, data->stream.error, 
+				alsaplayer_error("%s", error_str(data->stream.error, data->str));
+				alsaplayer_error("No valid frame found at start (pos: %d, error: 0x%x --> %x %x %x %x) (%s)", data->offset, data->stream.error, 
 						data->stream.this_frame[0],
 						data->stream.this_frame[1],
 						data->stream.this_frame[2],
