@@ -45,6 +45,8 @@
 
 extern void exit_sighandler(int);
 
+#ifdef USE_JACK
+
 void AlsaNode::jack_restarter(void *arg)
 {
 	AlsaNode *node = (AlsaNode *)arg;
@@ -119,6 +121,7 @@ int AlsaNode::jack_prepare(void *arg)
 	return -1;
 }
 
+#endif
 
 AlsaNode::AlsaNode(char *name, int realtime)
 {
