@@ -33,3 +33,10 @@
 #undef HAVE_GTK
 /* Define if the Qt interface should be build */
 #undef HAVE_QT
+/* Define one of these to select libmad fixed point arithmetic implementation */
+#undef FPM_INTEL
+#undef FPM_64BIT
+#undef FPM_PPC
+#undef FPM_SPARC
+#undef FPM_MIPS
+#undef FPM_M68K

@@ -52,6 +52,8 @@ int global_reverb_on = 0;
 int global_reverb_delay = 2;
 int global_reverb_feedback = 0;
 
+int global_verbose = 0;
+
 static char addon_dir[1024];
 
 static char *default_pcm_device = "hw:0,0";
