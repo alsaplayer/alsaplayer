@@ -1,4 +1,4 @@
-/*  utilities.cpp
+/*  utilities.c
  *  Copyright (C) 1999 Richard Boulton <richard@tartarus.org>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -22,23 +22,6 @@
 
 #include <ctype.h>
 #include "utilities.h"
-#include <string>
-
-// Case insensitive string comparison - this should surely be in the standard
-// library, but doesn't seem to be.
-int cmp_nocase(const std::string & s, const std::string & s2)
-{
-	std::string::const_iterator p = s.begin();
-	std::string::const_iterator p2 = s2.begin();
-
-	while (p != s.end() && p2 != s2.end()) {
-		if(toupper(*p) != toupper(*p2))
-			return (toupper(*p) < toupper(*p2)) ?  -1 : 1;
-		++p;
-		++p2;
-	}
-	return (s2.size() == s.size()) ? 0 : (s.size() < s2.size()) ? -1 : 1;
-}
 
 /* Threads and usleep does not work, select is very portable */
 #include <sys/time.h>
