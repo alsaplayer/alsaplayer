@@ -1,5 +1,5 @@
 /*  mpg123_engine.c 
- *  Copyright (C) 1999 Andy Lo A Foe <arloafoe@cs.vu.nl>
+ *  Copyright (C) 1999-2002 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

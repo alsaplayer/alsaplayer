@@ -1,7 +1,7 @@
 /*
  * AlsaPlayer MAD plugin.
  *
- * Copyright (C) 2001 Andy Lo A Foe <andy@alsaplayer.org>
+ * Copyright (C) 2001-2002 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
