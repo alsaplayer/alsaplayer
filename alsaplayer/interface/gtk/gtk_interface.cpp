@@ -56,7 +56,7 @@
 #include "CorePlayer.h"
 #include "Playlist.h"
 #include "EffectsWindow.h"
-#include "Effects.h"
+//#include "Effects.h"
 #include "ScopesWindow.h"
 Playlist *playlist = NULL;
 
@@ -599,7 +599,7 @@ void stop_cb(GtkWidget *widget, gpointer data)
 		GDK_THREADS_LEAVE();
 		p->Stop();
 		GDK_THREADS_ENTER();
-		clear_buffer();
+		//clear_buffer();
 	}	
 }
 
@@ -898,24 +898,35 @@ void play_file_ok(GtkWidget *widget, gpointer data)
 
 	if (p) {
 		char *selected;
-		GtkCList *file_list =
-		GTK_CLIST(GTK_FILE_SELECTION(play_dialog)->file_list);
+		GtkCList *file_list = GTK_CLIST(GTK_FILE_SELECTION(play_dialog)->file_list);
 		GList *next = file_list->selection;
-		if (!next) { // Nothing was selected
-			return;
-		}
-		gchar *current_dir =
-		g_strdup(gtk_file_selection_get_filename(GTK_FILE_SELECTION(play_dialog)));
+		std::vector<std::string> paths;
+		gchar *current_dir = g_strdup(gtk_file_selection_get_filename(GTK_FILE_SELECTION(play_dialog)));
 		char *path;
 		int index;	
 		int marker = strlen(current_dir)-1;
+		
 		while (marker > 0 && current_dir[marker] != '/')
 			current_dir[marker--] = '\0';
 		// Write default_play_path
 		prefs_set_string(ap_prefs, "gtk_interface", "default_play_path", current_dir);
-		
+		if (!next) {
+			gchar *sel = g_strdup(gtk_entry_get_text(GTK_ENTRY(GTK_FILE_SELECTION(play_dialog)->selection_entry)));
+			if (sel && strlen(sel)) {
+				if (!strstr(sel, "http://"))
+					paths.push_back(std::string(current_dir) + "/" +					sel);
+				else
+					paths.push_back(sel);
+				GDK_THREADS_LEAVE();
+				playlist->AddAndPlay(paths);
+				GDK_THREADS_ENTER();
+				gtk_entry_set_text(GTK_ENTRY(GTK_FILE_SELECTION(play_dialog)->selection_entry), "");
+				g_free(sel);
+			}	
+			return;
+		}
+	
 		// Get the selections
-		std::vector<std::string> paths;
 		while (next) {
 			index = GPOINTER_TO_INT(next->data);
 
@@ -1090,7 +1101,7 @@ void init_main_window(Playlist *pl)
 
 	effects_window = init_effects_window();	
 	scopes_window = init_scopes_window();
-	play_dialog = gtk_file_selection_new("Play file");
+	play_dialog = gtk_file_selection_new("Play file or URL");
 	gtk_file_selection_hide_fileop_buttons (GTK_FILE_SELECTION (play_dialog));
 	GtkCList *file_list = GTK_CLIST(GTK_FILE_SELECTION(play_dialog)->file_list);
 

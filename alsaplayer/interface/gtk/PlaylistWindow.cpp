@@ -267,8 +267,20 @@ void PlaylistWindowGTK::ToggleVisible() {
 
 // GTK Callbacks
 
+void thread_next(void *data)
+{
+	ap_next(global_session_id);
+}
+
+void thread_prev(void *data)
+{
+	ap_prev(global_session_id);
+}
+
+
 // Called when "prev" button is pressed
 extern void playlist_window_gtk_prev(GtkWidget *widget, gpointer data) {
+#if 0	
 	Playlist * playlist = (Playlist *) data;
 	if(playlist) {
 		playlist->Pause();
@@ -277,11 +289,20 @@ extern void playlist_window_gtk_prev(GtkWidget *widget, gpointer data) {
 		GDK_THREADS_ENTER();
 		playlist->UnPause();
 	}
+#else
+	pthread_t	worker_thread;
+	pthread_create(&worker_thread, NULL,
+			(void * (*)(void *))thread_prev, NULL);
+	pthread_detach(worker_thread);
+
+#endif	
 }
+
 
 // Called when "next" button is pressed
 void playlist_window_gtk_next(GtkWidget *widget, gpointer data)
 {
+#if 0	
 	Playlist * playlist = (Playlist *) data;
 	if(playlist) {
 		playlist->Pause();
@@ -290,6 +311,12 @@ void playlist_window_gtk_next(GtkWidget *widget, gpointer data)
 		GDK_THREADS_ENTER();
 		playlist->UnPause();
 	}
+#else
+	pthread_t	worker_thread;
+	pthread_create(&worker_thread, NULL,
+			(void * (*)(void *))thread_next, NULL);
+	pthread_detach(worker_thread);
+#endif	
 }
 
 
@@ -469,7 +496,7 @@ static void new_list_item(const PlayItem *item, gchar **list_item)
 // Called when files have been selected for adding to playlist
 void add_file_ok(GtkWidget *widget, gpointer data)
 {
-	char *selected;
+	gchar *sel;
 	PlaylistWindowGTK * playlist_window_gtk = (PlaylistWindowGTK *) data;
 	GtkWidget *add_file = playlist_window_gtk->add_file;
 
@@ -480,9 +507,6 @@ void add_file_ok(GtkWidget *widget, gpointer data)
 	if (!playlist) {
 		return;
 	}	
-	if (!next) { // Nothing was selected
-		return;
-	}
 	gchar *current_dir =
 		g_strdup(gtk_file_selection_get_filename(GTK_FILE_SELECTION(add_file)));
 
@@ -492,7 +516,22 @@ void add_file_ok(GtkWidget *widget, gpointer data)
 	prefs_set_string(ap_prefs, "gtk_interface", "default_playlist_add_path", current_dir);
 
 	std::vector<std::string> paths;
-		
+	
+	if (!next) {
+		sel = g_strdup(gtk_entry_get_text(GTK_ENTRY(GTK_FILE_SELECTION(add_file)->selection_entry)));
+		if (sel && strlen(sel)) {
+			if (!strstr(sel, "http://"))
+				paths.push_back(std::string(current_dir) + "/" + sel);
+			else
+				paths.push_back(sel);
+			GDK_THREADS_LEAVE();
+			playlist->Insert(paths, playlist->Length());
+			GDK_THREADS_ENTER();
+			g_free(sel);
+		}
+		gtk_entry_set_text(GTK_ENTRY(GTK_FILE_SELECTION(add_file)->selection_entry), "");
+		return;
+	}	
 	while (next) { // Walk the selection list
 		char *path;
 		int index = GPOINTER_TO_INT(next->data);
@@ -702,7 +741,7 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 		GTK_SIGNAL_FUNC(playlist_delete_event), (gpointer)playlist_window_gtk);
 	gtk_signal_connect(GTK_OBJECT(playlist_window), "delete_event",
 		GTK_SIGNAL_FUNC(playlist_delete_event), (gpointer)playlist_window_gtk);
-	playlist_window_gtk->add_file = gtk_file_selection_new("Add file(s)");
+	playlist_window_gtk->add_file = gtk_file_selection_new("Add files or URLs");
 	gtk_file_selection_set_filename(GTK_FILE_SELECTION(playlist_window_gtk->add_file), prefs_get_string(ap_prefs, "gtk_interface", "default_playlist_add_path", "/"));
 
 playlist_window_gtk->load_list = gtk_file_selection_new("Load Playlist");
