@@ -423,8 +423,8 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 			version - 0x1000, OUTPUT_PLUGIN_VERSION - 0x1000);
 		return 0;
 	}	
-	strncpy(tmp->name, the_plugin->name, 256);
-	strncpy(tmp->author, the_plugin->author, 256);
+	tmp->name = the_plugin->name;
+	tmp->author = the_plugin->author;
 	tmp->init = the_plugin->init;
 	tmp->open = the_plugin->open;
 	tmp->close = the_plugin->close;

@@ -59,6 +59,7 @@ int global_reverb_feedback = 0;
 
 int global_verbose = 0;
 int global_session_id = -1;
+int global_quiet = 0;
 
 char *global_session_name = NULL;
 
@@ -523,6 +524,7 @@ int main(int argc, char **argv)
 		} else if (strcmp(argv[arg_pos], "--quiet") == 0 ||
 				strcmp(argv[arg_pos], "-q") == 0) {
 			be_quiet = 1;
+			global_quiet = 1;
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--verbose") == 0) {
 			global_verbose = 1;
@@ -798,7 +800,7 @@ int main(int argc, char **argv)
 			// Unfortunately gtk+ is a pig when it comes to
 			// cleaning up its resources; it doesn't!
 			// so we can never safely dlclose gtk+ based 
-			// user interface.
+			// user interfaces, bah!
 			//dlclose(ui->handle);
 		}
 		control_socket_stop();
