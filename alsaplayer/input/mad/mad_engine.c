@@ -421,11 +421,16 @@ void parse_id3(struct id3_tag const *tag, stream_info *sinfo)
 
 			if (j == 0 && name) {
 				if (strcmp(name, "Title") == 0) {
-					sprintf(sinfo->title, "%s", latin1);
-				} 
-				if (strcmp(name, "Artist") == 0)
-					sprintf(sinfo->artist, "%s", latin1);
-				//alsaplayer_error("%s%s: %s", &spaces[namelen], name, latin1);
+					snprintf(sinfo->title, sizeof(sinfo->title), "%s", latin1);
+				} else if (strcmp(name, "Artist") == 0) {
+					snprintf(sinfo->artist, sizeof(sinfo->artist), "%s", latin1);
+				} else if (strcmp(name, "Album") == 0) {
+					snprintf(sinfo->album, sizeof(sinfo->album), "%s", latin1);
+				} else if (strcmp(name, "Genre") == 0) {
+					snprintf(sinfo->genre, sizeof(sinfo->genre), "%s", latin1);
+				} else {
+				    //alsaplayer_error("%s%s: %s", &spaces[namelen], name, latin1);
+				}
 			} else {
 				if (strcmp(info[i].id, "TCOP") == 0 ||
 						strcmp(info[i].id, "TPRO") == 0) {
@@ -541,11 +546,15 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 			data->parsed_id3 = 1;
 		}
 		if (strlen(data->sinfo.title))
-			sprintf(info->title, "%s", data->sinfo.title);
+			snprintf(info->title, sizeof(info->title), "%s", data->sinfo.title);
 		else
-			sprintf(info->title, "%s", data->filename);
+			snprintf(info->title, sizeof(info->title), "%s", data->filename);
 		if (strlen(data->sinfo.artist))
-			sprintf(info->artist, "%s", data->sinfo.artist);
+			snprintf(info->artist, sizeof(info->artist), "%s", data->sinfo.artist);
+		if (strlen(data->sinfo.album))
+			snprintf(info->album, sizeof(info->album), "%s", data->sinfo.album);
+		if (strlen(data->sinfo.genre))
+			snprintf(info->genre, sizeof(info->genre), "%s", data->sinfo.genre);
 #else										
 		sprintf(info->title, "Unparsed: %s", data->filename);				
 #endif
