@@ -363,86 +363,104 @@ int main(int argc, char **argv)
 	/* Initialize some settings (and populate the prefs system if needed */
 
 	use_fragsize =
-	    prefs_get_int(ap_prefs, "main", "period_size", 4096);
+		prefs_get_int(ap_prefs, "main", "period_size", 4096);
 	use_fragcount = prefs_get_int(ap_prefs, "main", "period_count", 8);
 
 	for (arg_pos = 1; arg_pos < argc; arg_pos++) {
 		if (strcmp(argv[arg_pos], "--help") == 0 ||
-		    strcmp(argv[arg_pos], "-h") == 0) {
+				strcmp(argv[arg_pos], "-h") == 0) {
 			help();
 			return 0;
 		} else if (strcmp(argv[arg_pos], "--interface") == 0 ||
-			   strcmp(argv[arg_pos], "-i") == 0) {
+				strcmp(argv[arg_pos], "-i") == 0) {
 			if (argc <= arg_pos + 1) {
 				alsaplayer_error
-				    ("argument expected for %s",
-				     argv[arg_pos]);
+					("argument expected for %s",
+					 argv[arg_pos]);
 				return 1;
 			}
 			strcpy(use_interface, argv[++arg_pos]);
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--volume") == 0 ||
-			   strcmp(argv[arg_pos], "-l") == 0) {
+				strcmp(argv[arg_pos], "-l") == 0) {
 			tmp = -1;
-			if (sscanf(argv[++arg_pos], "%d", &tmp) != 1 ||
-			    (tmp < 0 || tmp > 100)) {
+			if (argc <= arg_pos + 1) {
 				alsaplayer_error
-				    ("invalid value for volume: %d", tmp);
+					("argument expected for %s",
+					 argv[arg_pos]);
+				return 1;
+			}	
+			if (sscanf(argv[++arg_pos], "%d", &tmp) != 1 ||
+					(tmp < 0 || tmp > 100)) {
+				alsaplayer_error
+					("invalid value for volume: %d", tmp);
 				return 1;
 			}
 			use_vol = tmp;
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--version") == 0 ||
-			   strcmp(argv[arg_pos], "-v") == 0) {
+				strcmp(argv[arg_pos], "-v") == 0) {
 			version();
 			return 0;
 		} else if (strcmp(argv[arg_pos], "--enqueue") == 0 ||
-			   strcmp(argv[arg_pos], "-e") == 0) {
+				strcmp(argv[arg_pos], "-e") == 0) {
 			do_enqueue = 1;
 			arg_pos++;
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--session") == 0 ||
-			   strcmp(argv[arg_pos], "-n") == 0) {
-			if (sscanf(argv[++arg_pos], "%d", &tmp) != 1
-			    || tmp < 0) {
+				strcmp(argv[arg_pos], "-n") == 0) {
+			if (argc <= arg_pos + 1) {
 				alsaplayer_error
-				    ("invalid value for session: %d", tmp);
+					("argument expected for %s",
+					 argv[arg_pos]);
+				return 1;
+			}
+			if (sscanf(argv[++arg_pos], "%d", &tmp) != 1
+					|| tmp < 0) {
+				alsaplayer_error
+					("invalid value for session: %d", tmp);
 				return 1;
 			}
 			use_session = tmp;
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--session-name") == 0 ||
-			   strcmp(argv[arg_pos], "-s") == 0) {
+				strcmp(argv[arg_pos], "-s") == 0) {
+			if (argc <= arg_pos + 1) {
+				alsaplayer_error
+					("argument expected for %s",
+					 argv[arg_pos]);
+				return 1;
+			}
 			if (0 < strlen(argv[++arg_pos]) < 32) {
 				global_session_name =
-				    (char *) malloc(strlen(argv[arg_pos]) +
-						    1);
+					(char *) malloc(strlen(argv[arg_pos]) +
+							1);
 				if (global_session_name)
 					strcpy(global_session_name,
-					       argv[arg_pos]);
+							argv[arg_pos]);
 				last_arg = arg_pos;
 			} else {
 				alsaplayer_error
-				    ("expecting session name (32 chars max)\n");
+					("expecting session name (32 chars max)\n");
 				return 1;
 			}
 		} else if (strcmp(argv[arg_pos], "--crossfade") == 0 ||
-			   strcmp(argv[arg_pos], "-x") == 0) {
+				strcmp(argv[arg_pos], "-x") == 0) {
 			use_crossfade = 1;
 			arg_pos++;
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--path") == 0 ||
-			   strcmp(argv[arg_pos], "-p") == 0) {
+				strcmp(argv[arg_pos], "-p") == 0) {
 			if (arg_pos + 1 == argc) {	// Last option so display and exit
 				fprintf(stdout,
-					"Input  add-on path: %s/input/\n",
-					addon_dir);
+						"Input  add-on path: %s/input/\n",
+						addon_dir);
 				fprintf(stdout,
-					"Output add-on path: %s/output/\n",
-					addon_dir);
+						"Output add-on path: %s/output/\n",
+						addon_dir);
 				fprintf(stdout,
-					"Scope  add-on path: %s/scopes/\n",
-					addon_dir);
+						"Scope  add-on path: %s/scopes/\n",
+						addon_dir);
 				return 0;
 			}
 			strcpy(addon_dir, argv[++arg_pos]);
@@ -451,24 +469,24 @@ int main(int argc, char **argv)
 			use_reverb = 1;
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--loopsong") == 0 ||
-			   strcmp(argv[arg_pos], "-S") == 0) {
+				strcmp(argv[arg_pos], "-S") == 0) {
 			use_loopSong = 1;
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--looplist") == 0 ||
-			   strcmp(argv[arg_pos], "-P") == 0) {
+				strcmp(argv[arg_pos], "-P") == 0) {
 			use_loopList = 1;
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--realtime") == 0 ||
-			   strcmp(argv[arg_pos], "-r") == 0) {
+				strcmp(argv[arg_pos], "-r") == 0) {
 			use_realtime = 1;
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--output") == 0 ||
-			   strcmp(argv[arg_pos], "-o") == 0) {
+				strcmp(argv[arg_pos], "-o") == 0) {
 			//printf("Use define output method!\n");                
 			if (argc <= arg_pos + 1) {
 				alsaplayer_error
-				    ("argument expected for %s\n",
-				     argv[arg_pos]);
+					("argument expected for %s\n",
+					 argv[arg_pos]);
 				return 1;
 			}
 			use_alsa = use_sparc = use_esd = use_oss = 0;
@@ -503,57 +521,81 @@ int main(int argc, char **argv)
 			}
 			use_user = 1;
 		} else if (strcmp(argv[arg_pos], "--quiet") == 0 ||
-			   strcmp(argv[arg_pos], "-q") == 0) {
+				strcmp(argv[arg_pos], "-q") == 0) {
 			be_quiet = 1;
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--verbose") == 0) {
 			global_verbose = 1;
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--frequency") == 0 ||
-			   strcmp(argv[arg_pos], "-F") == 0) {
+				strcmp(argv[arg_pos], "-F") == 0) {
+			if (argc <= arg_pos + 1) {
+				alsaplayer_error
+					("argument expected for %s",
+					 argv[arg_pos]);
+				return 1;
+			}
 			if (sscanf(argv[++arg_pos], "%d", &use_freq) != 1) {
 				alsaplayer_error
-				    ("numeric argument expected for %s",
-				     argv[arg_pos - 1]);
+					("numeric argument expected for %s",
+					 argv[arg_pos - 1]);
 				return 1;
 			}
 			if (use_freq < 8000 || use_freq > 48000) {
 				alsaplayer_error
-				    ("frequency out of range [8000-48000]");
+					("frequency out of range [8000-48000]");
 				return 1;
 			}
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--fragsize") == 0 ||
-			   strcmp(argv[arg_pos], "-f") == 0) {
-			if (sscanf(argv[++arg_pos], "%d", &use_fragsize) !=
-			    1) {
+				strcmp(argv[arg_pos], "-f") == 0) {
+			if (argc <= arg_pos + 1) {
 				alsaplayer_error
-				    ("numeric argument expected for %s\n",
-				     argv[arg_pos - 1]);
+					("argument expected for %s",
+					 argv[arg_pos]);
+				return 1;
+			}
+			if (sscanf(argv[++arg_pos], "%d", &use_fragsize) !=
+					1) {
+				alsaplayer_error
+					("numeric argument expected for %s\n",
+					 argv[arg_pos - 1]);
 				return 1;
 			}
 			if (!use_fragsize || (use_fragsize % 32)) {
 				alsaplayer_error
-				    ("invalid fragment size, must be multiple of 32");
+					("invalid fragment size, must be multiple of 32");
 				return 1;
 			}
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--fragcount") == 0 ||
-			   strcmp(argv[arg_pos], "-g") == 0) {
-			if (sscanf(argv[++arg_pos], "%d", &use_fragcount)
-			    != 1) {
+				strcmp(argv[arg_pos], "-g") == 0) {
+			if (argc <= arg_pos + 1) {
 				alsaplayer_error
-				    ("numeric argument expected for --fragcount");
+					("argument expected for %s",
+					 argv[arg_pos]);
+				return 1;
+			}
+			if (sscanf(argv[++arg_pos], "%d", &use_fragcount)
+					!= 1) {
+				alsaplayer_error
+					("numeric argument expected for --fragcount");
 				return 1;
 			}
 			if (!use_fragcount) {
 				alsaplayer_error
-				    ("fragment count cannot be 0");
+					("fragment count cannot be 0");
 				return 1;
 			}
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--device") == 0 ||
-			   strcmp(argv[arg_pos], "-d") == 0) {
+				strcmp(argv[arg_pos], "-d") == 0) {
+			if (argc <= arg_pos + 1) {
+				alsaplayer_error
+					("argument expected for %s",
+					 argv[arg_pos]);
+				return 1;
+			}
 			use_pcm = argv[++arg_pos];
 			last_arg = arg_pos;
 		}
@@ -579,7 +621,7 @@ int main(int argc, char **argv)
 			if (argv[last_arg][0] != '/') {	// Not absolute so append cwd
 				if (getcwd(queue_name, 1024) == NULL) {
 					alsaplayer_error
-					    ("error getting cwd\n");
+						("error getting cwd\n");
 					return 1;
 				}
 				strcat(queue_name, "/");
@@ -588,8 +630,8 @@ int main(int argc, char **argv)
 				strcpy(queue_name, argv[last_arg]);
 			last_arg++;
 			if (ap_set_string
-			    (use_session, AP_SET_STRING_ADD_FILE,
-			     queue_name) == -1) {
+					(use_session, AP_SET_STRING_ADD_FILE,
+					 queue_name) == -1) {
 				last_arg--;
 				ap_result = -1;
 			}
@@ -602,7 +644,7 @@ int main(int argc, char **argv)
 
 	// Check if we want jack
 	if (strcmp(argv[0], "jackplayer") == 0 ||
-	    strcmp(use_output, "jack") == 0) {
+			strcmp(use_output, "jack") == 0) {
 		if (strcmp(use_pcm, default_pcm_device) != 0) {
 			printf("not default\n");
 			char *comma;
@@ -644,13 +686,13 @@ int main(int argc, char **argv)
 	do {
 		if (!node || !node->ReadyToRun()) {
 			alsaplayer_error
-			    ("failed to load output add-on. exitting...");
+				("failed to load output add-on. exitting...");
 			return 1;
 		}
 		if (!node->SetSamplingRate(use_freq) ||
-		    !node->SetStreamBuffers(use_fragsize, use_fragcount, 2)) {
+				!node->SetStreamBuffers(use_fragsize, use_fragcount, 2)) {
 			alsaplayer_error
-			    ("failed to configure output device...trying OSS");
+				("failed to configure output device...trying OSS");
 			/* Special case for OSS, since it's easiest to get going, so try it */
 			if (!output_alternate) {
 				output_alternate = 1;
@@ -705,37 +747,37 @@ int main(int argc, char **argv)
 	interface_plugin *ui;
 
 	if (sscanf(argv[0], "alsaplayer-%s", &use_interface) == 1 ||
-	    sscanf(argv[0], "jackplayer-%s", &use_interface) == 1) {
+			sscanf(argv[0], "jackplayer-%s", &use_interface) == 1) {
 		/* Determine interface from the command line */
 		printf("Using interface %s\n", use_interface);
 	}
 	if (strlen(use_interface)) {
 		if (!
-		    (interface_plugin_info =
-		     load_interface(use_interface))) {
+				(interface_plugin_info =
+				 load_interface(use_interface))) {
 			alsaplayer_error("Failed to load interface %s\n",
-					 use_interface);
+					use_interface);
 			goto _fatal_err;
 		}
 	} else {
 		if (!(interface_plugin_info =
-		      load_interface(prefs_get_string
-				     (ap_prefs, "main",
-				      "default_interface", "gtk")))) {
+					load_interface(prefs_get_string
+						(ap_prefs, "main",
+						 "default_interface", "gtk")))) {
 			if (!
-			    (interface_plugin_info =
-			     load_interface(prefs_get_string
-					    (ap_prefs, "main",
-					     "fallback_interface",
-					     "text")))) {
+					(interface_plugin_info =
+					 load_interface(prefs_get_string
+						 (ap_prefs, "main",
+						  "fallback_interface",
+						  "text")))) {
 				alsaplayer_error
-				    ("Failed to load text interface. This is bad (%s,%s)",
-				     prefs_get_string(ap_prefs, "main",
-						      "default_interface",
-						      "gtk"),
-				     prefs_get_string(ap_prefs, "main",
-						      "default_interface",
-						      "gtk"));
+					("Failed to load text interface. This is bad (%s,%s)",
+					 prefs_get_string(ap_prefs, "main",
+						 "default_interface",
+						 "gtk"),
+					 prefs_get_string(ap_prefs, "main",
+						 "default_interface",
+						 "gtk"));
 				goto _fatal_err;
 			}
 		}
@@ -746,10 +788,10 @@ int main(int argc, char **argv)
 		control_socket_start(playlist);
 		if (global_verbose)
 			fprintf(stdout, "Interface plugin: %s\n",
-				ui->name);
+					ui->name);
 		if (!ui->init()) {
 			alsaplayer_error
-			    ("Failed to load interface plugin. Should fall back to text\n");
+				("Failed to load interface plugin. Should fall back to text\n");
 		} else {
 			ui->start(playlist, argc, argv);
 			ui->close();
@@ -766,7 +808,7 @@ int main(int argc, char **argv)
 	sprintf(prefs_path, "%s/.alsaplayer/alsaplayer", homedir);
 	playlist->Save(prefs_path, PL_FORMAT_M3U);
 
-      _fatal_err:
+_fatal_err:
 	delete playlist;
 	//delete p;
 	delete node;

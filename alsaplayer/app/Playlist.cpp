@@ -540,7 +540,9 @@ void Playlist::Remove(unsigned start, unsigned end) {
 		} else {
 			curritem = start;
 		}
-	}
+	} else if (queue.size() == 0) {
+		curritem = 0;
+	}	
 
 #ifdef DEBUG
 	printf("Curritem = %d, Size = %d\n", curritem, queue.size());
