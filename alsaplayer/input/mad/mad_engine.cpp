@@ -391,7 +391,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 				int pos = 0;
 				ssize_t header_size = 0;
 				while (pos < (size - 10)) {
-								if ((data[pos] == 'I' && data[pos+1] == 'D' && data[pos+2] == '3')) {
+								if (pos == 0 && (data[pos] == 'I' && data[pos+1] == 'D' && data[pos+2] == '3')) {
 												header_size = (data[pos + 6] << 21) + 
 																(data[pos + 7] << 14) +
 																(data[pos + 8] << 7) +
@@ -400,7 +400,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 																ext_header = 1;
 																header_size += 10; /* 10 byte extended header */
 												}
-												printf("ID3v2.%c detected with header size %d\n",  0x30 + data[pos + 3], header_size);
+												printf("ID3v2.%c detected with header size %d (at pos %d)\n",  0x30 + data[pos + 3], header_size, pos);
 												if (ext_header) {
 													printf("Extended header detected\n");
 												}
@@ -430,7 +430,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 												}
 												printf("MAD debug: invalid header\n");
 												return -1;
-								} else if (data[pos] == 'T' && data[pos+1] == 'A' && 
+								} else if (pos == 0 && data[pos] == 'T' && data[pos+1] == 'A' && 
 																data[pos+2] == 'G') {
 												return 128;	/* TAG is fixed 128 bytes */
 								}  else {
@@ -513,7 +513,7 @@ static int mad_open(input_object *obj, char *path)
 																printf("MAD_ERROR_BUFLEN...\n");
 																return 0;
 												case MAD_ERROR_LOSTSYNC:
-																printf("MAD_ERROR_LOSTSYNC...\n");
+																printf("MAD_ERROR_LOSTSYNC...%d\n", data->offset);
 																return 0;
 												case 0x235:
 																break;
