@@ -164,7 +164,7 @@ void load_output_addons(AlsaNode *node, char *module = NULL)
 	// If we arrive here it means we haven't found any suitable output-addons
 	alsaplayer_error("I could not find a suitable output module on your\n"
 			"       system. Make sure they're in \"%s/output/\".\n"
-			"       Use the -o paræmeter to select one.", addon_dir);
+			"       Use the -o parameter to select one.", addon_dir);
 }
 
 
