@@ -296,7 +296,7 @@ static void help()
 		"  --next                jump to next track\n"
 		"  --seek second         jump to specified second in current track\n"
 		"  --relative second     jump second seconds from current position\n"
-		"  --speed speed	 floating point speed paramemeter\n"
+		"  --speed speed         floating point speed parameter\n"
 		"    1.0 = normal speed, -1.0 normal speed backwards\n"
 		"  --jump track          jump to specified playlist track\n"
 		"  --clear               clear whole playlist\n"
