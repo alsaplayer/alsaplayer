@@ -39,9 +39,9 @@ typedef short int sound_sample;
 
 #define syn_width 320
 #define syn_height 200
-#define brightMin 100
-#define brightMax 1000
-#define brightDec 25
+#define brightMin 200
+#define brightMax 2000
+#define brightDec 10 
 #define brightInc 6
 #define brTotTargetLow 5000
 #define brTotTargetHigh 15000
@@ -77,7 +77,7 @@ static void synaescope_coreGo(void);
 
 static const int default_colors[] = {
     10, 20, 30,
-    230, 230, 230
+    230, 220, 210
 };
 
 
