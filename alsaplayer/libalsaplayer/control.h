@@ -66,6 +66,8 @@ int ap_get_frames(int session, int *val);
 int ap_get_stream_type(int session, char *str);
 int ap_get_status(int session, char *str);
 
+int ap_is_playing(int session, int *val);
+
 #ifdef __cplusplus
 }
 #endif

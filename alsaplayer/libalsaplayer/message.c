@@ -564,12 +564,15 @@ int ap_get_frame(int session, int *val)
 	return (ap_cmd_get_int(session, AP_GET_POS_FRAME, val));
 }
 
-
 int ap_get_frames(int session, int *val)
 {
 	return (ap_cmd_get_int(session, AP_GET_SONG_LENGTH_FRAME, val));
 }
 
+int ap_is_playing(int session, int *val)
+{
+	return (ap_cmd_get_int(session, AP_IS_PLAYING, val));
+}
 
 /* Convenience function for commands that return a single string */
 int ap_get_single_string_command(int session, int32_t cmd, char *str, int maxlen)

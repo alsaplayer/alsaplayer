@@ -206,6 +206,12 @@ void socket_looper(void *arg)
 					ap_message_add_int32(reply, "ack", 1);
 				}	
 				break;
+			case AP_IS_PLAYING:
+				if (player) {
+					ap_message_add_int32(reply, "int", player->IsPlaying());
+					ap_message_add_int32(reply, "ack", 1);
+				}	
+				break;
 			case AP_SET_VOLUME:
 				if ((float_val=ap_message_find_float(msg, "volume"))) {
 					player = playlist->GetCorePlayer();

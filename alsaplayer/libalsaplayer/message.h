@@ -45,7 +45,7 @@
 #define AP_GET_SPEED            0xcc0c
 #define AP_GET_SESSION_NAME     0xcc0d
 #define AP_GET_SONG_NAME        0xcc0e
-#define AP_GET_TITLE            0xcc1f
+#define AP_IS_PLAYING		0xcc0f
 #define AP_GET_ARTIST           0xcc10
 #define AP_GET_ALBUM            0xcc11
 #define AP_GET_GENRE            0xcc12
@@ -61,6 +61,7 @@
 #define AP_GET_STREAM_TYPE              0xcc1c
 #define AP_GET_STATUS			0xcc1d
 #define AP_SET_POS_SECOND_RELATIVE	0xcc1e
+#define AP_GET_TITLE			0xcc1f
 /* Add new commands here */
 
 #ifdef __cplusplus
