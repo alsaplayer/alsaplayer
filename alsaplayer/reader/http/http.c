@@ -57,7 +57,7 @@ typedef struct http_desc_t_ {
 /* How much data we should read at once? (bytes)*/
 #define  HTTP_BLOCK_SIZE  (32*1024)
 
-/* How much long showld be buffer? (bytes) */
+/* How much long should be buffer? (bytes) */
 #define  HTTP_BUFFER_SIZE  (20000*1024)
 
 /* --------------------------------------------------------------- */
@@ -125,7 +125,7 @@ static int sleep_for_data (int sock)
     FD_ZERO (&set);
     FD_SET (sock, &set);
     
-    if (select (sock+1, &set, NULL, NULL, &tv) < 0) {
+    if (select (sock+1, &set, NULL, NULL, &tv) < 1) {
 	alsaplayer_error ("HTTP: Connection is too slow.\n");
 	return 1;
     }
@@ -184,11 +184,14 @@ static int read_data (int sock, void *ptr, size_t size)
 /* buffer filling thread */
 static void buffer_thread (http_desc_t *desc)
 {
+    /* Internal thread buffer */
+    void *ibuffer = malloc (HTTP_BUFFER_SIZE);
+    
     while (desc->going) {
 	void *newbuf;
 	int readed;
 	
-	printf ("len = %u\n", desc->len);
+	printf ("%p]] len0 = %u\n", desc, desc->len);
 
 	/* check for overflow */
 	if (desc->len > HTTP_BUFFER_SIZE) {
@@ -196,15 +199,8 @@ static void buffer_thread (http_desc_t *desc)
 	    continue;
 	}
 	
-	/* lock buffer ( */
-	pthread_mutex_lock (&desc->buffer_lock);
-	
-	/* enlarge buffer */
-	newbuf = malloc (desc->len + HTTP_BLOCK_SIZE);
-	memcpy (newbuf, desc->buffer, desc->len);
-	
-	/* read to buffer */
-        readed = read_data (desc->sock, newbuf+desc->len, HTTP_BLOCK_SIZE);
+	/* read to internal buffer */
+        readed = read_data (desc->sock, ibuffer, HTTP_BLOCK_SIZE);
 	
 	if (readed == 0)
 	    desc->going = 0;
@@ -213,20 +209,36 @@ static void buffer_thread (http_desc_t *desc)
 	    desc->going = 0;
 	}
 
-	printf ("readed = %u, error = %u, going = %u\n", readed, desc->error, desc->going);
+	printf ("%p]] readed = %u, error = %u, going = %u\n", desc, readed, desc->error, desc->going);
 	
-	/* switch buffers */
-	free (desc->buffer);
-	desc->buffer = newbuf;
-	desc->len += readed;
+	/* These operations are fast. -> doesn't break reader_read */
+	if (readed > 0) {
+	   /* ---------------- lock buffer ( */
+	    pthread_mutex_lock (&desc->buffer_lock);
+	
+	    /* enlarge buffer */
+	    newbuf = malloc (desc->len + HTTP_BLOCK_SIZE);
+	    memcpy (newbuf, desc->buffer, desc->len);
+	    memcpy (newbuf + desc->len, ibuffer, readed);
+	
+	    /* switch buffers */
+	    free (desc->buffer);
+	    desc->buffer = newbuf;
+	    desc->len += readed;
 
-	/* unlock buffer ) */
-	pthread_mutex_unlock (&desc->buffer_lock);
+	    /* unlock buffer ) */
+	    pthread_mutex_unlock (&desc->buffer_lock);
+	}
+	
+	printf ("%p]] len1 = %u\n", desc, desc->len);
 	pthread_cond_broadcast (&desc->read_condition);
+	printf ("%p]] len2 = %u\n", desc, desc->len);
 	
 	dosleep (250000);
+	printf ("%p]] len3 = %u\n", desc, desc->len);
     }
     
+    free (ibuffer);
     pthread_exit (NULL);
 } /* end of: buffer_thread */
 
@@ -302,7 +314,7 @@ static int reconnect (http_desc_t *desc)
     FD_ZERO (&set);
     FD_SET (desc->sock, &set);
     
-    if (select (desc->sock+1, NULL, &set, NULL, &tv) < 0) {
+    if (select (desc->sock+1, NULL, &set, NULL, &tv) < 1) {
 	alsaplayer_error ("HTTP: Connection is too slow.\n");
 	return 1;
     }
@@ -318,6 +330,7 @@ static int reconnect (http_desc_t *desc)
     /* Get info about remote file */
     snprintf (request, 2048, "GET %s HTTP/1.1\r\n"
 			     "Host: %s\r\n"
+			     "Connection: close\r\n"
 			     "User-Agent: %s/%s\r\n"
 			     "Range: bytes=%ld-\r\n"
 			     "\r\n",
@@ -432,7 +445,7 @@ static size_t http_read (void *ptr, size_t size, void *d)
     http_desc_t *desc = (http_desc_t*)d;
     pthread_mutex_t mut;
 
-    printf ("HTTP: Read ptr=%p, size=%d\n", ptr, size);
+    printf ("%p]] HTTP: Read ptr=%p, size=%d from pos=%ld\n", desc, ptr, size, desc->pos);
  
     pthread_mutex_init (&mut, NULL);
     
@@ -440,7 +453,7 @@ static size_t http_read (void *ptr, size_t size, void *d)
 
     /* check for reopen */
     if (desc->begin > desc->pos || desc->begin + desc->len + HTTP_BLOCK_SIZE < desc->pos) {
-        printf ("HTTP: We should do reseek!!!!\n");
+        printf ("%p]] HTTP: We should do reseek!!!!\n", desc);
 	reconnect (desc);
     }	
  
@@ -457,13 +470,16 @@ static size_t http_read (void *ptr, size_t size, void *d)
 	   return 0;
 	}
 
+	pthread_mutex_lock (&desc->buffer_lock);
+	
 	readed = desc->begin + desc->len - desc->pos;
 	
 	/* done? */
 	if (readed >= size) {
-	    printf ("dooone\n");
+	    printf ("%p]] dooone\n", desc);
 	    
 	    memcpy (ptr, desc->buffer + desc->pos - desc->begin, size);
+	    pthread_mutex_unlock (&desc->buffer_lock);
 	    pthread_mutex_unlock (&desc->operation_lock);
 
 	    desc->pos += size;
@@ -472,9 +488,10 @@ static size_t http_read (void *ptr, size_t size, void *d)
 
 	/* EOF reached and there is some data */
 	if (!desc->going && readed > 0) {
-	    printf ("eof reached\n");
+	    printf ("%p]] eof reached with data\n", desc);
 	    
 	    memcpy (ptr, desc->buffer + desc->pos - desc->begin, readed);
+	    pthread_mutex_unlock (&desc->buffer_lock);
 	    pthread_mutex_unlock (&desc->operation_lock);
 
 	    desc->pos += readed;
@@ -483,12 +500,15 @@ static size_t http_read (void *ptr, size_t size, void *d)
 
 	/* EOF reached and there is no data readed*/
 	if (!desc->going) {
-	    printf ("eof reached\n");
+	    printf ("%p]] eof reached\n", desc);
 	    
+	    pthread_mutex_unlock (&desc->buffer_lock);
 	    pthread_mutex_unlock (&desc->operation_lock);
 
 	    return 0;
 	}
+	
+        pthread_mutex_unlock (&desc->buffer_lock);
 	
 	pthread_mutex_lock (&mut);
 	pthread_cond_wait (&desc->read_condition, &mut);
@@ -506,7 +526,7 @@ static int http_seek (void *d, long offset, int whence)
 {
     http_desc_t *desc = (http_desc_t*)d;
   
-    alsaplayer_error ("HTTP: seek offset=%ld, whence=%d\n", offset, whence);
+    alsaplayer_error ("%p]] HTTP: seek offset=%ld, whence=%d\n", desc, offset, whence);
 
     if (whence == SEEK_SET)
 	desc->pos = offset;
