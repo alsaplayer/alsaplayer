@@ -101,35 +101,50 @@ static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
 	int err;
 	snd_pcm_hw_params_t *hwparams;
 	snd_pcm_hw_params_alloca(&hwparams);
-	if (!sound_handle)
+	if (!sound_handle) {
+		printf("hmm, no sound hanlde... WTF?\n");
 		goto _err;	
+	}	
 	err = snd_pcm_hw_params_any(sound_handle, hwparams);
-	if (err < 0)
+	if (err < 0) {
+		printf("error on hw_params_any\n");			
 		goto _err;
+	}	
 	err = snd_pcm_hw_params_set_access(sound_handle, hwparams,
 					   SND_PCM_ACCESS_RW_INTERLEAVED);
-	if (err < 0)
+	if (err < 0) {
+		printf("error on set_access SND_PCM_ACCESS_RW_INTERLEAVED\n");
 		goto _err;
+	}	
 	err = snd_pcm_hw_params_set_format(sound_handle, hwparams,
 					   SND_PCM_FORMAT_S16_LE);
-	if (err < 0)
+	if (err < 0) {
+		printf("error on set_format SND_PCM_FORMAT_S16_LE\n");			
 		goto _err;
-	err = snd_pcm_hw_params_set_rate(sound_handle, hwparams,
+	}	
+	err = snd_pcm_hw_params_set_rate_near(sound_handle, hwparams,
 					 output_rate, 0);
-	if (err < 0)
+	if (err < 0) {
+		printf("error on setting output_rate (%d)\n", output_rate);			
 		goto _err;
+	}	
 	err = snd_pcm_hw_params_set_channels(sound_handle, hwparams, channels);
-	if (err < 0)
+	if (err < 0) {
+		printf("error on set_channels (%d)\n", channels);
 		goto _err;
+	}	
 	err = snd_pcm_hw_params_set_period_size(sound_handle, hwparams,
 						fragment_size / 4, 0);
-	if (err < 0)
+	if (err < 0) {
+		printf("error on set_period_size (%d)\n", fragment_size / 4);			
 		goto _err;
+	}	
 	err = snd_pcm_hw_params_set_periods(sound_handle, hwparams,
 					    fragment_count, 0);
-	if (err < 0)
+	if (err < 0) {
+		printf("error on set_periods (%d)\n", fragment_count);			
 		goto _err;
-	
+	}
 	err = snd_pcm_hw_params(sound_handle, hwparams);
 	if (err < 0) {
 		fprintf(stderr, "Unable to install hw params:\n");
@@ -168,7 +183,7 @@ static int alsa_get_latency()
 
 output_plugin alsa_output = {
 	OUTPUT_PLUGIN_VERSION,
-	{ "ALSA output v1.9.0beta7" },
+	{ "ALSA output v1.9.0beta8" },
 	{ "Andy Lo A Foe" },
 	alsa_init,
 	alsa_open,
