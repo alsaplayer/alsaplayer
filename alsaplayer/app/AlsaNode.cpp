@@ -22,6 +22,7 @@
 
 #include "config.h"
 #include <sys/mman.h>
+#include <sys/types.h>
 #ifdef USE_REALTIME
 #include <sched.h>
 #endif
@@ -41,6 +42,16 @@
 #define LOW_FRAGS	1	
 
 extern void exit_sighandler(int);
+
+void jack_shutdown (void *arg)
+{
+	char *name = (char *)arg;
+	if (name)
+		fprintf(stderr, "%s exitting...check jackd for details\n", name);
+	kill(0, SIGTERM);
+}
+
+
 
 AlsaNode::AlsaNode(char *name, int realtime)
 {
@@ -77,6 +88,7 @@ AlsaNode::AlsaNode(char *name, int realtime)
 		jack_set_sample_rate_callback (client, 
 			(JackProcessCallback)srate, this);
 		//printf("engine sample rate: %lu\n", jack_get_sample_rate (client));
+		jack_on_shutdown (client, jack_shutdown, strdup(client_name));
 
 		my_output_port1 = jack_port_register (client, "out_1",
 				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);		
@@ -116,15 +128,14 @@ AlsaNode::AlsaNode(char *name, int realtime)
 
 AlsaNode::~AlsaNode()
 {
+	StopStreaming();
 #ifdef USE_JACK
 	if (use_jack) {
 		if (client)
 			jack_client_close (client);
-		StopStreaming();	
 		return;
 	}	
 #endif
-	StopStreaming();
 	assert(plugin);
 	plugin->close();
 }
@@ -212,12 +223,6 @@ int AlsaNode::process(nframes_t nframes, void *arg)
 	AlsaNode *node = (AlsaNode *)arg;
 	char bufsize[16384];
 	static bool realtime_set = 0;
-#ifdef STATS	
-	static int count = 0;
-	static int regs[64];
-	static int init = 0;
-	static int val = 0;
-#endif
 
 #ifdef USE_REALTIME
 	if (node->realtime_sched && !realtime_set) {
@@ -245,24 +250,6 @@ int AlsaNode::process(nframes_t nframes, void *arg)
 		sample_t *out2 = (sample_t *) jack_port_get_buffer(node->my_output_port2, nframes);
 		
 		memset(bufsize, 0, sizeof(bufsize));	
-
-#ifdef STATS
-		if (!init) {
-			memset(regs, 0, sizeof(regs));
-			init = 1;
-		}	
-		val = nframes / 2;
-		if (val > 31) val = 31;
-		regs[val]++;
-		if (count++ > 5000) {
-			count = 0;
-			printf("statistics for last 5000 frames\n");
-			for (val = 0; val < 32; val++) 
-				printf("%3d - %3d : %4d frames\n", val * 2, (val+1) * 2, regs[val]);
-			printf("-------------------------------\n");
-			memset(regs, 0, sizeof(regs));
-		}	
-#endif
 
 		for (c = 0; c < MAX_SUB; c++) {
 			i = &node->subs[c];
