@@ -187,10 +187,6 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 				bytes_needed -= ret;
 		}		
 	}
-	// this is only true if bytes_needed is negative, which seems unlikely; FB
-	if (bytes_needed != 0) {
-		printf("Incomplete frame! (%d)\n", BLOCK_SIZE - bytes_needed);
-	}
 	if (data->current_section != data->last_section) {
 		/*
 		 * The info struct is different in each section.  vf
