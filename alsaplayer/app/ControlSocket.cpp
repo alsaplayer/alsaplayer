@@ -125,7 +125,7 @@ void socket_looper(void *arg)
 
 		// Check version
 		if (msg->header.version != AP_CONTROL_VERSION) {
-			alsaplayer_error("protocl version mismatch (server): %x != %x",
+			alsaplayer_error("protocol version mismatch (server): %x != %x",
 				msg->header.version, AP_CONTROL_VERSION);
 			close(fd);
 			continue;
