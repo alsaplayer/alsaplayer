@@ -1,3 +1,14 @@
+* Add initial support for Icecast/Shoutcast streaming!
+* Support basic dirty .pls file loading
+* Add preliminary HTTP 302 redirect handling in http reader plugin
+* MAD plugin works correctly with non-seekable sources now
+* Fix playlist loading
+* Fix FLAC playback support
+* Fix crashing bug when fragment size was bigger than 16K
+
+
+Sun Dec  1 17:11:03 CET 2002
+----------------------------
 * New --background parameter to put alsaplayer in the background at startup
 * Accept m3u (playlist) files on the command line
 * JACK output plugin fixes; use jack's samplerate, properly deactive before
@@ -7,6 +18,7 @@
 * Fix small reentrancy problem in CDDA plugin
 * Remove threading from Playlist::Insert(), it was causing too much trouble.
 * Bump up input_plugin version, change open() param for const char *path.
+
 
 Wed Sep 18 11:52:43 CEST 2002
 -----------------------------
