@@ -1,12 +1,12 @@
 * MAD plugin converted to new reader plugin API. This also means we don't use
-  mmap() any longer.
+  mmap() any longer. Now also handles files with large ID3 tags better.
 * New reader plugin system by Evgeny. This brings in URI support i.e.
-  you can now play directly from ftp and http sources (needs libcurl)
+  you can now play directly from ftp and http sources (needs libcurl for now)
 * --enable-tophack switch to configure. This enables some code that fools
   (simple) CPU measuring tools like top into thinking AlsaPlayer is infinitely
-  fast i.e. top will show that we use 0% CPU even with lots of scopes open!
-  Whenever someone complains about AlsaPlayer CPU usage, just enable this and 
-  the problem will magically disappear *grin*
+  fast i.e. top will show that we use 0% CPU even with lots of scopes open and
+  mp3's decoding!  Whenever someone complains about AlsaPlayer CPU usage,
+  just enable this and the problem will magically disappear *grin*
 * Keyboard shortcuts for playlist: Insert, Delete, Return, Left, Right keys.
 * List available interfaces and output plugins in help screen.
 * New callback API for CorePlayer so interfaces get notified when

@@ -1116,7 +1116,9 @@ void CorePlayer::producer_func(void *data)
 			//alsaplayer_error("producer: waiting for free buffer");
 			pthread_mutex_lock(&obj->counter_mutex);
 			//alsaplayer_error("producer: unblocked");
-			//dosleep(10000);
+#ifdef TOP_HACK			
+			dosleep(10000);
+#endif			
 		}	
 	}
 	//alsaplayer_error("Exitting producer_func (producing = %d)", obj->producing);

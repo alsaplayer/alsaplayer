@@ -111,7 +111,6 @@ void AlsaNode::looper(void *pointer)
 	int read_size = node->GetFragmentSize();
 	bool usleep_hack = true;
 	bool status;
-	int c;
 
 	signal(SIGINT, exit_sighandler);
 
