@@ -348,6 +348,7 @@ static char **curlplugin_expand (const char *uri)
     return NULL;
 }
 
+
 /* Info about this plugin. */
 reader_plugin curlplugin_plugin = {
 	READER_PLUGIN_VERSION,

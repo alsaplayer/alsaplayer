@@ -200,7 +200,6 @@ static int mad_frame_seek(input_object *obj, int frame)
 			data->seeking = 0;
 			return data->current_frame;
 		}
-
 		data->seeking = 1;
 
 		mad_stream_buffer(&data->stream, data->mad_map +
@@ -329,8 +328,6 @@ static  long mad_frame_to_sec(input_object *obj, int frame)
 		return 0;
 	data = (struct mad_local_data *)obj->local_data;
 	if (data) {
-		if (data->seeking)
-			return -1;
 		sec = data->samplerate ? frame * (obj->frame_size >> 2) /
 			(data->samplerate / 100) : 0;
 	}			

@@ -150,7 +150,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 					// -100	= right channel muted
 					// 100  = left channel muted
 	
-	unsigned long GetCurrentTime(int frame=-1);
+	int GetCurrentTime(int frame=-1);
 					// Returns the time position of frame in
 					// hundreths of seconds
 	int GetStreamInfo(stream_info *info); // Return stream info

@@ -61,8 +61,8 @@ void socket_looper(void *arg)
 	float *float_val;
 	float save_speed = 0.0;
 	char *path;
-	int *long_val;
-	int *int_val;
+	long *long_val;
+	int32_t *int_val;
 	socklen_t len;
 	int fd;
 	int session_id = 0;

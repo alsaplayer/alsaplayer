@@ -349,7 +349,6 @@ int ap_session_running(int session)
 	struct stat statbuf;
 	struct passwd *pwd;
 	char path[1024];
-	float ping;
 
 	pwd = getpwuid(geteuid());
 
@@ -421,7 +420,7 @@ int ap_set_speed(int session, float speed)
 {
 	int fd;
 	ap_message_t *msg, *reply;
-	int32_t *result, ret;
+	int32_t *result;
 	
 	fd = ap_connect_session(session);
 	if (fd < 0)
@@ -449,7 +448,7 @@ int ap_get_speed(int session, float *val)
 {
 	int fd;
 	ap_message_t *msg, *reply;
-	float *result, *ret;
+	float *result;
 	
 	fd = ap_connect_session(session);
 	if (fd < 0)
@@ -620,7 +619,7 @@ int ap_get_single_string_command(int session, int32_t cmd, char *str, int maxlen
 	close(fd);
 	
 	if ((result = ap_message_find_string(reply, "string"))) {
-		if (strlen(result) > maxlen) {
+		if (strlen(result) > (size_t)maxlen) {
 			strncpy(str, result, maxlen-1);
 			str[maxlen] = 0;
 		} else 	

@@ -117,6 +117,7 @@ static float file_can_expand (const char *uri)
     return 1.0;
 }
 
+
 /* expand directory */
 static char **file_expand (const char *uri)
 {

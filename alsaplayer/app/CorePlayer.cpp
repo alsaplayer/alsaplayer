@@ -414,9 +414,9 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 }
 
 
-unsigned long CorePlayer::GetCurrentTime(int frame)
+int CorePlayer::GetCurrentTime(int frame)
 {
-	unsigned long result = 0;
+	 long result = 0;
 
 	Lock();
 	if (plugin && the_object && the_object->ready) {
@@ -424,13 +424,17 @@ unsigned long CorePlayer::GetCurrentTime(int frame)
 			: frame);
 	}
 	Unlock();
-
-	return result;
+	if (result < 0) {
+		alsaplayer_error("Huh, negative????");
+	}
+	return (int)result;
 }
 
 
 int CorePlayer::GetPosition()
 {
+	int result;
+
 	if (jumped)	// HACK!
 		return jump_point;
 	if (read_buf && plugin && the_object && the_object->ready) {
@@ -438,9 +442,13 @@ int CorePlayer::GetPosition()
 			return 0;		
 
 		int frame_size = plugin->frame_size(the_object);
-		if (frame_size) 
-			return (read_buf->start + (read_buf->buf->read_index * 4) / frame_size);
-		else
+		if (frame_size)  {
+			result = (read_buf->start + (read_buf->buf->read_index * 4) / frame_size);
+			if (result < 0) {
+				alsaplayer_error("Found the error!");
+			}
+			return result;
+		} else
 			return 0;
 	} else {
 		return 0;

@@ -288,8 +288,6 @@ static void list_available_plugins(char *plugindir)
 				continue;
 			}	
 			if (S_ISREG(buf.st_mode)) {
-				void *handle;
-				
 				char *ext = strrchr(path, '.');
 				if (!ext)
 					continue;
@@ -406,17 +404,14 @@ int main(int argc, char **argv)
 	int do_reverb = 0;
 	int do_loopsong = 0;
 	int do_looplist = 0;
-	int be_quiet = 0;
 	int do_enqueue = 0;
 	int do_realtime = 0;
 	int use_freq = OUTPUT_RATE;
 	int use_vol = 100;
 	int use_session = 0;
 	int do_crossfade = 0;
-	int tmp;
 	char *use_output = NULL;
 	char *use_interface = NULL;
-	prefs_handle_t *prefs;
 
 	int opt;
 	int option_index;
@@ -591,7 +586,9 @@ int main(int argc, char **argv)
 		}
 		count = optind;
 		while (count < argc && ap_result) {
-			if (argv[count][0] != '/') {
+			if (argv[count][0] != '/' &&
+				strncmp(argv[count], "http://", 7) != 0 &&
+				strncmp(argv[count], "ftp://", 6) != 0) {
 				// Not absolute so append cwd
 				if (getcwd(queue_name, 1024) == NULL) {
 					alsaplayer_error
@@ -603,6 +600,7 @@ int main(int argc, char **argv)
 			} else
 				strcpy(queue_name, argv[count]);
 			count++;
+			//alsaplayer_error("Adding %s", queue_name);
 			ap_result = ap_add_path(use_session, queue_name);
 			//alsaplayer_error("ap_result = %d", ap_result);	
 		}

@@ -318,6 +318,8 @@ void playlist_click(GtkWidget *widget, gint row, gint column,
 void playlist_play_current(Playlist *playlist, GtkWidget *list)
 {
 		int selected;
+		if (!GTK_CLIST(list)->selection)
+			return;
 		selected = GPOINTER_TO_INT(GTK_CLIST(list)->selection->data);
 		GDK_THREADS_LEAVE();
 		playlist->Pause();

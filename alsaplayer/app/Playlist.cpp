@@ -195,9 +195,7 @@ void insert_looper(void *data) {
 		for(path = vetted_items.begin(); path != vetted_items.end(); path++) {
 			// Check that item is valid
 			if(!playlist->CanPlay(*path)) {
-#ifdef DEBUG
-				printf("Can't find a player for `%s'\n", path->c_str());
-#endif 
+				//alsaplayer_error("Can't find a player for `%s'\n", path->c_str());
 			} else {
 				newitems.push_back(PlayItem(*path));
 			}
@@ -322,7 +320,7 @@ void Playlist::Play(unsigned item) {
 		curritem = queue.size();
 		Stop();
 	}
-
+	LockInterfaces();
 	// Tell the subscribing interfaces about the change
 	if(interfaces.size() > 0) {
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
@@ -334,6 +332,7 @@ void Playlist::Play(unsigned item) {
 			(*j)->cbsetcurrent((*j)->data, curritem);
 		}
 	}
+	UnlockInterfaces();
 	Unlock();
 }
 
@@ -439,6 +438,7 @@ void Playlist::Insert(std::vector<std::string> const & paths, unsigned position,
 	// Copy list
 	std::vector<std::string>::const_iterator i = paths.begin();
 	while(i != paths.end()) {
+		//alsaplayer_error("===== %s", i->c_str());
 		items->items.push_back(*i++);
 	}
 
@@ -746,53 +746,47 @@ void Playlist::UnRegisterNotifier(coreplayer_notifier *notif)
 
 void Playlist::Register(playlist_interface *pl_if)
 {
-	Lock();
 	LockInterfaces();
 	cinterfaces.insert(pl_if);
 	UnlockInterfaces();
 	if (queue.size()) {
+		LockInterfaces();
 		pl_if->cbinsert(pl_if->data, queue, 0);
-	}	
+		UnlockInterfaces();
+	}
+	LockInterfaces();
 	pl_if->cbsetcurrent(pl_if->data, curritem);
-	Unlock();
+	UnlockInterfaces();
 }
 
 void Playlist::Register(PlaylistInterface * pl_if) {
-	Lock();
-
 	LockInterfaces();
 	interfaces.insert(pl_if);
-	UnlockInterfaces();
 	// Tell the interfaces about the current state
 	pl_if->CbClear();
 	if(queue.size()) {
 		pl_if->CbInsert(queue, 0);
 	}
 	pl_if->CbSetCurrent(curritem);
-
-	Unlock();
+	UnlockInterfaces();
 }
 
 
 void Playlist::UnRegister(playlist_interface *pl_if) {
 	if (!pl_if)
 		return;
-	Lock();
 	LockInterfaces();
 	cinterfaces.erase(cinterfaces.find(pl_if));
 	UnlockInterfaces();
-	Unlock();
 }
 
 
 void Playlist::UnRegister(PlaylistInterface * pl_if) {
 	if (!pl_if)
 		return;
-	Lock();
 	LockInterfaces();
 	interfaces.erase(interfaces.find(pl_if));
 	UnlockInterfaces();
-	Unlock();
 }
 
 void Playlist::Stop() {
@@ -819,7 +813,9 @@ bool Playlist::PlayFile(PlayItem const & item) {
 
 // Check if we are able to play a given file
 bool Playlist::CanPlay(std::string const & path) {
-    return coreplayer->GetPlayer(path.c_str()) != NULL;
+	bool result = (coreplayer->GetPlayer(path.c_str()) != NULL);
+	//alsaplayer_error("CanPlay result = %d", result);
+	return result;
 }
 
 // Add a path to list, recursing through (to a maximum of depth subdirectories)

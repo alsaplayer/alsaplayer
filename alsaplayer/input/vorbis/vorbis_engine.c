@@ -30,7 +30,9 @@
 #include <ogg/ogg.h>
 #include <vorbis/codec.h>
 #include <vorbis/vorbisfile.h>
+#include "alsaplayer_error.h"
 #include "input_plugin.h"
+#include "reader.h"
 
 #define BLOCK_SIZE 4096	/* We can use any block size we like */
 
@@ -39,6 +41,7 @@ struct vorbis_local_data {
 	char path[FILENAME_MAX+1];
 	int last_section;
 	int bigendianp;
+	int is_local;
 };		
 
 /* Stolen from Vorbis' lib/vorbisfile.c */
@@ -58,25 +61,29 @@ static int is_big_endian(void)
  */
 static size_t ovcb_read(void *ptr, size_t size, size_t nmemb, void *datasource)
 {
-	return fread(ptr, size, nmemb, (FILE *)datasource);
+	size_t result;
+	result = reader_read(ptr, size * nmemb, datasource);
+	//alsaplayer_error("request: %d * %d, result = %d", size, nmemb, result);
+	return (result / size);
 }
 
 
 static int ovcb_seek(void *datasource, int64_t offset, int whence)
 {
-	return fseek((FILE *)datasource, offset, whence);
+	return (reader_seek(datasource, offset, whence));
 }
 
 
 static int ovcb_close(void *datasource)
 {
-	return fclose((FILE *)datasource);
+	reader_close(datasource);
+	return 0;	
 }
 
 
 static long ovcb_tell(void *datasource)
 {
-	return ftell((FILE *)datasource);
+	return reader_tell(datasource);
 }
 
 
@@ -103,6 +110,8 @@ static int vorbis_frame_seek(input_object *obj, int frame)
 	 * stereo with 16 bits samples.............
 	 */
 	if (data) {
+		if (!data->is_local)
+			return 0;
 		pos = frame * (BLOCK_SIZE >> 2);
 		if (ov_pcm_seek(&data->vf, pos) == 0) 
 			return frame;
@@ -338,7 +347,6 @@ static float vorbis_can_handle(const char *path)
 
 static int vorbis_open(input_object *obj, char *path)
 {
-	FILE *stream = NULL;
 	vorbis_info *vi; 
 	void *datasource = NULL;
 	OggVorbis_File vf_temp;
@@ -349,30 +357,29 @@ static int vorbis_open(input_object *obj, char *path)
 	if (!obj)
 		return 0;
 
-	if ((stream = fopen(path, "r")) == NULL) {
+	if ((datasource = reader_open(path)) == NULL) {
 		return 0;
 	}
-	datasource = (void *)stream;
 
 	if (ov_open_callbacks(datasource, &vf_temp, NULL, 0, vorbis_callbacks) < 0) {
-		fclose(stream);
+		ov_clear(&vf_temp);
 		return 0;
 	}
 	vi = ov_info(&vf_temp, -1);
 	if (!vi) {
-		fclose(stream);
+		ov_clear(&vf_temp);
 		return 0;
 	}		
 
 	if (vi->channels > 2) { /* Can't handle 2+ channel files (yet) */
-		fclose(stream);
+		ov_clear(&vf_temp);
 		return 0;
 	}	
 	obj->nr_channels = vi->channels;
 	obj->frame_size = BLOCK_SIZE;
 	obj->local_data = malloc(sizeof(struct vorbis_local_data));
 	if (!obj->local_data) {
-		fclose(stream);
+		ov_clear(&vf_temp);
 		return 0;
 	}
 	data = (struct vorbis_local_data *)obj->local_data;
@@ -381,7 +388,14 @@ static int vorbis_open(input_object *obj, char *path)
 	memcpy(&data->vf, &vf_temp, sizeof(vf_temp));
 	memcpy(data->path, path, sizeof(data->path)-1);
 
-	obj->flags = P_SEEK;
+	if (strncmp(path, "http", 4) == 0) {
+		alsaplayer_error("No seeking allowed");
+		data->is_local = 0;
+		obj->flags = 0;
+	} else {
+		data->is_local = 1;
+		obj->flags = P_SEEK;
+	}	
 
 	return 1;
 }
