@@ -131,7 +131,9 @@ gboolean main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 	GtkFunction f = (GtkFunction)data;
 	global_update = -1;
 	//alsaplayer_error("Going to wait for indicator_thread join");
+	GDK_THREADS_LEAVE(); // Drop lock so indicator_thread can finish
 	pthread_join(indicator_thread, NULL);
+	GDK_THREADS_ENTER();
 	//alsaplayer_error("About to delete playlist_window_gtk");
 	if (playlist_window_gtk)
 		delete playlist_window_gtk;
@@ -798,7 +800,9 @@ void exit_cb(GtkWidget *widget, gpointer data)
 {
 	GtkFunction f = (GtkFunction)data;
 	global_update = -1;
+	GDK_THREADS_LEAVE(); // Drop thread so indicator_thread can finish
 	pthread_join(indicator_thread, NULL);
+	GDK_THREADS_ENTER();
 	if (f) { // Oh my, a very ugly HACK indeed! But it works
 		GDK_THREADS_LEAVE();
 		f(NULL);
@@ -942,16 +946,16 @@ gint alsaplayer_button_press(GtkWidget *widget, GdkEvent *event)
 void indicator_looper(void *data)
 {
 #ifdef DEBUG
-	printf("THREAD-%d=indicator thread\n", getpid());
+	//alsaplayer_error("THREAD-%d=indicator thread", getpid());
 #endif
 	while (global_update >= 0) {
 		if (global_update == 1) {
-			//GDK_THREADS_ENTER();
 			indicator_callback(data, 1);
-			//GDK_THREADS_LEAVE();
 		}
 		dosleep(UPDATE_TIMEOUT);
-	}	
+	}
+	//alsaplayer_error("Exitting indicator_looper");	
+	pthread_exit(NULL);
 }
 
 

@@ -398,7 +398,8 @@ gint list_resize(GtkWidget *widget, GdkEventConfigure *event, gpointer data)
 			}	
 		}
 		old_width = widget->allocation.width;
-	}	 
+	}
+	return 0;
 }
 
 // Called when window gets closed, so we don't try to close it again later.
