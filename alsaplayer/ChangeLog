@@ -1,3 +1,14 @@
+Tue Mar 12 18:54:48 CET 2002
+----------------------------
+- Fix bugs in external.cpp (libalsaplayer)
+- Remove global session limit
+- Add status field to stream_info in input plugin
+- Fix build problem for MAD plugin on non-x86 platforms
+- Remove ap_connect_session from public interface
+- Fixed GTK playlist insert bug
+- Fixed a bug in the AP_DO_PLAY remote command
+
+
 Fri Mar  8 21:28:05 CET 2002
 ----------------------------
 - Modified scope plugin interface, optional set_fft() call to scope. There is 

@@ -473,8 +473,8 @@ static int cdda_track_seek(input_object *obj, int track)
 input_plugin cdda_plugin = {
 		INPUT_PLUGIN_VERSION,
 		0,
-		{ "CDDA player v1.0" },
-		{ "Andy Lo A Foe <andy@alsa-project.org>" },
+		{ "CDDA player v1.1" },
+		{ "Andy Lo A Foe <andy@alsaplayer.org>" },
 		NULL,
 		cdda_init,
 		NULL,

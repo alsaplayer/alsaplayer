@@ -47,6 +47,7 @@ void socket_looper(void *arg)
 		void *data;
 		float float_val;
 		char *char_val;
+		char session_name[32];
 		int int_val;
 		socklen_t len;
 		int fd;
@@ -94,7 +95,9 @@ void socket_looper(void *arg)
 		} else {
 			alsaplayer_error("Error setting up control socket");
 			return;
-		}	
+		}
+		global_session_id = session_id;
+		
 		while (socket_thread_running) {
 			FD_ZERO(&set);
 			FD_SET(socket_fd, &set);
@@ -188,10 +191,11 @@ void socket_looper(void *arg)
 						pkt.pld_length = strlen(global_session_name);
 						write (fd, &pkt, sizeof(ap_pkt_t));
 						write (fd, global_session_name, pkt.pld_length);
-					} else {	
-						pkt.pld_length = strlen("AlsaPlayer");
+					} else {
+						sprintf(session_name, "alsaplayer-%d", global_session_id);
+						pkt.pld_length = strlen(session_name);
 						write (fd, &pkt, sizeof(ap_pkt_t));
-						write (fd, "AlsaPayer", pkt.pld_length);
+						write (fd, session_name, pkt.pld_length);
 					}	
 					break;
 				case AP_SET_STRING_ADD_FILE:

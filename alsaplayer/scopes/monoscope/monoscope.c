@@ -295,9 +295,11 @@ static int init_monoscope()
 
 static void close_monoscope()
 {
+/*	
 		if (state)
 						convolve_close(state);		
-/*				
+*/						
+/*
 	if (scope_win) {
 					gtk_widget_destroy(scope_win);
 					scope_win = NULL;

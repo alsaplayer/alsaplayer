@@ -82,6 +82,9 @@ Name this session "name"
 .B \-v, \-\-version
 Print version of this program.
 .TP
+.B \-\-verbose
+Print copyright info and plugins which are used amongst other things.
+.TP
 .B \-o, \-\-output [alsa|jack|oss|nas|sgi|sparc]
 Use ALSA, JACK, OSS, NAS, SGI or Sparc driver for output
 .SH SEE ALSO

@@ -58,6 +58,7 @@ int global_reverb_delay = 2;
 int global_reverb_feedback = 0;
 
 int global_verbose = 0;
+int global_session_id = -1;
 
 char *global_session_name = NULL;
 
@@ -185,9 +186,12 @@ interface_plugin_info_type load_interface(char *name)
 	struct stat statbuf;
 
 	interface_plugin_info_type plugin_info;
-
+	
 	if (name) {
-		sprintf(path, "%s/interface/lib%s.so", addon_dir, name);
+		if (strchr(name, '.'))
+			strcpy(path, name);
+		else	
+			sprintf(path, "%s/interface/lib%s.so", addon_dir, name);
 #ifdef DEBUG
 		alsaplayer_error("Loading output plugin: %s\n", path);
 #endif
@@ -512,6 +516,16 @@ int main(int argc, char **argv)
 	if (do_enqueue) {
 		char queue_name[2048];
 		int ap_result = 0;
+	
+		if (use_session == 0)	{
+			for (; use_session < 32; use_session++) {
+				if (ap_session_running(use_session)) {
+					ap_result = 0;
+					break;
+				}	
+				ap_result = -1;	
+			}
+		}	
 		while (last_arg < argc && ap_result == 0) {
 			if (argv[last_arg][0] != '/') { // Not absolute so append cwd
 				if (getcwd(queue_name, 1024) == NULL) {
