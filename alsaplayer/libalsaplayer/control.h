@@ -51,6 +51,10 @@ int ap_add_and_play(int session, char *path);
 
 int ap_set_speed(int session, float speed);
 int ap_get_speed(int session, float *val);
+int ap_set_volume(int session, int volume);
+int ap_get_volume(int session, int *volume);
+int ap_set_pan(int session, int pan);
+int ap_get_pan(int session, int *pan);
 
 int ap_get_session_name(int session, char *str);
 

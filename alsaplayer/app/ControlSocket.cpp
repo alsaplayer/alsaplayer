@@ -226,17 +226,30 @@ void socket_looper(void *arg)
 				}	
 				break;
 			case AP_SET_VOLUME:
-				if ((float_val=ap_message_find_float(msg, "volume"))) {
-					player = playlist->GetCorePlayer();
-					if (player) {
-						player->SetVolume((int)*float_val);
+				if (player) {
+					if ((int_val = ap_message_find_int32(msg, "int"))) {
+						player->SetVolume (*int_val);
 						ap_message_add_int32(reply, "ack", 1);
 					}
 				}
 				break;
 			case AP_GET_VOLUME:
 				if (player) {
-					ap_message_add_float(reply, "volume", player->GetVolume());
+					ap_message_add_int32(reply, "int",  player->GetVolume());
+					ap_message_add_int32(reply, "ack", 1);
+				}	
+				break;
+			case AP_SET_PAN:
+				if (player) {
+					if ((int_val = ap_message_find_int32(msg, "int"))) {
+						player->SetPan (*int_val);
+						ap_message_add_int32(reply, "ack", 1);
+					}
+				}
+				break;
+			case AP_GET_PAN:
+				if (player) {
+					ap_message_add_int32(reply, "int",  player->GetPan());
 					ap_message_add_int32(reply, "ack", 1);
 				}	
 				break;

@@ -533,6 +533,15 @@ int ap_cmd_get_int(int session, int32_t cmd, int *val)
 	return 0;
 }
 
+int ap_set_volume(int session, int volume)
+{
+	return (ap_cmd_set_int(session, AP_SET_VOLUME, volume));
+}
+
+int ap_set_pan(int session, int pan)
+{
+	return (ap_cmd_set_int(session, AP_SET_PAN, pan));
+}
 
 int ap_set_position(int session, int pos)
 {
@@ -547,6 +556,16 @@ int ap_set_position_relative(int session, int pos)
 int ap_get_position(int session, int *val)
 {
 	return (ap_cmd_get_int(session, AP_GET_POS_SECOND, val));
+}
+
+int ap_get_volume(int session, int *volume)
+{
+	return (ap_cmd_get_int(session, AP_GET_VOLUME, volume));
+}
+
+int ap_get_pan(int session, int *pan)
+{
+	return (ap_cmd_get_int(session, AP_GET_PAN, pan));
 }
 
 int ap_get_length(int session, int *length)
