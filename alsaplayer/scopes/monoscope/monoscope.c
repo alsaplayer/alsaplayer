@@ -139,12 +139,12 @@ void the_monoscope()
 					}
 					for (i=16;i < 128; i+=16) {
 									for (h = 0; h < 256; h+=2) {
-													bits[(i << 8) + h] = 64;
+													bits[(i << 8) + h] = 63;
 									}
 					}
 					for (i = 16; i < 256; i+=16) {
 									for (h = 0; h < 128; h+=2) {
-													bits[i + (h << 8)] = 64;
+													bits[i + (h << 8)] = 63;
 									}
 					}
 					GDK_THREADS_ENTER();
@@ -207,8 +207,8 @@ GtkWidget *init_monoscope_window()
 		colors[i] = (i*8 << 16) +(255 << 8);
 		colors[i+31] = (255 << 16) + (((31 - i) * 8) << 8);
   	}
-	colors[64] = (40 << 16) + (75 << 8);
-	color_map = gdk_rgb_cmap_new(colors, 65);
+	colors[63] = (40 << 16) + (75 << 8);
+	color_map = gdk_rgb_cmap_new(colors, 64);
 	area = gtk_drawing_area_new();
 	gtk_container_add(GTK_CONTAINER(monoscope_win), area);
 	gtk_widget_realize(area);
