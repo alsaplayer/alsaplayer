@@ -175,7 +175,7 @@ void socket_looper(void *arg)
 				break;
 			case AP_QUIT:
 				// Woah, this is very dirty! XXX FIXME XXX
-				exit(0);
+				kill(0, 1);
 				break;
 			case AP_SET_SPEED:
 				if ((float_val=ap_message_find_float(msg, "speed"))) {
