@@ -48,7 +48,6 @@ void interface_qt_close()
 
 int interface_qt_start
 (
- CorePlayer * coreplayer,
  Playlist   * playlist,
  int          argc,
  char      ** argv
@@ -70,7 +69,7 @@ int interface_qt_start
   if (!customStyle)
     app.setStyle(new QPlatinumStyle);
 
-  MainWindow w(coreplayer, playlist);
+  MainWindow w(playlist->GetCorePlayer(), playlist);
 
   app.setMainWidget(&w);
 

@@ -69,8 +69,9 @@ void interface_text_close()
 }
 
 
-int interface_text_start(CorePlayer *coreplayer, Playlist *playlist, int argc, char **argv)
+int interface_text_start(Playlist *playlist, int argc, char **argv)
 {
+	CorePlayer *coreplayer;
 	char path[256];
 	char *home;
 	stream_info info;
@@ -84,7 +85,8 @@ int interface_text_start(CorePlayer *coreplayer, Playlist *playlist, int argc, c
 	sleep(2);
 
 	// Fall through console player
-	while(coreplayer->IsActive() || coreplayer->IsPlaying()) {
+	while((coreplayer = playlist->GetCorePlayer()) &&
+				(coreplayer->IsActive() || coreplayer->IsPlaying())) {
 			unsigned long secs, t_min, t_sec, c_min, c_sec;
 			t_min = t_sec = c_min = c_sec = 0;
 			while (coreplayer->IsActive() || coreplayer->IsPlaying()) {

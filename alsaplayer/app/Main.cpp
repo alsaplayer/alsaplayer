@@ -252,7 +252,7 @@ int main(int argc, char **argv)
 	int last_arg = 0;
 	int arg_pos = 0;
 	int use_vol = 100;
-	CorePlayer *p;
+	//CorePlayer *p;
 	//char path[256], *home;
 	char use_interface[256];
 
@@ -454,14 +454,15 @@ int main(int argc, char **argv)
 		return 1;
 	}	
 	
-	p = new CorePlayer(node);
+	//p = new CorePlayer(node);
 
-	if (!p)  {
-		fprintf(stderr, "ERROR: failed to create CorePlayer object...\n");
-		return 1;
-	}
+	//if (!p)  {
+	//	fprintf(stderr, "ERROR: failed to create CorePlayer object...\n");
+	//	return 1;
+	//}
 
 	// Reverb effect
+	/*
 	AlsaSubscriber *reverb = NULL;
 	if (use_reverb) {
 		init_reverb();
@@ -469,9 +470,9 @@ int main(int argc, char **argv)
 		reverb->Subscribe(node);
 		reverb->EnterStream(reverb_func, p);
 	}
-
+	*/
 	// Initialise playlist - must be done before things try to register with it
-	playlist = new Playlist(p);
+	playlist = new Playlist(node);
 
 	if (!playlist) {
 		fprintf(stderr, "ERROR: Failed to create Playlist object\n");
@@ -522,14 +523,14 @@ int main(int argc, char **argv)
 		if (!ui->init()) {
 			printf("Failed to load gtk+ interface. Should fall back to cli\n");
 		} else {	
-			ui->start(p, playlist, argc, argv);
+			ui->start(playlist, argc, argv);
 			ui->close();
 			//dlclose(ui->handle);
 		}	
 	}	
 _fatal_err:	
 	delete playlist;
-	delete p;
+	//delete p;
 	delete node;
 	return 0;	
 }

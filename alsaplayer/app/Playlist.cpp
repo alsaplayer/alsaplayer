@@ -52,8 +52,9 @@ extern void playlist_looper(void *data)
 
 	while(pl->active) {
 		if (!coreplayer->IsActive()) {
-			if (!pl->Paused() && pl->Length())
+			if (!pl->Paused() && pl->Length()) {
 				pl->Next(1);
+			}	
 		}
 		dosleep(100000);
 	}
@@ -150,6 +151,28 @@ Playlist::Playlist(CorePlayer *p_new) {
 				   (void * (*)(void *))playlist_looper, this);
 }
 
+
+Playlist::Playlist(AlsaNode *the_node) {
+	player1 = new CorePlayer(the_node);
+	player2 = new CorePlayer(the_node);
+
+	if (!player1 || !player2) {
+		printf("Cannot create player objects in Playlist constructor\n");
+		return;
+	}
+	coreplayer = player1;
+	curritem = 0;
+	active = true;
+
+	UnLoopSong();			// Default values
+	UnLoopPlaylist();	// for looping
+	
+	pthread_mutex_init(&playlist_mutex, NULL);
+	pthread_create(&playlist_thread, NULL,
+				   (void * (*)(void *))playlist_looper, this);
+}	
+
+
 Playlist::~Playlist() {
 	// Nasty hack to stop other thread (should use pthread_cancel)
 	// but we're going to replace this anyway
@@ -163,7 +186,12 @@ Playlist::~Playlist() {
 	if (adder) {
 			printf("Waiting for insert thread to finish\n");
 	    pthread_join(adder, NULL);
-	}		
+	}
+	if (player1)
+		delete player1;
+	if (player2)
+		delete player2;
+	
 	pthread_mutex_lock(&playlist_mutex); // Acquire the playlist lock
 																			 // Before destroying it
 	pthread_mutex_destroy(&playlist_mutex);

@@ -132,10 +132,13 @@ void interface_gtk_close()
 
 void dl_close_scopes();
 
-int interface_gtk_start(CorePlayer *coreplayer, Playlist *playlist, int argc, char **argv)
+int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 {
 	char path[256];
 	char *home;
+	CorePlayer *coreplayer;
+
+	coreplayer = playlist->GetCorePlayer();
 
 	g_thread_init(NULL);
 	if (!g_thread_supported()) {
