@@ -2,7 +2,7 @@ if HAVE_ALSA_05X
 
 alsa_outltlibs = libalsa_out.la
 alsa_outldflags = -export-dynamic -avoid-version
-alsa_outsources = alsa_out.c
+alsa_outsources = alsa.c
 
 else
 
