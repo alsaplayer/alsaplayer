@@ -390,7 +390,7 @@ input_plugin mad_plugin =
 {
 	INPUT_PLUGIN_VERSION,
 	0,
-	{ "MAD plugin v0.9" },
+	{ "MAD MPEG audio plugin v0.91" },
 	{ "Andy Lo A Foe" },
 	NULL,
 	mad_init,

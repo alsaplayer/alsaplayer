@@ -423,7 +423,7 @@ int mpeg_stream_info(input_object *obj, stream_info *info)
 input_plugin mpg123_plugin = {
 		INPUT_PLUGIN_VERSION,
 		0,
-		{ "MPEG (mpg123) player v0.59r" },
+		{ "mpg123 MPEG player v0.59r (obsolete)" },
 		{ "Andy Lo A Foe <andy@alsa-project.org>" },
 		NULL,
 		mpeg_init,
