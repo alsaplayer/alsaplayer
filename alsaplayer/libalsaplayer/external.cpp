@@ -56,7 +56,7 @@ ap_connect_session (int session)
 
 
 int
-ap_read_packet (int fd, ap_pkt_t * pkt)
+ap_read_packet (int fd, ap_pkt_t *pkt)
 {
 	if (!pkt)
 		return -1;
@@ -100,6 +100,7 @@ ap_do (int session, ap_cmd_t cmd)
   pkt.pld_length = 0;
   ap_write_packet (fd, pkt);
   close (fd);
+	return 1;
 }
 
 
@@ -108,16 +109,27 @@ ap_get_int (int session, ap_cmd_t cmd, int *val)
 {
   ap_pkt_t pkt;
   int fd;
-  int state = -1;
 
   if ((fd = ap_connect_session (session)) == -1)
     return -1;
-  ap_read_packet (fd, &pkt);
-  if (pkt.pld_length == sizeof (int)) {
-    state = *(int *) pkt.payload;
-  }
-  close (fd);
-  return state;
+  pkt.cmd = cmd;
+  pkt.pld_length = 0;
+  if (ap_write_packet (fd, pkt) == -1) {
+		close(fd);
+		return -1;
+	}	
+  if (ap_read_packet (fd, &pkt) == -1) {
+		close(fd);
+		return -1;
+	}
+	close(fd);
+  if (pkt.pld_length) {
+    *val  = *(int *) pkt.payload;
+		free (pkt.payload);
+  } else {
+		return -1;
+	}	
+  return 1;
 }
 
 int
@@ -132,7 +144,6 @@ ap_set_int (int session, ap_cmd_t cmd, int val)
   pkt.payload = &val;
   ap_write_packet (fd, pkt);
   close (fd);
-
 	return 1;
 }
 
@@ -149,7 +160,6 @@ ap_set_float (int session, ap_cmd_t cmd, float val)
   pkt.payload = &val;
   ap_write_packet (fd, pkt);
   close (fd);
-
 	return 1;
 }
 
@@ -164,15 +174,21 @@ ap_get_float (int session, ap_cmd_t cmd, float *val)
 
   pkt.cmd = cmd;
   pkt.pld_length = 0;
-  if (ap_write_packet (fd, pkt) == -1)
+  if (ap_write_packet (fd, pkt) == -1) {
+		close(fd);
 		return -1;
-	if (ap_read_packet (fd, &pkt) == -1)
+	}	
+	if (ap_read_packet (fd, &pkt) == -1) {
+		close(fd);
 		return -1;
+	}
+	close(fd);
   if (pkt.pld_length) {
     *val = *(float *) pkt.payload;
     free (pkt.payload);
-  }
-  close (fd);
+  } else {
+		return -1;
+	}	
   return 1;
 }
 
@@ -189,9 +205,11 @@ int ap_set_string(int session, ap_cmd_t cmd, char *str)
 	pkt.pld_length = strlen(str);
 	pkt.payload = str;
 
-	ap_write_packet(fd, pkt);
+	if (ap_write_packet(fd, pkt) == -1) {
+		close(fd);
+		return -1;
+	}	
 	close(fd);
-	
 	return 1;
 }
 
@@ -201,20 +219,23 @@ ap_get_string(int session, ap_cmd_t cmd, char *result)
 {
 	ap_pkt_t pkt;
 	int fd;
-	
-	if ((fd = ap_connect_session (session)) == -1) 
+
+	if (!result || (fd = ap_connect_session (session)) == -1) 
 		return -1;
 	
 	pkt.cmd = cmd;
 	pkt.pld_length = 0;
 	ap_write_packet(fd, pkt);
 	ap_read_packet(fd, &pkt);
-	if (pkt.pld_length && result) {
+	if (pkt.pld_length) {
 		memcpy(result, pkt.payload, pkt.pld_length);
 		result[pkt.pld_length] = 0; // Null terminate the string
+		free(pkt.payload);
 	} else {
+		close(fd);
 		return -1;
 	}
+	close(fd);
 	return 1;
 }
 
