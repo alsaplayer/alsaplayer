@@ -60,12 +60,16 @@ static int include_stack_ptr = 0;
 static void new_toneset(int n);
 static void new_patch(const char *vname, int num);
 
+#include "xmap.h"
+
+static int map_col, map_row;
+
 %}
 
 %option noyywrap
 %option nounput
 
-%s P K S
+%s P K S M
 
 wh	[ \t]+
 owh	[ \t]*
@@ -283,7 +287,7 @@ cm	[ \t]*("#".*)?\n
 	current_drumset = SFXDRUM1;
 	doing_drums = 1;
 	doing_sf = 0;
-	new_toneset(current_toneset);
+	new_toneset(current_drumset);
 	font_type=FONT_NORMAL;
 	bank->name = "drumsfx1";
 }
@@ -291,9 +295,49 @@ cm	[ \t]*("#".*)?\n
 	current_drumset = SFXDRUM2;
 	doing_drums = 1;
 	doing_sf = 0;
-	new_toneset(current_toneset);
+	new_toneset(current_drumset);
 	font_type=FONT_NORMAL;
 	bank->name = "drumsfx2";
+}
+
+^"map"{wh}  {
+	BEGIN(M);
+	if (xmap[map_row][0]) {
+		if (xmap[map_row][1] == xmap[map_row][3] &&
+		    xmap[map_row][2] == xmap[map_row][4] )
+			xmap[map_row][0] = 0;
+		else if (map_row < XMAPMAX) map_row++;
+	}
+	map_col = -1;
+}
+
+<M>"xgsfx64" {
+	xmap[map_row][0] = SFXBANK;
+	map_col = 1;
+	current_toneset = SFXBANK;
+	doing_drums = 0;
+	doing_sf = 0;
+	new_toneset(current_toneset);
+	font_type=FONT_NORMAL;
+}
+<M>"xgsfx126" {
+	xmap[map_row][0] = SFXDRUM1;
+	map_col = 1;
+	current_drumset = SFXDRUM1;
+	doing_drums = 1;
+	doing_sf = 0;
+	new_toneset(current_drumset);
+	font_type=FONT_NORMAL;
+	bank->name = "drumsfx1";
+}
+<M>"xgdrum" {
+	xmap[map_row][0] = XGDRUM;
+	map_col = 1;
+}
+
+<M>{wh}[0-9]+ {
+	if (map_col >= 1 && map_col <= 4)
+		xmap[map_row][map_col++] = atoi(yytext);
 }
 
 ^{owh}"[Melodic Patches]" {
@@ -563,7 +607,7 @@ static int pc42b_config_file(const char *name, int prescan);
 
 int read_config_file(const char *name, int prescan)
 {
-	int retvalue = 0;
+	int retvalue = 0, i;
 	prescanning = prescan;
 	include_stack_ptr = 0;
 	rcf_count = 1;
@@ -584,14 +628,32 @@ int read_config_file(const char *name, int prescan)
 	   strcpy(current_config_file, current_filename);
 	}
 
+	for (i = 0; i < XMAPMAX; i++) xmap[i][0] = 0;
+	map_row = map_col = 0;
 	current_toneset = current_drumset = 0;
 	doing_drums = doing_sf = 0;
 	if (!(retvalue = yylex())) {
-	   /*if (prescan) got_a_configuration = 1;
-	   else*/ got_a_configuration = 2;
+	   if (prescan) got_a_configuration = 1;
+	   else got_a_configuration = 2;
 	}
 
+#if 0
+	if (!prescan) {
+		fprintf(stderr,"int xmap[][] = {\n");
 
+		for (i = 0; i < XMAPMAX; i++) {
+			 if (!xmap[i][0]) break;
+			fprintf(stderr,"{ %d, %d, %d, %d, %d }\n",
+				xmap[i][0],
+				xmap[i][1],
+				xmap[i][2],
+				xmap[i][3],
+				xmap[i][4]
+				);
+		}
+		fprintf(stderr,"};\n");
+	}
+#endif
 	close_file(yyin);
 	return retvalue;
 }
@@ -604,6 +666,25 @@ static int pc42b_config_file(const char *name, int prescan)
 	int i = 0;
 	prescanning = prescan;
 	rcf_count = 1;
+
+	doing_drums = 0;
+	new_toneset(3);
+	new_toneset(4);
+	new_toneset(5);
+	new_toneset(6);
+	new_toneset(7);
+	new_toneset(8);
+	new_toneset(9);
+	new_toneset(120);
+
+	doing_drums = 1;
+	new_toneset(26);
+	new_toneset(49);
+	new_toneset(50);
+	new_toneset(121);
+	new_toneset(122);
+	new_toneset(127);
+
 	current_toneset = current_drumset = 0;
 	doing_drums = doing_sf = 0;
 

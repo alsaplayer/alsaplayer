@@ -124,6 +124,7 @@ typedef struct {
 #define SFXBANK (MAXBANK-1)
 #define SFXDRUM1 (MAXBANK-2)
 #define SFXDRUM2 (MAXBANK-1)
+#define XGDRUM 1
 
 typedef struct {
   const char *name;
@@ -170,3 +171,6 @@ extern InstrumentLayer *load_sbk_patch(const char *name, int gm_num, int bank, i
 extern int current_tune_number;
 extern int max_patch_memory;
 extern int current_patch_memory;
+#define XMAPMAX 800
+extern int xmap[XMAPMAX][5];
+extern void pcmap(int *b, int *v, int *drums);

@@ -9,10 +9,11 @@ midi_insources = midi_engine.c common.c playmidi.c readmidi.c \
 	phaser_e.c celeste_e.c resample_l.c resample_f.c cfg.c dumb_c.c \
 	dumb_a.c b_out.c common.h controls.h effects.h filter.h gtim.h \
 	instrum.h mix.h output.h playmidi.h readmidi.h resample.h sbk.h \
-	sflayer.h tables.h version.h sf2cfg.c autocfg.c md.h PC42b.h
+	sflayer.h tables.h version.h sf2cfg.c autocfg.c md.h PC42b.h \
+	xmap.h pcmap.c
 
 noinst_HEADERS = gtim.h common.h readmidi.h playmidi.h resample.h mix.h instrum.h \
-	tables.h controls.h output.h filter.h md.h cfg.l PC42b.h
+	tables.h controls.h output.h filter.h md.h cfg.l PC42b.h xmap.h
 
 EXTRA_DIST = bootstrap
 

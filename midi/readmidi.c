@@ -60,7 +60,7 @@ static int32 quietchannels=0;
    large multiples, so it's simpler to have two roomy ints */
 /*static int32 sample_increment, sample_correction;*/ /*samples per MIDI delta-t*/
 
-#ifdef SFXDRUM
+#ifdef SFXDRUMOLD
 /* I seem not to be using these tables ... */
 static unsigned char sfxdrum1[100] = {
 0,0,0,0,0,0,0,0,0,0,
@@ -1033,6 +1033,32 @@ static void free_midi_list(struct md *d)
   d->evlist=0;
 }
 
+
+static void xremap_percussion(int *banknumpt, int *this_notept, int this_kit) {
+	int i, newmap;
+	int banknum = *banknumpt;
+	int this_note = *this_notept;
+	int newbank, newnote;
+
+	if (this_kit != 127 && this_kit != 126) return;
+
+	for (i = 0; i < XMAPMAX; i++) {
+		newmap = xmap[i][0];
+		if (!newmap) return;
+		if (this_kit == 127 && newmap != XGDRUM) continue;
+		if (this_kit == 126 && newmap != SFXDRUM1) continue;
+		if (xmap[i][1] != banknum) continue;
+		if (xmap[i][3] != this_note) continue;
+		newbank = xmap[i][2];
+		newnote = xmap[i][4];
+		if (newbank == banknum && newnote == this_note) return;
+		if (!drumset[newbank]) return;
+		*banknumpt = newbank;
+		*this_notept = newnote;
+		return;
+	}
+}
+
 /* Allocate an array of MidiEvents and fill it from the linked list of
    events, marking used instruments for loading. Convert event times to
    samples: handle tempo changes. Strip unnecessary events from the list.
@@ -1053,6 +1079,7 @@ static void groom_list(int32 divisions, struct md *d)
 #endif
   int current_bank[MAXCHAN], current_banktype[MAXCHAN], current_set[MAXCHAN],
     current_kit[MAXCHAN], current_program[MAXCHAN]; 
+  int dset, dnote;
   /* Or should each bank have its own current program? */
 
   for (i=0; i<MAXCHAN; i++)
@@ -1117,19 +1144,20 @@ static void groom_list(int32 divisions, struct md *d)
 	  }
 	  if (current_kit[meep->event.channel])
 	    {
+	      dset = meep->event.a;
 	      if (current_kit[meep->event.channel]==126)
 		{
 		  /* note request for 2nd sfx rhythm kit */
-		  if (meep->event.a && drumset[SFXDRUM2])
+		  if (dset && drumset[SFXDRUM2])
 		  {
 			 current_kit[meep->event.channel]=125;
 			 current_set[meep->event.channel]=SFXDRUM2;
-		         new_value=SFXDRUM2;
+		         dset=new_value=SFXDRUM2;
 		  }
-		  else if (!meep->event.a && drumset[SFXDRUM1])
+		  else if (!dset && drumset[SFXDRUM1])
 		  {
 			 current_set[meep->event.channel]=SFXDRUM1;
-		         new_value=SFXDRUM1;
+		         dset=new_value=SFXDRUM1;
 		  }
 		  else
 		  {
@@ -1139,12 +1167,12 @@ static void groom_list(int32 divisions, struct md *d)
 		  	break;
 		  }
 		}
-	      if (drumset[meep->event.a]) /* Is this a defined drumset? */
-		new_value=meep->event.a;
+	      if (drumset[dset]) /* Is this a defined drumset? */
+		new_value=dset;
 	      else
 		{
 		  ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,
-		       "Drum set %d is undefined", meep->event.a);
+		       "Drum set %d is undefined", dset);
 		  if (drumset[0])
 		      new_value=meep->event.a=0;
 		  else
@@ -1158,7 +1186,7 @@ static void groom_list(int32 divisions, struct md *d)
 	      else 
 		skip_this_event=1;
 	    }
-	  else
+	  else /* not percussion channel */
 	    {
 	      new_value=meep->event.a;
 #if 0
@@ -1187,30 +1215,34 @@ static void groom_list(int32 divisions, struct md *d)
 #endif
 	  if (!d->is_open)
 	    break;
-	  if (current_kit[meep->event.channel])
+	  if (current_kit[meep->event.channel]) /* percussion channel? */
 	    {
-	      int dset = current_set[meep->event.channel];
-#ifdef SFXDRUM
-	      int dnote=meep->event.a;
-
+	      int drumsflag = 1;
+	      dset = current_set[meep->event.channel];
+	      dnote=meep->event.a;
+#ifdef SFXDRUMOLD
 	      if (dnote>99) dnote=0;
 	      if (current_kit[meep->event.channel]==125)
-		meep->event.a=sfxdrum2[dnote];
+		dnote=meep->event.a=sfxdrum2[dnote];
 	      else if (current_kit[meep->event.channel]==126)
-		meep->event.a=sfxdrum1[dnote];
+		dnote=meep->event.a=sfxdrum1[dnote];
 #endif
+	      if (d->XG_System_On) xremap_percussion(&dset, &dnote, current_kit[meep->event.channel]);
+
+	      if (current_config_pc42b) pcmap(&dset, &dnote, &drumsflag);
+
 	      /* Mark this instrument to be loaded */
-	      if (!(drumset[dset]->tone[meep->event.a].layer))
+	      if (!(drumset[dset]->tone[dnote].layer))
 	       {
-		drumset[dset]->tone[meep->event.a].layer=
+		drumset[dset]->tone[dnote].layer=
 		    MAGIC_LOAD_INSTRUMENT;
 	       }
-	      else drumset[dset]->tone[meep->event.a].last_used
+	      else drumset[dset]->tone[dnote].last_used
 		 = current_tune_number;
 	      if (!d->channel[meep->event.channel].name) d->channel[meep->event.channel].name=
 		    drumset[dset]->name;
 	    }
-	  else
+	  else /* not percussion */
 	    {
 	      int chan=meep->event.channel;
 	      int banknum;
@@ -1220,6 +1252,10 @@ static void groom_list(int32 divisions, struct md *d)
 
 	      if (current_program[chan]==SPECIAL_PROGRAM)
 		break;
+
+	      if (d->XG_System_On && banknum==SFXBANK && tonebank[120]) 
+		      banknum = 120;
+
 	      /* Mark this instrument to be loaded */
 	      if (!(tonebank[banknum]->tone[current_program[chan]].layer))
 		{
@@ -1248,7 +1284,7 @@ static void groom_list(int32 divisions, struct md *d)
 	     if (d->is_open)
 	     {
 	      if (drumset[SFXDRUM1]) /* Is this a defined tone bank? */
-	        new_value=meep->event.a;
+	        new_value=126;
 	      else
 		{
 	          ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,

@@ -930,6 +930,38 @@ fprintf(stderr,"CHORUS_CLONE v%d vol%f pan%d chorus%d\n", w, d->voice[w].volume,
     }
 }
 
+static void xremap(int *banknumpt, int *this_notept, int this_kit) {
+	int i, newmap;
+	int banknum = *banknumpt;
+	int this_note = *this_notept;
+	int newbank, newnote;
+
+	if (!this_kit) {
+		if (banknum == SFXBANK && tonebank[120]) *banknumpt = 120;
+		return;
+	}
+
+	if (this_kit != 127 && this_kit != 126) return;
+
+	for (i = 0; i < XMAPMAX; i++) {
+		newmap = xmap[i][0];
+		if (!newmap) return;
+		if (this_kit == 127 && newmap != XGDRUM) continue;
+		if (this_kit == 126 && newmap != SFXDRUM1) continue;
+		if (xmap[i][1] != banknum) continue;
+		if (xmap[i][3] != this_note) continue;
+		newbank = xmap[i][2];
+		newnote = xmap[i][4];
+		if (newbank == banknum && newnote == this_note) return;
+		if (!drumset[newbank]) return;
+		if (!drumset[newbank]->tone[newnote].layer) return;
+		if (drumset[newbank]->tone[newnote].layer == MAGIC_LOAD_INSTRUMENT) return;
+		*banknumpt = newbank;
+		*this_notept = newnote;
+		return;
+	}
+}
+
 static void start_note(MidiEvent *e, int i, struct md *d)
 {
   InstrumentLayer *lp;
@@ -940,19 +972,26 @@ static void start_note(MidiEvent *e, int i, struct md *d)
   int attacktime, releasetime, decaytime, variationbank;
   int brightness = d->channel[ch].brightness;
   int harmoniccontent = d->channel[ch].harmoniccontent;
+  int this_note = e->a;
+  int this_velocity = e->b;
+  int drumsflag = d->channel[ch].kit;
 
   if (check_for_rc()) return;
 
   if (d->channel[ch].sfx) banknum=d->channel[ch].sfx;
   else banknum=d->channel[ch].bank;
 
-  d->voice[i].velocity=e->b;
+  d->voice[i].velocity=this_velocity;
+
+  if (d->XG_System_On) xremap(&banknum, &this_note, d->channel[ch].kit);
+
+  if (current_config_pc42b) pcmap(&banknum, &this_note, &drumsflag);
 
   if (d->channel[ch].kit)
     {
-      if (!(lp=drumset[banknum]->tone[e->a].layer))
+      if (!(lp=drumset[banknum]->tone[this_note].layer))
 	{
-	  if (!(lp=drumset[0]->tone[e->a].layer))
+	  if (!(lp=drumset[0]->tone[this_note].layer))
 	    return; /* No instrument? Then we can't play. */
 	}
       ip = lp->instrument;
@@ -969,7 +1008,7 @@ static void start_note(MidiEvent *e, int i, struct md *d)
 	  drumpan=d->drumpanpot[ch][(int)ip->sample->note_to_use];
 	}
       else
-	d->voice[i].orig_frequency=freq_table[e->a & 0x7F];
+	d->voice[i].orig_frequency=freq_table[this_note & 0x7F];
     }
   else
     {
@@ -985,7 +1024,7 @@ static void start_note(MidiEvent *e, int i, struct md *d)
       if (ip->sample->note_to_use) /* Fixed-pitch instrument? */
 	d->voice[i].orig_frequency=freq_table[(int)(ip->sample->note_to_use)];
       else
-	d->voice[i].orig_frequency=freq_table[e->a & 0x7F];
+	d->voice[i].orig_frequency=freq_table[this_note & 0x7F];
     } /* not drum channel */
 
     select_stereo_samples(i, lp, d);
@@ -993,7 +1032,9 @@ static void start_note(MidiEvent *e, int i, struct md *d)
 
     d->voice[i].starttime = e->time;
     played_note = d->voice[i].sample->note_to_use;
-    if (!played_note) played_note = e->a & 0x7f;
+
+/* for non-percussion, always use the note in the music (may be sfx bank) */ 
+    if (!played_note || !d->channel[ch].kit) played_note = this_note & 0x7f;
     played_note = ( (played_note - d->voice[i].sample->freq_center) * d->voice[i].sample->freq_scale ) / 1024 +
 		d->voice[i].sample->freq_center;
     d->voice[i].note = played_note;
@@ -1001,11 +1042,8 @@ static void start_note(MidiEvent *e, int i, struct md *d)
 
   d->voice[i].status=VOICE_ON;
   d->voice[i].channel=ch;
-  d->voice[i].note=e->a;
-  d->voice[i].velocity= (e->b * (127 - d->voice[i].sample->attenuation)) / 127;
-#if 0
-  d->voice[i].velocity=e->b;
-#endif
+/* Check this! */
+  d->voice[i].velocity= (this_velocity * (127 - d->voice[i].sample->attenuation)) / 127;
   d->voice[i].sample_offset=0;
   d->voice[i].sample_increment=0; /* make sure it isn't negative */
   /* why am I copying loop points? */
