@@ -582,12 +582,15 @@ void Playlist::Insert(std::vector<std::string> const & paths, unsigned position,
 	// b) risk getting caught in a deadlock when we call the interface to
 	//    inform it of the change
 // FIXME: race conditions ahead!
-#if 0
+#if 1 
 	pthread_create(&adder, NULL,
 				   (void * (*)(void *))insert_looper, (void *)items);
 	if (wait_for_insert)
 		pthread_join(adder, NULL);
 #else
+	// This will cause a deadlock because we assume that insert
+	// looper is called from another thread. The GTK+ GUI will thus
+	// acquire the GDK lock twice -> deadlock. :-(
 	insert_looper(items);
 #endif
 }
