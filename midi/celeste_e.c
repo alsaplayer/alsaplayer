@@ -223,8 +223,8 @@ static void CtrlChange( celeste_effect* pThis , MidiEvent* pCurrentEvent )
 	int amount = pCurrentEvent->a;
 	if (amount < global_chorus) amount = global_chorus;
 
-	if( pCurrentEvent->b ==  ME_CELESTE ||
-	    (pCurrentEvent->b ==  ME_CHORUSDEPTH && XG_effect_chorus_is_celeste_flag) )
+	if( pCurrentEvent->type ==  ME_CELESTE ||
+	    (pCurrentEvent->type ==  ME_CHORUSDEPTH && XG_effect_chorus_is_celeste_flag) )
 	{
 		if( amount != 0 )
 		{

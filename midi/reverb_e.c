@@ -302,7 +302,9 @@ static void CtrlChange( reverb_effect* pThis , MidiEvent* pCurrentEvent )
 	int amount = pCurrentEvent->a;
 	if (amount < global_reverb) amount = global_reverb;
 
-	if( pCurrentEvent->b ==  ME_REVERBERATION )
+	if (!opt_effect_reverb) return;
+
+	if( pCurrentEvent->type ==  ME_REVERBERATION )
 	{
 		if( amount != 0 )
 		{

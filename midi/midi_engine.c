@@ -297,8 +297,10 @@ static int midi_truly_open(struct md *d)
 #endif
 	if (!got_a_configuration) init_midi();
 
+#ifdef CHANNEL_EFFECT
 	init_effect(d);
 	effect_activate(TRUE);
+#endif
   	flushing_output_device = FALSE;
 	play_mode->purge_output(d);
 

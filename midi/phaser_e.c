@@ -266,8 +266,8 @@ static void CtrlReset( phaser_effect* pThis )
 
 static void CtrlChange( phaser_effect* pThis , MidiEvent* pCurrentEvent )
 {
-	if( pCurrentEvent->b ==  ME_PHASER ||
-	    (pCurrentEvent->b ==  ME_CHORUSDEPTH && XG_effect_chorus_is_phaser_flag) )
+	if( pCurrentEvent->type ==  ME_PHASER ||
+	    (pCurrentEvent->type ==  ME_CHORUSDEPTH && XG_effect_chorus_is_phaser_flag) )
 	{
 		if( pCurrentEvent->a != 0 )
 		{

@@ -190,6 +190,7 @@ void effect_activate( int iSwitch ) ;
 #endif /*EFFECTS_H*/
 /****************************************************************************************/
 extern int opt_effect;
+extern int opt_effect_reverb;
 extern Effect* ChorusCtor(void) ;
 extern Effect* PhaserCtor(void) ;
 extern Effect* CelesteCtor(void) ;

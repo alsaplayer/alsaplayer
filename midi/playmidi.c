@@ -53,6 +53,7 @@
 extern void effect_ctrl_change( MidiEvent* pCurrentEvent, struct md *d );
 extern void effect_ctrl_reset( int idChannel, struct md *d ) ;
 int opt_effect = FALSE;
+int opt_effect_reverb = FALSE;
 #endif /* CHANNEL_EFFECT */
 /*<95GUI_MODIF_END>*/
 
@@ -1939,7 +1940,7 @@ static void seek_forward(uint32 until_time, struct md *d)
 	case ME_REVERBERATION:
 	 if (global_reverb > d->current_event->a) break;
 #ifdef CHANNEL_EFFECT
-	 if (opt_effect)
+	 if (opt_effect_reverb)
 	  effect_ctrl_change( d->current_event, d ) ;
 	 else
 #endif
@@ -2424,7 +2425,7 @@ int play_some_midi(struct md *d)
 	    case ME_REVERBERATION:
 	 if (global_reverb > d->current_event->a) break;
 #ifdef CHANNEL_EFFECT
-	 if (opt_effect)
+	 if (opt_effect_reverb)
 	      effect_ctrl_change( d->current_event, d ) ;
 	 else
 #endif
@@ -2434,8 +2435,11 @@ int play_some_midi(struct md *d)
 	    case ME_CHORUSDEPTH:
 	 if (global_chorus > d->current_event->a) break;
 #ifdef CHANNEL_EFFECT
-	 if (opt_effect)
-	      effect_ctrl_change( d->current_event, d ) ;
+	 if (opt_effect) {
+	  if (XG_effect_chorus_is_celeste_flag) d->current_event->type = ME_CELESTE;
+	  else if (XG_effect_chorus_is_phaser_flag) d->current_event->type = ME_PHASER;
+	  effect_ctrl_change( d->current_event, d ) ;
+	 }
 	 else
 #endif
 	      d->channel[d->current_event->channel].chorusdepth=d->current_event->a;
