@@ -205,7 +205,7 @@ GtkWidget *init_monoscope_window()
 	for (i = 1; i < 32; i++) {
 		GdkColor color;
 		colors[i] = (i*8 << 16) +(255 << 8);
-		colors[i+32] = (255 << 16) + (((31 - i) * 8) << 8);
+		colors[i+31] = (255 << 16) + (((31 - i) * 8) << 8);
   	}
 	colors[64] = (40 << 16) + (75 << 8);
 	color_map = gdk_rgb_cmap_new(colors, 65);
