@@ -75,6 +75,7 @@ class AlsaNode
 	char *driver_args;
 	char client_name[32];
 	bool realtime_sched;
+	bool thread_running;
 	bool init;
 	bool looping;
 	static void looper(void *);

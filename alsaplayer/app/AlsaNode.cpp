@@ -66,6 +66,7 @@ AlsaNode::AlsaNode(const char *name, const char *args, int realtime)
 	driver_args = NULL;
 	nr_fragments = fragment_size = external_latency = 0;	
 	init = false;
+	thread_running = false;
 	realtime_sched = realtime;
 	sample_freq = OUTPUT_RATE;
 
@@ -461,6 +462,7 @@ void AlsaNode::StartStreaming()
 		return;
 	} 
 	pthread_create(&looper_thread, NULL, (void * (*)(void *))looper, this);
+	thread_running = true;
 }
 
 
@@ -473,9 +475,12 @@ void AlsaNode::StopStreaming()
 	}	
 	
 	looping = false;
-	if (pthread_join(looper_thread, NULL)) {
-		// Hmmm
-	}
+	if (thread_running) {
+		if (pthread_join(looper_thread, NULL)) {
+			// Hmmm
+		}
+		thread_running = false;
+	}	
 }
 
 
