@@ -17,6 +17,7 @@
  */
 
 #include <unistd.h>
+#include <sys/types.h>
 #include "config.h"
 //#define NEW_SCALE
 //#define TESTING

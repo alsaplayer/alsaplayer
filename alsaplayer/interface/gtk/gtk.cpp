@@ -150,7 +150,10 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 	scopes = new AlsaSubscriber();
 	scopes->Subscribe(coreplayer->GetNode(), POS_END);
 	scopes->EnterStream(scope_feeder_func, coreplayer);
-	
+
+	if (geteuid() == 0) // Drop root if we run suid root
+		setuid(getuid());
+
 	gtk_set_locale();
 	gtk_init(&argc, &argv);
 	gdk_rgb_init();
