@@ -198,7 +198,7 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 			return 0;	
 		obj->nr_channels = vi->channels;
 		if (vi->channels > 2) {
-			alsaplayer_error("Bah 2");
+			alsaplayer_error("vorbis_engine: no support for 2+ channels");
 			return 0;
 		}
 		data->last_section = data->current_section;
