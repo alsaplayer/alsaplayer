@@ -44,6 +44,8 @@ typedef enum  {
 	AP_GET_INT_CURRENT_TIME,
 	AP_SET_INT_POS_SECOND,
 	AP_GET_INT_POS_SECOND,
+	AP_SET_INT_POS_FRAME,
+	AP_GET_INT_POS_FRAME
 } ap_cmd_t;	
 
 int ap_connect_session(int session);

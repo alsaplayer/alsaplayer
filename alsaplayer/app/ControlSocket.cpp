@@ -201,6 +201,24 @@ void socket_looper(void *arg)
 						}
 					}
 					break;
+				case AP_GET_INT_POS_FRAME:
+					player = playlist->GetCorePlayer();
+					if (player) {
+						int_val = player->GetPosition();
+						pkt.pld_length = sizeof(int);
+						write (fd, &pkt, sizeof(ap_pkt_t));
+						write (fd, &int_val, sizeof(int));
+					}
+					break;
+				case AP_SET_INT_POS_FRAME:
+					player = playlist->GetCorePlayer();
+					if (player) {
+						if (pkt.pld_length && data) {
+							int_val = *(int *)data;
+							player->Seek(int_val);
+						}
+					}
+					break;
 				default: alsaplayer_error("CMD = %x\n", pkt.cmd);
 					break;
 			}

@@ -327,11 +327,10 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 
 				if (data) {
 								sprintf(info->title, "Unparsed: %s", data->filename);				
-								sprintf(info->stream_type, "%d-bit %dKHz %s %d Kbit/s Audio MPEG",
-																16, data->frame.header.samplerate / 1000,
-																obj->nr_channels == 2 ? "stereo" : "mono",
-																data->frame.header.bitrate / 1000);
-																
+								sprintf(info->stream_type, "%dKHz %dkbit %s audio mpeg",
+																data->frame.header.samplerate / 1000,
+																data->frame.header.bitrate / 1000,
+																obj->nr_channels == 2 ? "stereo" : "mono");
 				}				
 				return 1;
 }
