@@ -24,14 +24,13 @@
 #ifndef __utilities_h__
 #define __utilities_h__
 #ifdef __cplusplus
-#include "cpp_utilities.h"
 extern "C" {
 #endif
 
 // Magic macros for stringizing
 #define STRINGISE(a) _STRINGISE(a)	// Not sure why this is needed, but
-									// sometimes fails without it.
-#define _STRINGISE(a) #a			// Now do the stringising
+					// sometimes fails without it.
+#define _STRINGISE(a) #a		// Now do the stringising
 
 // Sleep for specified number of micro-seconds
 // Used by scopes and things, so use C-style linkage
