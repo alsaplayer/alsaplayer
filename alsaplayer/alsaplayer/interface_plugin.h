@@ -33,7 +33,8 @@
  * THE VERSION NUMBER IS *NOT* A USER SERVICABLE PART!
  */
 
-#define INTERFACE_PLUGIN_VERSION    0x1003
+#define INTERFACE_PLUGIN_BASE_VERSION	0x1000
+#define INTERFACE_PLUGIN_VERSION	(INTERFACE_PLUGIN_BASE_VERSION + 4)
 
 typedef int interface_version_type;
 typedef int(*interface_init_type)();
@@ -45,8 +46,8 @@ typedef void(*interface_close_type)();
 typedef struct _interface_plugin
 {
 	interface_version_type version;		
-	char name[256];
-	char author[256];
+	char *name;
+	char *author;
 	void *handle;
 	interface_init_type init;
 	interface_start_type start;

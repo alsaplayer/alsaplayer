@@ -91,6 +91,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	virtual int Read32(void *, int);
 	virtual int SetDirection(int dir);
 	virtual int GetDirection() { return read_direction; }
+	virtual void Close();
 	void load_input_addons();
 	void UnregisterPlugins();
 	void Lock();
@@ -126,8 +127,8 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	// This one is temporary
 	virtual int GetLatency() { if (node) return node->GetLatency(); else return 0; }
 
-	virtual bool Open(const char *path = NULL);
-	virtual void Close();
+	virtual bool Load(const char *path = NULL);
+	virtual void Unload();
 	virtual bool Start(int reset=1);
 	virtual void Stop(int streamer=1);
 	virtual int Seek(int pos);

@@ -22,5 +22,6 @@
 extern char *global_session_name;
 extern int global_verbose;
 extern int global_session_id;
+extern int global_quiet;
 
 #endif

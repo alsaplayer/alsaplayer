@@ -161,7 +161,7 @@ public:
 
 	// Remove tracks from position start to end inclusive
 	// Position 1 is first track, n is last track where n is length of list
-	void Remove(unsigned start, unsigned end);
+	void Remove(unsigned start, unsigned end, int locking=0);
 
 	// Shuffle playlist
 	void Shuffle(int locking=0);

@@ -30,7 +30,7 @@
  * THE VERSION NUMBER IS *NOT* A USER SERVICABLE PART!
  */
 
-#define SCOPE_PLUGIN_VERSION    0x1005
+#define SCOPE_PLUGIN_VERSION    0x1006
 
 #define SCOPE_NICE	10	
 #define SCOPE_SLEEP 20000
@@ -50,8 +50,8 @@ typedef void(*scope_set_fft_type)(void *, int, int);
 typedef struct _scope_plugin
 {
 	scope_version_type version;		
-	char name[256];
-	char author[256];
+	char *name;
+	char *author;
 	void *handle;
 	scope_init_type init;
 	scope_start_type start;

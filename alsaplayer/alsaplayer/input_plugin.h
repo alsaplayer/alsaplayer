@@ -23,12 +23,7 @@
 #ifndef __input_plugin_h__
 #define __input_plugin_h__
 
-#define NEW_PLAY	1
-
 #include <pthread.h>
-#ifndef NEW_PLAY
-#include "SampleBuffer.h"
-#endif
 
 #define	P_SEEK		1
 #define P_PERFECTSEEK	2
@@ -44,8 +39,13 @@
  */
 
 #define INPUT_PLUGIN_BASE_VERSION	0x1000
-#define INPUT_PLUGIN_VERSION	(INPUT_PLUGIN_BASE_VERSION + 10)
+#define INPUT_PLUGIN_VERSION	(INPUT_PLUGIN_BASE_VERSION + 11)
 
+/**
+ * This is a structure that keeps frequently used parameters of the
+ * an input instance. It also contains a pointer to any local_data
+ * that might be allocated by the plugin itself.
+ */ 
 typedef struct _input_object
 {
 	int ready;			
@@ -54,13 +54,15 @@ typedef struct _input_object
 	int nr_tracks;
 	int nr_channels;
 	int frame_size;
-#ifndef NEW_PLAY	
-	SampleBuffer *write_buffer;
-#endif
 	void *local_data;
 	pthread_mutex_t	object_mutex;
 } input_object;
 
+
+/**
+ * This structure is used to pass information about a stream/song from
+ * the plugin to the host.
+ */
 typedef struct _stream_info
 {
 	char	stream_type[128];
@@ -69,47 +71,71 @@ typedef struct _stream_info
 	char	status[32];
 } stream_info;
 
+/* plugin binary version */
+typedef int input_version_type;
 
-typedef int input_version_type;		/* plugin binary version */
-typedef int input_flags_type;		/* capability flags for this plugin */
-typedef int(*input_init_type)();	/* Init plugin */
-typedef void(*input_shutdown_type)(); /* Prepare the plugin for removal */
-typedef void* input_plugin_handle_type; 
-									/* Handle for plugin. Filled in by AP */
+/* capability flags for this plugin */
+typedef int input_flags_type;
+
+/* Init plugin */
+typedef int(*input_init_type)();
+
+/* Prepare the plugin for removal */
+typedef void(*input_shutdown_type)();
+
+/* Handle for plugin. Filled in by the host */
+typedef void* input_plugin_handle_type;
+
+/* Returns a rating between 0.0 and 1.0 for how
+ * well this plugin can handle the given path
+ * 1.0 = Excellent
+ * 0.0 = Huh?
+ */
 typedef float(*input_can_handle_type)(const char *);
-									/* Returns a number between 1.0
-									   and 0.0 - 1.0 = Good, 0.0 = Huh? */
+
+/* Open a source object */
 typedef int(*input_open_type)(input_object *, char *);
-									/* Open a source object */
+
+/* Close, doh! */
 typedef void(*input_close_type)(input_object *);
-									/* Close, doh! */
+
+/* Play a single frame */
 typedef int(*input_play_frame_type)(input_object *, char *buffer);
-									/* Play a single frame */
+
+/* Seek to a specific frame number */
 typedef int(*input_frame_seek_type)(input_object *,int);
-									/* Seek to a specific frame number */
+
+/* Returns the frame size in bytes */
 typedef int(*input_frame_size_type)(input_object *);
-									/* Returns the frame size in bytes */
+
+/* Number of frames */
 typedef int(*input_nr_frames_type)(input_object *);
-									/* Number of frames */
+
+/* Frame to 100th of a second conversion (centiseconds) */
 typedef  long(*input_frame_to_sec_type)(input_object *,int);
-									/* Frame to 100th of a second conversion */
+
+/* Returns the sample rate */
 typedef int(*input_sample_rate_type)(input_object *);
-									/* Returns the sample rate */
+
+/* Returns number of channels */
 typedef int(*input_channels_type)(input_object *);
-									/* Returns number of channels */
+
+/* Return stream info */
 typedef int(*input_stream_info_type)(input_object *,stream_info *);
-									/* Return stream info */
+
+/* Return number of tracks. Optional */
 typedef int(*input_nr_tracks_type)(input_object *);
-									/* Return number of tracks */
+
+/* Seek to a track. Optional */
 typedef int(*input_track_seek_type)(input_object *, int);
-									/* Seek to a track */
+
 
 typedef struct _input_plugin
 {
 	input_version_type version;	
 	input_flags_type	flags;
-	char name[256];
-	char author[256];
+	char *name;
+	char *author;
 	void *handle;
 	input_init_type init;
 	input_shutdown_type shutdown;
