@@ -22,9 +22,9 @@
 
 #include <glib-object.h>
 
+#include "object.h"
 #include "playitem.h"
 
-/* TODO: Document it for gtkdoc */
 /* TODO: Make i18n oneday. */
 #define _(s) (s)
 
@@ -57,7 +57,6 @@ static void	ap_playitem_finalize	    (GObject		*object);
 
 /* --- variables --- */
 static gpointer			    parent_class = NULL;
-static GStaticMutex		    ref_mutex = G_STATIC_MUTEX_INIT;
 
 /* --- functions --- */
 static void
@@ -177,9 +176,6 @@ ap_playitem_init (ApPlayItem *playitem)
     playitem->year = 0;
     playitem->track = 0;
     playitem->playtime = 0;
-
-    /* Create mutex for this item */
-    playitem->mutex = g_mutex_new ();
 } /* playitem_init */
 
 static void
@@ -204,10 +200,7 @@ ap_playitem_finalize (GObject *object)
 
     if (playitem->comment)
 	g_free (playitem->comment);
-
-    /* Destroy local mutex */
-    g_mutex_free (playitem->mutex);
-    
+   
     G_OBJECT_CLASS (parent_class)->finalize (object);
 } /* ap_playitem_finalize */
 
@@ -289,15 +282,14 @@ ap_playitem_get_property (GObject	*object,
     }
 } /* ap_playitem_set_property */
 
-/* Public functions. */
+/* ******************************************************************** */
+/* Public functions.                                                    */
 
 /**
- * ap_playitem_get_type:
+ * @brief	    Register the #ApPlayItemClass if necessary,
+ *		    and returns the type ID associated to it.
  *
- * Register the #ApPlayItemClass if necessary,
- * and returns the type ID associated to it.
- *
- * Return value: The type ID of the &ApPlayItemClass.
+ * @return	    The type ID of the #ApPlayItemClass.
  **/
 GType
 ap_playitem_get_type (void)
@@ -318,7 +310,7 @@ ap_playitem_get_type (void)
 
     if (!type) {
 	/* First time create */
-	type = g_type_register_static (G_TYPE_OBJECT,	/* Parent Type */
+	type = g_type_register_static (AP_TYPE_OBJECT,	/* Parent Type */
 				"ApPlayItem",		/* Name */
 				&playitem_info,		/* Type Info */
 				0);			/* Flags */
@@ -328,15 +320,14 @@ ap_playitem_get_type (void)
 }; /* ap_playitem_object_get_type */
 
 /**
- * ap_playitem_new:
- * @filename: the filename of the item
+ * @param filename	The filename of the item.
  *
- * Create a new playitem with given filename for it.
+ * @brief		Create a new playitem with given filename for it.
  *
- * You should only call ap_playitem_new() with the NULL parameter
- * if you really know what you are doing.
+ * @note		You should only call ap_playitem_new() with the 
+ *			NULL parameter if you really know what you are doing.
  *
- * Return value: a new #ApPlayItem.
+ * @return		A new #ApPlayItem.
  **/
 ApPlayItem*
 ap_playitem_new (const gchar *filename)
@@ -353,17 +344,18 @@ ap_playitem_new (const gchar *filename)
 } /* ap_playitem_new */
 
 /**
- * ap_playitem_set_filename:
- * @playitem: an #ApPlayItem
- * @filename: the new filename
+ * @param playitem	An #ApPlayItem.
+ * @param filename	The new filename.
  *
- * Sets the new @filename for @playitem.
+ * @brief		Sets the new filename for playitem.
  *
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *
- * This function is only useful inside info looper.
+ * @warning		This function is only useful inside info looper.
+ *
+ * @see			ap_playitem_get_filename()
  **/
 void
 ap_playitem_set_filename (ApPlayItem *playitem, const gchar *filename)
@@ -378,16 +370,17 @@ ap_playitem_set_filename (ApPlayItem *playitem, const gchar *filename)
 } /* ap_playitem_set_filename */
 
 /**
- * ap_playitem_get_filename:
- * @playitem: an #ApPlayItem
+ * @param playitem	An #ApPlayItem.
  *
- * Gets the value set by ap_playitem_set_filename().
+ * @brief		Gets the value set by ap_playitem_set_filename().
  *
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *
- * Return value: pointer to a filename string.
+ * @return		Pointer to a filename string.
+ *
+ * @see			ap_playitem_get_filename()
  **/
 G_CONST_RETURN gchar *
 ap_playitem_get_filename (ApPlayItem *playitem)
@@ -398,17 +391,18 @@ ap_playitem_get_filename (ApPlayItem *playitem)
 } /* playitem_get_filename */
 
 /**
- * ap_playitem_set_title:
- * @playitem: an #ApPlayItem
- * @title: the new title name
+ * @param playitem	An #ApPlayItem.
+ * @param title		The new title name.
  *
- * Sets the new @title name for @playitem.
+ * @brief		Sets the new title name for playitem.
  *
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *
- * This function is only useful inside info looper.
+ * @warning		This function is only useful inside info looper.
+ *
+ * @see			ap_playitem_get_title()
  **/
 void
 ap_playitem_set_title (ApPlayItem *playitem, const gchar *title)
@@ -423,16 +417,17 @@ ap_playitem_set_title (ApPlayItem *playitem, const gchar *title)
 } /* ap_playitem_set_title */
 
 /**
- * ap_playitem_get_title:
- * @playitem: an #ApPlayItem
+ * @param playitem	An #ApPlayItem.
  *
- * Gets the value set by ap_playitem_set_title().
+ * @brief		Gets the value set by ap_playitem_set_title().
  *
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *
- * Return value: pointer to a title string.
+ * @return		Pointer to a title string.
+ *
+ * @see			ap_playitem_set_title()
  **/
 G_CONST_RETURN gchar *
 ap_playitem_get_title (ApPlayItem *playitem)
@@ -443,17 +438,18 @@ ap_playitem_get_title (ApPlayItem *playitem)
 } /* playitem_get_title */
 
 /**
- * ap_playitem_set_artist:
- * @playitem: an #ApPlayItem
- * @artist: the new artist
+ * @param playitem	An #ApPlayItem.
+ * @param artist	The new artist.
  *
- * Sets the new @artist name for @playitem.
+ * @brief		Sets the new artist name for playitem.
  *
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *
- * This function is only useful inside info looper.
+ * @warning		This function is only useful inside info looper.
+ *
+ * @see			ap_playitem_get_artist()
  **/
 void
 ap_playitem_set_artist (ApPlayItem *playitem, const gchar *artist)
@@ -468,16 +464,17 @@ ap_playitem_set_artist (ApPlayItem *playitem, const gchar *artist)
 } /* ap_playitem_set_artist */
 
 /**
- * ap_playitem_get_artist:
- * @playitem: an #ApPlayItem
+ * @param playitem	An #ApPlayItem.
  *
- * Gets the value set by ap_playitem_set_artist().
+ * @brief		Gets the value set by ap_playitem_set_artist().
  *
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *
- * Return value: pointer to an artist string.
+ * @return		Pointer to an artist string.
+ *
+ * @see			ap_playitem_set_artist()
  **/
 G_CONST_RETURN gchar *
 ap_playitem_get_artist (ApPlayItem *playitem)
@@ -488,17 +485,18 @@ ap_playitem_get_artist (ApPlayItem *playitem)
 } /* ap_playitem_get_artist */
 
 /**
- * ap_playitem_set_album:
- * @playitem: an #ApPlayItem
- * @album: the new album
+ * @param playitem	An #ApPlayItem.
+ * @param album		The new album.
  *
- * Sets the new @album name for @playitem.
+ * @brief		Sets the new album name for playitem.
  *
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *
- * This function is only useful inside info looper.
+ * @warning		This function is only useful inside info looper.
+ *
+ * @see			ap_playitem_get_album()
  **/
 void
 ap_playitem_set_album (ApPlayItem *playitem, const gchar *album)
@@ -513,16 +511,17 @@ ap_playitem_set_album (ApPlayItem *playitem, const gchar *album)
 } /* ap_playitem_set_album */
 
 /**
- * ap_playitem_get_album:
- * @playitem: an #ApPlayItem
+ * @param playitem	An #ApPlayItem.
  *
- * Gets the value set by ap_playitem_set_album().
+ * @brief		Gets the value set by ap_playitem_set_album().
  *
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *
- * Return value: pointer to an album string.
+ * @return		Pointer to an album string.
+ *
+ * @see			ap_playitem_set_album()
  **/
 G_CONST_RETURN gchar *
 ap_playitem_get_album (ApPlayItem *playitem)
@@ -533,17 +532,18 @@ ap_playitem_get_album (ApPlayItem *playitem)
 } /* ap_playitem_get_album */
 
 /**
- * ap_playitem_set_genre:
- * @playitem: an #ApPlayItem
- * @genre: the new genre
+ * @param playitem	An #ApPlayItem.
+ * @param genre		The new genre.
  *
- * Sets the new @genre name for @playitem.
+ * @brief		Sets the new genre name for playitem.
  *                                                
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *                                                 
- * This function is only useful inside info looper.
+ * @warning		This function is only useful inside info looper.
+ *
+ * @see			ap_playitem_get_genre()
  **/
 void
 ap_playitem_set_genre (ApPlayItem *playitem, const gchar *genre)
@@ -558,16 +558,17 @@ ap_playitem_set_genre (ApPlayItem *playitem, const gchar *genre)
 } /* ap_playitem_set_genre */
 
 /**
- * ap_playitem_get_genre:
- * @playitem: an #ApPlayItem
+ * @param playitem	An #ApPlayItem.
  * 
- * Gets the value set by ap_playitem_set_genre().
+ * @brief		Gets the value set by ap_playitem_set_genre().
  *
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *
- * Return value: pointer to a genre string.
+ * @return		Pointer to a genre string.
+ *
+ * @see			ap_playitem_set_genre()
  **/
 G_CONST_RETURN gchar *
 ap_playitem_get_genre (ApPlayItem *playitem)
@@ -578,17 +579,18 @@ ap_playitem_get_genre (ApPlayItem *playitem)
 } /* ap_playitem_get_genre */
 
 /**
- * ap_playitem_set_comment:
- * @playitem: an #ApPlayItem
- * @comment: the new comment
+ * @param playitem	An #ApPlayItem.
+ * @param comment	The new comment.
  *
- * Sets the new @comment string for @playitem.
+ * @brief		Sets the new comment string for playitem.
  *                                                
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *                                                 
- * This function is only useful inside info looper.
+ * @warning		This function is only useful inside info looper.
+ *
+ * @see			ap_playitem_get_comment()
  **/
 void
 ap_playitem_set_comment (ApPlayItem *playitem, const gchar *comment)
@@ -603,16 +605,17 @@ ap_playitem_set_comment (ApPlayItem *playitem, const gchar *comment)
 } /* ap_playitem_set_comment */
 
 /**
- * ap_playitem_get_comment:
- * @playitem: an #ApPlayItem
+ * @param playitem	An #ApPlayItem.
  * 
- * Gets the value set by ap_playitem_set_comment().
+ * @brief		Gets the value set by ap_playitem_set_comment().
  *
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *
- * Return value: pointer to a comment string.
+ * @return		Pointer to a comment string.
+ *
+ * @see			ap_playitem_set_comment()
  **/
 G_CONST_RETURN gchar *
 ap_playitem_get_comment (ApPlayItem *playitem)
@@ -623,17 +626,18 @@ ap_playitem_get_comment (ApPlayItem *playitem)
 } /* ap_playitem_get_comment */
 
 /**
- * ap_playitem_set_year:
- * @playitem: an #ApPlayItem
- * @year: the new year value
+ * @param playitem	An #ApPlayItem.
+ * @param year		The new year value.
  *
- * Sets the @year value for @playitem.
+ * @brief		Sets the year value for playitem.
  *                                                
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *                                                 
- * This function is only useful inside info looper.
+ * @warning		This function is only useful inside info looper.
+ *
+ * @see			ap_playitem_get_year()
  **/
 void
 ap_playitem_set_year (ApPlayItem *playitem, guint year)
@@ -644,16 +648,17 @@ ap_playitem_set_year (ApPlayItem *playitem, guint year)
 } /* ap_playitem_set_year */
 
 /**
- * ap_playitem_get_year:
- * @playitem: an #ApPlayItem
+ * @param playitem	An #ApPlayItem.
  * 
- * Gets the value set by ap_playitem_set_year().
+ * @brief		Gets the value set by ap_playitem_set_year().
  *
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *
- * Return value: year value.
+ * @return		Year value.
+ *
+ * @see			ap_playitem_set_year()
  **/
 guint
 ap_playitem_get_year (ApPlayItem *playitem)
@@ -664,17 +669,18 @@ ap_playitem_get_year (ApPlayItem *playitem)
 } /* ap_playitem_get_year */
 
 /**
- * ap_playitem_set_track:
- * @playitem: an #ApPlayItem
- * @track: the new track number value
+ * @param playitem	An #ApPlayItem.
+ * @param track		The new track number value.
  *
- * Sets the @track number for @playitem.
+ * @brief		Sets the track number for playitem.
  *                                                
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *                                                 
- * This function is only useful inside info looper.
+ * @warning		This function is only useful inside info looper.
+ *
+ * @see			ap_playitem_get_track()
  **/
 void
 ap_playitem_set_track (ApPlayItem *playitem, guint track)
@@ -685,16 +691,17 @@ ap_playitem_set_track (ApPlayItem *playitem, guint track)
 } /* ap_playitem_set_track */
 
 /**
- * ap_playitem_get_track:
- * @playitem: an #ApPlayItem
+ * @param playitem	An #ApPlayItem.
  * 
- * Gets the value set by ap_playitem_set_track().
+ * @brief		Gets the value set by ap_playitem_set_track().
  *
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *
- * Return value: track number value.
+ * @return		Track number value.
+ *
+ * @see			ap_playitem_set_track()
  **/
 guint
 ap_playitem_get_track (ApPlayItem *playitem)
@@ -705,17 +712,18 @@ ap_playitem_get_track (ApPlayItem *playitem)
 } /* ap_playitem_get_track */
 
 /**
- * ap_playitem_set_playtime:
- * @playitem: an #ApPlayItem
- * @playtime: the new playing time in seconds
+ * @param playitem	An #ApPlayItem.
+ * @param playtime	The new playing time in seconds.
  *
- * Sets the @playtime for @playitem.
+ * @brief		Sets the playtime for playitem.
  *                                                
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *                                                 
- * This function is only useful inside info looper.
+ * @warning		This function is only useful inside info looper.
+ *
+ * @see			ap_playitem_get_playtime()
  **/
 void
 ap_playitem_set_playtime (ApPlayItem *playitem, guint playtime)
@@ -726,16 +734,17 @@ ap_playitem_set_playtime (ApPlayItem *playitem, guint playtime)
 } /* ap_playitem_set_playtime */
 
 /**
- * ap_playitem_get_playtime:
- * @playitem: an #ApPlayItem
+ * @param playitem	An #ApPlayItem.
  * 
- * Gets the value set by ap_playitem_set_playtiem().
+ * @brief		Gets the value set by ap_playitem_set_playtiem().
  *
- * @playitem should be locked by ap_playitem_lock()
- * before using this function, and unlocked by
- * ap_playitem_unlock() afterwards.
+ * @note		playitem should be locked by ap_object_lock()
+ *			before using this function, and unlocked by
+ *			ap_object_unlock() afterwards.
  *
- * Return value: playtime of this playitem.
+ * @return		Playtime of this playitem.
+ *
+ * @see			ap_playitem_set_playtime()
  **/
 guint
 ap_playitem_get_playtime (ApPlayItem *playitem)
@@ -744,68 +753,3 @@ ap_playitem_get_playtime (ApPlayItem *playitem)
 
     return playitem->playtime;
 } /* ap_playitem_get_playtime */
-
-/**
- * ap_playitem_lock:
- * @playitem: an #ApPlayItem
- *
- * Locks @playitem. If @playitem is already locked by another thread,
- * the current thread will block until @playitem in unlocked by the
- * other thread.
- **/
-void
-ap_playitem_lock (ApPlayItem *playitem)
-{
-    g_return_if_fail (AP_IS_PLAYITEM (playitem));
-
-    g_mutex_lock (playitem->mutex);
-} /* ap_playitem_lock */
-
-/**
- * ap_playitem_unlock:
- * @playitem: an #ApPlayItem
- *
- * Unlocks @playitem. If another thread is blocked in a ap_playitem_lock()
- * call for @playitem, it will be woken and can lock @playitem itself.
- **/
-void
-ap_playitem_unlock (ApPlayItem *playitem)
-{
-    g_return_if_fail (AP_IS_PLAYITEM (playitem));
-
-    g_mutex_unlock (playitem->mutex);
-} /* ap_playitem_lock */
-
-/**
- * ap_playitem_ref:
- * @playitem: an #ApPlayItem
- * 
- * Adds a reference to a playitem.
- * This functions is the thread safe version of the g_object_ref(),
- **/
-void
-ap_playitem_ref (ApPlayItem *playitem)
-{
-    g_return_if_fail (AP_IS_PLAYITEM (playitem));
-
-    g_static_mutex_lock (&ref_mutex);
-    g_object_ref (playitem);
-    g_static_mutex_unlock (&ref_mutex);
-}
-
-/**
- * ap_playitem_unref:
- * @playitem: an #AnPlayItem
- *
- * Inverse of ap_playitem_unref().
- * This functions is the thread safe version of the g_object_unref(),
- **/
-void
-ap_playitem_unref (ApPlayItem *playitem)
-{
-    g_return_if_fail (AP_IS_PLAYITEM (playitem));
-
-    g_static_mutex_lock (&ref_mutex);
-    g_object_unref (playitem);
-    g_static_mutex_unlock (&ref_mutex);
-}

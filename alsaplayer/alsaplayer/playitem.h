@@ -25,73 +25,84 @@
 #include <glib-object.h>
 #include <glib.h>
 
+#include "object.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-/* TODO: Document it for gtkdoc */
+/**
+ * @file playitem.h
+ */
 
-/* Macro for PlayItem type. */
+/**
+ * @brief	Returns the type ID of the #ApPlayItem type.
+ */
 #define AP_TYPE_PLAYITEM		(ap_playitem_get_type ())
+
+/**
+ * @brief	Cast a #ApPlayItem or derived pointer
+ *		into a (ApPlayItem*) pointer.
+ * 
+ * Depending on the current debugging level, this function may invoke
+ * certain runtime checks to identify invalid casts
+ */
 #define AP_PLAYITEM(playitem)		(G_TYPE_CHECK_INSTANCE_CAST ((playitem), AP_TYPE_PLAYITEM, ApPlayItem))
+
+/**
+ * @brief	Check whether a valid #ApPlayItem
+ *		pointer is of type #AP_TYPE_PLAYITEM.
+ */
 #define AP_IS_PLAYITEM(playitem)	(G_TYPE_CHECK_INSTANCE_TYPE ((playitem), AP_TYPE_PLAYITEM))
-    
-/* forward declaration to avoid excessive includes (and concurrent includes) */
+
+/**
+ * @brief	This is opaque structure for a playitem type.
+ *
+ * All the fields in the #ApPlayItem structure are private to the #ApPlayItem
+ * implementation and should never be accessed directly.
+ */
 typedef struct _ApPlayItem	    ApPlayItem;
+
+/**
+ * @brief	This is opaque structure for a playlist class.
+ *
+ * All the fields in the #ApPlayItemClass structure are private
+ * to the #ApPlayItemClass implementation and should never be accessed directly.
+ */
 typedef struct _ApPlayItemClass	    ApPlayItemClass;
 
-/*! \brief This structure represents one PlayList entry. */
 struct _ApPlayItem {
-    /*! \brief Parent object structure.
+    /* Parent object structure.
      * 
-     *  The gobject structure needs to be the first
-     *  element in the playitem structure in order for
-     *  the object mechanism to work correctly. This
-     *  allows a ApPlayItem pointer to be cast to a
-     *  GObject pointer.
+     * The ap_object structure needs to be the first
+     * element in the playitem structure in order for
+     * the object mechanism to work correctly. This
+     * allows a ApPlayItem pointer to be cast to a
+     * ApObject pointer.
      */
-    GObject	    gobject;
 
-    /*! \brief Filename of this song. */
+    ApObject	    ap_object;
     gchar	    *filename;
-    
-    /*! \brief Title of this song. */
     gchar	    *title;
-
-    /*! \brief Artist of this song. */
     gchar	    *artist;
-
-    /*! \brief Album of this song. */
     gchar	    *album;
-
-    /*! \brief Genre of this song. */
     gchar	    *genre;
-
-    /*! \brief Comment of this song. */
     gchar	    *comment;
-
-    /*! \brief Year of this song. */
     guint	    year;
-
-    /*! \brief Track number of this song. */
     guint	    track;
-
-    /*! \brief Playtime of this song. */
     guint	    playtime;
-
-    GMutex	    *mutex;
 };
 
 struct _ApPlayItemClass {
-    /*! \brief Parent class structure.
+    /* Parent class structure.
      * 
-     *  The gobject class structure needs to be the first
-     *  element in the playitem class structure in order for
-     *  the class mechanism to work correctly. This allows a
-     *  ApPlayItemClass pointer to be cast to a GObjectClass
-     *  pointer.
+     * The ap_object class structure needs to be the first
+     * element in the playitem class structure in order for
+     * the class mechanism to work correctly. This allows a
+     * ApPlayItemClass pointer to be cast to a ApObjectClass
+     * pointer.
      */
-    GObjectClass    gobject_class;
+    ApObjectClass    ap_object_class;
 };
 
 GType			    ap_playitem_get_type	(void) G_GNUC_CONST;
@@ -123,11 +134,6 @@ G_CONST_RETURN gchar*	    ap_playitem_get_comment	(ApPlayItem	*playitem);
 guint			    ap_playitem_get_year	(ApPlayItem	*playitem);
 guint			    ap_playitem_get_track	(ApPlayItem	*playitem);
 guint			    ap_playitem_get_playtime	(ApPlayItem	*playitem);
-
-void			    ap_playitem_lock		(ApPlayItem	*playitem);
-void			    ap_playitem_unlock		(ApPlayItem	*playitem);
-void			    ap_playitem_ref		(ApPlayItem	*playitem);
-void			    ap_playitem_unref		(ApPlayItem	*playitem);
 
 #ifdef __cplusplus
 }

@@ -1,7 +1,7 @@
 /*  playlist.c
  *
  *  Copyright (C) 1999-2002 Andy Lo A Foe <andy@alsaplayer.org>
- *  Rewritten for glibc-2.0 by Evgeny Chukreev <codedj@echo.ru> 
+ *  Rewritten for glib-2.0 by Evgeny Chukreev <codedj@echo.ru> 
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,8 +25,8 @@
 
 #include "playitem.h"
 #include "playlist.h"
+#include "object.h"
 
-/* TODO: Document it for gtkdoc */
 /* TODO: Make i18n oneday. */
 #define _(s) (s)
 
@@ -203,22 +203,13 @@ ap_playlist_set_property (GObject		*object,
 
     switch (prop_id) {
 	case PROP_PAUSE:
-	    if (g_value_get_boolean (value))
-		ap_playlist_pause (playlist);
-	    else
-		ap_playlist_unpause (playlist);
+	    ap_playlist_set_pause (playlist, g_value_get_boolean (value));
 	    break;
 	case PROP_LOOPING_SONG:
-	    if (g_value_get_boolean (value))
-		ap_playlist_loop_song (playlist);
-	    else
-		ap_playlist_unloop_song (playlist);
+	    ap_playlist_set_loop_song (playlist, g_value_get_boolean (value));
 	    break;
 	case PROP_LOOPING_PLAYLIST:
-	    if (g_value_get_boolean (value))
-		ap_playlist_loop_playlist (playlist);
-	    else
-		ap_playlist_unloop_playlist (playlist);
+	    ap_playlist_set_loop_playlist (playlist, g_value_get_boolean (value));
 	    break;
     }
 } /* ap_playlist_set_property */
@@ -267,7 +258,7 @@ ap_playlist_info_thread (gpointer data)
 	    /* This is the last item.
 	     * It signals us to exit thread.
 	     */
-	    ap_playitem_unref (playitem);
+	    ap_object_unref (AP_OBJECT (playitem));
 	    break;
 	}
 
@@ -275,7 +266,7 @@ ap_playlist_info_thread (gpointer data)
 	    /* Thread is going to shutdown.
 	     * So skip real updating.
 	     */
-	    ap_playitem_unref (playitem);
+	    ap_object_unref (AP_OBJECT (playitem));
 	    continue;
 	}
 	
@@ -284,15 +275,15 @@ ap_playlist_info_thread (gpointer data)
 	 */
 	g_print ("info thread fills %p\n", playitem);
 
-	ap_playitem_lock (playitem);
+	ap_object_lock (AP_OBJECT (playitem));
 	ap_playitem_set_title (playitem, "Updated");
-	ap_playitem_unlock (playitem);
+	ap_object_unlock (AP_OBJECT (playitem));
 	
 	/* Emit "playitem-updated" signal */
 	g_signal_emit_by_name (playlist, "playitem-updated", playitem);
 
 	/* it was refed in ap_playlist_update_playitem */
-	ap_playitem_unref (playitem);
+	ap_object_unref (AP_OBJECT (playitem));
     }
 
     /* Unref queue before exit. */
@@ -301,15 +292,14 @@ ap_playlist_info_thread (gpointer data)
     return NULL;
 }
 
-/* Public functions. */
+/* *****************************************************************/
+/* Public functions.						   */
 
 /**
- * ap_playlist_get_type:
+ * @brief	Register the #ApPlaylistClass if necessary,
+ *		and returns the type ID associated to it.
  *
- * Register the #ApPlaylistClass if necessary,
- * and returns the type ID associated to it.
- *
- * Return value: The type ID of the &ApPlaylistClass.
+ * @returns	The type ID of the &ApPlaylistClass.
  **/
 GType
 ap_playlist_get_type (void)
@@ -330,7 +320,7 @@ ap_playlist_get_type (void)
 
     if (!type) {
 	/* First time create */
-	type = g_type_register_static (G_TYPE_OBJECT,	/* Parent Type */
+	type = g_type_register_static (AP_TYPE_OBJECT,	/* Parent Type */
 				       "ApPlaylist",	/* Name */
 				       &playlist_info,	/* Type Info */
 				       0);		/* Flags */
@@ -339,66 +329,74 @@ ap_playlist_get_type (void)
     return type;
 }; /* ap_playlist_object_get_type */
 
+/**
+ * @param playlist	An ApPlaylist.
+ * @param pause		TRUE if the playlist should be paused.
+ *
+ * @brief		Sets whether to pause the playlist or not.
+ *
+ * @see			ap_playlist_is_paused()
+ */
 void
-ap_playlist_pause (ApPlaylist *playlist)
+ap_playlist_set_pause (ApPlaylist *playlist, gboolean pause)
 {
     g_return_if_fail (AP_IS_PLAYLIST (playlist));
 
-    if (!playlist->paused) {
-	playlist->paused = TRUE;
+    if (playlist->paused != pause) {
+	playlist->paused = pause;
     
 	/* Signal */
-	g_signal_emit_by_name (playlist, "pause-toggled", TRUE);
+	g_signal_emit_by_name (playlist, "pause-toggled", pause);
     }
-} /* ap_playitem_set_playtime */
+} /* ap_playlist_set_pause */
 
-void
-ap_playlist_unpause (ApPlaylist *playlist)
-{
-    g_return_if_fail (AP_IS_PLAYLIST (playlist));
-
-    if (playlist->paused) {
-	playlist->paused = FALSE;
-
-	/* Signal */
-	g_signal_emit_by_name (playlist, "pause-toggled", FALSE);
-    }
-} /* ap_playitem_set_playtime */
-
+/**
+ * @param playlist	An ApPlaylist.
+ *
+ * @brief		Returns whether to pause the playlist or not.
+ *
+ * @return		TRUE if the playlist is paused.
+ *
+ * @see			ap_playlist_set_pause()
+ */
 gboolean
 ap_playlist_is_paused (ApPlaylist *playlist)
 {
     g_return_val_if_fail (AP_IS_PLAYLIST (playlist), FALSE);
 
     return playlist->paused;
-} /* ap_playitem_set_playtime */
+} /* ap_playitem_is_paused */
 
+/**
+ * @param playlist	An ApPlaylist.
+ * @param loop_song	TRUE if the song should be looped.
+ *
+ * @brief		Sets whether to loop the song or not.
+ *
+ * @see			ap_playlist_is_looping_song()
+ */
 void
-ap_playlist_loop_song (ApPlaylist *playlist)
+ap_playlist_set_loop_song (ApPlaylist *playlist, gboolean loop_song)
 {
     g_return_if_fail (AP_IS_PLAYLIST (playlist));
 
-    if (!playlist->looping_song) {
-	playlist->looping_song = TRUE;
+    if (playlist->looping_song != loop_song) {
+	playlist->looping_song = loop_song;
 
 	/* Signal */
-	g_signal_emit_by_name (playlist, "looping-song-toggled", TRUE);
+	g_signal_emit_by_name (playlist, "looping-song-toggled", loop_song);
     }
 } /* ap_playitem_set_playtime */
 
-void
-ap_playlist_unloop_song (ApPlaylist *playlist)
-{
-    g_return_if_fail (AP_IS_PLAYLIST (playlist));
-
-    if (playlist->looping_song) {
-	playlist->looping_song = FALSE;
-
-	/* Signal */
-	g_signal_emit_by_name (playlist, "looping-song-toggled", FALSE);
-    }
-} /* ap_playitem_set_playtime */
-
+/**
+ * @param playlist	An ApPlaylist.
+ *
+ * @brief		Returns whether to loop the song or not.
+ *
+ * @return		TRUE if the song is looping.
+ *
+ * @see			ap_playlist_set_loop_song()
+ */
 gboolean
 ap_playlist_is_looping_song (ApPlaylist *playlist)
 {
@@ -407,32 +405,36 @@ ap_playlist_is_looping_song (ApPlaylist *playlist)
     return playlist->looping_song;
 } /* ap_playitem_set_playtime */
 
+/**
+ * @param playlist	    An ApPlaylist.
+ * @param loop_playlist	    TRUE if the playlist should be looped.
+ *
+ * @brief		    Sets whether to loop the playlist or not.
+ *
+ * @see			    ap_playlist_is_looping_playlist()
+ */
 void
-ap_playlist_loop_playlist (ApPlaylist *playlist)
+ap_playlist_set_loop_playlist (ApPlaylist *playlist, gboolean loop_playlist)
 {
     g_return_if_fail (AP_IS_PLAYLIST (playlist));
 
-    if (!playlist->looping_playlist) {
-	playlist->looping_playlist = TRUE;
+    if (playlist->looping_playlist != loop_playlist) {
+	playlist->looping_playlist = loop_playlist;
 
 	/* Signal */
-	g_signal_emit_by_name (playlist, "looping-playlist-toggled", TRUE);
+	g_signal_emit_by_name (playlist, "looping-playlist-toggled", loop_playlist);
     }
 } /* ap_playitem_set_playtime */
 
-void
-ap_playlist_unloop_playlist (ApPlaylist *playlist)
-{
-    g_return_if_fail (AP_IS_PLAYLIST (playlist));
-
-    if (playlist->looping_playlist) {
-	playlist->looping_playlist = FALSE;
-
-	/* Signal */
-	g_signal_emit_by_name (playlist, "looping-playlist-toggled", FALSE);
-    }
-} /* ap_playitem_set_playtime */
-
+/**
+ * @param playlist	An ApPlaylist.
+ *
+ * @brief		Returns whether to loop the playlist or not.
+ *
+ * @return		TRUE if the playlist is looping.
+ *
+ * @see			ap_playlist_set_loop_playlist()
+ */
 gboolean
 ap_playlist_is_looping_playlist (ApPlaylist *playlist)
 {
@@ -442,13 +444,13 @@ ap_playlist_is_looping_playlist (ApPlaylist *playlist)
 } /* ap_playitem_set_playtime */
 
 /**
- * ap_playlist_update_playitem:
- * @playlist: a #PyPlaylist
- * @playitem: playitem to update
+ * @param playlist	    An #ApPlaylist.
+ * @param playitem	    Playitem to update.
  *
- * Queue @playitem for update. You can track end of the
- * updating process via the "playitem-updated" signal.
+ * @brief		    Queue playitem for update.
  *
+ * You can track end of the updating process
+ * via the "playitem-updated" signal.
  **/
 void
 ap_playlist_update_playitem (ApPlaylist	    *playlist,
@@ -457,6 +459,6 @@ ap_playlist_update_playitem (ApPlaylist	    *playlist,
     g_return_if_fail (AP_IS_PLAYLIST (playlist));
     g_return_if_fail (AP_IS_PLAYITEM (playitem));
 
-    ap_playitem_ref (playitem);
+    ap_object_ref (AP_OBJECT (playitem));
     g_async_queue_push (playlist->info_queue, playitem);
 }
