@@ -259,9 +259,19 @@ static float
 flac_can_handle (const char * name)
 {
 	float res = 0.0;
+
 	if (strncmp(name, "http://", 7) == 0) {
 		return 0.0;
 	}
+	char *ext = strrchr(name, '.');
+	if (!ext)
+		return 0.0;
+	ext++;
+	if (strcasecmp(ext, "flac") == 0) /* Always support .flac files */
+		return 1.0;
+	if (strcasecmp(ext, "ogg")) /* Ignore all non .ogg files */
+		return 0.0;
+	
 	res = Flac::FlacStream::isFlacStream (name);
 #ifdef HAVE_LIBOGGFLC
 	if (res != 1.0) {
