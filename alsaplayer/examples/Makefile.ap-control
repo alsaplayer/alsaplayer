@@ -3,7 +3,7 @@ AP_LIBS=`pkg-config alsaplayer --libs`
 
 CC=gcc
 CFLAGS=-Os -Wall -fomit-frame-pointer $(AP_CFLAGS)
-LDFLAGS=$(AP_LIBS) -s
+LDFLAGS=$(AP_LIBS) 
 
 ap-control:
 

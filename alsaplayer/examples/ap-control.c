@@ -5,6 +5,7 @@
 
 	TODO:
 	- "playlist" without further parameters should output current playlist
+	(Andy: DONE 25/02/2004)
 */
 
 #include <stdio.h>
@@ -42,6 +43,9 @@ static void usage(void)
 
 int main(int argc, char *argv[])
 {
+	int items = 0, c;
+	char **playlist;
+	
 	if (argc < 2)
 		usage();
 
@@ -54,13 +58,28 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	if (!strcmp(argv[1], "playlist") && argc == 3)
+	if (!strcmp(argv[1], "playlist"))
 	{
 		int ret = 1;
-		ret &= ap_clear_playlist(0);
-		ret &= ap_add_playlist(0, argv[2]);
+		if (argc >= 3) {
+			ret &= ap_clear_playlist(0);
+			ret &= ap_add_playlist(0, argv[2]);
 
-		return ret == 1;
+			return ret == 1;
+		}
+		if (ap_get_playlist(0, &items, &playlist)) {
+			printf("Found %d items on playlist\n", items);
+			for (c = 0; c < items; c++) {
+				printf("%d. %s\n", c+1, playlist[c]);
+			}
+			// Memory cleanup
+			for (c = 0; c < items; c++) {
+				free(playlist[c]);
+			}
+			free(playlist);
+		}	
+		return 0;
+
 	}
 
 	if (!strcmp(argv[1], "playlist-clear"))
@@ -130,7 +149,6 @@ int main(int argc, char *argv[])
 		}
 		return 1;
 	}
-
 	if (!strcmp(argv[1], "time"))
 	{
 		int pos_frame, pos_sec;
