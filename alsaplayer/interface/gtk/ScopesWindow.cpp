@@ -71,19 +71,29 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 void apUnregiserScopePlugins()
 {
 	scope_entry *current = &root_scope;
+	GtkWidget *list;
 	void *handle;
+
+	//list = (GtkWidget *)gtk_object_get_data(GTK_OBJECT(scopes_window), "list");
+
+	//if (list)
+	//	gtk_clist_clear(GTK_CLIST(list));
+
+	pthread_mutex_lock(&sl_mutex);
 	while (current && current->sp) {
 		//printf("closing and unloading scope plugin %s\n", current->sp->name);
+		current->active = 0;
 		current->sp->stop();
 		current->sp->close();
 		if (current->sp->handle) {
-			fprintf(stdout, "Unloading Scope plugin: %s\n", current->sp->name);
+			fprintf(stdout, "Unloading Scope plugin: %s (%x)\n",
+					current->sp->name, current->sp->handle);
 			handle = current->sp->handle;	
-			current->sp = NULL;
-			dlclose(handle);
-		}	
+			//dlclose(handle);
+		}
 		current = current->next;
 	}
+	pthread_mutex_unlock(&sl_mutex);
 }	
 
 
@@ -132,12 +142,12 @@ int apRegisterScopePlugin(scope_plugin *plugin)
 	} else { // Not root scope, so insert it at the start
 		scope_entry *tmp = (scope_entry *)NULL;
 		tmp = root_scope.next;
-		root_scope.next = se;
 		se->next = tmp;
 		se->active = 1;
+		root_scope.next = se;
 	}
 	pthread_mutex_unlock(&sl_mutex);
-	fprintf(stdout, "Loading Scope plugin: %s\n", se->sp->name);
+	fprintf(stdout, "Loading Scope plugin: %s (%x)\n", se->sp->name, se->sp->handle);
 	return 1;
 }
 
