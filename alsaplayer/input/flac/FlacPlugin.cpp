@@ -149,7 +149,7 @@ flac_open (input_object * obj, const char * path)
 	}
 
 	obj->nr_channels = f->engine ()->apChannels ();
-	obj->flags       = P_SEEK | P_REENTRANT | P_FILEBASED;
+	obj->flags       = P_SEEK | P_REENTRANT | P_FILEBASED | P_PERFECTSEEK;
 	obj->nr_frames   = f->engine ()->apFrames ();
 	obj->nr_tracks   = 1;
 	obj->ready       = 1;
