@@ -93,8 +93,10 @@ char *parse_file_uri(const char *furi)
 	while (r < t) {
 		switch(furi[r]) {
 			case '%':
+				/*
 				alsaplayer_error("found percent: (%s) (%s)",
 						furi, res);
+				*/				
 				if (percent) {
 					res[w++] = '%';
 					percent = 0;
