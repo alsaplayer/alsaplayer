@@ -20,9 +20,6 @@ CXXFLAGS = $(CFLAGS)
 
 INCLUDES = -I$(top_builddir) -I$(top_srcdir)/include
 
-# autoconf/automake BUG!!
-# LINK = $(CXXLINK)
-
 libdir = $(ADDON_DIR)/input
 
 libcdda_la_SOURCES= $(cddasources)
