@@ -139,7 +139,7 @@ static int wav_open(input_object *obj, const char *name)
 		obj->local_data = NULL;
 		return 0;
 	} else {
-		if ((data->wav_fd = reader_open(name)) == NULL) {
+		if ((data->wav_fd = reader_open(name, NULL, NULL)) == NULL) {
 			perror(name);
 			free(obj->local_data);
 			obj->local_data = NULL;

@@ -1,3 +1,6 @@
+* Remove the confusing Load/Unload calls from CorePlayer. Open/Close now.
+* Made MAD plugin a bit more robust
+* Fix crashing bug when shoutcast/icecast stream is not in sync
 * Add _interface postfix to all interface plugin shared libraries
 * More warning fixes for gcc 3.3
 * Fix all known compiler warnings. Should compile with -Werror

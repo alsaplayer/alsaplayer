@@ -1,5 +1,5 @@
 /*  Main.cpp - main() function and other utils
- *  Copyright (C) 1998-2002 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 1998-2003 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -470,12 +470,12 @@ int main(int argc, char **argv)
 				break;
 			case 'f':
 				use_fragsize = atoi(optarg);
-				if (!use_fragsize || (use_fragsize % 32)) {
-					alsaplayer_error("invalid fragment size, must be multiple of 32");
+				if (!use_fragsize) {
+					alsaplayer_error("invalid fragment size");
 					return 1;
 				}
-				if (use_fragsize > 16384) {
-					alsaplayer_error("fragment sizes larger than 16384 bytes are not supported");
+				if (use_fragsize > 32768) {
+					alsaplayer_error("fragment sizes larger than 32768 bytes are not supported");
 					return 1;
 				}	
 				break;
@@ -488,8 +488,8 @@ int main(int argc, char **argv)
 				break;
 			case 'g':
 				use_fragcount = atoi(optarg);
-				if (use_fragcount < 2 || use_fragcount > 64) {
-					alsaplayer_error("fragcount out of range (2-64)");
+				if (use_fragcount < 2 || use_fragcount > 128) {
+					alsaplayer_error("fragcount out of range (2-128)");
 					return 1;
 				}
 				break;
@@ -800,6 +800,8 @@ int main(int argc, char **argv)
 		std::vector < std::string > newitems;
 		while (optind < argc) {
 			if (is_playlist(argv[optind])) {
+				if (global_verbose)
+					alsaplayer_error("Loading playlist (%s)", argv[optind]);
 				playlist->Load(std::string(argv[optind++]),
 						playlist->Length(), false);
 			} else {	

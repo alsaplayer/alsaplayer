@@ -1,5 +1,6 @@
-/*  reader.c
+/*  reader.cpp
  *  Copyright (C) 2002 Evgeny Chukreev <codedj@echo.ru>
+ *  Copyright (C) 2003 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -204,9 +205,15 @@ int reader_can_handle (const char *uri) {
 
     return 0;
 }
-    
+   
+void reader_status(const char *str)
+{
+	alsaplayer_error(str);
+}
+
+
 // Like fopen
-reader_type *reader_open (const char *uri)
+reader_type *reader_open (const char *uri, reader_status_type status, void *data)
 {
     int i = plugin_count;
     reader_plugin *plugin = plugins, *best_plugin = NULL;
@@ -234,7 +241,7 @@ reader_type *reader_open (const char *uri)
     /* use this plugin */
     if (best_plugin) {
 	h->plugin = best_plugin;
-	h->fd = h->plugin->open (uri);
+	h->fd = h->plugin->open (uri, status, data);
 
 	/* If fail to open */
 	if (h->fd == NULL) {
@@ -253,7 +260,7 @@ reader_type *reader_open (const char *uri)
 	char new_uri [1024];
 
 	snprintf (new_uri, 1024, "file:%s", uri);
-	return reader_open (new_uri);
+	return reader_open (new_uri, status, data);
     }
     
     /* Couldn't find reader */

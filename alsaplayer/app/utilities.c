@@ -1,5 +1,6 @@
 /*  utilities.c
  *  Copyright (C) 1999 Richard Boulton <richard@tartarus.org>
+ *  Copyright (C) 2003 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

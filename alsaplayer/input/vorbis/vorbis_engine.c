@@ -366,7 +366,7 @@ static float vorbis_can_handle(const char *path)
 	int stream;
 	int rc;
 
-	if ((datasource = reader_open(path)) == NULL)
+	if ((datasource = reader_open(path, NULL, NULL)) == NULL)
 	    return 0.0;
 
 	memset(&vf_temp, 0, sizeof (vf_temp));
@@ -400,7 +400,7 @@ static int vorbis_open(input_object *obj, const char *path)
 	if (!obj)
 		return 0;
 
-	if ((datasource = reader_open(path)) == NULL) {
+	if ((datasource = reader_open(path, NULL, NULL)) == NULL) {
 		return 0;
 	}
 

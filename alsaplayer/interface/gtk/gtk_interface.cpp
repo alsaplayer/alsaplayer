@@ -824,7 +824,7 @@ void cd_cb(GtkWidget *, gpointer data)
 		GDK_THREADS_LEAVE();
 		p->Stop();
 		pl->Clear();
-		if (p->Load("CD.cdda")) {
+		if (p->Open("CD.cdda")) {
 			p->Start();
 		}	
 		GDK_THREADS_ENTER();

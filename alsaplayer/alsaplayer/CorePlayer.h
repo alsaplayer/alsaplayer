@@ -89,6 +89,8 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	bool producing;
 	int volume;
 	int pan;
+	int output_rate;
+	int input_rate;
 	AlsaNode *node;
 	AlsaSubscriber *sub;
 	float save_speed;
@@ -117,7 +119,6 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	int Read32(void *, int);
 	int SetDirection(int dir);
 	int GetDirection() { return read_direction; }
-	void Close();
 	void load_input_addons();
 	void UnregisterPlugins();
 	void Lock();
@@ -165,8 +166,8 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	input_plugin * GetPlayer(const char *); // This one is temporary
 	int GetLatency() { if (node) return node->GetLatency(); else return 0; }
 
-	bool Load(const char *path = (const char *)NULL);
-	void Unload();
+	bool Open(const char *path = (const char *)NULL);
+	void Close();
 	bool Start();
 	void Stop();
 	int Seek(int pos);

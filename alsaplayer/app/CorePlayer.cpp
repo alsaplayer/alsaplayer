@@ -1,5 +1,5 @@
 /*  CorePlayer.cpp - Core player object, most of the hacking is done here!  
- *	Copyright (C) 1998-2002 Andy Lo A Foe <andy@alsaplayer.org>
+ *	Copyright (C) 1998-2003 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -77,16 +77,13 @@ input_plugin CorePlayer::plugins[MAX_INPUT_PLUGINS];
 
 void CorePlayer::Lock()
 {
-	//alsaplayer_error("Getting player lock...");
 	pthread_mutex_lock(&player_mutex);
-	//alsaplayer_error("Got player lock...");
 }
 
 
 void CorePlayer::Unlock()
 {
 	pthread_mutex_unlock(&player_mutex);
-	//alsaplayer_error("Released player lock...");
 }
 
 
@@ -222,6 +219,7 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	pitch = 1.0;
 	sub = NULL;
 	last_read = -1;
+	input_rate = output_rate = 44100;
 	SetSpeedMulti(1.0);
 	SetSpeed(1.0);
 	SetVolume(100);
@@ -534,9 +532,10 @@ int CorePlayer::GetSampleRate()
 int CorePlayer::GetStreamInfo(stream_info *info)
 {
 	int result = 0;
+
+	memset(info, 0, sizeof(stream_info));
 	
 	Lock();
-	memset(info, 0, sizeof(stream_info));
 	if (plugin && plugin->stream_info && info && the_object) {
 		result = plugin->stream_info(the_object, info);
 	}
@@ -553,7 +552,6 @@ int CorePlayer::GetStreamInfo(stream_info *info)
 bool CorePlayer::Start()
 {
 	float result;
-	int output_rate;
 	int tries;
 
 	if (IsPlaying())
@@ -578,12 +576,12 @@ bool CorePlayer::Start()
 	
 	last_read = -1;
 	output_rate = node->SamplingRate();
+	input_rate = plugin->sample_rate(the_object);
 	
-	result = plugin->sample_rate(the_object);
-	if (result == output_rate)
+	if (input_rate == output_rate)
 		SetSpeedMulti(1.0);
 	else
-		SetSpeedMulti((float) result / (float) output_rate);
+		SetSpeedMulti((float) input_rate / (float) output_rate);
 	update_pitch();
 	write_buf_changed = 0;
 	read_buf = write_buf;
@@ -778,10 +776,12 @@ int CorePlayer::FrameSeek(int index)
 
 void CorePlayer::Close()
 {
+	Lock();
 	if (plugin && the_object && the_object->ready) {
 		the_object->ready = 0;
 		plugin->close(the_object);
-	}	
+	}
+	Unlock();
 }
 
 
@@ -814,28 +814,18 @@ CorePlayer::GetPlayer(const char *path)
 }
 
 
-void CorePlayer::Unload()
-{
-	Lock();
-	Close();
-	Unlock();
-}
-
-bool CorePlayer::Load(const char *path)
+bool CorePlayer::Open(const char *path)
 {
 	bool result = false;
 	input_plugin *best_plugin;
 	input_object our_object;
 	
-	Unload();
-
 	if (path == NULL || strlen(path) == 0) {
 		alsaplayer_error("No path supplied");
 		return false;
 	}
 	if ((best_plugin = GetPlayer(path)) == NULL) {
 		alsaplayer_error("No suitable plugin found for \"%s\"", path);
-		Unlock();
 		return false;
 	}
 
@@ -863,6 +853,8 @@ bool CorePlayer::Load(const char *path)
 	if (!result)
 		return false;
 
+	Close();
+	
 	Lock();
 
 	memcpy(the_object, &our_object, sizeof(our_object));
@@ -1077,6 +1069,7 @@ int CorePlayer::Read32(void *data, int samples)
 
 int CorePlayer::pcm_worker(sample_buf *dest, int start)
 {
+	int result = 0;
 	int frames_read = 0;
 	int bytes_written = 0;
 	char *sample_buffer;
@@ -1111,6 +1104,13 @@ int CorePlayer::pcm_worker(sample_buf *dest, int start)
 	last_read = dest->start + frames_read;
 	dest->buf->SetSamples(bytes_written >> 2);
 
+	// Check if rates are still the same
+	if ((result = plugin->sample_rate(the_object)) != input_rate) {
+		alsaplayer_error("WARNING: Sample rate changed in midstream (new = %d)", result);
+		input_rate = result;
+		SetSpeedMulti((float) input_rate / (float) output_rate);
+		update_pitch();
+	}	
 	return frames_read;
 }
 

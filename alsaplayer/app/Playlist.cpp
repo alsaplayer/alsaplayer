@@ -198,7 +198,7 @@ void info_looper(Playlist *playlist)
 		if (!(*p).Parsed()) {
 			path = (*p).filename.c_str();
 
-			if (path && !strstr(path, "http://") && myplayer->Load((*p).filename.c_str())) { // Examine file
+			if (path && !strstr(path, "http://") && myplayer->Open((*p).filename.c_str())) { // Examine file
 				t_sec = myplayer->GetCurrentTime(myplayer->GetFrames());
 				if (t_sec) {
 					t_sec /= 100;
@@ -215,7 +215,7 @@ void info_looper(Playlist *playlist)
 					(*p).track = info.track;
 					(*p).comment = info.comment;
 				}
-				myplayer->Unload();	
+				myplayer->Close();	
 			}
 			(*p).SetParsed();
 			// Notify interface of update
@@ -790,7 +790,7 @@ Playlist::Load(std::string const &uri, unsigned position, bool force)
 			return E_PL_DUBIOUS;
 	}
 	// Open Playlist
-	reader_type *f = reader_open (uri.c_str());
+	reader_type *f = reader_open (uri.c_str(), NULL, NULL);
 	if (!f)
 	    return E_PL_BAD;
 
@@ -861,11 +861,12 @@ Playlist::Load(std::string const &uri, unsigned position, bool force)
 	}
 
 	// Entire file should be loaded
+	/*
 	if (!reader_eof(f)) {
 	    reader_close (f);
 	    return E_PL_BAD;
 	}
-	
+	*/
 	reader_close (f);
 
 	// Do the insert
@@ -944,7 +945,7 @@ bool Playlist::PlayFile(PlayItem const & item) {
 
 	Pause();
 	coreplayer->Stop();
-	result = coreplayer->Load(item.filename.c_str());
+	result = coreplayer->Open(item.filename.c_str());
 	if (result) {
 		result = coreplayer->Start();
 		if (coreplayer->GetSpeed() == 0.0) { // Unpause

@@ -59,7 +59,7 @@ static void decode_uri(const char *src, char *dst, int len)
 }
 
 /* open stream, may return NULL */
-static void *file_open(const char *uri)
+static void *file_open(const char *uri, reader_status_type status, void *data)
 {
     char decoded_uri[1024];
     int offset = 0;

@@ -40,7 +40,7 @@
  *  whenever structural changes are made to the API. This value should
  *  only be changed by the maintainers.
  */
-#define READER_PLUGIN_VERSION	(READER_PLUGIN_BASE_VERSION + 4)
+#define READER_PLUGIN_VERSION	(READER_PLUGIN_BASE_VERSION + 5)
 
 /** 
  * reader plugin binary version. Must be set to READER_PLUGIN_VERSION 
@@ -67,11 +67,15 @@ typedef void(*reader_shutdown_type)(void);
  */
 typedef float (*reader_can_handle_type)(const char *uri);
 
+typedef void (*reader_status_type)(void *data, const char *str);
+
 /**
  * @param uri URI of stream to open
+ * @param status Callback function to report reader status. May be NULL
+ * @param data Data pointer to pass to callback function. 
  *
  * Open stream */
-typedef void *(*reader_open_type)(const char *uri);
+typedef void *(*reader_open_type)(const char *uri, reader_status_type status, void *data);
 
 /**
  * @param d stream descriptor (returned by reader_open_type function).
@@ -128,6 +132,7 @@ typedef struct _reader_plugin
   
 typedef struct _reader_type {
     void *fd;
+    void *data;
     reader_plugin *plugin;
 } reader_type;
  
@@ -140,7 +145,7 @@ extern "C" {
 
 int reader_can_handle (const char *uri);
     
-reader_type *reader_open (const char *uri);
+reader_type *reader_open (const char *uri, reader_status_type status, void *data);
 int reader_close (reader_type *h);
 
 size_t reader_metadata (reader_type *h, size_t size, void *);
