@@ -103,13 +103,18 @@ void alsaplayer_set_error_function(void (*func)(const char *, ...))
 }; /* extern "C" { */
 
 
+void nonfatal_sighandler(int x)
+{
+	alsaplayer_error("Warning: alsaplayer interrupted by signal %d", x);
+}
+
 void exit_sighandler(int x)
 {
 	static int sigcount = 0;
 
 	++sigcount;
 	if (sigcount == 1) {
-		alsaplayer_error("AlsaPlayer interrupted by signal %d", x);
+		alsaplayer_error("alsaplayer interrupted by signal %d", x);
 		exit(1);
 	}	
 	if (sigcount > 5) {
@@ -181,7 +186,7 @@ extern bool reverb_func(void *arg, void *data, int size);
 
 static char *copyright_string =
     "AlsaPlayer " VERSION
-    "\n(C) 1999-2002 Andy Lo A Foe <andy@alsaplayer.org> and others.";
+    "\n(C) 1999-2003 Andy Lo A Foe <andy@alsaplayer.org> and others.";
 
 static void list_available_plugins(const char *plugindir)
 {
@@ -409,6 +414,7 @@ int main(int argc, char **argv)
 		
 
 	// First setup signal handler
+	signal(SIGPIPE, nonfatal_sighandler);   // PIPE (socket control)
 	signal(SIGTERM, exit_sighandler);	// kill
 	signal(SIGHUP, exit_sighandler);	// kill -HUP / xterm closed
 	signal(SIGINT, exit_sighandler);	// Interrupt from keyboard

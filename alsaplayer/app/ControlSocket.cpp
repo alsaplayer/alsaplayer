@@ -65,6 +65,7 @@ static void socket_looper(void *arg)
 	int fsize = 0;
 	int session_id = 0;
 	int session_ok = 0;
+	int nr_requests = 0;
 	ap_message_t *msg;
 	struct passwd *pwd;
 
@@ -133,7 +134,9 @@ static void socket_looper(void *arg)
 		//alsaplayer_error("server: got something (%x)", msg->header.cmd);
 	
 		player = playlist->GetCorePlayer();
-	
+
+		nr_requests++;
+
 		switch(msg->header.cmd) {
 			case AP_PING:
 				//alsaplayer_error("ping received");
@@ -486,6 +489,9 @@ static void socket_looper(void *arg)
 		ap_message_delete(msg);
 		close(fd);	
 	}
+	if (global_verbose) {
+		alsaplayer_error("control: received %ld requests", nr_requests);
+	}		
 	unlink(saddr.sun_path);
 }
 

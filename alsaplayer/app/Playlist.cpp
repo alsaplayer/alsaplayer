@@ -271,7 +271,15 @@ void playlist_looper(void *data)
 
 			if (pl->Crossfading() && pl->Length() && pl->coreplayer->GetSpeed() >= 0.0) {
 				// Cross example
-				if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < 300) {
+				// Calc the frame to sec value
+				int nr_frames = coreplayer->GetFrames();
+				int totaltime = coreplayer->GetCurrentTime(nr_frames);
+				
+				float frametime = (float)totaltime  / (float)nr_frames;
+				float xstart = 25; // 0.25 seconds
+				float xframe = xstart / frametime;
+				//alsaplayer_error("xframe = %.2f", xframe);
+				if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < (int)xframe) {
 						if (pl->player1->IsActive() && pl->player2->IsActive()) {
 							alsaplayer_error("Stopping players in playlist_looper");
 							pl->player1->Stop();
