@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 		ret &= ap_clear_playlist(0);
 		ret &= ap_add_playlist(0, argv[2]);
 
-		return ret;
+		return ret == 1;
 	}
 
 	if (!strcmp(argv[1], "sort") && argc == 3)
