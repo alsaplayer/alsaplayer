@@ -33,8 +33,10 @@
 #define BG_GREEN	180
 #define BG_BLUE		180
 
-#define INFO_TEXT_H	9000
-#define TITLE_TEXT_H	12000
+#define INFO_TEXT_H	8000
+#define TITLE_TEXT_H	9000
+
+#define ROOT_WINDOW_H	88
 
 #include <gtk/gtk.h>
 #include <stdio.h>
@@ -62,7 +64,7 @@ static GtkWidget *display = NULL;
 static GdkPixmap *display_pixmap = NULL;
 static GtkLabel *time_label = NULL;
 static GtkLabel *format_label = NULL;
-static GtkLabel *title_label = NULL;
+static GtkLabel *status_label = NULL;
 static GtkWidget *pos_scale = NULL;
 static GtkWidget *vol_scale = NULL;
 static bool vol_pressed = false;
@@ -75,7 +77,7 @@ static GdkColor display_fg2;
 static GdkColor display_fg3;
 static PangoLayout *info_layout = NULL;
 static char time_string[1024];
-static char title_string[1024];
+static char status_string[1024];
 static char format_string[1024];
 static GdkRectangle display_rectangle;
 static GdkRectangle position_rectangle;
@@ -296,28 +298,28 @@ void position_notify(void *data, int frame)
 					sprintf(format_string, "<span font_family=\"Arial\" foreground=\"black\" size=\"%d\">%s</span>", INFO_TEXT_H, info.stream_type);
 				}	
 				if (!strlen(info.artist) && strlen(info.title)) {
-					sprintf(title_string, "<span font_family=\"Arial\" foreground=\"black\" size=\"%d\">%s</span>", TITLE_TEXT_H, info.title);
+					sprintf(status_string, "<span font_family=\"Arial\" foreground=\"black\" size=\"%d\">Now playing: %s</span>", TITLE_TEXT_H, info.title);
 				} else {
-					sprintf(title_string,
-						"<span font_family=\"Arial\" foreground=\"black\" size=\"%d\">%s - %s</span>", TITLE_TEXT_H,
+					sprintf(status_string,
+						"<span font_family=\"Arial\" foreground=\"black\" size=\"%d\">Now playing: %s - %s</span>", TITLE_TEXT_H,
 						strlen(info.artist) ? info.artist : "Unkown Artist",
 						strlen(info.title) ? info.title : "Unkown Title");
 				}		
 			} else {
-				sprintf(title_string, "<span font_family=\"Arial\" foreground=\"black\" size=\"%d\">No stream loaded</span>", TITLE_TEXT_H);
+				sprintf(status_string, "<span font_family=\"Arial\" foreground=\"black\" size=\"%d\">No stream loaded</span>", TITLE_TEXT_H);
 				sprintf(format_string, "<span font_family=\"Arial\" foreground=\"black\" size=\"%d\"> </span>", INFO_TEXT_H);
 				sprintf(time_string, "<span font_family=\"Arial\" foreground=\"black\" size=\"%d\"> </span>", INFO_TEXT_H);
 				c_min = c_sec = t_min = t_sec = 0;
 			}
 
-			//if (info_layout)
-			//	pango_layout_set_markup(info_layout, title_string, -1);
+			if (status_label)
+				gtk_label_set_markup(status_label, status_string);
 			if (time_label)
 				gtk_label_set_markup(time_label, time_string);
 			if (format_label)
 				gtk_label_set_markup(format_label, format_string);
-			if (title_label)
-				gtk_label_set_markup(title_label, title_string);
+			if (status_label)
+				gtk_label_set_markup(status_label, status_string);
 			gdk_flush();
 			notifier_unlock();
 			
@@ -449,7 +451,7 @@ gint display_expose(GtkWidget *widget, GdkEventExpose *event, gpointer data)
 int interface_gtk2_init()
 {
 	sprintf(time_string, "");
-	sprintf(title_string, "");
+	sprintf(status_string, "");
 	sprintf(format_string, "");
 	
 	memset(&notifier, 0, sizeof(notifier));
@@ -515,6 +517,11 @@ gboolean root_window_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 }
 
 
+void playlist_button_cb(GtkWidget *widget, gpointer data)
+{
+	alsaplayer_error("button pressed...");	
+}
+
 void next_button_cb(GtkWidget *widget, gpointer data)
 {
 	Playlist *pl = (Playlist *)data;
@@ -579,6 +586,7 @@ static GtkWidget *label_box(gchar *label_text) {
 int interface_gtk2_start(Playlist *playlist, int argc, char **argv)
 {
 	GtkWidget *root_window;
+	GtkWidget *playlist_window;
 	GtkWidget *toplevel;
 	GtkWidget *working;
 	GtkWidget *misc_slider;
@@ -596,12 +604,16 @@ int interface_gtk2_start(Playlist *playlist, int argc, char **argv)
 	gtk_set_locale();
 	gtk_init(&argc, &argv);
 	gdk_rgb_init();
+
+	playlist_window = create_playlist_window ();
+	gtk_widget_show(playlist_window);
+	
 	root_window = create_root_window ();
 	gtk_widget_show (root_window);
 
 	toplevel = gtk_widget_get_toplevel(root_window);
 	geom.min_width = 326;
-	geom.min_height = geom.max_height = 98;
+	geom.min_height = geom.max_height = ROOT_WINDOW_H;
 	geom.max_width = 1600;
 	gtk_window_set_geometry_hints(GTK_WINDOW(toplevel),
 		GTK_WIDGET(root_window), &geom,
@@ -609,7 +621,7 @@ int interface_gtk2_start(Playlist *playlist, int argc, char **argv)
 
 	time_label = GTK_LABEL(lookup_widget(root_window, "time_label"));
 	format_label = GTK_LABEL(lookup_widget(root_window, "format_label"));
-	//title_label = GTK_LABEL(lookup_widget(root_window, "title_label"));
+	status_label = GTK_LABEL(lookup_widget(root_window, "status_label"));
 		
 	if (time_label) {
 		gtk_label_set_use_markup(time_label, 1);
@@ -617,8 +629,8 @@ int interface_gtk2_start(Playlist *playlist, int argc, char **argv)
 	if (format_label) {
 		gtk_label_set_use_markup(format_label, 1);
 	}	
-	if (title_label) {
-		gtk_label_set_use_markup(title_label, 1);
+	if (status_label) {
+		gtk_label_set_use_markup(status_label, 1);
 	}	
 	if (working = lookup_widget(root_window, "vol_scale")) {
 		vol_scale = working;
@@ -692,6 +704,11 @@ int interface_gtk2_start(Playlist *playlist, int argc, char **argv)
 		}	
 
 	}
+	if (working = lookup_widget(root_window, "playlist_button")) {
+		gtk_signal_connect(GTK_OBJECT(working), "clicked",
+			GTK_SIGNAL_FUNC(playlist_button_cb),
+			playlist);
+	}	
 	if (working = lookup_widget(root_window, "next_button")) {
 		gtk_signal_connect(GTK_OBJECT(working), "clicked",
 			GTK_SIGNAL_FUNC(next_button_cb),

@@ -3,3 +3,4 @@
  */
 
 GtkWidget* create_root_window (void);
+GtkWidget* create_playlist_window (void);
