@@ -160,7 +160,7 @@ void socket_looper(void *arg)
 				case AP_SET_FLOAT_VOLUME:
 					player = playlist->GetCorePlayer();
 					if (player)
-						player->SetVolume(*(float *)data);
+						player->SetVolume((int)(*(float *)data));
 					break;
 				case AP_GET_FLOAT_VOLUME:
 					player = playlist->GetCorePlayer();
