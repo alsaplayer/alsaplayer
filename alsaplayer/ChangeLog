@@ -1,3 +1,21 @@
+Tue Feb 26 20:56:34 CET 2002
+----------------------------
+
+- More improvements to libalsaplayer. pkg-config support
+- alsaplayer headers are also installed by default. First version that
+  is really ready for external plugin development.
+- Preferences system, finally! The code is there, now we need to use it
+  pervasively. The prefs system is also available to plugins of course.
+- More JACK improvements, we try to reconnect if we timeout.
+- configure flag --with-jack now works
+- The logfftscope does a fast to slow falldown, very subtle change.
+- The MAD plugin is now much smarter at detecting the correct start of
+  MP3 files.
+- Placed the pause button inbetween the -100 and +100 speed buttons. Makes
+  more sense since pause is speed 0.
+- Some more cleanups to the code.
+
+
 Sat Feb 16 12:59:23 CET 2002
 ----------------------------
 
