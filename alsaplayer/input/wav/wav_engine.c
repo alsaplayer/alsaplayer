@@ -119,7 +119,7 @@ static int test_wavefile(input_object *obj, void *buffer)
 }
 
 
-static int wav_open(input_object *obj, char *name)
+static int wav_open(input_object *obj, const char *name)
 {
 	char audiobuf[4096];
 	struct wav_local_data *data;

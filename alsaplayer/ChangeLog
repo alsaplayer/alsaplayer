@@ -1,3 +1,9 @@
+* CDDA player now adds all tracks to the playlist, instead of playing the
+  audio CD as one huge CD track. Idea from Patrick Shirkey.
+* Fix small reentrancy problem in CDDA plugin
+* Remove threading from Playlist::Insert(), it was causing too much trouble.
+* Bump up input_plugin version, change open() param for const char *path.
+
 Wed Sep 18 11:52:43 CEST 2002
 -----------------------------
 * Code cleanups

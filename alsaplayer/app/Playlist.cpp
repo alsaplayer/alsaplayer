@@ -186,11 +186,11 @@ void info_looper(Playlist *playlist)
 	std::vector<PlayItem>::iterator p = playlist->queue.begin();
 	count = 0;
 	while (playlist->active) {
-		playlist->Lock ();
+		//playlist->Lock ();
 
 		if (p >= playlist->queue.end()) {
 		    /* Playlist cleared, shrinked or its an end of list */
-		    playlist->Unlock ();
+		    //playlist->Unlock ();
 		    break;
 		}
 
@@ -233,7 +233,7 @@ void info_looper(Playlist *playlist)
 		}
 		p++;
 		count++;
-		playlist->Unlock ();
+		//playlist->Unlock ();
 	}	
 
 	delete myplayer;
@@ -361,12 +361,11 @@ void insert_looper(void *data) {
 	}
 	playlist->UnlockInterfaces();
 	// Free the list again
-	playlist->Unlock();
-	delete items;
-
-	// TEST
 	if (playlist->active)
 		info_looper(playlist);
+	
+	playlist->Unlock();
+	delete items;
 }
 
 
@@ -732,11 +731,8 @@ void Playlist::Clear() {
 			(*j)->cbclear((*j)->data);
 		}
 	}
-
-	player1->Stop(); // Stop players
-	player2->Stop();
-
 	Unlock();
+
 }
 
 enum plist_result

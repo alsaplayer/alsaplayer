@@ -105,7 +105,7 @@ static float mikmod_can_handle (const char *name)
 }
 
 
-static int mikmod_open (input_object *obj, char *name)
+static int mikmod_open (input_object *obj, const char *name)
 {
 	MODULE *mf = NULL;
 	struct mikmod_local_data *data;

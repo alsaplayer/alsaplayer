@@ -227,7 +227,7 @@ static void mpeg_close(input_object *obj)
 	}		
 }
 
-int mpeg_open(input_object *obj, char *path)
+int mpeg_open(input_object *obj, const char *path)
 {
 	struct mpeg_local_data *data;	
 	int bla, i;

@@ -112,7 +112,7 @@ flac_play_frame (input_object * obj, char * buf)
 
 
 static int
-flac_open (input_object * obj, char * path)
+flac_open (input_object * obj, const char * path)
 {
     if (!obj)
 	return 0;

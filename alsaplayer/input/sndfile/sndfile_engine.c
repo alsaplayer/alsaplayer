@@ -55,7 +55,7 @@ static char *getfilenamefrompath (char *path)
 }
 
 
-static int sndfile_open (input_object *obj, char *name)
+static int sndfile_open (input_object *obj, const char *name)
 {
 	struct sf_local_data *data;
 	char *p;

@@ -66,7 +66,7 @@
  *  whenever structural changes are made to the API. This value should
  *  only be changed by the maintainers.
  */
-#define INPUT_PLUGIN_VERSION	(INPUT_PLUGIN_BASE_VERSION + 14)
+#define INPUT_PLUGIN_VERSION	(INPUT_PLUGIN_BASE_VERSION + 15)
 
 /**
  * This is a structure that keeps frequently used parameters of an
@@ -208,7 +208,7 @@ typedef float(*input_can_handle_type)(const char *path);
  * @param path path of stream to open
  *
  * Open stream */
-typedef int(*input_open_type)(input_object *obj, char *path);
+typedef int(*input_open_type)(input_object *obj, const char *path);
 
 /**
  * @param obj input object

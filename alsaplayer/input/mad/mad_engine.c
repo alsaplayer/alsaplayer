@@ -803,7 +803,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 }
 
 
-static int mad_open(input_object *obj, char *path)
+static int mad_open(input_object *obj, const char *path)
 {
 	struct mad_local_data *data;
 	char *p;

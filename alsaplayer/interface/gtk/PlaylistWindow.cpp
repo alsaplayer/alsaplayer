@@ -133,10 +133,11 @@ void PlaylistWindowGTK::CbUpdated(void *data,PlayItem & item, unsigned position)
 	char tmp[1024];
 	int secs;
 
+	//alsaplayer_error("About to lock list");
+	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
+	//alsaplayer_error("Locked");
 
 	GDK_THREADS_ENTER();
-
-	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
 
 	gtk_clist_freeze(GTK_CLIST(gtkpl->playlist_list));
 	if (item.title.size()) {
@@ -152,9 +153,10 @@ void PlaylistWindowGTK::CbUpdated(void *data,PlayItem & item, unsigned position)
 	}	
 		
 	gtk_clist_thaw(GTK_CLIST(gtkpl->playlist_list));
-	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
-
+	
 	GDK_THREADS_LEAVE();
+
+	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
 }
 
 // Insert new items into the displayed list
@@ -163,9 +165,9 @@ void PlaylistWindowGTK::CbInsert(void *data,std::vector<PlayItem> & items, unsig
 	
 	//alsaplayer_error("CbInsert(`%d items', %d)", items.size(), position);
 
-	GDK_THREADS_ENTER();
-
 	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
+
+	GDK_THREADS_ENTER();
 
 	std::vector<PlayItem> item_copy = items;
 
@@ -190,9 +192,9 @@ void PlaylistWindowGTK::CbInsert(void *data,std::vector<PlayItem> & items, unsig
 	}
 	gtk_clist_thaw(GTK_CLIST(gtkpl->playlist_list));
 
-	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
-
 	GDK_THREADS_LEAVE();
+
+	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
 }
 
 // Remove items from start to end
@@ -200,9 +202,9 @@ void PlaylistWindowGTK::CbRemove(void *data, unsigned start, unsigned end)
 {
 	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 
-	GDK_THREADS_ENTER();
-	
 	pthread_mutex_lock(&gtkpl->playlist_list_mutex);	
+
+	GDK_THREADS_ENTER();
 	gtk_clist_freeze(GTK_CLIST(gtkpl->playlist_list));
 
 	unsigned i = start;
@@ -212,10 +214,9 @@ void PlaylistWindowGTK::CbRemove(void *data, unsigned start, unsigned end)
 	}
 
 	gtk_clist_thaw(GTK_CLIST(gtkpl->playlist_list));
-	
-	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
-
 	GDK_THREADS_LEAVE();
+
+	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
 }
 
 // Clear the displayed list
@@ -223,13 +224,11 @@ void PlaylistWindowGTK::CbClear(void *data)
 {
 	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 
-	GDK_THREADS_ENTER();
-	
 	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
+	GDK_THREADS_ENTER();
 	gtk_clist_clear(GTK_CLIST(gtkpl->playlist_list));
-	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
-
 	GDK_THREADS_LEAVE();
+	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
 }
 
 

@@ -48,6 +48,8 @@
 #include <pthread.h>
 #include "input_plugin.h"
 #include "alsaplayer_error.h"
+#include "AlsaPlayer.h"
+#include "control.h"
 
 #define DEFAULT_DEVICE	"/dev/cdrom"
 #define FRAME_LEN	4
@@ -59,8 +61,16 @@
 #define IFRAMESIZE (CD_FRAMESIZE_RAW/sizeof(int))
 #define BLEN 255
 
+struct cd_trk_list {
+	int min;
+	int max;
+	int *starts;
+	char *types;
+};
+
 struct cdda_local_data {
 	char device_path[1024];
+	struct cd_trk_list tl;
 	int cdrom_fd;
 	int samplerate;
 	int track_length;
@@ -69,15 +79,7 @@ struct cdda_local_data {
 	int track_nr;
 };
 
-struct cd_trk_list {
-	int min;
-	int max;
-	int *starts;
-	char *types;
-};
-
-
-static struct cd_trk_list tl;
+//static cd_trk_list tl, old_tl;
 
 typedef unsigned short Word;
 
@@ -103,7 +105,7 @@ static int cd_read_audio(int cdrom_fd, int lba, int num, unsigned char *buf)
 	ra.nframes = num;
 	ra.buf = buf;
 	if (ioctl(cdrom_fd, CDROMREADAUDIO, &ra)) {
-		fprintf(stderr, "\nCDDA: read raw ioctl failed at lba %d length %d\n",
+		alsaplayer_error("CDDA: read raw ioctl failed at lba %d length %d",
 				lba, num);
 		perror("CDDA");
 		return 1;
@@ -127,27 +129,28 @@ static int cd_getinfo(int *cdrom_fd, char *cd_dev,struct cd_trk_list *tl)
 	struct cdrom_tocentry Te;
 
 	if ((*cdrom_fd=open(cd_dev,O_RDONLY | O_NONBLOCK))==-1){
-		fprintf(stderr,"CDDA: error opening device %s\n",cd_dev);
+		alsaplayer_error("CDDA: error opening device %s",cd_dev);
 		return 1;
 	}
+	
 	if(cd_get_tochdr(*cdrom_fd, &Th)){
-		fprintf(stderr,"CDDA: read TOC ioctl failed\n");
+		alsaplayer_error("CDDA: read TOC ioctl failed");
 		return 1;
 	}
 	tl->min=Th.cdth_trk0;tl->max=Th.cdth_trk1;
 	if((tl->starts=(int *)malloc((tl->max-tl->min+2)*sizeof(int)))==NULL){
-		fprintf(stderr,"CDDA: list data allocation failed\n");
+		alsaplayer_error("CDDA: list data allocation failed");
 		return 1;
 	}
 	if((tl->types=(char *)malloc(tl->max-tl->min+2))==NULL){
-		fprintf(stderr,"CDDA: list data allocation failed\n");
+		alsaplayer_error("CDDA: list data allocation failed");
 		return 1;
 	}
 
 	for (i=tl->min;i<=tl->max;i++)
 	{
 		if(cd_get_tocentry(*cdrom_fd, i,&Te,CDROM_LBA)){
-			fprintf(stderr,"CDDA: read TOC entry ioctl failed\n");
+			alsaplayer_error("CDDA: read TOC entry ioctl failed");
 			free(tl->starts);
 			free(tl->types);
 			tl->starts = NULL;
@@ -159,7 +162,7 @@ static int cd_getinfo(int *cdrom_fd, char *cd_dev,struct cd_trk_list *tl)
 	}
 	i=CDROM_LEADOUT;
 	if(cd_get_tocentry(*cdrom_fd, i,&Te,CDROM_LBA)){
-		fprintf(stderr,"CDDA: read TOC entry ioctl failed\n");
+		alsaplayer_error("CDDA: read TOC entry ioctl failed");
 		free(tl->starts);
 		free(tl->types);
 		tl->starts = NULL;
@@ -175,19 +178,17 @@ static int cd_getinfo(int *cdrom_fd, char *cd_dev,struct cd_trk_list *tl)
 static void cd_disp_TOC(struct cd_trk_list *tl)
 {
 	int i, len;
-	printf("%5s %8s %8s %5s %9s %4s","track","start","length","type",
+	alsaplayer_error("%5s %8s %8s %5s %9s %4s","track","start","length","type",
 			"duration", "MB");
-	printf("\n");
 	for (i=tl->min;i<=tl->max;i++)
 	{
 		len = tl->starts[i + 1 - tl->min] - tl->starts[i - tl->min];
-		printf("%5d %8d %8d %5s %9s %4d",i,
+		alsaplayer_error("%5d %8d %8d %5s %9s %4d",i,
 				tl->starts[i-tl->min]+CD_MSF_OFFSET, len,
 				tl->types[i-tl->min]?"data":"audio",resttime(len / 75),
 				(len * CD_FRAMESIZE_RAW) >> (20)); // + opt_mono));
-				printf("\n");
 	}
-	printf("%5d %8d %8s %s\n",CDROM_LEADOUT,
+	alsaplayer_error("%5d %8d %8s %s",CDROM_LEADOUT,
 			tl->starts[i-tl->min]+CD_MSF_OFFSET,"-","leadout");
 }
 
@@ -249,12 +250,32 @@ static float cdda_can_handle(const char *name)
 }
 
 
-static int cdda_open(input_object *obj, char *name)
+
+void cd_adder(void *data) {
+	int i;
+	int nr_tracks;
+	char track_name[1024];
+	
+	if (!data)
+		return;
+	
+	nr_tracks = (int)data;
+	
+	ap_clear_playlist(global_session_id);
+		
+	for (i=1;i <= nr_tracks;i++) {
+		sprintf(track_name, "Track %02d.cdda", i);
+		ap_add_path(global_session_id, track_name);
+	}
+	pthread_exit(NULL);
+}
+
+
+static int cdda_open(input_object *obj, const char *name)
 {
 	struct cdda_local_data *data;	
 	char *fname;
 	char device_name[1024];
-	int cdrom_fd;
 
 	if (!obj)
 		return 0;
@@ -270,15 +291,7 @@ static int cdda_open(input_object *obj, char *name)
 		strcpy(device_name, DEFAULT_DEVICE);
 	}	
 #ifdef DEBUG
-	printf("device = %s, name = %s\n", device_name, fname);
-#endif
-	if(cd_getinfo(&cdrom_fd, device_name, &tl)) {
-		return 0;
-	}
-
-#ifdef DEBUG	
-	cd_disp_TOC(&tl);	
-	printf("IFRAMESIZE = %d\n", IFRAMESIZE);
+	alsaplayer_error("device = %s, name = %s\n", device_name, fname);
 #endif
 
 	obj->local_data = malloc(sizeof(struct cdda_local_data));
@@ -287,40 +300,47 @@ static int cdda_open(input_object *obj, char *name)
 	}		
 	data = (struct cdda_local_data *)obj->local_data;
 
+	if(cd_getinfo(&data->cdrom_fd, device_name, &data->tl)) {
+		free(obj->local_data);
+		obj->local_data = NULL;
+		return 0;
+	}
+
+#ifdef DEBUG	
+	cd_disp_TOC(&data->tl);	
+	alsaplayer_error("IFRAMESIZE = %d\n", IFRAMESIZE);
+#endif
+
 	obj->nr_channels = 2;
 	data->samplerate = 44100;
 	data->track_length = 0;
 	data->track_start  = 0;
 	data->rel_pos = 0;
 	data->track_nr = 0;
-	data->cdrom_fd = cdrom_fd;
 	strcpy(data->device_path, device_name);
 
 	if (strcmp(fname, "CD.cdda") == 0) {
-		data->track_start = tl.starts[tl.min-1]; /* + CD_MSF_OFFSET; */
-		data->track_length = tl.starts[tl.max] - data->track_start;
-		data->rel_pos = 0;
-		data->track_nr = 1;
-#ifdef DEBUG
-		printf("Start: %d. Length: %d\n", data->track_start,
-				data->track_length);
-#endif
-	}			
-	else
-		if (sscanf(fname, "Track %02d.cdda", &data->track_nr) != 1 ||
+		pthread_t cd_add;
+		
+		pthread_create(&cd_add, NULL, (void *(*)(void *))cd_adder, data->tl.max);
+
+		pthread_detach(cd_add);
+		return 1;
+	} else if (sscanf(fname, "Track %02d.cdda", &data->track_nr) != 1 ||
 				sscanf(fname, "Track%02d.cdda", &data->track_nr) != 1) {
-			printf("Hmm failed to read track number (%s)\n", fname);
+			alsaplayer_error("Hmm failed to read track number (%s)", fname);
 			free(obj->local_data);
 			obj->local_data = NULL;
 			return 0;
-		} else  {
-#ifdef DEBUG
-			printf("Found track number %d (%s)\n", data->track_nr, fname);
+	} else {
+#ifdef DEBUG		
+		alsaplayer_error("Found track number %d (%s)\n", data->track_nr, fname);
 #endif
-			data->track_start = tl.starts[data->track_nr-1];
-			data->track_length = tl.starts[data->track_nr] - tl.starts[data->track_nr-1];
-			data->rel_pos = 0;
-		}
+		data->track_start = data->tl.starts[data->track_nr-1];
+		data->track_length = data->tl.starts[data->track_nr] - 
+				data->tl.starts[data->track_nr-1];
+		data->rel_pos = 0;
+	}
 
 	obj->flags = P_SEEK;
 
@@ -332,7 +352,7 @@ static void cdda_close(input_object *obj)
 {
 	struct cdda_local_data *data;	
 #ifdef DEBUG
-	printf("In cdda_close()\n");
+	alsaplayer_error("In cdda_close()\n");
 #endif
 	if (!obj)
 		return;
@@ -340,14 +360,11 @@ static void cdda_close(input_object *obj)
 	if (!data) {
 		return;
 	}
-#ifdef DEBUG	
-	printf("closing\n");
-#endif
 	close(data->cdrom_fd);
-	if (tl.starts) free(tl.starts);
-	tl.starts = NULL;
-	if (tl.types) free(tl.types);
-	tl.types = NULL;
+	if (data->tl.starts) free(data->tl.starts);
+	data->tl.starts = NULL;
+	if (data->tl.types) free(data->tl.types);
+	data->tl.types = NULL;
 	free(obj->local_data);
 	obj->local_data = NULL;
 }
@@ -367,9 +384,11 @@ static int cdda_play_frame(input_object *obj, char *buf)
 	}		
 	if (!data->track_length || 
 			(data->rel_pos > data->track_length)) {
-		//printf("rel_pos = %d, start = %d, end = %d\n",
-		//		data->rel_pos, data->track_start, 
-		//		data->track_start + data->track_length);
+#ifdef DEBUG		
+		alsaplayer_error("rel_pos = %d, start = %d, end = %d\n",
+				data->rel_pos, data->track_start, 
+				data->track_start + data->track_length);
+#endif		
 		return 0;
 	}
 	memset(bla, 0, sizeof(bla));

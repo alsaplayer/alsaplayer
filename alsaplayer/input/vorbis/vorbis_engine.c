@@ -369,7 +369,7 @@ static float vorbis_can_handle(const char *path)
 }
 
 
-static int vorbis_open(input_object *obj, char *path)
+static int vorbis_open(input_object *obj, const char *path)
 {
 	vorbis_info *vi; 
 	void *datasource = NULL;
