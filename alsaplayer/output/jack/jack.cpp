@@ -67,7 +67,7 @@ void jack_restarter(void *arg)
 
 	if (client) {
 		jack_client_close(client);
-		client = NULL;
+		client = (jack_client_t *)NULL;
 	}	
 	if (jack_prepare(arg) < 0) {
 		alsaplayer_error("failed reconnecting to jack...exitting");
@@ -81,7 +81,7 @@ void jack_shutdown (void *arg)
 	pthread_t restarter;
 
 	alsaplayer_error("trying to reconnect to jack (spawning thread)");
-	pthread_create(&restarter, NULL, (void * (*)(void *))jack_restarter, arg);
+	pthread_create(&restarter, (pthread_attr_t *)NULL, (void * (*)(void *))jack_restarter, arg);
 	pthread_detach(restarter);
 }
 
@@ -187,7 +187,7 @@ static void jack_close()
 {
 	if (client) {
 		jack_client_close (client);
-		client = NULL;
+		client = (jack_client_t *)NULL;
 	}	
 	return;
 }
