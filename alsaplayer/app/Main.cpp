@@ -683,7 +683,6 @@ int main(int argc, char **argv)
 	if (!playlist->Length()) {
 		homedir = get_homedir();
 		sprintf(prefs_path, "%s/.alsaplayer/alsaplayer.m3u", homedir);
-		playlist->Pause();
 		playlist->Load(prefs_path, playlist->Length(), false);
 	} else {
 		playlist->UnPause();

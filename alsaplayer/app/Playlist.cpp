@@ -56,9 +56,6 @@ extern void playlist_looper(void *data)
 				return;
 			if (!coreplayer->IsActive()) {
 				if (pl->Length()) {
-					// Unpause the player 
-					if (coreplayer->GetSpeed() == 0.0) 
-						coreplayer->SetSpeed(1.0);
 					pl->Next(1);
 				}	
 			}
@@ -709,8 +706,12 @@ bool Playlist::PlayFile(PlayItem const & item) {
 
 	coreplayer->Stop();
 	result = coreplayer->Open(item.filename.c_str());
-	if (result)
+	if (result) {
 		result = coreplayer->Start();
+		if (coreplayer->GetSpeed() == 0.0) { // Unpause
+			coreplayer->SetSpeed(1.0);
+		}	
+	}	
 	UnPause();
 	return result;
 }

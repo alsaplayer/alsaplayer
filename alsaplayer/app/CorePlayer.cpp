@@ -163,6 +163,7 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	new_frame_number = 0;
 	read_direction = DIR_FORWARD;
 	node = the_node;
+	pitch = 1.0;
 	sub = NULL;
 	last_read = -1;
 	SetSpeedMulti(1.0);
@@ -495,6 +496,7 @@ int CorePlayer::SetSpeed(float val)
 {
 	if (val < 0.0 && !CanSeek())
 		val = 0.0; // Do not allow reverse play if we can't seek
+	//alsaplayer_error("new speed = %.2f", val);	
 	pitch_point = val;
 	repitched = 1;
 

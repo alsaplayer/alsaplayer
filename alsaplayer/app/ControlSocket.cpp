@@ -204,7 +204,8 @@ void socket_looper(void *arg)
 						char_val[pkt.pld_length] = 0; // Null terminate string
 						if (strlen(char_val)) {
 							playlist->Insert(char_val, playlist->Length());
-						}	
+						}
+						playlist->UnPause();
 					}	
 					break;
 				case AP_GET_INT_POS_SECOND:
