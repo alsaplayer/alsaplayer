@@ -149,7 +149,7 @@ int mpeg_play_frame(input_object *obj, char *buf)
 			return 0;
 	data = (struct mpeg_local_data *)obj->local_data;
 #ifdef DEBUG
-	printf("playing frame\n");
+	puts("playing frame");
 #endif
 	if (data) {
 		if (!read_frame(&data->fr)) {
@@ -168,7 +168,7 @@ int mpeg_play_frame(input_object *obj, char *buf)
 		}	
 	}
 #ifdef DEBUG
-	printf("play frame success\n");
+	puts("play frame success");
 #endif	
 	return 1;
 }
@@ -257,7 +257,7 @@ int mpeg_open(input_object *obj, const char *path)
 	printf("Opening stream %s\n", path);	
 #endif
 	if (!open_stream(path, -1)) {
-		printf("erorr opening stream\n");
+		puts("error opening stream");
 		free(obj->local_data);
 		obj->local_data = NULL;
 		return 0;
@@ -269,7 +269,7 @@ int mpeg_open(input_object *obj, const char *path)
 		data->streaming = 1;
 	}	
 	if (!mpeg_get_frame_info(obj, path)) {
-		printf("Info fout!\n");
+		puts("Info fout!");
 		free(obj->local_data);
 		obj->local_data = NULL;
 		return 0;
