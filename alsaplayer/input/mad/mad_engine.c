@@ -1,7 +1,7 @@
 /*
  * AlsaPlayer MAD plugin.
  *
- * Copyright (C) 2001-2002 Andy Lo A Foe <andy@alsaplayer.org>
+ * Copyright (C) 2001-2003 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -193,6 +193,7 @@ static int mad_frame_seek(input_object *obj, int frame)
 	if (!data || !data->seekable)
 		return 0;
 
+	//alsaplayer_error("frame_seek(..., %d)", frame);
 	mad_header_init(&header);
 
 	data->bytes_avail = 0;
@@ -792,6 +793,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 		if (data[pos] == 0xff && (data[pos+1] == 0xfb
 					|| data[pos+1] == 0xfa
 					|| data[pos+1] == 0xf3 
+					|| data[pos+1] == 0xf2
 					|| data[pos+1] == 0xe2
 					|| data[pos+1] == 0xe3)) {
 			return pos;
@@ -908,6 +910,7 @@ static int mad_open(input_object *obj, const char *path)
 		//fprintf(stderr, "mad_open() couldn't find valid MPEG header\n");
 		data->offset = 0;
 	}
+	//alsaplayer_error("data->offset = %d", data->offset);
 	if (data->offset > data->bytes_avail) {
 		data->seekable = 1;
 		//alsaplayer_error("Need to refill buffer (data->offset = %d)", data->offset);
@@ -931,7 +934,7 @@ first_frame:
 				
 			case MAD_ERROR_BADSAMPLERATE:	
 				if (mad_header_decode(&data->frame.header, &data->stream) == -1) {
-					alsaplayer_error("Lost synchronisation (%s)", path);
+					alsaplayer_error("Lost synchronisation (frame %d)", data->current_frame);
 				}
 				//alsaplayer_error("avail = %d", data->bytes_avail);
 				data->bytes_avail-=(data->stream.next_frame - data->stream.this_frame);
@@ -967,6 +970,7 @@ first_frame:
 		struct mad_pcm *pcm = &data->synth.pcm;			
 
 		obj->nr_channels = pcm->channels;
+		//alsaplayer_error("nr_channels = %d", obj->nr_channels);
 	}
 	/* Calculate some values */
 	data->bytes_avail = data->stream.bufend - data->stream.next_frame;
