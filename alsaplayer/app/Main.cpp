@@ -74,7 +74,7 @@ prefs_handle_t *ap_prefs = NULL;
 void control_socket_start(Playlist *, interface_plugin *ui);
 void control_socket_stop();
 
-static char addon_dir[1024];
+static char addon_dir[512];
 
 static char *default_pcm_device = "default";
 
@@ -131,7 +131,7 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 	output_plugin_info_type output_plugin_info;
 
 	if (module) {
-		sprintf(path, "%s/output/lib%s_out.so", addon_dir, module);
+		snprintf(path, sizeof(path), "%s/output/lib%s_out.so", addon_dir, module);
 		if (stat(path, &statbuf) != 0)	// Error reading object
 			return;
 		if ((handle = dlopen(path, RTLD_NOW | RTLD_GLOBAL))) {
@@ -156,7 +156,7 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 		}
 	} else {
 		for (int i = 0; default_output_addons[i]; i++) {
-			sprintf(path, "%s/output/lib%s_out.so", addon_dir,
+			snprintf(path, sizeof(path)-1, "%s/output/lib%s_out.so", addon_dir,
 				default_output_addons[i]);
 			if (stat(path, &statbuf) != 0)
 				continue;
@@ -213,9 +213,9 @@ interface_plugin_info_type load_interface(char *name)
 
 	if (name) {
 		if (strchr(name, '.'))
-			strcpy(path, name);
+			strncpy(path, name, sizeof(path));
 		else
-			sprintf(path, "%s/interface/lib%s.so", addon_dir, name);
+			snprintf(path, sizeof(path), "%s/interface/lib%s.so", addon_dir, name);
 #ifdef DEBUG
 		alsaplayer_error("Loading interface plugin: %s\n", path);
 #endif
@@ -273,7 +273,7 @@ static void list_available_plugins(char *plugindir)
 	if (!plugindir)
 		return;
 
-	sprintf(path, "%s/%s", addon_dir, plugindir);
+	snprintf(path, sizeof(path), "%s/%s", addon_dir, plugindir);
 
 	DIR *dir = opendir(path);
 	dirent *entry;
@@ -284,7 +284,7 @@ static void list_available_plugins(char *plugindir)
 					strcmp(entry->d_name, "..") == 0) {
 				continue;
 			}
-			sprintf(path, "%s/%s/%s", addon_dir, plugindir, entry->d_name);
+			snprintf(path, sizeof(path), "%s/%s/%s", addon_dir, plugindir, entry->d_name);
 			if (stat(path, &buf)) {
 				continue;
 			}	
@@ -296,7 +296,7 @@ static void list_available_plugins(char *plugindir)
 				if (strcasecmp(ext, "so")) {
 					continue;
 				}
-				sprintf(path, "%s", entry->d_name);
+				snprintf(path, sizeof(path), "%s", entry->d_name);
 				ext = strrchr(path, '.');
 				if (ext)
 					*ext = '\0';
@@ -461,15 +461,16 @@ int main(int argc, char **argv)
 	// Init global mutexes
 	pthread_mutex_init(&playlist_sort_seq_mutex, NULL);
 	
-	strcpy(addon_dir, ADDON_DIR);
+	strncpy(addon_dir, ADDON_DIR, sizeof(addon_dir)-1);
+	addon_dir[sizeof(addon_dir)-1] = 0;
 
 	init_effects();
 
 	homedir = get_homedir();
 
-	sprintf(prefs_path, "%s/.alsaplayer/", homedir);
+	snprintf(prefs_path, sizeof(prefs_path)-1,"%s/.alsaplayer/", homedir);
 	mkdir(prefs_path, 0700);	/* XXX We don't do any error checking here */
-	sprintf(prefs_path, "%s/.alsaplayer/config", homedir);
+	snprintf(prefs_path, sizeof(prefs_path)-1, "%s/.alsaplayer/config", homedir);
 
 	ap_prefs = prefs_load(prefs_path);
 
@@ -525,7 +526,8 @@ int main(int argc, char **argv)
 				use_session = atoi(optarg);
 				break;
 			case 'p':
-				strcpy(addon_dir, optarg);
+				strncpy(addon_dir, optarg, sizeof(addon_dir)-1);
+				addon_dir[sizeof(addon_dir)-1] = 0;
 				break;
 			case 'q':
 				global_quiet = 1;
@@ -603,9 +605,9 @@ int main(int argc, char **argv)
 					return 1;
 				}
 				strcat(queue_name, "/");
-				strcat(queue_name, argv[count]);
+				strncat(queue_name, argv[count], sizeof(queue_name)-strlen(queue_name));
 			} else
-				strcpy(queue_name, argv[count]);
+				strncpy(queue_name, argv[count], sizeof(queue_name)-strlen(queue_name));
 			count++;
 			//alsaplayer_error("Adding %s", queue_name);
 			ap_result = ap_add_path(use_session, queue_name);
@@ -676,7 +678,7 @@ int main(int argc, char **argv)
 		playlist->UnPause();
 	} else {
 		homedir = get_homedir();
-		sprintf(prefs_path, "%s/.alsaplayer/alsaplayer.m3u", homedir);
+		snprintf(prefs_path, sizeof(prefs_path)-1, "%s/.alsaplayer/alsaplayer.m3u", homedir);
 		playlist->Load(prefs_path, playlist->Length(), false);
 	}
 
@@ -753,7 +755,7 @@ int main(int argc, char **argv)
 	}
 	// Save playlist before exit
 	homedir = get_homedir();
-	sprintf(prefs_path, "%s/.alsaplayer/alsaplayer", homedir);
+	snprintf(prefs_path, sizeof(prefs_path)-1, "%s/.alsaplayer/alsaplayer", homedir);
 	playlist->Save(prefs_path, PL_FORMAT_M3U);
 
 _fatal_err:
