@@ -1,4 +1,3 @@
-
 /*
 
     TiMidity -- Experimental MIDI to WAVE converter
@@ -18,6 +17,8 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+    The midi plugin for alsaplayer is a version of Tuukka Toivonen's TiMidity
+    done by Greg Lee, greg@ling.lll.hawaii.edu, April 2002.
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,7 +39,9 @@
 #include <sys/stat.h>
 
 #include "input_plugin.h"
-
+#ifdef DO_PREFS
+#include "prefs.h"
+#endif
 /*#define PLUGDEBUG*/
 /************************************/
 
@@ -283,21 +286,54 @@ static int look_midi_file(input_object *obj)
   return 1;
 }
 
+
+#define HOME_CONFIGURE
+
+#ifdef HOME_CONFIGURE
+static char *homedir;
+static char prefs_path[1024];
+static char *get_homedir()
+{
+	char *homedir = NULL;
+
+	if ((homedir = getenv("HOME")) == NULL) {
+		homedir = strdup("/tmp");
+	}
+
+	return homedir;
+}
+#endif
+
 static void init_midi()
 {
+	if (got_a_configuration) return;
 #ifdef PLUGDEBUG
 	fprintf(stderr,"init_midi\n");
+#endif
+
+#ifdef DO_PREFS
+	prefs_set_bool(ap_prefs, "midi", "active", 1);
 #endif
 
   output_fragsize = 4096;
 
 #ifdef DEFAULT_PATH
-  if (!got_a_configuration)
   add_to_pathlist(DEFAULT_PATH, 0);
 #endif
 
-  if (!got_a_configuration)
-	read_config_file(CONFIG_FILE, 1);
+#ifdef HOME_CONFIGURE
+	homedir = get_homedir();
+	sprintf(prefs_path, "%s/.alsaplayer", homedir);
+  	add_to_pathlist(prefs_path, 0);
+#endif
+
+/* if I try to prescan and there are "timidity.cfg" files
+ * in both the config dir and in ~/.alsaplayer, the second
+ * real scan, below, opens the wrong one -- in the config
+ * dir.  I don't know why.
+ */
+  /*read_config_file("timidity.cfg", 1);*/
+  read_config_file("timidity.cfg", 0);
   if (output_rate) play_mode->rate=output_rate;
   if (output_name)
 	 {
@@ -316,7 +352,6 @@ static void init_midi()
 
   if (*def_instr_name) set_default_instrument(def_instr_name);
   if (got_a_configuration < 2) read_config_file(current_config_file, 0);
-	return;
 }
 
 
@@ -473,7 +508,7 @@ static int midi_frame_seek(input_object *obj, int frame)
 	if (data->is_playing) {
 		current_frame = (b_out_count() + bbcount) / output_fragsize;
 		if (current_frame == frame) return 1;
-		if (current_frame > frame - 2 && current_frame < frame + 2) return 1;
+		/*if (current_frame > frame - 2 && current_frame < frame + 2) return 1;*/
 		tim_time = frame * output_fragsize / 4;
 		if (tim_time < 0) tim_time = 0;
 		if (tim_time > data->count) return 0;
@@ -649,6 +684,13 @@ fprintf(stderr,"midi_init\n");
 	return 1;
 }
 
+static void midi_shutdown()
+{
+#ifdef PLUGDEBUG
+fprintf(stderr,"midi_shutdown\n");
+#endif
+}
+
 
 /*****for reference
 
@@ -682,11 +724,11 @@ typedef struct _input_plugin
 input_plugin midi_plugin = {
 	INPUT_PLUGIN_VERSION,
 	0,
-	{ "MIDI player v0.01" },
-	{ "Greg Lee" },
+	"MIDI player v0.01",
+	"Greg Lee",
 	NULL,
 	midi_init,
-	NULL,
+	midi_shutdown,
 	NULL,
 	midi_can_handle,
 	midi_open,
@@ -702,6 +744,7 @@ input_plugin midi_plugin = {
 	NULL,
 	NULL
 };
+
 
 input_plugin *input_plugin_info(void)
 {

@@ -1,3 +1,13 @@
+Sat Apr 13 08:18:19 HST 2002
+	Changelog
+	midi_engine.c: add _shutdown (does nothing)
+		look first in ~/.alsaplayer for timidity.cfg
+		correct frame_seek
+	cfg.l: added (flex source for cfg.c)
+	cfg.c: changed
+	Makefile.am: get cfg.c from cfg.l
+	DESIGN: document added
+	README
 Wed Apr 10 07:28:30 HST 2002
 	ChangeLog
 	Makefile.am: add timidity subdir

@@ -1,0 +1,104 @@
+Midi Design
+Greg Lee, 4/02
+
+
+
+
+			Synthesis Model
+
+TiMidity has a tone generator, two envelope generators, three low frequency
+sine-wave oscillators, a low pass filter, and an effects unit.
+
+The tone generator resamples instrument patches at the basic frequencies appropriate
+for specific notes being played.  (The interpolation algorithm used is selectable
+using the four checkboxes on the upper panel.)
+
+The envelope generators modulate each note with successively: an attack phase, a
+hold phase, a decay, and a release.  One of the generators affects amplitude,
+and the other affects pitch and/or the cutoff frequency of the low pass filter.
+
+The low frequency oscillators modulate amplitude (for tremolo), frequency (for
+vibrato), and the low pass filter cutoff frequency (XG "rezo sweep").
+
+The effects unit supplies echo, detuning, reverberation, chorusing, celeste, and
+phaser effects.  Echo (done by generating extra echo notes) and reverbration
+(done with a filter) implement midi reverberation.  Detuning (done by generating
+extra pitch bent notes) and chorusing (done with a filter) implement midi
+chorusing.
+
+Instruments may have either one or two tone elements, and for each of these,
+a patch set may provide separate patches for different note-velocity ranges
+(commonly for pianos) and for different note-pitch ranges.  GUS patch sets,
+however, provide only one tone element and one velocity range per instrument.
+
+
+			Midi Implementation
+
+Almost all midi messages and controllers that I'm aware of are implemented somehow
+(meaning that they cause something to happen, if not necessarily the right thing).
+NRPN controllers for setting attack and decay time are not implemented, because
+I haven't found any midi files that use them.  The flanging controller is not
+implemented (though flanging requested in an XG sysex dump is implemented).  Only
+a few of the hardware oriented controls in Roland and Yamaha system exclusive
+dumps are implemented.
+
+TiMidity can handle midi files meant to play on up to four synthesizers, keeping
+separate the four sets of 16 channels for each synth.  However, in the midi file,
+the synths have to be selected using port commands (in either Roland-GS or
+Yamaha-XG sysex dumps).  Some midi files intended for multiple synths don't have
+port commands.  (The info window shows port commands when present.)
+
+
+
+			Volume
+
+I've reduced the volumes levels TiMidity generates quite a lot, as compared with
+the original implementation.  This minimizes clipping and gives an increased
+dynamic range.  (There may be some artifacts now at low volumes, unfortunately.)
+If you need more volume, I suggest you turn up the volume somewhere else, either
+use a mixer to turn up the line volume, the mixer volume for /dev/dsp, or turn up earphones,
+amplified speakers, or whatever.
+
+
+			Computation Issues
+
+TiMidity can fall behind in computing data to send out to the sound driver, and
+then there are dropouts in the music.  TiMidity tries to anticipate the possibility
+of a dropout by monitoring the state of its output buffer and those of the
+sound driver, and when there is not much in the buffers, it tries to catch up
+by minimising the calculations it has to do: it uses a cruder interpolation
+routine in resampling, stops doing extra echo and detuned notes for reverb and
+chorus effects, and starts terminating notes early, or even skipping notes
+altogether.  So, depending on midi song, patchset, how fast your system is,
+even if you don't hear dropouts, you will notice a loss in quality as TiMidity
+gets busier.
+
+Monitoring the output buffer involves calling the sound driver to find out how
+much data it has buffered up.  I know how to do this for Hannu Savolainen's OSS
+driver (Linux and some other systems), perhaps for older Suns (it used to work),
+but not for other drivers.
+
+
+			Memory Issues
+
+It's possible for TiMidity to use an excessive amount of memory for patches.  Symptoms
+are your window system becoming very sluggish, or crashing.  This is probably only
+a problem when using big sf2 soundfonts of 30+ megabytes.  For instance, the
+piano patches in Personal Choice's PC400 soundfont can occupy 25 megs each.  After playing
+a list of midi files which use three of these pianos, well, that's 75 megs of
+ram right there.  TiMidity assumes a maximum number
+of megs to be used to keep patches used in playing previous midi files;  when this
+maximum is exceeded, TiMidity will unload least recently used patches, returning
+ram to the system.  The default maximum is 60 megs, which works ok on my system (I
+have 48 megs ram and 196 megs cache).  Setting this to a lower value means that
+more patches have to be reloaded from patch files as you play through a list of midi
+songs, which slows things up.  If you're ram rich, you can set it to "no limit".
+If you allowed enough room, entire soundfont files are read at once, instead of
+patch by patch.  Setting the maximum too low can be counterproductive, because
+soundfont files occupy much less memory in toto when the entire file is read than when
+the patches are read individually (I don't know why).
+
+For little-endian systems like x86, rather than being read in, sf2 soundfonts are
+mmapped.  This is much faster on startup.  I haven't figured out a way to do this
+for big-endian systems.
+

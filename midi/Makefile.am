@@ -31,6 +31,6 @@ LIBS =
 
 libmidi_in_la_SOURCES= $(midi_insources)
 
-#cfg.c:
-#	rm -f cfg.c
-#	flex -t -B $(srcdir)/cfg.l >cfg.c
+cfg.c: cfg.l
+	rm -f cfg.c
+	flex -t -B $(srcdir)/cfg.l >cfg.c
