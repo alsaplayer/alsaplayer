@@ -682,6 +682,7 @@ gint indicator_callback(gpointer data, int locking)
 	long slider_val, t_min, t_sec;
 	long c_hsec, secs, c_min, c_sec;
 	long sr;
+	int nr_frames;
 	static char old_str[60] = "";
 
 	ustr = &global_ustr;
@@ -719,6 +720,7 @@ gint indicator_callback(gpointer data, int locking)
 	if (locking)
 		GDK_THREADS_LEAVE();
 	sr = p->GetSampleRate();
+	nr_frames = p->GetFrames();
 	if (p->IsActive()) { 
 		int pos;
 		pos = global_update ? p->GetPosition() : (int) adj->value;
@@ -729,10 +731,12 @@ gint indicator_callback(gpointer data, int locking)
 		c_sec = (secs % 6000) / 100;
 #ifdef SUBSECOND_DISPLAY		
 		c_hsec = secs % 100;
-#endif		
-		secs = p->GetCurrentTime(p->GetFrames());
-		t_min = secs / 6000;
-		t_sec = (secs % 6000) / 100;
+#endif	
+		if (nr_frames >= 0) {
+			secs = p->GetCurrentTime(nr_frames);
+			t_min = secs / 6000;
+			t_sec = (secs % 6000) / 100;
+		}
 		if (locking)
 			GDK_THREADS_ENTER();
 		gtk_adjustment_set_value(adj, pos);
@@ -747,16 +751,16 @@ gint indicator_callback(gpointer data, int locking)
 		c_hsec = 0;
 		sprintf(info.title, "No stream");
 	}
-	if (t_min == 0 && t_sec == 0 && !strlen(info.status)) {
-		sprintf(str, "No status");
+	if (strlen(info.status)) {
+		sprintf(str, "%s", info.status);
 	} else {
-#ifdef SUBSECOND_DISPLAY	
+#ifdef SUBSECOND_DISPLAY
 		sprintf(str, "%02ld:%02ld.%02d/%02d:%02d", c_min, c_sec, c_hsec, t_min, t_sec);
 #else
-		if (!strlen(info.status))
+		if (nr_frames >= 0) 
 			sprintf(str, "%02ld:%02ld/%02ld:%02ld", c_min, c_sec, t_min, t_sec);
 		else
-			sprintf(str, "%s", info.status);
+			sprintf(str, "Live: %02ld:%02ld", c_min, c_sec);
 #endif
 	}
 	if (val_ind && strcmp(old_str, str) != 0) {
