@@ -760,10 +760,11 @@ gint indicator_callback(gpointer data, int locking)
 		GDK_THREADS_ENTER();
 	draw_format(info.stream_type);
 	if (strlen(info.artist)) {
-		sprintf(title_string, "%s - %s", info.artist, info.title);
+		sprintf(title_string, "%s - %s", info.title, info.artist);
 		draw_title(title_string);
-	} else	
+	} else {
 		draw_title(info.title);
+	}	
 	draw_speed();
 	if (global_draw_volume)
 		draw_volume();
