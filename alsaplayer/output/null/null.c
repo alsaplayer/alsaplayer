@@ -45,13 +45,7 @@ static void null_close()
 
 static int null_write(void *data, int count)
 {
-	static int warn = 0;
-
-	if (warn++ > 100) {
-			alsaplayer_error("null plugin active...no sound output");
-			warn = 0;
-	}		
-	usleep(10000);
+	dosleep(10000);
 	return 1;
 }
 
