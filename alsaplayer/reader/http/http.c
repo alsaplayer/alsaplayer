@@ -102,7 +102,7 @@ static int parse_uri (const char *uri, char **host, int *port, char **path)
 	
 	/* Test, port should be digital */
 	if ((slash && s!=slash) || (!slash && *s!='\0')) {
-	    alsaplayer_error ("HTTP: Couldn't open %s: Port parse error.\n", uri);
+	    alsaplayer_error ("HTTP: Couldn't open %s: Port parse error.", uri);
 	    return -1;
 	}
 
@@ -143,7 +143,7 @@ static int sleep_for_data (int sock)
     FD_SET (sock, &set);
     
     if (select (sock+1, &set, NULL, NULL, &tv) < 1) {
-	alsaplayer_error ("HTTP: Connection is too slow.\n");
+	alsaplayer_error ("HTTP: Connection is too slow.");
 	return 1;
     }
 
@@ -159,7 +159,7 @@ static int get_response_head (int sock, char *response, int max)
     while (len < 4 || memcmp (response + len - 4, "\r\n\r\n", 4)) {
 	/* check for overflow */
 	if (len >= max) {
-	    alsaplayer_error ("HTTP: Response is too long.\n");
+	    alsaplayer_error ("HTTP: Response is too long.");
 	    return 1;
 	}
 
@@ -318,14 +318,14 @@ static int reconnect (http_desc_t *desc)
     
     /* Look up for host IP */
     if (!(hp = gethostbyname (desc->host))) {
-	alsaplayer_error ("HTTP: Couldn't look up host %s.\n", desc->host);
+	alsaplayer_error ("HTTP: Couldn't look up host %s.", desc->host);
 	return 1;
     }
 
     /* Open socket */
     desc->sock = socket (AF_INET, SOCK_STREAM, 0);
     if (desc->sock==-1) {
-	alsaplayer_error ("HTTP: Couldn't open socket.\n");
+	alsaplayer_error ("HTTP: Couldn't open socket.");
 	return 1;
     }
     
@@ -340,7 +340,7 @@ static int reconnect (http_desc_t *desc)
     /* Start connection */
     if (connect (desc->sock, (struct sockaddr *) &address, sizeof (struct sockaddr_in)) == -1) {
 	if (errno != EINPROGRESS) {
-	    alsaplayer_error ("HTTP: Couldn't connect to host %s:%u\n", desc->host, desc->port);
+	    alsaplayer_error ("HTTP: Couldn't connect to host %s:%u", desc->host, desc->port);
 	    return 1;
 	}
     }
@@ -352,7 +352,7 @@ static int reconnect (http_desc_t *desc)
     FD_SET (desc->sock, &set);
     
     if (select (desc->sock+1, NULL, &set, NULL, &tv) < 1) {
-	alsaplayer_error ("HTTP: Connection is too slow.\n");
+	alsaplayer_error ("HTTP: Connection is too slow.");
 	return 1;
     }
 
@@ -360,7 +360,7 @@ static int reconnect (http_desc_t *desc)
     error_len = sizeof (error);
     getsockopt (desc->sock, SOL_SOCKET, SO_ERROR, &error, &error_len);
     if (error) {
-	alsaplayer_error ("HTTP: Couldn't connect to host %s:%u\n", desc->host, desc->port);
+	alsaplayer_error ("HTTP: Couldn't connect to host %s:%u", desc->host, desc->port);
 	return 1;
     }
 
@@ -387,7 +387,7 @@ static int reconnect (http_desc_t *desc)
 	if (!desc->size)
 	    desc->size = atol (s+18);
     } else {
-	alsaplayer_error ("HTTP: Content-Length header is absent!\n");
+	alsaplayer_error ("HTTP: Content-Length header is absent!");
 	return 0;
     }
 
@@ -443,8 +443,10 @@ static void *http_open(const char *uri)
     pthread_cond_init (&desc->fast_condition, NULL);
 
     /* Parse URI */
-    if (parse_uri (uri, &desc->host, &desc->port, &desc->path))
+    if (parse_uri (uri, &desc->host, &desc->port, &desc->path)) {
+	http_close (desc);
 	return NULL;
+    }
 
     /* Connect */
     if (reconnect (desc)) {
