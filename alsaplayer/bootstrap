@@ -37,7 +37,7 @@ run_cmd() {
 }
 
 run_cmd cat m4/*.m4 > acinclude.m4
-run_cmd aclocal
+run_cmd aclocal -I /usr/local/share/aclocal
 run_cmd autoheader
 run_cmd libtoolize --automake
 run_cmd automake --add-missing
