@@ -61,7 +61,7 @@ Playlist *playlist = NULL;
 #ifdef SUBSECOND_DISPLAY 
 #define UPDATE_TIMEOUT  20000
 #else
-#define UPDATE_TIMEOUT  200000
+#define UPDATE_TIMEOUT  500000
 #endif
 #define BAL_CENTER  100
 #define UPDATE_COUNT    5
