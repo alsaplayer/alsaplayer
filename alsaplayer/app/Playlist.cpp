@@ -60,11 +60,11 @@ void info_looper(void *data)
 
 	//alsaplayer_error("new info_looper()");
 
+	playlist->Lock();
 	for(i = playlist->interfaces.begin();
 			i != playlist->interfaces.end(); i++) {
 		(*i)->CbLock();
 	}
-	playlist->Lock();
 
 	//alsaplayer_error("locked()");
 	std::vector<PlayItem>::iterator p = playlist->queue.begin();
@@ -178,11 +178,11 @@ void insert_looper(void *data) {
 	Playlist *playlist = items->playlist;
 
 	// Stop the list being changed while we add these items
+	playlist->Lock();
 	for(i = playlist->interfaces.begin();
 			i != playlist->interfaces.end(); i++) {
 			(*i)->CbLock();
 		}	
-	playlist->Lock();
 
   // First vetting of the list, and recurse through directories
 	std::vector<std::string> vetted_items;
@@ -320,13 +320,16 @@ unsigned Playlist::Length() {
 // Request to move to specified item
 void Playlist::Play(unsigned item, int locking) {
 	std::set<PlaylistInterface *>::const_iterator i;
-	
-	if (locking) {
+
+	if (!locking) { // Make sure we acquire the locks in the right order!
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbLock();
+			(*i)->CbUnlock();
 		}
-	}	
+	}
 	Lock();
+	for(i = interfaces.begin(); i != interfaces.end(); i++) {
+		(*i)->CbLock();
+	}
 
 	if(item < 1) item = 1;
 	if(item <= queue.size()) {
@@ -347,26 +350,28 @@ void Playlist::Play(unsigned item, int locking) {
 			(*i)->CbSetCurrent(curritem);
 		}
 	}
-	
-	Unlock();
 	if (locking) {
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
 			(*i)->CbUnlock();
 		}
-	}	
+	}
+	Unlock();
 }
 
 // Request to move to next item
 void Playlist::Next(int locking) {
 	//alsaplayer_error("In Next...%d", locking);
 	std::set<PlaylistInterface *>::const_iterator i;
-	
-	if (locking) {
+
+	if (!locking) {
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbLock();
+			(*i)->CbUnlock();
 		}
-	}	
-	Lock();	
+	Lock();
+	for(i = interfaces.begin(); i != interfaces.end(); i++) {
+		(*i)->CbLock();
+	}
+	
 	unsigned olditem = curritem;
 	if(queue.size() > 0) {
 	  if(curritem < queue.size()) {
@@ -399,25 +404,28 @@ void Playlist::Next(int locking) {
 			}
 		}
 	}
-	Unlock();
 	if (locking) {
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
 			(*i)->CbUnlock();
 		}
-	}	
+	}
+	Unlock();
 }
 
 // Request to move to previous item
 void Playlist::Prev(int locking) {
 	//alsaplayer_error("In Prev...%d", locking);
 	std::set<PlaylistInterface *>::const_iterator i;
-	
-	if (locking) {
+
+	if (!locking) {
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbLock();
+			(*i)->CbUnlock();
 		}
-	}	
+	}
 	Lock();
+	for(i = interfaces.begin(); i != interfaces.end(); i++) {
+		(*i)->CbLock();
+	}
 
 	unsigned olditem = curritem;
 	if(curritem > queue.size()) {
@@ -443,12 +451,12 @@ void Playlist::Prev(int locking) {
 		}
 	}
 
-	Unlock();
 	if (locking) {
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
 			(*i)->CbUnlock();
 		}
-	}	
+	}
+	Unlock();
 }
 
 
@@ -551,12 +559,15 @@ void Playlist::Remove(unsigned start, unsigned end) {
 // Randomize playlist
 void Playlist::Shuffle(int locking) {
 	std::set<PlaylistInterface *>::const_iterator i;
-	if (locking) {
+
+	if (!locking) {
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbLock();
+			(*i)->CbUnlock();
 		}
-	}	
 	Lock();
+	for(i = interfaces.begin(); i != interfaces.end(); i++) {
+		(*i)->CbLock();
+	}
 
 	random_shuffle(queue.begin(), queue.end());
 	
@@ -570,25 +581,27 @@ void Playlist::Shuffle(int locking) {
 			(*i)->CbSetCurrent(curritem);
 		}
 	}
-
-	Unlock();
 	if (locking) {
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbLock();
+			(*i)->CbUnlock();
 		}
 	}	
+	Unlock();
 }	
 
 // Empty playlist
 void Playlist::Clear(int locking) {
 	std::set<PlaylistInterface *>::const_iterator i;
 	
-	if (locking) {
+	if (!locking) {
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbLock();
+			(*i)->CbUnlock();
 		}
 	}	
 	Lock();
+	for(i = interfaces.begin(); i != interfaces.end(); i++) {
+		(*i)->CbLock();
+	}
 	
 	queue.clear();
 	curritem = 0;
@@ -605,13 +618,12 @@ void Playlist::Clear(int locking) {
 	
 	player1->Stop(); // Stop players
 	player2->Stop();
-
-	Unlock();
 	if (locking) {
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
 			(*i)->CbUnlock();
 		}
 	}	
+	Unlock();
 }
 
 enum plist_result
