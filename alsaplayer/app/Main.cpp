@@ -57,7 +57,7 @@ int global_reverb_on = 0;
 int global_reverb_delay = 2;
 int global_reverb_feedback = 0;
 
-int global_verbose = 1;
+int global_verbose = 0;
 
 char *global_session_name = NULL;
 
@@ -241,6 +241,7 @@ static void help()
 "  -r,--realtime           enable realtime scheduling (must be SUID root)\n"
 "  -s,--session-name name  name this session \"name\"\n"
 "  -v,--version            print version of this program\n"
+"  --verbose               be verbose about the output\n"
 "\n"
 "Testing options:\n"
 "\n"
@@ -459,7 +460,9 @@ int main(int argc, char **argv)
 		} else if (strcmp(argv[arg_pos], "--quiet") == 0 ||
 				strcmp(argv[arg_pos], "-q") == 0) {
 			be_quiet = 1;
-			global_verbose = 0;
+			last_arg = arg_pos;
+		} else if (strcmp(argv[arg_pos], "--verbose") == 0) {
+			global_verbose = 1;
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--frequency") == 0 ||
 					strcmp(argv[arg_pos], "-F") == 0) {
@@ -502,7 +505,7 @@ int main(int argc, char **argv)
 			last_arg = arg_pos;
 		}
 	}	
-	if (!be_quiet)
+	if (global_verbose)
 		fprintf(stdout, "%s\n", copyright_string);	
 
 	// Check if we need to enqueue the files
