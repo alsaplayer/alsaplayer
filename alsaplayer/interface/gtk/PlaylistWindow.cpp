@@ -27,6 +27,7 @@
 #include <vector>
 #include <algorithm>
 
+#include "Playlist.h"
 #include "PlaylistWindow.h"
 #include "support.h"
 #include "gladesrc.h"
@@ -314,8 +315,14 @@ void add_file_ok(GtkWidget *widget, gpointer data)
 	GtkCList *file_list = GTK_CLIST(GTK_FILE_SELECTION(add_file)->file_list);
 	Playlist *playlist = playlist_window_gtk->GetPlaylist();
 	GList *next = file_list->selection;
-	
+
+	printf("In add_file_ok()...\n");
+	if (!playlist) {
+		printf("Invalid playlist pointer...\n");
+		return;
+	}	
 	if (!next) { // Nothing was selected
+		printf("Nothing was selected...\n");
 		return;
 	}
 	gchar *current_dir =
@@ -342,25 +349,31 @@ void add_file_ok(GtkWidget *widget, gpointer data)
 	g_free(current_dir);
 
 	// Insert all the selected paths
-	if (playlist)
+	if (playlist) {
+		printf("About to insert at position %d...\n", playlist->Length());
 		playlist->Insert(paths, playlist->Length());
-	else
+	} else {
 		printf("No Playlist data found\n");
+	}
+	printf("Exit add_file_ok()...\n");
 }
 
 // Called when a file has been selected to be loaded as a playlist
 void load_list_ok(GtkWidget *widget, gpointer data)
 {
-	gtk_widget_hide(GTK_WIDGET(data));	
+  PlaylistWindowGTK *playlist_window_gtk = (PlaylistWindowGTK *)data;
+	gtk_widget_hide(GTK_WIDGET(playlist_window_gtk->save_list));
+	Playlist *playlist = playlist_window_gtk->GetPlaylist();
 	enum plist_result loaderr;
 
-	std::string file(gtk_file_selection_get_filename(GTK_FILE_SELECTION(data)));
-	//loaderr = playlist->Load(file, playlist->Length(), false);
+	std::string file(gtk_file_selection_get_filename(
+			GTK_FILE_SELECTION(playlist_window_gtk->load_list)));
+	loaderr = playlist->Load(file, playlist->Length(), false);
 	if(loaderr == E_PL_DUBIOUS) {
 		// FIXME - pop up a dialog and check if we really want to load
 		fprintf(stderr, "Dubious whether file is a playlist - trying anyway\n");
 
-		//loaderr = playlist->Load(file, playlist->Length(), true);
+		loaderr = playlist->Load(file, playlist->Length(), true);
 	}
 	if(loaderr) {
 		// FIXME - pass playlist_window to this routine
@@ -370,12 +383,15 @@ void load_list_ok(GtkWidget *widget, gpointer data)
 
 void save_list_ok(GtkWidget *widget, gpointer data)
 {
-	gtk_widget_hide(GTK_WIDGET(data));
+	PlaylistWindowGTK *playlist_window_gtk = (PlaylistWindowGTK *)data;
+	gtk_widget_hide(GTK_WIDGET(playlist_window_gtk->save_list));
+	Playlist *playlist = playlist_window_gtk->GetPlaylist();
 
-	std::string file(gtk_file_selection_get_filename(GTK_FILE_SELECTION(data)));
-
+	std::string file(gtk_file_selection_get_filename(
+			GTK_FILE_SELECTION(playlist_window_gtk->save_list)));
+	printf("In save_list_ok()\n");
 	enum plist_result saveerr;
-	//saveerr = playlist->Save(file, PL_FORMAT_M3U);
+	saveerr = playlist->Save(file, PL_FORMAT_M3U);
 	if(saveerr) {
 		// FIXME - pass playlist_window to this routine
 		//playlist_window->GiveStatus("Failed to save playlist");
@@ -465,9 +481,9 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 
 	
 	gtk_signal_connect(GTK_OBJECT(playlist_window), "destroy",
-		GTK_SIGNAL_FUNC(playlist_delete_event), playlist_window_gtk);
+		GTK_SIGNAL_FUNC(playlist_delete_event), (gpointer)playlist_window_gtk);
 	gtk_signal_connect(GTK_OBJECT(playlist_window), "delete_event",
-		GTK_SIGNAL_FUNC(playlist_delete_event), playlist_window_gtk);
+		GTK_SIGNAL_FUNC(playlist_delete_event), (gpointer)playlist_window_gtk);
 
 	playlist_window_gtk->add_file = gtk_file_selection_new("Add file(s)");
 	playlist_window_gtk->load_list = gtk_file_selection_new("Load Playlist");
@@ -483,29 +499,29 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 	gtk_file_selection_hide_fileop_buttons(GTK_FILE_SELECTION(playlist_window_gtk->save_list));
 
 	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(playlist_window_gtk->add_file)->cancel_button),
-		"clicked", GTK_SIGNAL_FUNC(dialog_cancel), playlist_window_gtk->add_file);
+		"clicked", GTK_SIGNAL_FUNC(dialog_cancel), (gpointer)playlist_window_gtk->add_file);
  	gtk_signal_connect(GTK_OBJECT(playlist_window_gtk->add_file), "delete_event",
                 GTK_SIGNAL_FUNC(dialog_delete), NULL);
 	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(playlist_window_gtk->add_file)->ok_button),
-    	"clicked", GTK_SIGNAL_FUNC(add_file_ok), playlist_window_gtk);
+    	"clicked", GTK_SIGNAL_FUNC(add_file_ok), (gpointer)playlist_window_gtk);
 
 	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(playlist_window_gtk->load_list)->cancel_button),
-		"clicked", GTK_SIGNAL_FUNC(dialog_cancel), playlist_window_gtk->load_list);
+		"clicked", GTK_SIGNAL_FUNC(dialog_cancel), (gpointer)playlist_window_gtk->load_list);
 	gtk_signal_connect(GTK_OBJECT(playlist_window_gtk->load_list), "delete_event",
 		GTK_SIGNAL_FUNC(dialog_delete), NULL);
 	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(playlist_window_gtk->load_list)->ok_button),
-		"clicked", GTK_SIGNAL_FUNC(load_list_ok), playlist_window_gtk->load_list);
+		"clicked", GTK_SIGNAL_FUNC(load_list_ok), (gpointer)playlist_window_gtk);
 
 	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(playlist_window_gtk->save_list)->cancel_button),
-		"clicked", GTK_SIGNAL_FUNC(dialog_cancel), playlist_window_gtk->save_list);
+		"clicked", GTK_SIGNAL_FUNC(dialog_cancel), (gpointer)playlist_window_gtk->save_list);
 	gtk_signal_connect(GTK_OBJECT(playlist_window_gtk->save_list), "delete_event",
 		GTK_SIGNAL_FUNC(dialog_delete), NULL);
 	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(playlist_window_gtk->save_list)->ok_button),
-		"clicked", GTK_SIGNAL_FUNC(save_list_ok), playlist_window_gtk->save_list);
+		"clicked", GTK_SIGNAL_FUNC(save_list_ok), (gpointer)playlist_window_gtk);
 
 	working = get_widget(playlist_window, "add_button");
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
-		GTK_SIGNAL_FUNC(dialog_popup), playlist_window_gtk->add_file);
+		GTK_SIGNAL_FUNC(dialog_popup), (gpointer)playlist_window_gtk->add_file);
 	working = get_widget(playlist_window, "clear_button");
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
 		GTK_SIGNAL_FUNC(clear_cb), playlist);
@@ -518,18 +534,18 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 	working = get_widget(playlist_window, "del_button");
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
                 GTK_SIGNAL_FUNC(playlist_remove),
-								playlist_window_gtk);
+								(gpointer)playlist_window_gtk);
 
 	working = get_widget(playlist_window, "close_button");
 	 gtk_signal_connect(GTK_OBJECT(working), "clicked",
-				GTK_SIGNAL_FUNC(close_cb), playlist_window_gtk);
+				GTK_SIGNAL_FUNC(close_cb), (gpointer)playlist_window_gtk);
 
 	working = get_widget(playlist_window, "save_button");
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
-			GTK_SIGNAL_FUNC(dialog_popup), playlist_window_gtk->save_list);
+			GTK_SIGNAL_FUNC(dialog_popup), (gpointer)playlist_window_gtk->save_list);
 	working = get_widget(playlist_window, "load_button");
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
-			GTK_SIGNAL_FUNC(dialog_popup), playlist_window_gtk->load_list);
+			GTK_SIGNAL_FUNC(dialog_popup), (gpointer)playlist_window_gtk->load_list);
 
 	gtk_widget_grab_focus(GTK_WIDGET(list));
 
