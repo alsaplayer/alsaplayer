@@ -593,7 +593,7 @@ int main(int argc, char **argv)
 		fprintf(stdout, "%s\n", copyright_string);
 
 	if (!global_pluginroot) {
-		global_pluginroot = ADDON_DIR;
+		global_pluginroot = strdup (ADDON_DIR);
 	}	
 
 	// Check if we need to enqueue the files

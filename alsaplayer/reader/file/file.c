@@ -153,6 +153,28 @@ static char **file_expand (const char *uri)
     return expanded;
 }
 
+/* feof wrapper */
+static int file_eof (void *d)
+{
+    return feof ((FILE*)d);
+}
+
+/* stream is seekable */
+static int file_seekable (void *d)
+{
+    return 1;
+}
+
+static long file_length (void *d)
+{    
+    long len, old=ftell ((FILE*)d);
+
+    len = fseek ((FILE*)d, 0, SEEK_END);
+    fseek ((FILE*)d, old, SEEK_SET);
+
+    return len;
+}
+
 /* info about this plugin */
 reader_plugin file_plugin = {
 	READER_PLUGIN_VERSION,
@@ -168,7 +190,10 @@ reader_plugin file_plugin = {
 	file_seek,
 	file_tell,
 	file_can_expand,
-	file_expand
+	file_expand,
+	file_length,
+	file_eof,
+	file_seekable
 };
 
 /* return info about this plugin */

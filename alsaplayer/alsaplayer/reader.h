@@ -39,7 +39,7 @@
  *  whenever structural changes are made to the API. This value should
  *  only be changed by the maintainers.
  */
-#define READER_PLUGIN_VERSION	(READER_PLUGIN_BASE_VERSION + 2)
+#define READER_PLUGIN_VERSION	(READER_PLUGIN_BASE_VERSION + 3)
 
 /** 
  * reader plugin binary version. Must be set to READER_PLUGIN_VERSION 
@@ -82,6 +82,9 @@ typedef void(*reader_close_type)(void *d);
 typedef size_t (*reader_read_type)(void *ptr, size_t size, void *d);
 typedef int (*reader_seek_type)(void *d, long offset, int whence);
 typedef long (*reader_tell_type)(void *d);
+typedef long (*reader_length_type)(void *d);
+typedef int (*reader_eof_type)(void *d);
+typedef int (*reader_seekable_type)(void *d);
 typedef float (*reader_can_expand_type)(const char *uri);
 typedef char **(*reader_expand_type)(const char *uri);
 
@@ -115,6 +118,9 @@ typedef struct _reader_plugin
 	reader_tell_type tell;
 	reader_can_expand_type can_expand;
 	reader_expand_type expand;
+	reader_length_type length;
+	reader_eof_type eof;
+	reader_seekable_type seekable;
 } reader_plugin;
   
 typedef struct _reader_type {
@@ -135,6 +141,9 @@ int reader_close (reader_type *h);
 size_t reader_read (void *ptr, size_t size, reader_type *h);
 int reader_seek (reader_type *h, long offset, int whence);
 long reader_tell (reader_type *h);
+long reader_length (reader_type *h);
+int reader_seekable (reader_type *h);
+int reader_eof (reader_type *h);
 
 char **reader_expand (const char *uri);
 void reader_free_expanded (char **list);

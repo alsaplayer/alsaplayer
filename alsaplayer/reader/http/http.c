@@ -654,7 +654,37 @@ static char **http_expand (const char *uri)
     return NULL;
 }
 
+/* ******************************************************************* */
+/* seekable                                                            */
+static int http_seekable (void *d)
+{
+    return ((http_desc_t*)d)->seekable;
+}
 
+/* ******************************************************************* */
+/* amount of data in stream                                            */
+static long http_length (void *d)
+{
+    http_desc_t *desc = (http_desc_t*)d;
+    
+    if (!desc->seekable)
+	return -1;
+    
+    return desc->size;
+}
+
+/* ******************************************************************* */
+static int http_eof (void *d)
+{
+    http_desc_t *desc = (http_desc_t*)d;
+
+    if (!desc->seekable)
+	return 0;
+    
+    return desc->pos < desc->size;
+}
+
+/* #################################################################### */
 /* info about this plugin */
 reader_plugin http_plugin = {
 	READER_PLUGIN_VERSION,
@@ -670,7 +700,10 @@ reader_plugin http_plugin = {
 	http_seek,
 	http_tell,
 	http_can_expand,
-	http_expand
+	http_expand,
+	http_length,
+	http_eof,
+	http_seekable
 };
 
 /* ******************************************************************* */

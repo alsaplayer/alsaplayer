@@ -87,6 +87,18 @@ static int register_plugin (reader_plugin *the_plugin)
 		alsaplayer_error("No seek function");
 		error_count++;
 	}
+	if (tmp->length == NULL) {
+		alsaplayer_error("No length function");
+		error_count++;
+	}
+	if (tmp->eof == NULL) {
+		alsaplayer_error("No eof function");
+		error_count++;
+	}
+	if (tmp->seekable == NULL) {
+		alsaplayer_error("No seekable function");
+		error_count++;
+	}
 	if (tmp->expand == NULL) {
 		alsaplayer_error("No expand function");
 		error_count++;
@@ -259,6 +271,25 @@ long reader_tell (reader_type *h)
 {
     return h->plugin->tell (h->fd);
 }
+
+// Like feof
+int reader_eof (reader_type *h)
+{
+    return h->plugin->eof (h->fd);
+}
+
+// length of stream
+long reader_length (reader_type *h)
+{
+    return h->plugin->length (h->fd);
+}
+
+// length of stream
+int reader_seekable (reader_type *h)
+{
+    return h->plugin->seekable (h->fd);
+}
+
 // try to expand URI.
 // Function returns list of pointers to the expanded URIs.
 // or NULL if this URI is not expandable....
