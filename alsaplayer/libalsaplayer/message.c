@@ -419,6 +419,37 @@ int ap_version()
 }
 
 
+float *ap_get_speed(int session)
+{
+	int fd;
+	ap_message_t *msg, *reply;
+	float *result, *ret;
+	
+	fd = ap_connect_session(session);
+
+	if (fd < 0)
+		return NULL;
+	
+	msg = ap_message_new();
+	msg->header.cmd = AP_GET_SPEED;
+	ap_message_send(fd, msg);
+	ap_message_delete(msg);
+	msg = NULL;
+
+	reply = ap_message_receive(fd);
+	close(fd);
+	
+	if ((result = ap_message_find_float(reply, "speed"))) {
+		ret = (float *)malloc(sizeof(float));
+		*ret = *result;
+		ap_message_delete(reply);
+		return ret;
+	}
+	ap_message_delete(reply);
+	return NULL;
+}
+
+
 char *ap_get_session_name(int session)
 {
 	int fd;
@@ -426,6 +457,10 @@ char *ap_get_session_name(int session)
 	char *result, *ret;
 
 	fd = ap_connect_session(session);
+
+	if (fd < 0)
+		return NULL;
+	
 	msg = ap_message_new();
 
 	msg->header.cmd = AP_GET_SESSION_NAME;
@@ -517,7 +552,8 @@ int ap_add_path(int session, char *path)
 }
 
 
-int ap_play(int session)
+/* Convenience function for commands that take no argument */
+int ap_do_do(int session, int32_t cmd)
 {
 	int fd;
 	int32_t *result, ret_val;
@@ -529,7 +565,7 @@ int ap_play(int session)
 	if (fd < 0)
 		return 0;
 
-	msg->header.cmd = AP_PLAY;
+	msg->header.cmd = cmd;
 
 	ap_message_send(fd, msg);
 	ap_message_delete(msg);
@@ -542,12 +578,54 @@ int ap_play(int session)
 	if ((result = ap_message_find_int32(reply, "ack"))) {
 		ret_val = *result;
 		ap_message_delete(reply);
-		return 1;
+		return ret_val;
 	}
 	ap_message_delete(reply);
 	return 0;
 		
 }
+
+int ap_play(int session)
+{
+	return (ap_do_do(session, AP_PLAY));
+}
+
+int ap_next(int session)
+{
+	return (ap_do_do(session, AP_NEXT));
+}
+
+int ap_prev(int session)
+{
+	return (ap_do_do(session, AP_PREV));
+}
+
+int ap_stop(int session)
+{
+	return (ap_do_do(session, AP_STOP));
+}
+
+int ap_pause(int session)
+{
+	return (ap_do_do(session, AP_PAUSE));
+}
+
+int ap_unpause(int session)
+{
+	return (ap_do_do(session, AP_UNPAUSE));
+}
+
+int ap_clear_playlist(int session)
+{
+	return (ap_do_do(session, AP_CLEAR_PLAYLIST));
+}
+
+int ap_quit(int session)
+{
+	return (ap_do_do(session, AP_QUIT));
+}
+
+
 
 #ifdef __cplusplus
 } /* extern "C" */

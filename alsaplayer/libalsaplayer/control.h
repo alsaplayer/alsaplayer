@@ -29,13 +29,15 @@ int ap_version();
 int ap_play(int session);
 int ap_stop(int session);
 int ap_pause(int session);
+int ap_unpause(int session);
 int ap_next(int session);
 int ap_prev(int session);
 int ap_ping(int session);
 int ap_clear_playlist(int session);
 char *ap_get_session_name(int session);
+
 int ap_set_speed(int session, float speed);
-int ap_get_speed(int session, float *speed);
+float *ap_get_speed(int session);
 int ap_add_path(int session, char *path);
 
 #ifdef __cplusplus
