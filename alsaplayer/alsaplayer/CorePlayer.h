@@ -108,7 +108,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	sample_buf *buffer;
 	sample_buf *read_buf, *write_buf, *new_write_buf;
 	int FrameSeek(int);
-	int AvailableBuffers();
+	int FilledBuffers();
 	void ResetBuffer();
 	void SetSpeedMulti(float multi) { pitch_multi = multi; }
 	void update_pitch();

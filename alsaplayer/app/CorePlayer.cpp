@@ -583,7 +583,7 @@ bool CorePlayer::Start()
 	//alsaplayer_error("Prebuffering...");
 	// Wait for up to 4 seconds
 	tries = 100;
-	while (--tries && (AvailableBuffers() < 2) && producing) { 
+	while (--tries && (FilledBuffers() < 2) && producing) { 
 		//alsaplayer_error("Waiting for buffers...");
 		dosleep(40000);
 	}
@@ -896,7 +896,9 @@ int CorePlayer::SetDirection(int direction)
 }
 
 
-int CorePlayer::AvailableBuffers()
+// return number of buffers already filled with (decoded) PCM data
+//
+int CorePlayer::FilledBuffers()
 {
 	int result = 0;
 	sample_buf *tmp = read_buf;
@@ -938,6 +940,8 @@ void CorePlayer::update_pitch()
 }	
 
 
+// FIXME: some documentation needed
+//
 int CorePlayer::Read32(void *data, int size)
 {
 	if (repitched) {
@@ -1017,7 +1021,7 @@ int CorePlayer::Read32(void *data, int size)
 			if ((check_index - tmp_index) < 0) { 
 				if (read_buf->prev->start < 0 ||
 					read_buf->prev == write_buf) {
-				//	printf("Back (%d %d) ", AvailableBuffers(), read_buf->prev->start);
+				//	printf("Back (%d %d) ", FilledBuffers(), read_buf->prev->start);
 				//	print_buf(read_buf->prev);
 					if (!producing) {
 						//printf("blah 2\n");
@@ -1088,6 +1092,8 @@ int CorePlayer::pcm_worker(sample_buf *dest, int start, int len)
 }
 
 
+// fill PCM buffers with (decoded) data
+//
 void CorePlayer::producer_func(void *data)
 {
 	CorePlayer *obj = (CorePlayer *)data;
@@ -1102,7 +1108,9 @@ void CorePlayer::producer_func(void *data)
 			obj->write_buf = obj->new_write_buf;
 			obj->write_buf->start = obj->new_frame_number;
 		}
-		if (obj->AvailableBuffers() < (NR_CBUF-1)) {
+
+		// still at least one buffer left to fill?
+		if (obj->FilledBuffers() < (NR_CBUF-1)) {
 			switch (obj->read_direction) {
 			 case DIR_FORWARD:
 				frames_read = obj->pcm_worker(obj->write_buf, obj->write_buf->start);
