@@ -1,6 +1,7 @@
 /* fft.c: Iterative implementation of a FFT
  * Copyright (C) 1999 Richard Boulton <richard@tartarus.org>
  * Convolution stuff by Ralph Loader <suckfish@ihug.co.nz>
+ * This file is part of AlsaPlayer (C) 1998 - 2002 <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
