@@ -56,7 +56,7 @@ int global_reverb_on = 0;
 int global_reverb_delay = 2;
 int global_reverb_feedback = 0;
 
-int global_verbose = 0;
+int global_verbose = 1;
 
 char *global_session_name = NULL;
 
@@ -417,6 +417,7 @@ int main(int argc, char **argv)
 		} else if (strcmp(argv[arg_pos], "--quiet") == 0 ||
 				strcmp(argv[arg_pos], "-q") == 0) {
 			be_quiet = 1;
+			global_verbose = 0;
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--frequency") == 0 ||
 					strcmp(argv[arg_pos], "-F") == 0) {
@@ -597,7 +598,8 @@ int main(int argc, char **argv)
 		ui = interface_plugin_info();
 		// Load socket interface first
 		control_socket_start(playlist);
-		printf("Loading Interface plugin: %s\n", ui->name); 
+		if (global_verbose)
+			fprintf(stdout, "Loading Interface plugin: %s\n", ui->name); 
 		if (!ui->init()) {
 			alsaplayer_error("Failed to load gtk+ interface. Should fall back to text\n");
 		} else {	

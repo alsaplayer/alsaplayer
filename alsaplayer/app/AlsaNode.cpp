@@ -411,7 +411,8 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
        	return 0; // Unclean but good enough for now
     	}
 	init = true;
-	fprintf(stdout, "Output plugin: %s\n", tmp->name);
+	if (global_verbose)
+		fprintf(stdout, "Output plugin: %s\n", tmp->name);
 	return 1;
 }
 

@@ -49,14 +49,8 @@ ap_connect_session (int session)
     if (connect (socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
       return socket_fd;
     }
-    else {
-      fprintf (stderr, "Could not connect to socket\n");
-    }
-  }
-  else {
-    fprintf (stderr, "Could not open socket\n");
-  }
-  return -1;
+	}
+	return -1;
 }
 
 

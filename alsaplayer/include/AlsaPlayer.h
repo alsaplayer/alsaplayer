@@ -20,5 +20,6 @@
 #define __AlsaPlayer_h__
 
 extern char *global_session_name;
+extern int global_verbose;
 
 #endif
