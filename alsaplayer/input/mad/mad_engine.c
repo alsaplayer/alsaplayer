@@ -288,7 +288,11 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 									}
 									printf("MAD debug: invalid header\n");
 									return -1;
-					} else {
+					} else if (data[pos] == 'T' && data[pos+1] == 'A' && 
+										 data[pos+2] == 'G') {
+									printf("----------------------\nMAD debug: skipping TAG data\n");
+									return 128;	/* TAG is fixed 128 bytes */
+					}  else {
 									pos++;
 					}				
 	}
@@ -337,10 +341,11 @@ static int mad_open(input_object *obj, char *path)
 						close(data->mad_fd);
 						return 0;
 		} else {
-						memmove(data->stream_buffer, data->stream_buffer + data->offset, 
-														bytes_read - data->offset);
-						data->bytes_in_buffer -= data->offset;
-		}				
+						lseek(data->mad_fd, data->offset, SEEK_SET);
+						bytes_read = read(data->mad_fd,
+								data->stream_buffer, STREAM_BUFFER_SIZE);
+						data->bytes_in_buffer = bytes_read;
+		}
 		
 		mad_stream_buffer(&data->stream, data->stream_buffer, bytes_read);
 				
@@ -411,7 +416,8 @@ static void mad_close(input_object *obj)
 						mad_synth_finish (&data->synth);
 						mad_frame_finish (&data->frame);
 						mad_stream_finish(&data->stream);
-					}	
+					}
+					printf("freeing local_data\n");
 					free(obj->local_data);
 					obj->local_data = NULL;
 	}				
