@@ -34,6 +34,7 @@
 #include "utilities.h"
 #include "config.h"
 #include "alsaplayer_error.h"
+#include "reader.h"
 
 #define READBUFSIZE 1024
 #define MAXLOADFAILURES 100
@@ -184,7 +185,6 @@ void insert_looper(void *data) {
 	std::vector<PlayItem> newitems;
 	if(vetted_items.size() > 0) {
 		char cwd[512];
-		char fullpath[1024];
 		std::vector<std::string>::const_iterator path;
 
 		if (!getcwd(cwd, 511)) {
@@ -199,11 +199,7 @@ void insert_looper(void *data) {
 				printf("Can't find a player for `%s'\n", path->c_str());
 #endif 
 			} else {
-				if ((*path)[0] != '/') {
-					sprintf(fullpath, "%s/%s", cwd, path->c_str());
-					newitems.push_back(PlayItem(fullpath));
-				}	else
-					newitems.push_back(PlayItem(*path));
+				newitems.push_back(PlayItem(*path));
 			}
 		}
 	}
@@ -823,55 +819,23 @@ bool Playlist::PlayFile(PlayItem const & item) {
 
 // Check if we are able to play a given file
 bool Playlist::CanPlay(std::string const & path) {
-	struct stat buf;
-
-	// Does file exist?
-	if (stat(path.c_str(), &buf)) {
-		return false;
-	}
-
-	// Is it a type we might have a chance of playing?
-	// (Some plugins may cope with playing special devices, eg, a /dev/scd)
-	bool can_play = false;
-	if (S_ISREG(buf.st_mode) ||
-		S_ISCHR(buf.st_mode) || S_ISBLK(buf.st_mode) ||
-		S_ISFIFO(buf.st_mode) || S_ISSOCK(buf.st_mode))
-	{
-		input_plugin *plugin = coreplayer->GetPlayer(path.c_str());
-		if (plugin) {
-			can_play = true;
-		}
-	}
-
-	return can_play;
+    return coreplayer->GetPlayer(path.c_str()) != NULL;
 }
 
 // Add a path to list, recursing through (to a maximum of depth subdirectories)
 static void additems(std::vector<std::string> *items, std::string path, int depth) {
 	if(depth < 0) return;
 
-	struct stat buf;
-
-	// Stat file, and don't follow symlinks
-	// FIXME - make follow symlinks, but without letting it get into infinite
-	// loops
-	if (lstat(path.c_str(), &buf)) {
-		return;
-	}
-
-	if (S_ISDIR(buf.st_mode)) {
-		dirent *entry;
-		DIR *dir = opendir(path.c_str());
-		if (dir) {
-			while ((entry = readdir(dir)) != NULL) {
-				//printf("`%s'/`%s'\n", path.c_str(), entry->d_name);
-				if (strcmp(entry->d_name, ".") == 0 ||
-					strcmp(entry->d_name, "..") == 0)
-					continue;
-				additems(items, path + "/" + entry->d_name, depth - 1);
-			}
-			closedir(dir);  
-		}
+	// Try expand this URI
+	char **expanded = reader_expand (path.c_str ());
+    
+	if (expanded) {
+		char **c_uri = expanded;
+		
+		while (*c_uri)
+		    additems (items, *(c_uri++), depth-1);
+		    
+		reader_free_expanded (expanded);
 	} else {
 		items->push_back(path);
 	}

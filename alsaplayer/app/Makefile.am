@@ -19,7 +19,7 @@ endif
 
 LIBS = -lpthread -ldl $(SUN_LIBS)
 
-COMMON_FLAGS = @DFLAGS@ -D_REENTRANT \
+COMMON_FLAGS = @DFLAGS@ -Wall -D_REENTRANT \
 		-DADDON_DIR=\"$(ADDON_DIR)\" @ARCH_CFLAGS@
 
 INCLUDES = -I$(top_srcdir)/alsaplayer -I$(top_srcdir)/libalsaplayer
@@ -39,7 +39,7 @@ alsaplayer_SOURCES = AlsaSubscriber.cpp \
 		reverbst.cpp \
 		fft.c convolve.c utilities.c \
 		ControlSocket.cpp \
-		prefs.c
+		prefs.c reader.cpp
 
 jackplayer:
 		ln -s alsaplayer jackplayer

@@ -53,6 +53,7 @@
 #include "prefs.h"
 #include "alsaplayer_error.h"
 #include "message.c"		/* This is a dirty hack */
+#include "reader.h"
 
 Playlist *playlist = NULL;
 
@@ -649,6 +650,9 @@ int main(int argc, char **argv)
 		}
 		output_is_ok = 1;	/* output device initialized */
 	} while (!output_is_ok);
+
+	// Initialise reader
+	reader_init ();
 
 	// Initialise playlist - must be done before things try to register with it
 	playlist = new Playlist(node);

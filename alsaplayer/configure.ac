@@ -40,6 +40,7 @@ use_libmad=no
 use_libid3tag=no
 prefer_mad=yes
 enable_nls=yes
+have_curl=no
 
 if test "x$x_includes" = "xNONE"
 then
@@ -284,7 +285,18 @@ CFLAGS=$oldcflags
 AC_SUBST(FLAC_LDADD)
 AC_SUBST(MAD_LDADD)
 
+dnl =================
+dnl libcurl library
+dnl =================
+AC_PATH_PROG(curlconfig, "curl-config")
+if test "_$curlconfig" != _ ; then
+    CURL_CFLAGS=`$curlconfig --cflags`
+    CURL_LIBS=`$curlconfig --libs`
 
+    AC_SUBST(CURL_CFLAGS)
+    AC_SUBST(CURL_LIBS)
+    have_curl=yes
+fi
 
 dnl =================
 dnl audiofile library
@@ -568,6 +580,7 @@ AM_CONDITIONAL(HAVE_GTK, test "x$have_gtk" = xyes)
 dnl AM_CONDITIONAL(HAVE_QT, test "x$have_qt" = xyes)
 AM_CONDITIONAL(HAVE_MIKMOD,test "x$have_mikmod" = xyes)
 AM_CONDITIONAL(PREFER_MAD, test "x$prefer_mad" = "xyes")
+AM_CONDITIONAL(HAVE_CURL,test "x$have_curl" = xyes)
 
 dnl ============
 dnl Machine type
@@ -731,6 +744,9 @@ input/wav/Makefile
 input/vorbis/Makefile
 input/audiofile/Makefile
 input/flac/Makefile
+reader/Makefile
+reader/curl/Makefile
+reader/file/Makefile
 alsaplayer/Makefile
 libalsaplayer/Makefile
 extra/Makefile
@@ -760,6 +776,7 @@ Configuration:
   Build mikmod input plugin:          ${have_mikmod}
   Build audiofile input plugin:       ${have_audiofile}
   Build flac input plugin:            ${have_flac}
+  Build curl reader plugin:           ${have_curl}
   0% top CPU usage hack enabled:      ${tophack}"
 echo
 

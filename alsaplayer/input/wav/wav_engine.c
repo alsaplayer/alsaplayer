@@ -30,6 +30,7 @@
 #include <sys/stat.h>
 #include "formats.h"
 #include "input_plugin.h"
+#include "reader.h"
 
 #define APLAY_FRAME_SIZE	4608
 
@@ -50,7 +51,7 @@ struct wav_local_data
 {
 	char wav_name[FILENAME_MAX+1];
 	int count;
-	FILE *wav_fd;
+	void *wav_fd;
 	int header_size;
 	the_format format;
 };
@@ -138,7 +139,7 @@ static int wav_open(input_object *obj, char *name)
 		obj->local_data = NULL;
 		return 0;
 	} else {
-		if ((data->wav_fd = fopen(name, "r")) == NULL) {
+		if ((data->wav_fd = reader_open(name)) == NULL) {
 			perror(name);
 			free(obj->local_data);
 			obj->local_data = NULL;
@@ -147,9 +148,9 @@ static int wav_open(input_object *obj, char *name)
 	}
 
 	/* read the file header */
-	if (fread(audiobuf, sizeof(WaveHeader), 1, data->wav_fd) != 1) {
+	if (reader_read(audiobuf, sizeof(WaveHeader), data->wav_fd) != sizeof(WaveHeader)) {
 		fprintf(stderr, "APLAY: read error");
-		fclose(data->wav_fd);
+		reader_close(data->wav_fd);
 		free(obj->local_data);
 		obj->local_data = NULL;
 		return 0;
@@ -173,7 +174,7 @@ static int wav_open(input_object *obj, char *name)
 		return 1;
 	}
 	if (data->wav_fd != NULL)
-		fclose(data->wav_fd);
+		reader_close(data->wav_fd);
 	free(obj->local_data);
 	obj->local_data = NULL;
 	return 0;
@@ -191,7 +192,7 @@ void wav_close(input_object *obj)
 			return;
 	}		
 	if (data->wav_fd != NULL)
-			fclose(data->wav_fd);
+			reader_close(data->wav_fd);
 	data->wav_fd =NULL;
 	if (obj->local_data)
 			free(obj->local_data);
@@ -217,7 +218,7 @@ static int wav_play_frame(input_object *obj, char *buf)
 	/* Take care of mono streams */
 	if (obj->nr_channels == 1) { /* mono, so double  */
 			if (data->format.bits == 8) { /* 8 bit */
-				if (fread(tmpbuf, APLAY_FRAME_SIZE >> 2, 1, data->wav_fd) != 1) {
+				if (reader_read(tmpbuf, APLAY_FRAME_SIZE >> 2, data->wav_fd) != APLAY_FRAME_SIZE >> 2) {
 					return 0;
 				}
 #if 1		
@@ -229,7 +230,7 @@ static int wav_play_frame(input_object *obj, char *buf)
 				}
 #endif
 			} else { /* 16 bit */	
-				if (fread(tmpbuf, APLAY_FRAME_SIZE >> 1, 1, data->wav_fd) != 1) {
+				if (reader_read(tmpbuf, APLAY_FRAME_SIZE >> 1, data->wav_fd) != APLAY_FRAME_SIZE >> 1) {
 						return 0;
 				}
 				s = (short *)tmpbuf;
@@ -240,7 +241,7 @@ static int wav_play_frame(input_object *obj, char *buf)
 				}
 			}
 	} else if (obj->nr_channels == 2) {
-		if (fread(audiobuf, APLAY_FRAME_SIZE, 1, data->wav_fd) != 1) {
+		if (reader_read(audiobuf, APLAY_FRAME_SIZE, data->wav_fd) != APLAY_FRAME_SIZE) {
 				return 0;
 		}
 	} else {
@@ -267,7 +268,7 @@ static int wav_frame_seek(input_object *obj, int frame)
 	}		
 	position = (frame * (APLAY_FRAME_SIZE >> (2 - obj->nr_channels)));
 	position += data->header_size;
-	result = !fseek(data->wav_fd, position, SEEK_SET);
+	result = !reader_seek(data->wav_fd, position, SEEK_SET);
 	return result;
 }
 
