@@ -56,7 +56,7 @@ void socket_looper(void *arg)
 		socket_thread_running = 1;
 	
 		if (!playlist) {
-			alsaplayer_error("No playlist for control socket\n");
+			alsaplayer_error("No playlist for control socket");
 			return;
 		}
 	
@@ -65,6 +65,17 @@ void socket_looper(void *arg)
 		if ((socket_fd = socket(AF_UNIX, SOCK_STREAM, 0)) != -1) {
 			saddr.sun_family = AF_UNIX;
 			while (session_id < MAX_AP_SESSIONS && !session_ok) {
+				float_val = 0.0;
+				if ((int_val = ap_get_float(session_id, AP_GET_FLOAT_PING, &float_val)) == -1) {
+					//alsaplayer_error("found stale session %d", session_id);
+					sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
+						"anonymous" : pwd->pw_name, session_id);
+					unlink(saddr.sun_path); // Clean up a bit
+				} else { // Live session so skip it immediately
+					//alsaplayer_error("found live session (ping = %.1f, session_id = %d, return %d)", float_val, session_id, int_val);
+					session_id++;
+					continue;
+				}	
 				sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ? 
 					"anonymous" : pwd->pw_name, session_id);
 				if (bind(socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
@@ -75,11 +86,11 @@ void socket_looper(void *arg)
 				}
 			}
 			if (!session_ok) {
-				alsaplayer_error("Out of alsaplayer sockets\n");
+				alsaplayer_error("Out of alsaplayer sockets (MAX = %d)", MAX_AP_SESSIONS);
 				return;
 			}	
 		} else {
-			alsaplayer_error("Error setting up control socket\n");
+			alsaplayer_error("Error setting up control socket");
 			return;
 		}	
 		while (socket_thread_running) {
@@ -227,7 +238,7 @@ void socket_looper(void *arg)
 						}
 					}
 					break;
-				default: alsaplayer_error("CMD = %x\n", pkt.cmd);
+				default: alsaplayer_error("CMD = %x", pkt.cmd);
 					break;
 			}
 			if (pkt.pld_length)
