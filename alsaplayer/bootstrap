@@ -42,3 +42,6 @@ run_cmd autoheader
 run_cmd libtoolize --automake
 run_cmd automake --add-missing
 run_cmd autoconf
+echo
+echo "Now type './configure' to configure AlsaPlayer"
+echo
