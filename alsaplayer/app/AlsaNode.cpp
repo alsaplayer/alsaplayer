@@ -47,8 +47,8 @@ extern void exit_sighandler(int);
 void AlsaNode::jack_restarter(void *arg)
 {
 	AlsaNode *node = (AlsaNode *)arg;
-	alsaplayer_error("sleeping 1 second");
-	sleep (1);
+	alsaplayer_error("sleeping 2 second");
+	sleep (2);
 	
 	if (node && node->client)
 		jack_client_close(node->client);

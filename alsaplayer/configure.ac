@@ -292,7 +292,7 @@ AC_ARG_WITH(jack,[  --with-jack=PFX        Prefix where jack is installed (optio
 JACK_CFLAGS="-I$jack_prefix/include"
 
 CFLAGS="$CFLAGS $JACK_CFLAGS"
-CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $JACK_CFLAGS"
 AS="$CC"
 
 AC_CHECK_HEADERS(jack/jack.h)
