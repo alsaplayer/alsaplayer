@@ -85,6 +85,8 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 	sound_sample *left_newset;
 	sound_sample *right_newset;
 
+	size <<= 1; // To bytes again
+	
 	if (size > 32768) 
 		return true;
 	if (!init) {
@@ -209,7 +211,7 @@ int apRegisterScopePlugin(scope_plugin *plugin)
 	gtk_clist_set_row_data_full(GTK_CLIST(list), index, se, scope_entry_destroy_notify);
 
 	// Init scope
-	se->sp->init();
+	se->sp->init(NULL);
 	// Add scope to scope list
 	// NOTE: WE CURRENTLY NEVER UNLOAD SCOPES
 	pthread_mutex_lock(&sl_mutex);	
