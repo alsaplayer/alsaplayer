@@ -777,12 +777,13 @@ Playlist::Save(std::string file, enum plist_format format) const
 enum plist_result
 Playlist::Load(std::string const &uri, unsigned position, bool force)
 {
+	int pls = 0;
+
 	// Check extension
 	if(!force) {
 		if(uri.length() < 4 ||
 		   (strcasecmp(uri.substr(uri.length() - 4).c_str(), ".m3u") == 0 &&
-		   strcasecmp(uri.substr(uri.length() - 4).c_str(), ".pls") == 0)) {
-			alsaplayer_error("Dubious? \"%s\"", uri.substr(uri.length() - 4).c_str());
+		   (pls = strcasecmp(uri.substr(uri.length() - 4).c_str(), ".pls")) == 0)) {
 			return E_PL_DUBIOUS;
 		}
 	}
@@ -810,7 +811,7 @@ Playlist::Load(std::string const &uri, unsigned position, bool force)
 	unsigned successes = 0;
 	unsigned failures = 0;
 	while(failures < MAXLOADFAILURES || failures < successes) {
-		char *s;
+		char *s, *p;
 		if (!reader_readline (f, path, READBUFSIZE))
 		    break;
 
@@ -819,8 +820,19 @@ Playlist::Load(std::string const &uri, unsigned position, bool force)
 		if (*path == '#') {
 		    // Comment... skip it for now
 		    continue;
-		} else if ((s=strstr(path, "File1="))) {
-			newfile = std::string(s + 6);
+		} else if ((s=strstr(path, "File"))) {
+			p = strstr(s, "=");
+			if (p) {
+				p++;
+				//alsaplayer_error("URI: %s", p);
+				newfile = std::string(p);
+			} else {
+				continue;
+			}	
+		} else if (pls && (strncasecmp(path, "Title", 5) == 0 ||
+					strncasecmp(path, "Length", 6) == 0)) {
+			/* Ignore title/length lines */
+			continue;
 		} else if (*path=='/') {
 		     newfile = std::string(path); /* These 2 */
 		} else if (reader_can_handle (path)) {
