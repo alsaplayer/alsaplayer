@@ -89,6 +89,28 @@ static int mad_frame_size(input_object *obj)
 }
 
 
+static
+enum mad_flow error_default(void *data, struct mad_stream *stream,
+								struct mad_frame *frame)
+{
+				int *bad_last_frame = data;
+
+				switch (stream->error) {
+								case MAD_ERROR_BADCRC:
+												if (*bad_last_frame)
+																mad_frame_mute(frame);
+												else
+																*bad_last_frame = 1;
+
+												return MAD_FLOW_IGNORE;
+								default:
+												return MAD_FLOW_CONTINUE;
+				}
+}
+
+
+/* #define MAD_DEBUG */
+
 static int mad_play_frame(input_object *obj, char *buf)
 {
 	char pcmout[BLOCK_SIZE];
@@ -107,11 +129,14 @@ static int mad_play_frame(input_object *obj, char *buf)
 	if (!data)
 			return 0;
 	memset(pcmout,0,sizeof(pcmout));
-
-	//printf("in mad_play_frame()...\n");
-	if (data->bytes_in_buffer < 1024) { // Hmm, this sucks
-					//printf("going to read data into stream_buffer...(in buf = %d)\n", 
-					//									data->bytes_in_buffer);
+#ifdef MAD_DEBUG
+	printf("in mad_play_frame()...\n");
+#endif
+	if (data->bytes_in_buffer < 3072) { /* Hmm, this sucks */
+#ifdef MAD_DEBUG					
+					printf("going to read data into stream_buffer...(in buf = %d)\n", 
+														data->bytes_in_buffer);
+#endif					
 					if ((bytes_read = read(data->mad_fd, 
 									data->stream_buffer + data->bytes_in_buffer, 
 									STREAM_BUFFER_SIZE - data->bytes_in_buffer)) < 
@@ -119,17 +144,29 @@ static int mad_play_frame(input_object *obj, char *buf)
 									printf("Not enough data read (%d)\n", bytes_read);
 					}				
 					data->bytes_in_buffer += bytes_read;
-	}
-	//printf("read %d bytes into stream_buffer (in buf = %d)\n", bytes_read,
-	//								 data->bytes_in_buffer);
+#ifdef MAD_DEBUG	
+					printf("read %d bytes into stream_buffer (in buf = %d)\n", bytes_read,
+											 data->bytes_in_buffer);
+#endif
+	}				
 	mad_stream_buffer (&data->stream, data->stream_buffer, data->bytes_in_buffer);
-
-	//printf("going to decode frame\n");
-	if (mad_frame_decode(&data->frame, &data->stream) != 0) {
-					//printf("This part is not finished\n");
+#ifdef MAD_DEBUG
+	printf("going to decode frame\n");
+#endif
+	if (mad_frame_decode(&data->frame, &data->stream) == -1) {
+#ifdef MAD_DEBUG			
+					if (!MAD_RECOVERABLE(data->stream.error)) {
+									printf("Serious error: %d\n", data->stream.error);
+									mad_frame_mute(&data->frame);
+									return 0;
+					}				
+					printf("This part is not finished\n");
+#endif					
 					return 0;
 	}
-	//printf("going to synth frame\n");
+#ifdef MAD_DEBUG	
+	printf("going to synth frame\n");
+#endif	
 	mad_synth_frame (&data->synth, &data->frame);
 	{
 					struct mad_pcm *pcm = &data->synth.pcm;
@@ -142,14 +179,18 @@ static int mad_play_frame(input_object *obj, char *buf)
 
 					left_ch = pcm->samples[0];
 					right_ch = pcm->samples[1];
-					//printf("going to write out sample data\n");	
+#ifdef MAD_DEBUG					
+					printf("going to write out sample data\n");	
+#endif					
 					while (nsamples--) {
 									 *output++ = scale(*left_ch++);
 									 if (nchannels == 2) 
 													 *output++ = scale(*right_ch++);
 					}
-					//printf("going to move data (%d -> %d)\n",
-					//								data->bytes_in_buffer, num_bytes);
+#ifdef MAD_DEBUG					
+					printf("going to move data (%d -> %d)\n",
+													data->bytes_in_buffer, num_bytes);
+#endif					
 					/* Move data, this is inefficient */
 					data->bytes_in_buffer = num_bytes;
 					memmove(data->stream_buffer, data->stream.next_frame,
@@ -254,13 +295,16 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 					if ((data[pos] == 0x49 && data[pos+1] == 0x44 && data[pos+2] == 0x33)) {
 									printf("Skipping ID3v2 header (%x %x %x)\n",
 																	data[pos], data[pos+1], data[pos+2]);
-									header_size = 10; /* 10 byte header */
-									if (data[pos + 5] & 0x10)
-													header_size += 20; /* 10 byte extended header */
-									header_size += (data[pos + 6] << 21) + 
+									
+									header_size = (data[pos + 6] << 21) + 
 																(data[pos + 7] << 14) +
 																(data[pos + 8] << 7) +
 																data[pos + 9]; /* syncsafe integer */
+									if (data[pos + 5] & 0x10) {
+													printf("extended header found\n");
+													header_size += 10; /* 10 byte extended header */
+									}
+									header_size += 10;
 									printf("Header size = %d (%x %x %x %x)\n", header_size,
 																	data[pos + 6], data[pos + 7], data[pos + 8],
 																	data[pos + 9]);
