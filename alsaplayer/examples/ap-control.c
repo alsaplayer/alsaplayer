@@ -2,10 +2,7 @@
 	ap-control
 
 	Author: Frank Baumgart, frank.baumgart@gmx.net
-
-	TODO:
-	- "playlist" without further parameters should output current playlist
-	(Andy: DONE 25/02/2004)
+	Andy did the "list playlist" feature
 */
 
 #include <stdio.h>
@@ -19,7 +16,7 @@ static void usage(void)
 	puts("usage: ap-control command\n\n"
 	"supported commands:\n\n"
 	"play <title> [<title> ...]\n"
-	"playlist <playlistfile>\n"
+	"playlist [<playlistfile>]\n"
 	"playlist-clear\n"
 	"save\n"
 	"shuffle\n"
@@ -33,6 +30,7 @@ static void usage(void)
 	"query\n"
 	"title\n"
 	"time\n"
+	"position\n"
 	"loop-on\n"
 	"loop-off\n"
 	"quit");
@@ -68,7 +66,7 @@ int main(int argc, char *argv[])
 			return ret == 1;
 		}
 		if (ap_get_playlist(0, &items, &playlist)) {
-			printf("Found %d items on playlist\n", items);
+			// printf("Found %d items on playlist\n", items);
 			if (items) {
 				for (c = 0; c < items; c++) {
 					printf("%d. %s\n", c+1, playlist[c]);
@@ -81,7 +79,6 @@ int main(int argc, char *argv[])
 			}
 		}	
 		return 0;
-
 	}
 
 	if (!strcmp(argv[1], "playlist-clear"))
@@ -140,6 +137,18 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	if (!strcmp(argv[1], "position"))
+	{
+		int result;
+
+		if (ap_get_playlist_position(0, &result))
+		{
+			printf("%d\n", result);
+			return 0;
+		}
+		return 1;
+	}
+
 	if (!strcmp(argv[1], "title"))
 	{
 		char result[AP_TITLE_MAX];
@@ -151,6 +160,7 @@ int main(int argc, char *argv[])
 		}
 		return 1;
 	}
+
 	if (!strcmp(argv[1], "time"))
 	{
 		int pos_frame, pos_sec;
