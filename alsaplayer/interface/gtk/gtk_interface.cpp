@@ -27,6 +27,7 @@
 
 // Include things needed for gtk interface:
 #include <gtk/gtk.h>
+#include <glib.h>
 
 #include "support.h"
 #include "gladesrc.h"
@@ -951,6 +952,8 @@ void init_main_window(Playlist *pl, GtkFunction f)
 
 	smallfont = gdk_font_load("-adobe-helvetica-medium-r-normal--10-*-*-*-*-*-*-*");
 
+	if (!smallfont)
+		assert((smallfont = gdk_fontset_load("fixed")) != NULL);
 
 	style = gtk_style_new();
 	style = gtk_style_copy(gtk_widget_get_style(main_window));

@@ -450,10 +450,12 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 	GtkStyle *style;
 	GdkFont *bold_font;
 
-	bold_font =
-        gdk_font_load("-adobe-helvetica-bold-r-normal--12-*-*-*-*-*-*-*");
+	bold_font = gdk_font_load("-adobe-helvetica-bold-r-normal--12-*-*-*-*-*-*-*");
+	
+	if (!bold_font)
+		assert ((bold_font = gdk_fontset_load("fixed")) != NULL);
 
-        playlist_window = create_playlist_window();
+  playlist_window = create_playlist_window();
 
 	list = get_widget(playlist_window, "playlist");
 	gtk_object_set_data(GTK_OBJECT(list), "window", playlist_window);
@@ -464,8 +466,8 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 	style = gtk_style_copy(gtk_widget_get_style(status));
 	gdk_font_unref(style->font);
 	style->font = bold_font;
-        gdk_font_ref(style->font);
-        gtk_widget_set_style(GTK_WIDGET(status), style);
+	gdk_font_ref(style->font);
+	gtk_widget_set_style(GTK_WIDGET(status), style);
 	
 	gtk_widget_show(status);
 	gtk_box_pack_start(GTK_BOX(list_status), status, true, false, 1);
