@@ -139,6 +139,8 @@ void the_monoscope()
 					for (i=16;i < 128; i+=16) {
 									for (h = 0; h < 256; h+=2) {
 													bits[(i << 8) + h] = 63;
+													if (i == 64)
+																	bits[(i << 8) + h + 1] = 63;
 									}
 					}
 					for (i = 16; i < 256; i+=16) {
