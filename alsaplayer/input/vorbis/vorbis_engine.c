@@ -63,8 +63,13 @@ static int is_big_endian(void)
 static size_t ovcb_read(void *ptr, size_t size, size_t nmemb, void *datasource)
 {
 	size_t result;
+	if (!size)
+		return 0;
+	
 	result = reader_read(ptr, size * nmemb, datasource);
-	//alsaplayer_error("request: %d * %d, result = %d", size, nmemb, result);
+	
+	/* alsaplayer_error("request: %d * %d, result = %d", size, nmemb, result); */
+	
 	return (result / size);
 }
 
@@ -72,6 +77,12 @@ static size_t ovcb_read(void *ptr, size_t size, size_t nmemb, void *datasource)
 static int ovcb_seek(void *datasource, int64_t offset, int whence)
 {
 	return (reader_seek(datasource, offset, whence));
+}
+
+static int ovcb_noseek(void *datasource, int64_t offset, int whence)
+{
+	/* When we are streaming we do not allow seeking */
+	return -1;
 }
 
 
@@ -88,13 +99,21 @@ static long ovcb_tell(void *datasource)
 }
 
 
-ov_callbacks vorbis_callbacks = 
+static ov_callbacks vorbis_callbacks = 
 {
 	ovcb_read,
 	ovcb_seek,
 	ovcb_close,
 	ovcb_tell
 };
+
+static ov_callbacks vorbis_stream_callbacks =
+{
+	ovcb_read,
+	ovcb_noseek,
+	ovcb_close,
+	NULL
+};		
 
 
 static int vorbis_frame_seek(input_object *obj, int frame)
@@ -133,7 +152,7 @@ static int vorbis_frame_size(input_object *obj)
 static int vorbis_play_frame(input_object *obj, char *buf)
 {
 	int pcm_index;
-	int ret;
+	long ret;
 	int bytes_needed;
 	int mono2stereo = 0;
 	struct vorbis_local_data *data;
@@ -152,11 +171,21 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 	while (bytes_needed > 0) {
 		ret = ov_read(&data->vf, buf + pcm_index, bytes_needed, 
 				data->bigendianp, 2, 1, &data->current_section);
-		if (ret <= 0)
-			return 0;
-
-		pcm_index += ret;
-		bytes_needed -= ret;
+		switch(ret) {
+			case 0: /* EOF reached */
+				return 0;
+			case OV_EBADLINK:	
+				alsaplayer_error("ov_read: bad link");
+				return 0;
+			case OV_HOLE:
+				/* alsaplayer_error("ov_read: interruption in data (not fatal)"); */
+				memset(buf + pcm_index, 0, bytes_needed);
+				bytes_needed = 0;
+				break;
+			default:
+				pcm_index += ret;
+				bytes_needed -= ret;
+		}		
 	}
 	// this is only true if bytes_needed is negative, which seems unlikely; FB
 	if (bytes_needed != 0) {
@@ -173,6 +202,7 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 			return 0;	
 		obj->nr_channels = vi->channels;
 		if (vi->channels > 2) {
+			alsaplayer_error("Bah 2");
 			return 0;
 		}
 		data->last_section = data->current_section;
@@ -337,9 +367,10 @@ static float vorbis_can_handle(const char *path)
 		     method to detect file types */
 		return 0.0;
 	ext++;
-	if (!strcasecmp(ext, "ogg"))
+
+	if (!strncasecmp(ext, "ogg", 3)) {
 		return 1.0;
-	else
+	} else
 		return 0.0;
 #if FANCY_CHECKING		
 	if ((stream = fopen(path, "r")) == NULL) {
@@ -350,7 +381,7 @@ static float vorbis_can_handle(const char *path)
 		return 0.0;
 	}
 	ov_clear(&vfile);
-	return 1;
+	return 1.0;
 #endif		
 }
 
@@ -371,7 +402,17 @@ static int vorbis_open(input_object *obj, const char *path)
 		return 0;
 	}
 
-	if (ov_open_callbacks(datasource, &vf_temp, NULL, 0, vorbis_callbacks) < 0) {
+	obj->flags = 0;
+	if (strncmp(path, "http://", 7) == 0) {
+		obj->flags |= P_STREAMBASED;
+	} else {
+		obj->flags |= P_SEEK;
+		obj->flags |= P_PERFECTSEEK;
+		obj->flags |= P_FILEBASED;
+	}	
+
+	if (ov_open_callbacks(datasource, &vf_temp, NULL, 0, 
+		(obj->flags & P_STREAMBASED) ? vorbis_stream_callbacks : vorbis_callbacks) < 0) {
 		ov_clear(&vf_temp);
 		return 0;
 	}
@@ -399,16 +440,6 @@ static int vorbis_open(input_object *obj, const char *path)
 	data->bigendianp = is_big_endian();
 	memcpy(&data->vf, &vf_temp, sizeof(vf_temp));
 	memcpy(data->path, path, sizeof(data->path)-1);
-
-	obj->flags = 0;
-	obj->flags |= P_SEEK;
-	obj->flags |= P_PERFECTSEEK;
-	if (strncmp(path, "http://", 7) == 0) {
-		alsaplayer_error("No seeking allowed");
-		obj->flags |= P_STREAMBASED;
-	} else {
-		obj->flags |= P_FILEBASED;
-	}	
 
 	return 1;
 }
