@@ -89,11 +89,10 @@ void the_monoscope()
 					int max = 1;
 					short * thisEq;
 					memcpy (copyEq, newEq, sizeof (short) * CONVOLVE_BIG);
-					//val = convolve_match (avgEq, copyEq, state);
-					//printf("val = %d\n", val);
-					thisEq =copyEq;
-#if 0					
-					thisEq = copyEq + convolve_match (avgEq, copyEq, state);
+					thisEq = copyEq;
+#if 1					
+					val = convolve_match (avgEq, copyEq, state);
+					thisEq += val;
 #endif					
 					memset(bits, 0, 256 * 128);
 					for (i=0; i < 256; i++) {
@@ -297,10 +296,6 @@ static void close_monoscope()
 		if (state)
 						convolve_close(state);		
 /*				
-	if (image) {
-					gdk_image_destroy(image);
-					image = NULL;
-	}				
 	if (scope_win) {
 					gtk_widget_destroy(scope_win);
 					scope_win = NULL;
