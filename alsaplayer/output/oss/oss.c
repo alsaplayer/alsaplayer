@@ -98,7 +98,7 @@ static int oss_set_sample_rate(int rate)
 					alsaplayer_error("error setting sample_rate");
 					return 0;
 	}				
-	return 1;
+	return rate;
 }
 
 

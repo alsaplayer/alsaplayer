@@ -76,7 +76,7 @@ static int sparc_set_sample_rate(int rate)
 		ainfo.play.buffer_size = 20480;
 		if(ioctl(sparc_audio, AUDIO_SETINFO, &ainfo) == -1)
 			return 0;
-		return 1;
+		return rate;
 }
 
 

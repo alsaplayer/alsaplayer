@@ -181,17 +181,18 @@ AlsaNode::~AlsaNode()
 
 int AlsaNode::SetSamplingRate(int freq)
 {
+	int actual_rate;
 #ifdef USE_JACK
 	if (use_jack) {
 		//alsaplayer_error("Not setting samplerate for JACK");	
-		return 1;
+		return sample_freq;
 	}
 #endif
 	assert(plugin);
 
-	if (plugin->set_sample_rate(freq)) {
-		sample_freq = freq;
-		return 1;
+	if ((actual_rate = plugin->set_sample_rate(freq))) {
+		sample_freq = actual_rate;
+		return actual_rate;
 	} else {
 		return 0;
 	}	

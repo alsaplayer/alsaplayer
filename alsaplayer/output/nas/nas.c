@@ -284,7 +284,7 @@ static int nas_set_sample_rate(int rate)
 {
 	/* Must be called before nas_set_buffer, or rate change will be ignored */
 	Nas_Info.freq = rate;
-	return 1;
+	return rate;
 }
 
 

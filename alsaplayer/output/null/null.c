@@ -64,7 +64,7 @@ static int null_set_buffer(int fragment_size, int fragment_count, int channels)
 
 static int null_set_sample_rate(int rate)
 {
-	return 1;
+	return rate;
 }
 
 static int null_get_latency()

@@ -32,9 +32,10 @@
 static snd_pcm_t *sound_handle;
 static snd_output_t *errlog;
 static int stream = SND_PCM_STREAM_PLAYBACK;
-static int frag_size = -1;
-static int frag_count = -1;
-static int output_rate = 44000;
+static int frag_size = 4096;
+static int frag_count = 8;
+static int nr_channels = 2;
+static int output_rate = 44100;
 
 static int alsa_init()
 {
@@ -153,6 +154,11 @@ static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
 	err = snd_pcm_hw_params_set_rate_near(sound_handle, hwparams,
 					 output_rate, 0);
 	if (err < 0) {
+		/* Try 48KHZ too */
+		printf("%d HZ not available, trying 48000 HZ\n", output_rate);
+		output_rate = 48000;
+		err = snd_pcm_hw_params_set_rate_near(sound_handle, hwparams,
+				output_rate, 0);
 		printf("error on setting output_rate (%d)\n", output_rate);			
 		goto _err;
 	}	
@@ -182,7 +188,8 @@ static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
 	
 	frag_size = fragment_size;
 	frag_count = fragment_count; 
-
+	nr_channels = channels;
+	
 	return 1;
  _err:
 	alsaplayer_error("Unavailable hw params:");
@@ -194,7 +201,8 @@ static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
 static int alsa_set_sample_rate(int rate)
 {
 	output_rate = rate;
-	return 1;
+	alsa_set_buffer(frag_size, frag_count, nr_channels);
+	return output_rate;
 }
 
 #ifdef QUEUE_COUNT
@@ -211,7 +219,7 @@ static int alsa_get_latency()
 
 output_plugin alsa_output = {
 	OUTPUT_PLUGIN_VERSION,
-	{ "ALSA output v1.9.0beta8" },
+	{ "ALSA output v1.9.0beta12" },
 	{ "Andy Lo A Foe" },
 	alsa_init,
 	alsa_open,

@@ -173,7 +173,7 @@ static int alsa_set_sample_rate(int rate)
 		fprintf(stderr, "ALSA->set_sample_rate(): parameter error \"%s\"\n", snd_strerror(err));
 		return 0;
 	}
-	return 1;
+	return output_rate;
 }
 
 #ifdef QUEUE_COUNT

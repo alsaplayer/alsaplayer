@@ -92,10 +92,10 @@ static int sgi_set_sample_rate(int rate)
 	if (alSetParams(rv, &params, 1) < 0)
 	{
 		printf("SGI: alSetParams failed: %s\n", alGetErrorString(oserror()));
-		return 1;
+		return 0;
 	}
 
-	return 0;
+	return rate;
 }
 
 static int sgi_get_latency ()
