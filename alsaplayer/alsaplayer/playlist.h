@@ -100,7 +100,7 @@ struct _ApPlaylist {
      */
     ApObject	    ap_object;
  
-    GArray*	    queue;
+    GPtrArray*	    queue;
     
     gboolean	    active;
    

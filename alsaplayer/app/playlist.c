@@ -22,6 +22,7 @@
 */ 
 
 #include <glib-object.h>
+#include <string.h>
 
 #include "playitem.h"
 #include "playlist.h"
@@ -56,6 +57,26 @@ static gpointer ap_playlist_insert_thread   (gpointer		data);
 
 /* --- variables --- */
 static gpointer		parent_class = NULL;
+
+/* XXX stub for missing function in glib-2.0 ;((( XXX */
+GPtrArray*
+g_ptr_array_insert_vals (GPtrArray *array,
+			 guint index,
+			 gconstpointer data,
+			 guint len)
+{
+    guint old_len = array->len;
+    
+    g_ptr_array_set_size (array, old_len + len);
+
+    g_memmove (array->pdata + index + len,
+	       array->pdata + index,
+	       (old_len - index) * sizeof (gpointer));
+
+    memcpy (array->pdata + index, data, len * sizeof (gpointer));
+
+    return array;
+}
 
 /* --- functions --- */
 
@@ -174,7 +195,7 @@ ap_playlist_init (ApPlaylist *playlist)
     playlist->looping_song = FALSE;
 
     /* Create general queue for playitems. */
-    playlist->queue = g_array_new (FALSE, FALSE, sizeof (gpointer));
+    playlist->queue = g_ptr_array_new ();
 
     /* Create asynchronous queue for delivering playitems into info thread */
     playlist->info_queue = g_async_queue_new ();
@@ -232,7 +253,7 @@ ap_playlist_dispose (GObject *object)
 
     /* Unref all playitems in the queue */
     for (i=0; i<playlist->queue->len; i++)
-	ap_object_unref (g_array_index (playlist->queue, gpointer, i));
+	ap_object_unref (g_ptr_array_index (playlist->queue, i));
    
     G_OBJECT_CLASS (parent_class)->dispose (object);
 } /* ap_playlist_dispose */
@@ -248,7 +269,7 @@ ap_playlist_finalize (GObject *object)
     g_async_queue_unref (playlist->insert_queue);
 
     /* Destroy general queue */
-    g_array_free (playlist->queue, TRUE);
+    g_ptr_array_free (playlist->queue, TRUE);
     
     G_OBJECT_CLASS (parent_class)->finalize (object);
 } /* ap_playlist_finalize */
@@ -419,9 +440,9 @@ ap_playlist_insert_thread (gpointer data)
 
 	/* Insert items into the playlist queue. */
 	ap_object_lock (AP_OBJECT (playlist));
-	g_array_insert_vals (playlist->queue, pos,
-			     items_p_array->pdata,
-			     items_p_array->len);
+	g_ptr_array_insert_vals (playlist->queue, pos,
+			         items_p_array->pdata,
+			         items_p_array->len);
 	ap_object_unlock (AP_OBJECT (playlist));
 
 	/* Emit "inserted" signal. */
@@ -442,7 +463,8 @@ ap_playlist_insert_thread (gpointer data)
     return NULL;
 } /* ap_playlist_insert_thread */
 
-gint shuffle_comparator (gconstpointer a,
+gint
+shuffle_comparator (gconstpointer a,
 			  gconstpointer b)
 {
     return g_random_int_range(0, 3) - 1;
@@ -699,13 +721,13 @@ ap_playlist_clear (ApPlaylist	    *playlist)
 
     /* Unref all playitems in the queue */
     for (i=0; i<playlist->queue->len; i++)
-	ap_object_unref (g_array_index (playlist->queue, gpointer, i));
+	ap_object_unref (g_ptr_array_index (playlist->queue, i));
 
     /* Destroy general queue */
-    g_array_free (playlist->queue, TRUE);
+    g_ptr_array_free (playlist->queue, TRUE);
    
     /* Create new general queue for playitems. */
-    playlist->queue = g_array_new (FALSE, FALSE, sizeof (gpointer));
+    playlist->queue = g_ptr_array_new ();
 
     /* TODO TODO TODO TODO: Stop coreplayer[s].
      * And notify about curritem changes. */
@@ -729,11 +751,9 @@ ap_playlist_shuffle (ApPlaylist	    *playlist)
 {
     g_return_if_fail (AP_IS_PLAYLIST (playlist));
     
-    g_array_sort (playlist->queue, shuffle_comparator);
+    g_ptr_array_sort (playlist->queue, shuffle_comparator);
 
     g_signal_emit_by_name (playlist, "cleared");
-
-    /* XXX It is hack. Fourth argument has wrong type. */
     g_signal_emit_by_name (playlist, "inserted", 0, playlist->queue);
 
     /* TODO TODO TODO TODO: Detect new position of currenly playing song. */
