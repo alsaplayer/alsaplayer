@@ -1,5 +1,6 @@
 /*
- *  cdda_engine.c (C) 1999-2002 by Andy Lo A Foe
+ *  cdda_engine.c (C) 1999-2003 by Andy Lo A Foe <andy@alsaplayer.org>
+ *  CDDB lookup code by Anders Rune Jensen
  *	
  *	Based on code from dagrab 0.3 by Marcello Urbani <murbani@numerica.it>
  *
@@ -50,6 +51,10 @@
 #include "alsaplayer_error.h"
 #include "AlsaPlayer.h"
 #include "control.h"
+#include "prefs.h"
+#include "utilities.h"
+
+#define BUFFER_SIZE     4096
 
 #define DEFAULT_DEVICE	"/dev/cdrom"
 #define FRAME_LEN	4
@@ -61,9 +66,25 @@
 #define IFRAMESIZE (CD_FRAMESIZE_RAW/sizeof(int))
 #define BLEN 255
 
+/* global variables */
+static char *REAL_PATH = NULL;
+
+typedef struct
+{
+  char *artist;
+  char *album;
+  char *track;
+
+} track;
+
+track tracks[100];
+
 struct cd_trk_list {
-	int min;
+        int min;
 	int max;
+        int *l_min;
+        int *l_sec;
+        int *l_frame;
 	int *starts;
 	char *types;
 };
@@ -82,6 +103,7 @@ struct cdda_local_data {
 //static cd_trk_list tl, old_tl;
 
 typedef unsigned short Word;
+typedef unsigned char  unchar;
 
 static int cd_get_tochdr(int cdrom_fd, struct cdrom_tochdr *Th)
 {
@@ -121,8 +143,21 @@ static char *resttime(int sec)
 	return buf;
 }
 
+void toc_fail(struct cd_trk_list *tl)
+{
+  free(tl->starts);
+  free(tl->types);
+  free(tl->l_min);
+  free(tl->l_sec);
+  free(tl->l_frame);
+  tl->starts = NULL;
+  tl->types = NULL;
+  tl->l_min = NULL;
+  tl->l_sec = NULL;
+  tl->l_frame = NULL;
+}
 
-static int cd_getinfo(int *cdrom_fd, char *cd_dev,struct cd_trk_list *tl)
+static int cd_getinfo(int *cdrom_fd, char *cd_dev, struct cd_trk_list *tl)
 {
 	int i;
 	struct cdrom_tochdr Th;
@@ -137,7 +172,10 @@ static int cd_getinfo(int *cdrom_fd, char *cd_dev,struct cd_trk_list *tl)
 		alsaplayer_error("CDDA: read TOC ioctl failed");
 		return 1;
 	}
-	tl->min=Th.cdth_trk0;tl->max=Th.cdth_trk1;
+
+	tl->min=Th.cdth_trk0; /* first track */
+	tl->max=Th.cdth_trk1; /* last track */
+
 	if((tl->starts=(int *)malloc((tl->max-tl->min+2)*sizeof(int)))==NULL){
 		alsaplayer_error("CDDA: list data allocation failed");
 		return 1;
@@ -147,30 +185,62 @@ static int cd_getinfo(int *cdrom_fd, char *cd_dev,struct cd_trk_list *tl)
 		return 1;
 	}
 
-	for (i=tl->min;i<=tl->max;i++)
-	{
-		if(cd_get_tocentry(*cdrom_fd, i,&Te,CDROM_LBA)){
-			alsaplayer_error("CDDA: read TOC entry ioctl failed");
-			free(tl->starts);
-			free(tl->types);
-			tl->starts = NULL;
-			tl->types = NULL;
-			return 1;
-		}
-		tl->starts[i-tl->min]=Te.cdte_addr.lba;
-		tl->types[i-tl->min]=Te.cdte_ctrl&CDROM_DATA_TRACK;
+	/* length */
+	if((tl->l_min=(int *)malloc((tl->max-tl->min+2)*sizeof(int)))==NULL){
+		alsaplayer_error("CDDA: list data allocation failed");
+		return 1;
 	}
+	if((tl->l_sec=(int *)malloc((tl->max-tl->min+2)*sizeof(int)))==NULL){
+		alsaplayer_error("CDDA: list data allocation failed");
+		return 1;
+	}
+	if((tl->l_frame=(int *)malloc((tl->max-tl->min+2)*sizeof(int)))==NULL){
+		alsaplayer_error("CDDA: list data allocation failed");
+		return 1;
+	}
+
 	i=CDROM_LEADOUT;
 	if(cd_get_tocentry(*cdrom_fd, i,&Te,CDROM_LBA)){
 		alsaplayer_error("CDDA: read TOC entry ioctl failed");
-		free(tl->starts);
-		free(tl->types);
-		tl->starts = NULL;
-		tl->types = NULL;
+		toc_fail(tl);
 		return 1;
 	}
-	tl->starts[tl->max-tl->min+1]=Te.cdte_addr.lba;
-	tl->types[tl->max-tl->min+1]=Te.cdte_ctrl&CDROM_DATA_TRACK;
+	tl->starts[tl->max]=Te.cdte_addr.lba;
+	tl->types[tl->max]=Te.cdte_ctrl&CDROM_DATA_TRACK;
+
+	if(cd_get_tocentry(*cdrom_fd, i,&Te,CDROM_MSF)){
+		alsaplayer_error("CDDA: read TOC entry ioctl failed");
+		toc_fail(tl);
+		return 1;
+	}
+	/* length info */
+	tl->l_min[tl->max] = Te.cdte_addr.msf.minute;
+	tl->l_sec[tl->max] = Te.cdte_addr.msf.second;
+	tl->l_frame[tl->max] = Te.cdte_addr.msf.frame;
+
+	for (i=tl->max;i>=tl->min;i--)
+	{
+		if(cd_get_tocentry(*cdrom_fd, i,&Te,CDROM_LBA)){
+			alsaplayer_error("CDDA: read TOC entry ioctl failed");
+			toc_fail(tl);
+			return 1;
+		}
+		tl->starts[i-1]=Te.cdte_addr.lba;
+		tl->types[i-1]=Te.cdte_ctrl&CDROM_DATA_TRACK;
+
+
+		if(cd_get_tocentry(*cdrom_fd, i,&Te,CDROM_MSF)){
+			alsaplayer_error("CDDA: read TOC entry ioctl failed");
+			toc_fail(tl);
+			return 1;
+		}
+
+		/* length info */
+		tl->l_min[i-1] = Te.cdte_addr.msf.minute;
+		tl->l_sec[i-1] = Te.cdte_addr.msf.second;
+		tl->l_frame[i-1] = Te.cdte_addr.msf.frame;
+	}
+
 	return 0;
 }
 
@@ -230,10 +300,576 @@ static int cd_jc(int *p1,int *p2)
 }
 #endif
 
+/*
+ * create_socket - create a socket to communicate with the remote server
+ * return the fd' int on success, or -1 on error.
+ */
+int create_socket (unchar *unchar_address, int int_port)
+{
+  int sock, len;
+  struct	hostent		*remote;
+  struct	sockaddr_in	server;
+  ushort	port = (ushort) (int_port);
+  ulong	address, temp;
+	
+	
+  /* get the "remote" server information */
+  remote = gethostbyname (unchar_address);
+  if (! remote)
+    {
+      alsaplayer_error("%s\n", strerror (errno));
+      return (-1);
+    }
+  bcopy ((char *) remote->h_addr, (char *) &temp, remote->h_length);
+
+  /* convert the 32bit long value from *network byte order* to the *host byte order* */
+  address = ntohl (temp);
+	
+  /* create the address of the CDDB server, filling the server's mem_area with 0 values */
+  len = sizeof (struct sockaddr_in);
+  memset (&server, 0, len);
+  server.sin_family = AF_INET; /* set the address as being in the internet domain */
+  server.sin_port = htons (port); /* set the port address of the server	*/
+  server.sin_addr.s_addr = htonl (address);
+	
+  /* create a socket in the INET domain */
+  sock = socket (AF_INET, SOCK_STREAM, 0);
+  if (sock < 0)
+    {
+      alsaplayer_error("socket error\n");
+      return (-1);
+    }
+	
+  /* connect to the server */
+  if (connect (sock, (struct sockaddr *) &server, sizeof (server)) < 0) 
+    {
+      alsaplayer_error("%s\n", strerror (errno));
+      return (-1);
+    }
+	
+  return (sock);
+}
+
+
+/*
+ * sent_to_server - send a message to the server, and return the server response
+ * on success, or NULL on error
+ */
+char * send_to_server (int server_fd, char *message)
+{
+  ssize_t	total;
+  int 	len = BUFFER_SIZE * 8;
+  char	*response, temp[len];
+
+  /* write 'message' to the server */
+  if (send (server_fd, message, strlen (message), MSG_DONTWAIT) < 0) 
+    {
+      alsaplayer_error("%s: %s\n", message, strerror (errno));
+      return (NULL);
+    }
+
+#ifdef DEBUG
+  /* print the message sent to the server */
+  alsaplayer_error("-> %s", message);
+#endif
+
+  /* read the response from the server */
+  total = 0;
+  do
+    {
+      total += read (server_fd, temp + total, len - total);
+      if (total < 0)
+	{
+	  alsaplayer_error("%s\n", strerror (errno));
+	  return (NULL);
+	}
+    }
+  while (total > 2 && temp[total - 2] != '\r');
+	
+  temp[total-2] = '\0';		/* temp[total-1] == \r; temp[total] == \n	*/
+  response = strdup (temp);	/* duplicate the response from the server	*/
+	
+#ifdef DEBUG
+  /* print the message sent to the server */
+  alsaplayer_error("<- %s", response);
+#endif
+	
+  return (response);
+}
+
+/*
+ * cddb_disc_id - generate the disc ID from the total music time
+ * (routine token from the cddb.howto)
+ */
+unsigned int cddb_disc_id (struct cd_trk_list *tl)
+{
+  int i, t = 0, n = 0;
+	
+  /* n == total music time in seconds */
+  i = 0;
+  while (i < tl->max) 
+    {
+      n += cddb_sum((tl->l_min[i] * 60) + tl->l_sec[i]);
+      i++;
+    }
+	
+  /* t == lead-out offset seconds - 1st music total time, in seconds */
+  t = ((tl->l_min[tl->max] * 60) + tl->l_sec[tl->max]) 
+    - ((tl->l_min[0] * 60) + tl->l_sec[0]);
+
+  /*
+   * mod 'n' with FFh and left-shift it by 24. 't' is left-shifted by 8.
+   * the disc_id is then returned as these operations + total tracks
+   * 'OR'ed together.
+   */
+  return ((n % 0xff) << 24 | t << 8 | tl->max);
+}
+
+
+/*
+ * cddb_sum - adds the value of each digit in the decimal string representation
+ * of the number. (routine token from the cddb.howto)
+ */
+int cddb_sum (int n)
+{
+  int ret = 0;
+
+  while (n > 0) 
+    {
+      ret = ret + (n % 10);
+      n = n/10;
+    }
+	
+  return (ret);
+}
+
+/*
+ * save_to_disk - receive the subdir, cdID and the message, and save the
+ * information into the cddb directory. This function returns the filename on
+ * success, or NULL on error.
+ */
+char * cddb_save_to_disk(char *subdir, int cdID, char *message)
+{
+  FILE *destination;
+  char *path, *retval;
+  char new[strlen (message)], filename[strlen (message) + 9];
+  int i = 0, j = 0;
+	
+  /* check if we already have the subdir created */
+  path = (char *) malloc ((strlen (subdir) + strlen (REAL_PATH)) * sizeof (char));
+
+  /* print the message sent to the server */
+  sprintf (path, "%s/%s", REAL_PATH, subdir);
+  alsaplayer_error("path = %s", path);	
+  /* check if we have the directory in the disk */
+  if (! (opendir (path))) 
+    {
+      /* given directory doesn't exist */
+      if (global_verbose)
+	printf ("directory %s doesn't exist, trying to create it.\n", path);
+	
+      /* try to create it.. */
+      if ((mkdir (path, 0744)) < 0) {
+	perror ("mkdir");
+	return (NULL);
+      } else {
+	if (global_verbose)
+	  printf ("directory created successfully\n");
+      }
+    }
+	
+  while (message[i] != '\n')
+    i++;
+  i++;
+	
+  for (; i < strlen (message); i++, j++)
+    new[j] = message[i];
+	
+  /* save it into the disc */
+  sprintf (filename, "%s/%s/%08x", REAL_PATH, subdir, cdID);
+  retval = strdup (filename);
+
+  alsaplayer_error("filename = %s", filename);
+  /* create the file */
+  destination = fopen (filename, "w");
+  if (! destination)
+    {
+      alsaplayer_error("error creating file");
+      return (NULL);
+    }
+	
+  /* copy the new string content into the file */
+  for (i = 0; i < strlen (new); i++)
+    fputc (new[i], destination);
+	
+  /* free path's memory */
+  free (path);
+	
+  /* close the file */
+  fclose (destination);
+
+  return (retval);
+}
+
+/*
+ * search for the CD info in the hard disk CDDB, returning NULL on error or the
+ * filename on success.
+ */
+char * cddb_local_lookup (char *path, unsigned int cd_id)
+{
+  int i, number, fd;
+  char *name;
+  char cdrom_id[9];
+  struct dirent	**directory;
+	
+  if (global_verbose)
+    printf ("Searching for CDDB entries on %s ... \n", path);
+	
+  /* try to open the given directory */
+  if (! (opendir (path))) 
+    {
+      alsaplayer_error("directory not found, check your config file!\n");
+      return (NULL);
+    }
+	
+  /* get the number of subdirectories in the 'path' dir */
+  number = scandir (path, &directory, 0, alphasort);
+  if (number < 0)
+    {
+      alsaplayer_error("scandir\n");
+      return (NULL);
+    }
+	
+  /* set the cdrom_id */
+  sprintf (cdrom_id, "%08x", cd_id);
+  cdrom_id[9] = '\0';
+	
+  for (i = 0; i < number; i++) 
+    {
+      /* ignore '.' and '..' directories */
+      if ((strcmp (directory[i]->d_name, ".")) && (strcmp (directory[i]->d_name, ".."))) 
+	{
+	  name = malloc((strlen (path) + strlen (directory[i]->d_name) + 15) * sizeof(char));
+	  sprintf (name, "%s", path);
+	  strcat (name, "/");
+	  strncat (name, directory[i]->d_name, strlen (directory[i]->d_name));
+	  strcat (name, "/");
+	  strncat (name, cdrom_id, 8);
+	  if ((fd = open (name, O_RDONLY)) >= 0) 
+	    {
+	      if (global_verbose)
+		printf ("OK\n");
+	      close (fd);
+	      return (name);
+	    }
+	  free (name);
+	}
+    }
+	
+  if (global_verbose)
+    printf ("not found\n");
+  return (NULL);
+}
+
+/*
+ * search for the song in the CDDB given address/port, returning it's name, or
+ * NULL if not found.
+ */
+char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_list *tl)
+{
+  int port = atoi (char_port);
+  int server_fd, i, j, n, backup, key;
+  int total_secs = 0, counter = 0;
+  char *answer = NULL, *username, *filename, categ[20], newID[9];
+  char msg[BUFFER_SIZE], offsets[BUFFER_SIZE], tmpbuf[BUFFER_SIZE];
+  char hostname[MAXHOSTNAMELEN], server[80];
+	
+  /* try to create a socket to the server */
+  if (global_verbose)
+    printf ("Opening Connection to %s:%d ... \n", address, port);
+
+  /* get the server fd from the create_socket function */
+  server_fd = create_socket ((unchar *) address, port);
+  if (server_fd < 0)
+    return (NULL);
+  else
+    if (global_verbose)
+      printf ("OK\n");
+	
+  /* get the initial message from the server */
+  n = read (server_fd, server, BUFFER_SIZE);
+  server[n-2] = '\0';
+	
+  if (global_verbose) {
+      printf ("\n<- %s\n", server);
+      printf ("Saying HELLO to CDDB server ...\n");
+  }
+  
+  /* set some settings before saying HELLO to the CDDB server */
+  username = getlogin ();
+  if ((gethostname (hostname, sizeof (hostname))) < 0)
+    snprintf (hostname, sizeof (hostname), "unknown");
+	
+  snprintf (msg, sizeof (msg), "cddb hello %s %s alsaplayer 0.99.74\r\n", username, hostname);
+  answer = send_to_server (server_fd, msg);
+  if (! answer)
+    {
+      alsaplayer_error("bad response from the server\n");
+      close (server_fd);
+      return (NULL);
+    }
+
+  /* set another settings before querying the CDDB database */
+  tmpbuf[0] = '\0';
+  for (i = 0; i < tl->max; i++) 
+    {
+      /* put the frame offset of the starting location of each track in a string */
+      snprintf (offsets, sizeof (offsets), "%s %d ", tmpbuf, 
+		tl->l_frame[i] + (75 * (tl->l_sec[i] + (60 * tl->l_min[i]))));
+      strcpy (tmpbuf, offsets);
+      counter += tl->l_frame[i] + (75 * tl->l_sec[i] + (60 * tl->l_min[i]));
+    }
+	
+  total_secs = tl->l_sec[tl->max] + (tl->l_min[tl->max] * 60);
+	
+  /* send it */
+  snprintf (msg, sizeof (msg), "cddb query %08x %d %s %d\r\n", discID, tl->max, offsets, total_secs);
+  answer = send_to_server (server_fd, msg);
+  if (! answer)
+    {
+      alsaplayer_error("bad response from the server\n");
+      close (server_fd);
+      return (NULL);
+    }
+
+  /*
+   * if answer == "200...", found exact match
+   * if answer == "211...", found too many matches
+   * if answer == "202...", found no matches
+   */
+  i = 0;
+  if (! (strncmp (answer, "211", 3)))
+    {
+      /* seek the 2nd line */
+      while (answer[i] != '\n')
+	++i;
+		
+      /* copy the 1st match to the category */
+      j = 0; 
+      i++;
+      while (answer[i] != ' ') 
+	categ[j++] = answer[i++];
+      categ[j++] = '\0';
+
+      /* get the new cdID given from the CDDB */
+      j = 0; 
+      i++;
+      while (answer[i] != ' ') 
+	newID[j++] = answer[i++];
+      newID[j++] = '\0';
+		
+    } 
+  else if (! (strncmp (answer, "200", 3)))
+    {
+      /* get it from the 1st line */
+      while (answer[i] != ' ')
+	i++;
+      i++;
+
+      /* copy the match to the category */
+      j = 0;
+      while (answer[i] != ' ') 
+	categ[j++] = answer[i++];
+      categ[j++] = '\0';
+
+      /* copy the new cdID */
+      j = 0; 
+      i++;
+      while (answer[i] != ' ') 
+	newID[j++] = answer[i++];
+      newID[j++] = '\0';
+    } 
+  else 
+    {
+      alsaplayer_error("Could not find any matches for %08x\n\n", discID);
+      close (server_fd);
+      return (NULL);
+    }
+	
+  /* read from the server */
+
+  sprintf (msg, "cddb read %s %s\r\n", categ, newID);
+  answer = send_to_server(server_fd, msg);
+
+  if (! answer)
+    {
+      alsaplayer_error("could not receive the informations from %s\n", address);
+      close (server_fd);
+      return (NULL);
+    }
+
+  /* save the output into the disc */
+  if (global_verbose)
+    {
+      printf ("Saving CDDB information into %s/%s ...\n", REAL_PATH, newID);
+      printf ("save_to_disk(%s)\n", answer);
+    }
+  
+  filename = cddb_save_to_disk(categ, discID, answer); 
+  if (! filename)
+    {
+      alsaplayer_error("could not create the file %s/%s, check permission\n", categ, newID);
+      close (server_fd);
+      return (NULL);
+    }
+	
+  if (global_verbose) 
+    puts ("");
+
+  /* close the fd */
+  close (server_fd);
+	
+  return (filename);
+}
+
+/*
+ * open the filename and put music title's into the global variable
+ */
+void cddb_read_file (char *file)
+{
+  char line[BUFFER_SIZE], name[BUFFER_SIZE];
+  char *token = NULL, *tmp;
+  int i, index = 1;
+  FILE *f;
+	
+  /* try to open the file */
+  f = fopen (file, "r");
+  if (! f)
+    {
+      alsaplayer_error("couldn't open file\n");
+      abort ();
+    }
+
+  /* read it line by line */
+  while (!feof (f))
+    {
+      if ((fgets (line, sizeof (line), f))) 
+	{
+	  if (! (strstr (line, "DTITLE="))) 
+	    {
+	      /* check if is the music name.. */
+	      if ((strstr (line, "TTITLE"))) 
+		{
+		  token = strtok (line, "=");
+		  if (! token) { printf ("error: TTITLE has no arguments\n");	continue; }
+										
+		  token = strtok (NULL, "=");
+		  if (! token) { printf ("error: TTITLE has no arguments\n");	continue; }
+						
+		  /* seek for the \r character */
+		  for (i = 0; i < strlen (token); i++) 
+		    {
+		      if ((token[i] == '\n') || (token[i] == '\r'))
+			break;
+		    }
+		  token[i] = '\0';
+						
+		  /* check if the last character is a space */
+		  //if (tracks[1].artist[strlen (tracks[1].artist)] == ' ')
+		   // snprintf (name, sizeof (name), "%s- %s", tracks[1].artist, token);
+		  //else
+		    sprintf (name, "%s", token);
+						
+		  tracks[index].track = strdup (name);
+		  index++;
+		}
+	      continue;
+	    } 
+	  else 
+	    {
+	      /* print the album name */
+	      tmp = strtok (line, "=");
+	      if (! tmp) { alsaplayer_error ("error: no arguments given on %s\n", line); continue; }
+	      tmp = strtok (NULL, "=");
+	      if (! tmp) { alsaplayer_error ("error: no arguments given on %s\n", line); continue; }
+	      tmp = strtok (tmp, "/");
+	      if (! tmp) { alsaplayer_error ("error: no arguments given on %s\n", line); continue; }
+							
+	      tracks[1].artist = strdup (tmp);
+	      tracks[1].album = strdup (strtok (NULL, "/"));
+			
+	      /* verify if we have not an empty space in the end of the string */
+	      if (tracks[1].artist[strlen (tracks[1].artist) - 1] == ' ')
+		tracks[1].artist[strlen (tracks[1].artist) - 1] = '\0';
+					
+	      if (global_verbose) {
+	      printf ("Artist: %s   ", tracks[1].artist);
+	      printf ("Album name: %s\n", tracks[1].album);
+	      }
+	    }
+	}	/* if */
+    }	/* while */
+}
+
+
+void cddb_update_info(struct cd_trk_list *tl)
+{
+  char *file_name = NULL;
+  char *cddb_servername = NULL;
+  char *cddb_serverport = NULL;
+  int index;
+  
+  unsigned int cd_id = cddb_disc_id(tl);
+		
+  /* try to get the audio info from the hard disk.. */
+  file_name = cddb_local_lookup(REAL_PATH, cd_id);
+  if (file_name)
+    {
+      /* open the 'file_name' and search for album information */
+      cddb_read_file (file_name);
+    }	
+  else 
+    {
+      /* if could not, try to get it from the internet connection.. */
+      cddb_servername = prefs_get_string(ap_prefs, "cdda", "cddb_servername", "freedb.freedb.org");
+      cddb_serverport = prefs_get_string(ap_prefs, "cdda", "cddb_serverport", "888"); 
+	alsaplayer_error("CDDB server: %s:%s", cddb_servername, cddb_serverport);	    
+      file_name = cddb_lookup(cddb_servername, cddb_serverport, cd_id, tl);
+      if (file_name)
+	{
+			
+	  /* fine, now we have the hard disk access! so, let's use it's information */
+	  file_name = cddb_local_lookup(REAL_PATH, cd_id);
+	  if (file_name)
+	    cddb_read_file (file_name);
+	  else
+	    {
+	      for (index = 1; index <= tl->max; index++)
+		tracks[index].track = strdup ("unrecognized song");
+	    }
+		
+	} 
+      else 
+	{
+	  for (index = 1; index <= tl->max; index++) 
+	    tracks[index].track = strdup ("unrecognized song");
+	}
+    }
+	
+}
+
 
 static int cdda_init()
 {
-	return 1;
+	char *prefsdir;
+
+	prefsdir = get_prefsdir();
+	REAL_PATH = (char *)malloc(strlen(prefsdir) + 8);
+	if (REAL_PATH) {
+		sprintf(REAL_PATH, "%s/cddb", prefsdir);
+		return 1;
+	}
+	return 0;
 }
 
 
@@ -306,6 +942,7 @@ static int cdda_open(input_object *obj, const char *name)
 		return 0;
 	}
 
+
 #ifdef DEBUG	
 	cd_disp_TOC(&data->tl);	
 	alsaplayer_error("IFRAMESIZE = %d\n", IFRAMESIZE);
@@ -318,11 +955,15 @@ static int cdda_open(input_object *obj, const char *name)
 	data->rel_pos = 0;
 	data->track_nr = 0;
 	strcpy(data->device_path, device_name);
-
+	
+	if (prefs_get_bool(ap_prefs, "cdda", "do_cddb_lookup", 1)) {
+		/* look up cd in cddb */
+		cddb_update_info(&data->tl);
+	}
 	if (strcmp(fname, "CD.cdda") == 0) {
 		pthread_t cd_add;
 		
-		pthread_create(&cd_add, NULL, (void *(*)(void *))cd_adder, data->tl.max);
+		pthread_create(&cd_add, NULL, (void *(*)(void *))cd_adder, (void *)data->tl.max);
 
 		pthread_detach(cd_add);
 		return 1;
@@ -341,7 +982,6 @@ static int cdda_open(input_object *obj, const char *name)
 				data->tl.starts[data->track_nr-1];
 		data->rel_pos = 0;
 	}
-
 	obj->flags = P_SEEK;
 
 	return 1;
@@ -365,6 +1005,15 @@ static void cdda_close(input_object *obj)
 	data->tl.starts = NULL;
 	if (data->tl.types) free(data->tl.types);
 	data->tl.types = NULL;
+
+	/* length */
+	if (data->tl.l_min) free(data->tl.l_min);
+	data->tl.l_min = NULL;
+	if (data->tl.l_sec) free(data->tl.l_sec);
+	data->tl.l_sec = NULL;
+	if (data->tl.l_frame) free(data->tl.l_frame);
+	data->tl.l_frame = NULL;
+	
 	free(obj->local_data);
 	obj->local_data = NULL;
 }
@@ -472,28 +1121,43 @@ static int cdda_channels(input_object *obj)
 static int cdda_stream_info(input_object *obj, stream_info *info)
 {
 	struct cdda_local_data *data;	
+	struct cd_trk_list *tl;
+
 	if (!obj)
 		return 0;
 	data = (struct cdda_local_data *)obj->local_data;
 	if (!data || !info)
 		return 0;
+
+	tl = &data->tl;
+
 	sprintf(info->stream_type, "16-bit 44KHz stereo CDDA");
-	info->artist[0] = 0;
+	sprintf(info->artist, "%s", tracks[1].artist);
+	sprintf(info->album, "%s", tracks[1].album);
 	info->status[0] = 0;
 	if (data->track_nr < 0)
 		info->title[0] = 0;
 	else if (data->track_nr == 0)
 		sprintf(info->title, "Full CD length playback");
 	else
-		sprintf(info->title, "Track %d", data->track_nr);
+	  sprintf(info->title, "%s", tracks[data->track_nr].track);
 
+	//alsaplayer_error("title = %s\nalbum = %s\nartist = %s",
+	//		info->title, info->album, info->artist);
 	return 1;
 }
 
 
 static int cdda_nr_tracks(input_object *obj)
 {
-	return 0;
+	struct cdda_local_data *data;
+
+	if (!obj)
+		return 0;
+	data = (struct cdda_local_data *)obj->local_data;
+	if (!data)
+		return 0;
+	return data->tl.max;
 }
 
 static void cdda_shutdown()
