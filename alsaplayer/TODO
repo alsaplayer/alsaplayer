@@ -1,11 +1,11 @@
 TODO list order according to priority, highest first
 
-- AlsaPlayer consistently crashes when using the
-  external API to add songs resp. modify playlists
 - Write proper documentation for the plugin APIs
 - Preferences interface
 - Complete default interface redesign
 - Proper CD player controls
 - Skin support (only the main window)
 - Remember position when saving playlists
+- accomplish suitability for small/embedded systems
+  (Frank Baumgart)
 
