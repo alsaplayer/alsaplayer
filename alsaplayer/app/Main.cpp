@@ -359,12 +359,13 @@ static void help()
 		"  -v,--version            print version of this program\n"
 		"  --verbose               be verbose about the output\n"
 		"  --nosave                do not save playlist content at exit\n"
+		"  --startvolume vol       start with this volume [default=100]\n"
 		"\n"
 		"Player control (use -n to select another session than the default):\n"
 		"\n"
 		"  -e,--enqueue file(s)  queue files in running alsaplayer\n"
 		"  -E,--replace file(s)  clears and queues files in running alsaplayer\n"
-		"  -l<n>,--volume<=n>    set/get software volume [0-100]\n"
+		"  -l,--volume vol       set software volume [0-100]\n"
 		"  --start               start playing\n"
 		"  --stop                stop playing\n"
 		"  --prev                jump to previous track\n"
@@ -431,6 +432,7 @@ int main(int argc, char **argv)
 	char *homedir;
 	char prefs_path[1024];
 	char str[1024];
+	int start_vol = 100;
 	int ap_result = 0;
 	int use_fragsize = -1; // Initialized
 	int use_fragcount = -1; // later
@@ -449,7 +451,6 @@ int main(int argc, char **argv)
 	int do_clear = 0;
 	int do_seek = -1;
 	int do_relative = 0;
-	int do_getvol = 0;
 	int do_setvol = 0;
 	
 	int use_freq = OUTPUT_RATE;
@@ -463,7 +464,7 @@ int main(int argc, char **argv)
 	
 	int opt;
 	int option_index;
-	const char *options = "bCc:d:eEf:F:g:hi:JI:l::n:NMp:qrs:vRSQTPVxo:Z:";
+	const char *options = "bCc:d:eEf:F:g:hi:JI:l:n:NMp:qrs:vRSQTPVxo:Z:";
 	struct option long_options[] = {
 		{ "background", 0, 0, 'b' },
 		{ "config", 1, 0, 'c' },
@@ -475,7 +476,7 @@ int main(int argc, char **argv)
 		{ "fragcount", 1, 0, 'g' },
 		{ "help", 0, 0, 'h' },
 		{ "interface", 1, 0, 'i' },
-		{ "volume", 2, 0, 'l' },
+		{ "volume", 1, 0, 'l' },
 		{ "session", 1, 0, 'n' },
 		{ "nosave", 0, 0, 'N' },
 		{ "path", 1, 0, 'p' },
@@ -498,6 +499,7 @@ int main(int argc, char **argv)
 		{ "seek", 1, 0, 'X' },
 		{ "relative", 1, 0, 'Z' },
 		{ "clear", 0, 0, 'C' },
+		{ "startvolume", 1, 0, 'Y' },
 		{ 0, 0, 0, 0 }
 	};	
 		
@@ -582,18 +584,21 @@ int main(int argc, char **argv)
 			case 'i':
 				use_interface = optarg;
 				break;
+			case 'Y':
+				start_vol = atoi(optarg);
+				if (start_vol < 0 || start_vol > 100) {
+					alsaplayer_error("volume out of range: using 100");
+					start_vol = 100;
+				}
+				break;
 			case 'l':
 				do_remote_control = 1;
-				if (optarg == NULL) {
-					do_getvol = 1;
-				} else {
-					do_setvol = 1;
-					use_vol = atoi(optarg);
-					if (use_vol < 0 || use_vol > 100) {
-						alsaplayer_error("volume out of range: using 100");
-						use_vol = 100;
-					}
-				}	
+				do_setvol = 1;
+				use_vol = atoi(optarg);
+				if (use_vol < 0 || use_vol > 100) {
+					alsaplayer_error("volume out of range: using 100");
+					use_vol = 100;
+				}
 				break;
 			case 'n':
 				use_session = atoi(optarg);
@@ -729,13 +734,7 @@ int main(int argc, char **argv)
 
 	// Check if we're in remote control mode
 	if (do_remote_control) {
-		if (do_getvol) {
-			int getvol = 0;
-			if (ap_get_volume(use_session, &getvol)) {
-				fprintf(stdout, "%d\n", getvol);
-			}
-			return 0;
-		} else if (do_setvol) {
+		if (do_setvol) {
 			ap_set_volume(use_session, use_vol);
 			return 0;
 		} else if (do_start) {
@@ -930,7 +929,10 @@ int main(int argc, char **argv)
 	if (do_crossfade) {
 		playlist->Crossfade();
 	}
+	// Set start volume
+	playlist->GetCorePlayer()->SetVolume(start_vol);
 
+	
 	interface_plugin_info_type interface_plugin_info;
 	interface_plugin *ui;
 
