@@ -72,12 +72,12 @@ void PlaylistWindowGTK::CbSetCurrent(unsigned current) {
 void PlaylistWindowGTK::CbLock()
 {
 	GDK_THREADS_ENTER();
-	printf("GDK_THREADS_ENTER()...\n");
+	//printf("GDK_THREADS_ENTER()...\n");
 }
 
 void PlaylistWindowGTK::CbUnlock()
 {
-	printf("GDK_THREADS_LEAVE()...\n");
+	//printf("GDK_THREADS_LEAVE()...\n");
 	GDK_THREADS_LEAVE();
 }
 
