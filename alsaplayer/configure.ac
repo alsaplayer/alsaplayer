@@ -34,7 +34,6 @@ have_nas=no
 have_mikmod=no
 have_jack=no
 dynload=no
-tophack=no
 use_3dnow_asm=no
 use_libmad=no
 use_libid3tag=no
@@ -95,15 +94,6 @@ AC_ARG_ENABLE(debug,
 
 if test "$enable_debug" = yes; then
 DFLAGS="$DFLAGS -g"
-fi
-
-
-AC_ARG_ENABLE(tophack,
-[  --enable-tophack        Enable top 0% CPU usage hack (default=no)],, enable_tophack=no)
-
-if test "$enable_tophack" = yes; then
-DFLAGS="$DFLAGS -DTOP_HACK"
-tophack=yes
 fi
 
 
@@ -763,7 +753,6 @@ Configuration:
   Build audiofile input plugin:       ${have_audiofile}
   Build flac input plugin:            ${have_flac}
   Build sndfile input plugin:         ${have_sndfile}
-  0% top CPU usage hack enabled:      ${tophack}"
 echo
 
 if test $have_jack = "no" -a $have_sparc = "no" -a $have_alsa_05x = "no" -a $have_alsa_final = "no" -a $have_oss = "no" -a $have_esd = "no" -a $have_sgi = "no" -a $have_nas = "no"
