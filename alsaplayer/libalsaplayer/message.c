@@ -1,4 +1,4 @@
-/*  amessage.c - external control for alsaplayer
+/*  message.c - external control for alsaplayer
  *  Copyright (C) 2002 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  *  $Id$
  *
  */ 
-#include "amessage.h"
+#include "message.h"
 #include <sys/un.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
