@@ -238,7 +238,7 @@ void CorePlayer::UnregisterPlugins()
 	pthread_mutex_lock(&player_mutex);
 	for (int i = 0; i < plugin_count; i++) {
 		tmp = &plugins[i];
-		printf("Unregistering %s\n", tmp->name); 
+		printf("Unregistering Input plugin: %s\n", tmp->name); 
 		if (tmp->handle)
 			dlclose(tmp->handle);
 	}		
