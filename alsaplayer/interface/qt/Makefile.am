@@ -81,13 +81,13 @@ $(srcdir)/ScopesDialog.cpp		: ScopesDialog.moc
 $(srcdir)/PlayListDialog.cpp	: PlayListDialog.moc
 
 MainWindowBase.moc			: MainWindowBase.h
-	$(MOC) $(srcdir)/MainWindowBase.h -o MainWindowBase.moc
+	$(MOC) MainWindowBase.h -o MainWindowBase.moc
 
 ScopesDialogBase.moc		: ScopesDialogBase.h
-	$(MOC) $(srcdir)/ScopesDialogBase.h -o ScopesDialogBase.moc
+	$(MOC) ScopesDialogBase.h -o ScopesDialogBase.moc
 
 PlayListDialogBase.moc	: PlayListDialogBase.h
-	$(MOC) $(srcdir)/PlayListDialogBase.h -o PlayListDialogBase.moc
+	$(MOC) PlayListDialogBase.h -o PlayListDialogBase.moc
 
 MainWindow.moc			: $(srcdir)/MainWindow.h
 	$(MOC) $(srcdir)/MainWindow.h -o MainWindow.moc

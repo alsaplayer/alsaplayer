@@ -24,7 +24,9 @@
 
 #include "Playlist.h"
 
-class PlayListDialog : public PlayListDialogBase, PlaylistInterface
+class PlayListDialog
+  :         public PlayListDialogBase,
+    virtual public PlaylistInterface
 {
   Q_OBJECT
 
@@ -47,6 +49,9 @@ class PlayListDialog : public PlayListDialogBase, PlaylistInterface
     void slotRemove();
     void slotSave();
     void slotClear();
+    void slotShuffle();
+
+    void slotPlay(QListViewItem *);
 
   private:
 

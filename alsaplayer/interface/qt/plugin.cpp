@@ -17,7 +17,7 @@
 */ 
 
 #include <qapplication.h>
-#include <qmotifplusstyle.h>
+#include <qplatinumstyle.h>
 
 #include "CorePlayer.h"
 #include "Playlist.h"
@@ -68,7 +68,7 @@ int interface_qt_start
   QApplication app(argc, argv);
 
   if (!customStyle)
-    app.setStyle(new QMotifPlusStyle);
+    app.setStyle(new QPlatinumStyle);
 
   MainWindow w(coreplayer, playlist);
 

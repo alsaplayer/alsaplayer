@@ -24,8 +24,6 @@
 
 class PlayListItem : public QListViewItem
 {
-  Q_OBJECT
-
   public:
 
     PlayListItem(const QString & filename, QListView * parent);

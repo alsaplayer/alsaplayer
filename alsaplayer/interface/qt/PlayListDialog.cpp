@@ -38,6 +38,15 @@ PlayListDialog::PlayListDialog(QWidget * parent, Playlist * playList)
   list->header()->hide();
 
   playList_->Register(this);
+
+  connect
+    (
+      list,
+      SIGNAL(returnPressed(QListViewItem *)),
+      SLOT(slotPlay(QListViewItem*))
+    );
+
+  list->setSelectionMode(QListView::Extended);
 }
 
 PlayListDialog::~PlayListDialog()
@@ -47,15 +56,13 @@ PlayListDialog::~PlayListDialog()
 
 void PlayListDialog::slotAdd()
 {
-  PlayListDialogBase::slotAdd();
-
   QStringList l =
     QFileDialog::getOpenFileNames(QString::null, QString::null, this,
       "FindSomeMusic", tr("Add music - AlsaPlayer"));
 
   if (!l.isEmpty())
   {
-    vector<string> stlVec;
+    std::vector<std::string> stlVec;
 
     for (QStringList::ConstIterator it(l.begin()); it != l.end(); ++it)
       stlVec.push_back(string((*it).local8Bit().data()));
@@ -72,8 +79,6 @@ void PlayListDialog::slotLoad()
 
   if (!!filename)
   {
-    uint oldLength = playList_->Length();
-
     plist_result ret =
       playList_->Load(string(filename.local8Bit().data()), 0, false);
 
@@ -82,52 +87,24 @@ void PlayListDialog::slotLoad()
       QMessageBox::warning(this, tr("Warning - AlsaPlayer"),
         tr("Couldn't load playlist !"));
     }
-    else
-    {
-      // Remove old entries. XXX Do we really want to ?
-      playList_->Remove(oldLength, playList_->Length() - oldLength);
-    }
   }
 }
 
 void PlayListDialog::slotRemove()
 {
-  ::std::vector<int> l;
+  std::vector<unsigned> l;
+  unsigned vPos = 1;
 
   for (QListViewItemIterator it(list); it.current(); ++it)
-  {
-    PlayListItem * item = static_cast<PlayListItem *>(it.current());
-
-    if (item->isSelected())
-    {
-      qDebug("playList_->Remove(%d)", item->height());
-      playList_->Remove(item->height(), item->height());
-    }
-  }
-  
-#if 0
-  ::std::sort(l.begin(), l.end());
-  ::std::reverse(l.begin(), l.end());
-
-  int begin(l.front());
-  int end(begin);
-
-  for (vector<int>::const_iterator it(l.begin()); it != l.end(); ++it)
-  {
-    qDebug("Removing item %d", *it);
-    if (*it != (end + 1))
-    {
-      playList_->Remove(begin, end);
-
-      begin = *it;
-      end   = begin;
-    }
+    if (it.current()->isSelected())
+      l.push_back(vPos);
     else
-    {
-      end = *it;
-    }
+      ++vPos;
+
+  for (std::vector<unsigned>::const_iterator it(l.begin()); it != l.end(); ++it)
+  {
+    playList_->Remove(*it, *it);
   }
-#endif
 }
 
 void PlayListDialog::slotSave()
@@ -179,21 +156,11 @@ void PlayListDialog::CbInsert(std::vector<PlayItem> & l, unsigned pos)
 
 void PlayListDialog::CbRemove(unsigned begin, unsigned end)
 {
-  qDebug("CbRemove(%d, %d)", begin, end);
+  unsigned vPos = 1;
 
-  for (int i = end; i >= begin; --i)
-  {
-    for (QListViewItemIterator it(list); it.current(); --it)
-    {
-      PlayListItem * item = static_cast<PlayListItem *>(it.current());
-
-      if (item->height() == i)
-      {
-        qDebug("Removing item from display %d", i);
-        delete item;
-      }
-    }
-  }
+  for (QListViewItemIterator it(list); it.current(); ++it, ++vPos)
+    if (vPos >= begin && vPos <= end)
+      delete it.current();
 }
 
 
@@ -212,6 +179,23 @@ void PlayListDialog::CbUnlock()
 void PlayListDialog::CbClear()
 {
   list->clear();
+}
+
+void PlayListDialog::slotPlay(QListViewItem * i)
+{
+  unsigned vPos = 1;
+
+  for (QListViewItemIterator it(list); it.current(); ++it, ++vPos)
+    if (it.current() == i)
+    {
+      playList_->Play(vPos);
+      break;
+    }
+}
+
+void PlayListDialog::slotShuffle()
+{
+  playList_->Shuffle();
 }
 
 #include "PlayListDialog.moc"
