@@ -113,7 +113,7 @@ static void the_fftscope()
 				if (val > maxbar[ i ]) 
 					maxbar[ i ] = val;
 				else {
-					k = maxbar[ i ] - 6;
+					k = maxbar[ i ] - (4 + (8 / (128 - maxbar[ i ])));
 					val = k > 0 ? k : 0;
 					maxbar[ i ] = val;
 				}
