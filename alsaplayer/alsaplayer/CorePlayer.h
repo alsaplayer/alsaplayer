@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <set>
 #include "SampleBuffer.h"
 #include "AlsaNode.h"
 #include "AlsaSubscriber.h"
@@ -38,6 +39,25 @@
 #define NR_CBUF 10	// Number of partition to read ahead
 
 #define MAX_PLUGINS 16
+
+typedef void(*volume_changed_type)(int new_vol);
+typedef void(*speed_changed_type)(float new_speed);
+typedef void(*pan_changed_type)(int new_pan);
+typedef void(*position_notify_type)(int pos);
+typedef void(*stop_notify_type)();
+typedef void(*start_notify_type)();		
+
+typedef struct _coreplayer_notifier
+{
+	void *data;
+	volume_changed_type volume_changed;
+	speed_changed_type speed_changed;
+	pan_changed_type pan_changed;
+	position_notify_type position_notify;
+	start_notify_type start_notify;
+	stop_notify_type stop_notify;
+} coreplayer_notifier;
+
 
 typedef struct _sample_buf
 {
@@ -69,7 +89,9 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	int pan;
 	AlsaNode *node;
 	AlsaSubscriber *sub;
-
+	
+	std::set<coreplayer_notifier *> notifiers;
+	
 	// INPUT plugin stuff
 	input_object *the_object;
 	input_plugin *plugin; // Pointer to the current plugin
@@ -78,6 +100,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	pthread_mutex_t player_mutex;
 	pthread_mutex_t counter_mutex;
 	pthread_mutex_t thread_mutex;
+	pthread_mutex_t notifier_mutex;
 	sample_buf *buffer;
 	sample_buf *read_buf, *write_buf, *new_write_buf;
 	int FrameSeek(int);
@@ -96,6 +119,8 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	void UnregisterPlugins();
 	void Lock();
 	void Unlock();
+	void LockNotifiers();
+	void UnlockNotifiers();
 	int RegisterPlugin(input_plugin *the_plugin);
 
  public:
@@ -107,35 +132,39 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	
 	CorePlayer(AlsaNode *node=(AlsaNode *)NULL);
 	~CorePlayer();
+
+	void RegisterNotifier(coreplayer_notifier *);
+	void UnRegisterNotifier(coreplayer_notifier *);
+
 	AlsaNode *GetNode() { return node; }
-	int GetPosition();				// Current position in frames
+	int GetPosition();	// Current position in frames
+	void PositionUpdate();	// Notify the interfaces about the position
 	int SetSpeed(float val);	// Set the playback speed: 1.0 = 100%
-	float GetSpeed();					// Get speed
-	int GetVolume() { return volume; }				// Get Volume level
-	void SetVolume(int vol) { volume = vol; }	// Set volume level
+	float GetSpeed();	// Get speed
+	int GetVolume() { return volume; }	// Get Volume level
+	void SetVolume(int vol);	// Set volume level
 	int GetPan() { return pan; }	// Get Pan level
 	
-	void SetPan(int p) { pan = p; }	// Set Pan level: 
-																					// 0		= center
-																					// -100	= right channel muted
-																					// 100  = left channel muted
+	void SetPan(int p);	// Set Pan level: 
+					// 0	= center
+					// -100	= right channel muted
+					// 100  = left channel muted
 	
 	unsigned long GetCurrentTime(int frame=-1);
-																	// Returns the time position of frame in
-																	// hundreths of seconds
+					// Returns the time position of frame in
+					// hundreths of seconds
 	int GetStreamInfo(stream_info *info); // Return stream info
-	int GetFrames();					// Total number of frames
-	int GetSampleRate();			// Samplerat of this player
-	int GetChannels();				// Number of channels
-	int GetFrameSize();				// Frame size in bytes
-	input_plugin * GetPlayer(const char *);
-	// This one is temporary
+	int GetFrames();	// Total number of frames
+	int GetSampleRate();	// Samplerat of this player
+	int GetChannels();	// Number of channels
+	int GetFrameSize();	// Frame size in bytes
+	input_plugin * GetPlayer(const char *); // This one is temporary
 	int GetLatency() { if (node) return node->GetLatency(); else return 0; }
 
 	bool Load(const char *path = NULL);
 	void Unload();
-	bool Start(int reset=1);
-	void Stop(int streamer=1);
+	bool Start();
+	void Stop();
 	int Seek(int pos);
 	bool CanSeek();
 	

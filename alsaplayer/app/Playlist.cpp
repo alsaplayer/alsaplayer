@@ -89,17 +89,13 @@ void info_looper(void *data)
 			if (playlist->interfaces.size() > 0) {
 				for(i = playlist->interfaces.begin();
 						i != playlist->interfaces.end(); i++) {
-					(*i)->CbLock();
 					(*i)->CbUpdated((*p), count);
-					(*i)->CbUnlock();
 				}
 			}
 			if (playlist->cinterfaces.size() > 0) {
 				for (j = playlist->cinterfaces.begin();
 						j != playlist->cinterfaces.end(); j++) {
-					(*j)->cblock((*j)->data);
 					(*j)->cbupdated((*j)->data, (*p), count);
-					(*j)->cbunlock((*j)->data);
 				}
 			}	
 
@@ -130,13 +126,14 @@ void playlist_looper(void *data)
 				return;
 			if (!coreplayer->IsActive()) {
 				if (pl->Length()) {
-					pl->Next(1);
+					pl->Next();
 				}	
 			}
 			if (pl->Length() && pl->Crossfading() && pl->coreplayer->GetSpeed() >= 0.0) {
 				// Cross example
 				if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < 300) {
 						if (pl->player1->IsActive() && pl->player2->IsActive()) {
+							alsaplayer_error("Stopping players in playlist_looper");
 							pl->player1->Stop();
 							pl->player2->Stop();
 						}	
@@ -147,10 +144,11 @@ void playlist_looper(void *data)
 								pl->player1->SetSpeed(pl->coreplayer->GetSpeed());
 								pl->coreplayer = pl->player1;
 						}		
-						pl->Next(1);
+						pl->Next();
 				}
 			}
-		}	
+		}
+		pl->coreplayer->PositionUpdate(); // Update the position
 		dosleep(100000);
 	}
 }
@@ -224,19 +222,15 @@ void insert_looper(void *data) {
 	if(playlist->interfaces.size() > 0) {
 		for(i = playlist->interfaces.begin();
 			i != playlist->interfaces.end(); i++) {
-			(*i)->CbLock();
 			(*i)->CbInsert(newitems, items->position);
 			(*i)->CbSetCurrent(playlist->curritem);
-			(*i)->CbUnlock();
 		}
 	}	
 	if (playlist->cinterfaces.size() > 0) {	
 		for (j = playlist->cinterfaces.begin();
 			j != playlist->cinterfaces.end(); j++) {
-			(*j)->cblock((*j)->data);
 			(*j)->cbinsert((*j)->data, newitems, items->position);
 			(*j)->cbsetcurrent((*j)->data, playlist->curritem);
-			(*j)->cbunlock((*j)->data);
 		}	
 	}
 
@@ -315,29 +309,12 @@ unsigned Playlist::Length() {
 }
 
 // Request to move to specified item
-void Playlist::Play(unsigned item, int locking) {
+void Playlist::Play(unsigned item) {
 	std::set<PlaylistInterface *>::const_iterator i;
 	std::set<playlist_interface *>::const_iterator j;
 
 
-	if (!locking) { // Make sure we acquire the locks in the right order!
-		LockInterfaces();
-		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbUnlock();
-		}
-		for (j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-			(*j)->cbunlock((*j)->data);
-		}	
-		UnlockInterfaces();
-		
-	}
 	Lock();
-	for(i = interfaces.begin(); i != interfaces.end(); i++) {
-		(*i)->CbLock();
-	}
-	for (j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-		(*j)->cblock((*j)->data);
-	}	
 
 	if(item < 1) item = 1;
 	if(item <= queue.size()) {
@@ -359,41 +336,15 @@ void Playlist::Play(unsigned item, int locking) {
 			(*j)->cbsetcurrent((*j)->data, curritem);
 		}
 	}
-	if (locking) {
-		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbUnlock();
-		}
-		for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-			(*j)->cbunlock((*j)->data);
-		}
-
-	}
 	Unlock();
 }
 
 // Request to move to next item
-void Playlist::Next(int locking) {
-	//alsaplayer_error("In Next...%d", locking);
+void Playlist::Next() {
 	std::set<PlaylistInterface *>::const_iterator i;
 	std::set<playlist_interface *>::const_iterator j;
 
-	if (!locking) {
-		LockInterfaces();
-		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbUnlock();
-		}
-		for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-			(*j)->cbunlock((*j)->data);
-		}
-		UnlockInterfaces();
-	}	
 	Lock();
-	for(i = interfaces.begin(); i != interfaces.end(); i++) {
-		(*i)->CbLock();
-	}
-	for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-		(*j)->cblock((*j)->data);
-	}
 
 	unsigned olditem = curritem;
 	if(queue.size() > 0) {
@@ -429,41 +380,15 @@ void Playlist::Next(int locking) {
 			}
 		}	
 	}
-	if (locking) {
-		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbUnlock();
-		}
-		for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-			(*j)->cbunlock((*j)->data);
-		}
-
-	}
 	Unlock();
 }
 
 // Request to move to previous item
-void Playlist::Prev(int locking) {
-	//alsaplayer_error("In Prev...%d", locking);
+void Playlist::Prev() {
 	std::set<PlaylistInterface *>::const_iterator i;
 	std::set<playlist_interface *>::const_iterator j;
 
-	if (!locking) {
-		LockInterfaces();
-		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbUnlock();
-		}
-		for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-			(*j)->cbunlock((*j)->data);
-		}
-		UnlockInterfaces();
-	}
 	Lock();
-	for(i = interfaces.begin(); i != interfaces.end(); i++) {
-		(*i)->CbLock();
-	}
-	for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-		(*j)->cblock((*j)->data);
-	}
 
 	unsigned olditem = curritem;
 	if(curritem > queue.size()) {
@@ -490,15 +415,6 @@ void Playlist::Prev(int locking) {
 		}	
 	}
 
-	if (locking) {
-		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbUnlock();
-		}
-		for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-			(*j)->cbunlock((*j)->data);
-		}
-
-	}
 	Unlock();
 }
 
@@ -516,7 +432,7 @@ void Playlist::Unlock()
 
 
 // Request to put a new item at end of playlist
-void Playlist::Insert(std::vector<std::string> const & paths, unsigned position) {
+void Playlist::Insert(std::vector<std::string> const & paths, unsigned position, bool wait_for_insert) {
 	// Prepare to do insert
 	PlInsertItems * items = new PlInsertItems(this);
 	items->position = position;
@@ -534,8 +450,10 @@ void Playlist::Insert(std::vector<std::string> const & paths, unsigned position)
 	//    inform it of the change
 	pthread_create(&adder, NULL,
 				   (void * (*)(void *))insert_looper, (void *)items);
-	pthread_detach(adder);
-
+	if (wait_for_insert)
+		pthread_join(adder, NULL);
+	else	
+		pthread_detach(adder);
 }
 
 // Add some items start them playing
@@ -548,14 +466,16 @@ void Playlist::AddAndPlay(std::vector<std::string> const &paths) {
 	// to fix, (and relatively harmless) that we can ignore it.
 
 	// Move current play point to off end of list (stops play)
-	Play(Length() + 1);
+	int next_pos = Length() + 1;
 
 	// Now add the new items
-	Insert(paths, Length());
+	Insert(paths, Length(), true); // Wait for insert to finish
+
+	Play(next_pos);
 }
 
 // Remove tracks from position start to end inclusive
-void Playlist::Remove(unsigned start, unsigned end, int locking) {
+void Playlist::Remove(unsigned start, unsigned end) {
 	std::set<PlaylistInterface *>::const_iterator i;
 	std::set<playlist_interface *>::const_iterator j;
 
@@ -564,24 +484,8 @@ void Playlist::Remove(unsigned start, unsigned end, int locking) {
 		end = start;
 		start = tmp;
 	}
-	if (!locking) {
-		LockInterfaces();
-		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbUnlock();
-		}
-		for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-			(*j)->cbunlock((*j)->data);
-		}
-		UnlockInterfaces();
-
-	}	
+	
 	Lock();
-	for(i = interfaces.begin(); i != interfaces.end(); i++) {
-		(*i)->CbLock();
-	}
-	for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-		(*j)->cblock((*j)->data);
-	}
 				
 	if(start < 1) start = 1;
 	if(start > queue.size()) start = queue.size();
@@ -614,42 +518,16 @@ void Playlist::Remove(unsigned start, unsigned end, int locking) {
 		}
 	}
 	
-	if (locking) {
-		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbUnlock();
-		}
-		for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-			(*j)->cbunlock((*j)->data);
-		}
-
-	}	
 	Unlock();
 }
 
 
 // Randomize playlist
-void Playlist::Shuffle(int locking) {
+void Playlist::Shuffle() {
 	std::set<PlaylistInterface *>::const_iterator i;
 	std::set<playlist_interface *>::const_iterator j;
 
-	if (!locking) {
-		LockInterfaces();
-		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbUnlock();
-		}
-		for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-			(*j)->cbunlock((*j)->data);
-		}
-		UnlockInterfaces();
-
-	}	
 	Lock();
-	for(i = interfaces.begin(); i != interfaces.end(); i++) {
-		(*i)->CbLock();
-	}
-	for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-		(*j)->cblock((*j)->data);
-	}
 
 	random_shuffle(queue.begin(), queue.end());
 	
@@ -672,39 +550,15 @@ void Playlist::Shuffle(int locking) {
 		}
 
 	}
-	if (locking) {
-		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbUnlock();
-		}
-		for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-			(*j)->cbunlock((*j)->data);
-		}
-	}	
 	Unlock();
 }	
 
 // Empty playlist
-void Playlist::Clear(int locking) {
+void Playlist::Clear() {
 	std::set<PlaylistInterface *>::const_iterator i;
 	std::set<playlist_interface *>::const_iterator j;
 
-	if (!locking) {
-		LockInterfaces();
-		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbUnlock();
-		}
-		for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-			(*j)->cbunlock((*j)->data);
-		}
-		UnlockInterfaces();
-	}	
 	Lock();
-	for(i = interfaces.begin(); i != interfaces.end(); i++) {
-		(*i)->CbLock();
-	}
-	for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-		(*j)->cblock((*j)->data);
-	}
 
 	queue.clear();
 	curritem = 0;
@@ -723,14 +577,7 @@ void Playlist::Clear(int locking) {
 
 	player1->Stop(); // Stop players
 	player2->Stop();
-	if (locking) {
-		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			(*i)->CbUnlock();
-		}
-		for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
-			(*j)->cbunlock((*j)->data);
-		}
-	}	
+
 	Unlock();
 }
 
@@ -862,6 +709,21 @@ Playlist::Load(std::string const &file, unsigned position, bool force)
 	return E_PL_SUCCESS;
 }
 
+
+void Playlist::RegisterNotifier(coreplayer_notifier *notif)
+{
+	player1->RegisterNotifier(notif);
+	player2->RegisterNotifier(notif);
+}
+
+
+void Playlist::UnRegisterNotifier(coreplayer_notifier *notif)
+{
+	player1->UnRegisterNotifier(notif);
+	player2->UnRegisterNotifier(notif);
+}
+
+
 void Playlist::Register(playlist_interface *pl_if)
 {
 	Lock();
@@ -892,39 +754,30 @@ void Playlist::Register(PlaylistInterface * pl_if) {
 }
 
 
-void Playlist::UnRegister(playlist_interface *pl_if, int locking) {
+void Playlist::UnRegister(playlist_interface *pl_if) {
 	if (!pl_if)
 		return;
-	if (!locking)
-		pl_if->cbunlock(pl_if->data);
 	Lock();
 	LockInterfaces();
 	cinterfaces.erase(cinterfaces.find(pl_if));
 	UnlockInterfaces();
-	if (locking)
-		pl_if->cbunlock(pl_if->data);
 	Unlock();
 }
 
 
-void Playlist::UnRegister(PlaylistInterface * pl_if, int locking) {
+void Playlist::UnRegister(PlaylistInterface * pl_if) {
 	if (!pl_if)
 		return;
-	if (!locking)
-		pl_if->CbUnlock();
 	Lock();
-	pl_if->CbLock();
 	LockInterfaces();
 	interfaces.erase(interfaces.find(pl_if));
 	UnlockInterfaces();
-	if (locking)
-		pl_if->CbUnlock();
 	Unlock();
 }
 
 void Playlist::Stop() {
 	Pause();
-	player1->Stop(); // coreplayer->Stop();
+	player1->Stop(); 
 	player2->Stop();
 	
 }

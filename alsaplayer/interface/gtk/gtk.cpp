@@ -48,6 +48,8 @@
 static char addon_dir[1024];
 static AlsaSubscriber *scopes = NULL;
 
+static CorePlayer *the_coreplayer = NULL;
+
 void unload_scope_addons()
 {
 	if (scopes)
@@ -126,7 +128,6 @@ int interface_gtk_running()
 int interface_gtk_stop()
 {
 	global_update = -1;
-	pthread_join(indicator_thread, NULL);
 	
 	GDK_THREADS_ENTER();
 	gdk_flush();
@@ -149,9 +150,8 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 {
 	char path[256];
 	char *home;
-	CorePlayer *coreplayer;
 
-	coreplayer = playlist->GetCorePlayer();
+	the_coreplayer = playlist->GetCorePlayer();
 
 	g_thread_init(NULL);
 	if (!g_thread_supported()) {
@@ -161,8 +161,8 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 	
 	// Scope functions
 	scopes = new AlsaSubscriber();
-	scopes->Subscribe(coreplayer->GetNode(), POS_END);
-	scopes->EnterStream(scope_feeder_func, coreplayer);
+	scopes->Subscribe(the_coreplayer->GetNode(), POS_END);
+	scopes->EnterStream(scope_feeder_func, the_coreplayer);
 
 	if (geteuid() == 0) // Drop root if we run suid root
 		setuid(getuid());

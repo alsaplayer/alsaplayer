@@ -136,6 +136,12 @@ void socket_looper(void *arg)
 				ap_message_add_int32(reply, "pong", 10281975);
 				ap_message_add_int32(reply, "ack", 1);
 				break;
+			case AP_ADD_AND_PLAY:
+				if ((path = ap_message_find_string(msg, "path1"))) {
+					playlist->AddAndPlay(strdup(path));
+				}
+				ap_message_add_int32(reply, "ack", 1);
+				break;
 			case AP_ADD_PATH:
 				if ((path = ap_message_find_string(msg, "path1"))) {
 					playlist->Insert(strdup(path), playlist->Length());
@@ -162,11 +168,11 @@ void socket_looper(void *arg)
 				ap_message_add_int32(reply, "ack", 0);
 				break;
 			case AP_NEXT: 
-				playlist->Next(1);
+				playlist->Next();
 				ap_message_add_int32(reply, "ack", 1);
 				break;
 			case AP_PREV:
-				playlist->Prev(1);
+				playlist->Prev();
 				ap_message_add_int32(reply, "ack", 1);
 				break;
 			case AP_STOP:
@@ -191,7 +197,7 @@ void socket_looper(void *arg)
 				ap_message_add_int32(reply, "ack", 1);
 				break;
 			case AP_CLEAR_PLAYLIST:
-				playlist->Clear(1);
+				playlist->Clear();
 				ap_message_add_int32(reply, "ack", 1);
 				break;
 			case AP_QUIT:

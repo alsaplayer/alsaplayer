@@ -61,18 +61,15 @@ PlaylistWindowGTK::PlaylistWindowGTK(Playlist * pl) {
 	pthread_mutex_init(&playlist_list_mutex, NULL);
 
 	memset(&pli, 0, sizeof(playlist_interface));
-	pli.cblock = CbLock;
-	pli.cbunlock = CbUnlock;
 	pli.cbsetcurrent = CbSetCurrent;
 	pli.cbupdated = CbUpdated;
 	pli.cbinsert = CbInsert;
 	pli.cbremove = CbRemove;
 	pli.cbclear = CbClear;
 	pli.data = this;
-	
-	//alsaplayer_error("Would Register here");
-	//playlist->Register(this);
+	GDK_THREADS_LEAVE();
 	playlist->Register(&pli);
+	GDK_THREADS_ENTER();
 }
 
 PlaylistWindowGTK::~PlaylistWindowGTK() {
@@ -80,10 +77,7 @@ PlaylistWindowGTK::~PlaylistWindowGTK() {
 	
 	Hide();
 	gtk_clist_clear(GTK_CLIST(playlist_list));
-	//alsaplayer_error("About to Unregister");
-	//playlist->UnRegister(this);
-	playlist->UnRegister(&pli);
-	//alsaplayer_error("Unregister OK");
+	playlist->UnRegister(&pli); // XXX
 }
 
 #include "pixmaps/current_play.xpm"
@@ -99,6 +93,8 @@ void PlaylistWindowGTK::CbSetCurrent(void *data, unsigned current) {
 	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 	GtkWidget *working;
 	GtkStyle *style;
+
+	GDK_THREADS_ENTER();
 	
 	if (!current_play_pix) {
 		style = gtk_widget_get_style(GTK_WIDGET(gtkpl->playlist_list));
@@ -122,18 +118,7 @@ void PlaylistWindowGTK::CbSetCurrent(void *data, unsigned current) {
 	
 	gtk_clist_set_pixmap(GTK_CLIST(gtkpl->playlist_list), current_entry - 1,
 		0, current_play_pix, current_play_mask);
-}
 
-
-void PlaylistWindowGTK::CbLock(void *data)
-{
-	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
-	GDK_THREADS_ENTER();
-}
-
-void PlaylistWindowGTK::CbUnlock(void *data)
-{
-	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 	GDK_THREADS_LEAVE();
 }
 
@@ -143,6 +128,8 @@ void PlaylistWindowGTK::CbUpdated(void *data,PlayItem & item, unsigned position)
 	char tmp[1024];
 	int secs;
 
+
+	GDK_THREADS_ENTER();
 
 	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
 
@@ -161,6 +148,8 @@ void PlaylistWindowGTK::CbUpdated(void *data,PlayItem & item, unsigned position)
 		
 	gtk_clist_thaw(GTK_CLIST(gtkpl->playlist_list));
 	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
+
+	GDK_THREADS_LEAVE();
 }
 
 // Insert new items into the displayed list
@@ -168,6 +157,8 @@ void PlaylistWindowGTK::CbInsert(void *data,std::vector<PlayItem> & items, unsig
 	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 	
 	//alsaplayer_error("CbInsert(`%d items', %d)", items.size(), position);
+
+	GDK_THREADS_ENTER();
 
 	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
 
@@ -201,12 +192,17 @@ void PlaylistWindowGTK::CbInsert(void *data,std::vector<PlayItem> & items, unsig
 	gtk_clist_thaw(GTK_CLIST(gtkpl->playlist_list));
 
 	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
+
+	GDK_THREADS_LEAVE();
 }
 
 // Remove items from start to end
 void PlaylistWindowGTK::CbRemove(void *data, unsigned start, unsigned end)
 {
 	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
+
+	GDK_THREADS_ENTER();
+	
 	pthread_mutex_lock(&gtkpl->playlist_list_mutex);	
 	gtkpl->GiveStatus("Removing files...");
 	gtk_clist_freeze(GTK_CLIST(gtkpl->playlist_list));
@@ -226,6 +222,8 @@ void PlaylistWindowGTK::CbRemove(void *data, unsigned start, unsigned end)
 	gtk_clist_thaw(GTK_CLIST(gtkpl->playlist_list));
 	
 	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
+
+	GDK_THREADS_LEAVE();
 }
 
 // Clear the displayed list
@@ -233,10 +231,14 @@ void PlaylistWindowGTK::CbClear(void *data)
 {
 	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 
+	GDK_THREADS_ENTER();
+	
 	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
 	gtk_clist_clear(GTK_CLIST(gtkpl->playlist_list));
 	gtkpl->GiveStatus("List was cleared");
 	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
+
+	GDK_THREADS_LEAVE();
 }
 
 // Display a status message
@@ -284,7 +286,9 @@ extern void playlist_window_gtk_prev(GtkWidget *widget, gpointer data) {
 	Playlist * playlist = (Playlist *) data;
 	if(playlist) {
 		playlist->Pause();
+		GDK_THREADS_LEAVE();
 		playlist->Prev();
+		GDK_THREADS_ENTER();
 		playlist->UnPause();
 	}
 }
@@ -294,7 +298,9 @@ extern void playlist_window_gtk_next(GtkWidget *widget, gpointer data) {
 	Playlist * playlist = (Playlist *) data;
 	if(playlist) {
 		playlist->Pause();
+		GDK_THREADS_LEAVE();
 		playlist->Next();
+		GDK_THREADS_ENTER();
 		playlist->UnPause();
 	}
 }
@@ -310,7 +316,9 @@ void playlist_click(GtkWidget *widget, gint row, gint column,
 		int selected;
 		selected = GPOINTER_TO_INT(GTK_CLIST(widget)->selection->data);
 		playlist->Pause();
+		GDK_THREADS_LEAVE();
 		playlist->Play(selected + 1);
+		GDK_THREADS_ENTER();
 		playlist->UnPause();
 	}
 }
@@ -340,11 +348,13 @@ void playlist_remove(GtkWidget *widget, gpointer data)
 		}	
 		while (next != start->prev) {
 			selected = GPOINTER_TO_INT(next->data);
+			GDK_THREADS_LEAVE();
 			if (playlist->GetCurrent() == selected+1) {
 				playlist->Stop();
 				playlist->Next();
 			}	
-			playlist->Remove(selected+1, selected+1, 0);
+			playlist->Remove(selected+1, selected+1);
+			GDK_THREADS_ENTER();
 			next = next->prev;	
 		}
 	}
@@ -355,16 +365,22 @@ void playlist_remove(GtkWidget *widget, gpointer data)
 void shuffle_cb(GtkWidget *widget, gpointer data)
 {
 	Playlist *playlist = (Playlist *)data;
-	if (playlist)
+	if (playlist) {
+		GDK_THREADS_LEAVE();
 		playlist->Shuffle();
+		GDK_THREADS_ENTER();
+	}	
 }
 
 // Called when clear button clicked
 void clear_cb(GtkWidget *widget, gpointer data)
 {
 	Playlist *playlist = (Playlist *)data;
-	if (playlist)
+	if (playlist) {
+		GDK_THREADS_LEAVE();
 		playlist->Clear();
+		GDK_THREADS_ENTER();
+	}	
 }
 
 gint list_resize(GtkWidget *widget, GdkEventConfigure *event, gpointer data)
@@ -459,6 +475,8 @@ void add_file_ok(GtkWidget *widget, gpointer data)
 	GtkCList *file_list = GTK_CLIST(GTK_FILE_SELECTION(add_file)->file_list);
 	Playlist *playlist = playlist_window_gtk->GetPlaylist();
 	GList *next = file_list->selection;
+
+	alsaplayer_error("In add_file_ok()");
 
 	if (!playlist) {
 		return;

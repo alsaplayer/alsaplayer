@@ -45,6 +45,9 @@ int ap_connect_session (int session)
 
 	pwd = getpwuid(geteuid());
 
+	if (!pwd) {
+		return -1;
+	}	
 	if ((socket_fd = socket (AF_UNIX, SOCK_STREAM, 0)) != -1) {
 		saddr.sun_family = AF_UNIX;
 		sprintf (saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
@@ -697,6 +700,33 @@ int ap_ping(int session)
 		// ret_val not used
 		return 1;
 	}
+	ap_message_delete(reply);
+	return 0;
+}
+
+int ap_add_and_play(int session, char *path)
+{
+	int fd;
+	int32_t *result, ret_val;
+	ap_message_t *msg, *reply;
+
+	fd = ap_connect_session(session);
+	msg = ap_message_new();
+	msg->header.cmd = AP_ADD_AND_PLAY;
+	ap_message_add_string(msg, "path1", path);
+	ap_message_send(fd, msg);
+	ap_message_delete(msg);
+	msg = NULL;
+	
+	reply = ap_message_receive(fd);
+	close(fd);
+	
+	if ((result = ap_message_find_int32(reply, "ack"))) {
+		ret_val = *result;
+		ap_message_delete(reply);
+		return 1;
+	}
+	printf("ap_add_and_play() failed for some reason\n");
 	ap_message_delete(reply);
 	return 0;
 }

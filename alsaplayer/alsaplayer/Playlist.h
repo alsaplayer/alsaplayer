@@ -56,8 +56,6 @@ class PlayItem
 };
 
 // C interface for the playlist
-typedef void(*cblock_type)(void *data);
-typedef void(*cbunlock_type)(void *data);
 typedef void(*cbsetcurrent_type)(void *data, unsigned pos);
 typedef void(*cbinsert_type)(void *data, std::vector<PlayItem> &items, unsigned pos);
 typedef void(*cbremove_type)(void *data, unsigned start, unsigned end);
@@ -67,8 +65,6 @@ typedef void(*cbclear_type)(void *data);
 typedef struct _playlist_interface
 {
 	void *data;
-	cblock_type cblock;
-	cbunlock_type cbunlock;
 	cbsetcurrent_type cbsetcurrent;
 	cbinsert_type cbinsert;
 	cbremove_type cbremove;
@@ -84,9 +80,6 @@ class PlaylistInterface
 		// Note: it is not permissible to call any Playlist methods in
 		// one of these callback methods - will cause deadlock.
 		// Callbacks - Called when:
-
-		virtual void CbLock() = 0;
-		virtual void CbUnlock() = 0;
 
 		// Current position changed
 		virtual void CbSetCurrent(unsigned pos) = 0;
@@ -176,17 +169,17 @@ public:
 
 	// Move to specified item in playlist and play from there
 	// Position 1 is first item, n is last item where n is length of list
-	void Play(unsigned, int locking=0);
+	void Play(unsigned);
 
-	void Next(int locking=0);    // Start playing next item in playlist
-	void Prev(int locking=0);    // Start playing previous item in playlist
+	void Next();    // Start playing next item in playlist
+	void Prev();    // Start playing previous item in playlist
 	int GetCurrent() { return curritem; } // Return current item
 
 	// Insert items at position - 0 = beginning, 1 = after first item, etc
-	void Insert(std::vector<std::string> const &, unsigned);
+	void Insert(std::vector<std::string> const &, unsigned, bool wait_for_insert=false);
 
 	// To insert just one item:
-	void Insert(std::string const &, unsigned);
+	void Insert(std::string const &, unsigned, bool wait_for_insert=false);
 
 	// Add several items and play them immediately
 	// (Avoids possible concurrency problems)
@@ -197,13 +190,13 @@ public:
 
 	// Remove tracks from position start to end inclusive
 	// Position 1 is first track, n is last track where n is length of list
-	void Remove(unsigned start, unsigned end, int locking=0);
+	void Remove(unsigned start, unsigned end);
 
 	// Shuffle playlist
-	void Shuffle(int locking=0);
+	void Shuffle();
 
 	// Clear playlist
-	void Clear(int locking=0);
+	void Clear();
 
 	// Pause controls
 	bool Paused() { return paused; }
@@ -234,16 +227,19 @@ public:
 	// Register to receive callbacks
 	void Register(PlaylistInterface *);
 	void Register(playlist_interface *);
+
+	void RegisterNotifier(coreplayer_notifier *);
+	void UnRegisterNotifier(coreplayer_notifier *);
 	
 	// Unregister - must do this before a registered interface is deleted
-	void UnRegister(PlaylistInterface *, int locking=0);
-	void UnRegister(playlist_interface *, int locking=0);
+	void UnRegister(PlaylistInterface *);
+	void UnRegister(playlist_interface *);
 };
 
-inline void Playlist::Insert(std::string const &path, unsigned pos) {
+inline void Playlist::Insert(std::string const &path, unsigned pos, bool wait_for_insert) {
 	std::vector<std::string> items;
 	items.push_back(path);
-	Insert(items, pos);
+	Insert(items, pos, wait_for_insert);
 }
 
 inline void Playlist::AddAndPlay(std::string const &path) {

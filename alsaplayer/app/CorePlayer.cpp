@@ -91,6 +91,49 @@ void CorePlayer::Unlock()
 }
 
 
+void CorePlayer::LockNotifiers()
+{
+	pthread_mutex_lock(&notifier_mutex);
+}
+
+
+void CorePlayer::UnlockNotifiers()
+{
+	 pthread_mutex_unlock(&notifier_mutex);
+}
+
+
+void CorePlayer::RegisterNotifier(coreplayer_notifier *core_notif)
+{
+	if (!core_notif)
+		return;
+	Lock();
+	if (core_notif->speed_changed)
+		core_notif->speed_changed(GetSpeed());
+	if (core_notif->pan_changed)
+		core_notif->pan_changed(GetPan());
+	if (core_notif->volume_changed)
+		core_notif->volume_changed(GetVolume());
+	LockNotifiers();	
+	notifiers.insert(core_notif);
+	UnlockNotifiers();
+	Unlock();
+}
+
+
+void CorePlayer::UnRegisterNotifier(coreplayer_notifier *core_notif)
+{
+	if (!core_notif)
+		return;
+	Lock();
+	LockNotifiers();
+	notifiers.erase(notifiers.find(core_notif));
+	UnlockNotifiers();
+	Unlock();
+}
+
+
+
 void CorePlayer::load_input_addons()
 {
 	char path[1024];
@@ -251,7 +294,7 @@ CorePlayer::~CorePlayer()
 void CorePlayer::UnregisterPlugins()
 {
 	input_plugin *tmp;
-	
+
 	Stop();
 
 	Lock();
@@ -470,7 +513,7 @@ int CorePlayer::GetStreamInfo(stream_info *info)
 // it was the most difficult to get right! We absolutely NEED to have
 // a known state of all the threads of our object! 
 
-bool CorePlayer::Start(int reset)
+bool CorePlayer::Start()
 {
 	float result;
 	int output_rate;
@@ -544,7 +587,7 @@ bool CorePlayer::Start(int reset)
 }  
 
 
-void CorePlayer::Stop(int streamer)
+void CorePlayer::Stop()
 {
 	Lock();
 	if (sub) {
@@ -566,8 +609,56 @@ void CorePlayer::Stop(int streamer)
 	//alsaplayer_error("producer_func is gone now...");
 	
 	ResetBuffer();
-	//Close();
 	Unlock();
+
+	// Notify 
+	std::set<coreplayer_notifier *>::const_iterator i;
+	LockNotifiers();
+	for (i = notifiers.begin(); i != notifiers.end(); i++) {
+		if ((*i)->stop_notify) {
+			(*i)->stop_notify();
+		}
+	}
+	UnlockNotifiers();
+}
+
+
+void CorePlayer::SetVolume(int val)
+{
+	volume = val;
+
+	std::set<coreplayer_notifier *>::const_iterator i;
+	LockNotifiers();
+	for (i = notifiers.begin(); i != notifiers.end(); i++) {
+		if ((*i)->volume_changed)
+			(*i)->volume_changed(volume);
+	}		
+	UnlockNotifiers();
+}
+
+void CorePlayer::SetPan(int val)
+{
+	pan = val;
+
+	std::set<coreplayer_notifier *>::const_iterator i;
+	LockNotifiers();
+	for (i = notifiers.begin(); i != notifiers.end(); i++) {
+		if ((*i)->pan_changed)
+			(*i)->pan_changed(pan);	
+	}
+	UnlockNotifiers();
+}
+
+
+void CorePlayer::PositionUpdate()
+{
+	std::set<coreplayer_notifier *>::const_iterator i;
+	LockNotifiers();
+	for (i = notifiers.begin(); i != notifiers.end(); i++) {
+		if ((*i)->pan_changed)
+			(*i)->position_notify(GetPosition());
+	}
+	UnlockNotifiers();
 }
 
 
@@ -579,11 +670,23 @@ int CorePlayer::SetSpeed(float val)
 	pitch_point = val;
 	repitched = 1;
 
+	std::set<coreplayer_notifier *>::const_iterator i;
+
+	LockNotifiers();
+	for (i = notifiers.begin(); i != notifiers.end(); i++) {
+		if ((*i)->speed_changed)
+			(*i)->speed_changed(pitch_point);
+	}	
+	UnlockNotifiers();
+
 	return 0;
 }
 
 float CorePlayer::GetSpeed()
 {
+	if (repitched) { // Pitch was changed so return this instead
+		return pitch_point;
+	}	
 	return (read_direction == DIR_FORWARD ? pitch : -pitch);
 }
 

@@ -74,7 +74,6 @@ Playlist *playlist = NULL;
 
 // Global variables (get rid of these too... ;-) )
 int global_update = 1;
-pthread_t indicator_thread;
 /* These are used to contain the size of the window manager borders around
    our windows, and are used to show/hide windows in the same positions. */
 gint global_effects_show = 0;
@@ -88,6 +87,7 @@ static int global_draw_volume = 1;
 static GtkWidget *play_pix;
 static GdkPixmap *val_ind = NULL;
 static PlaylistWindowGTK *playlist_window_gtk = NULL;
+static coreplayer_notifier notifier;
 
 static gint main_window_x = 150;
 static gint main_window_y = 175;
@@ -120,26 +120,80 @@ static int vol_scale[] = {
 
 
 gint indicator_callback(gpointer data, int locking);
+void draw_speed(float speed);
+void draw_pan(int pan);
+void draw_volume(int vol);
+void position_notify(int pos);
+void notifier_lock();
+void notifier_unlock();
 
+void speed_changed(float speed)
+{
+	notifier_lock();
+	draw_speed(speed);
+	notifier_unlock();
+}
+
+void pan_changed(int pan)
+{
+	notifier_lock();
+	draw_pan(pan);
+	notifier_unlock();
+}
+
+void volume_changed(int vol)
+{
+	notifier_lock();
+	draw_volume(vol);
+	notifier_unlock();
+}
+
+void position_notify(int pos)
+{
+	notifier_lock();
+	indicator_callback(NULL, 0);
+	notifier_unlock();
+}
+
+void notifier_lock()
+{
+	GDK_THREADS_ENTER();
+}
+
+
+void notifier_unlock()
+{
+	GDK_THREADS_LEAVE();
+}
+
+
+void stop_notify()
+{
+	//alsaplayer_error("Song was stopped");
+}
 
 
 gboolean main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	GtkFunction f = (GtkFunction)data;
 	global_update = -1;
-	//alsaplayer_error("Going to wait for indicator_thread join");
+
+	// Remove notifier
+	
 	gdk_flush();
-	GDK_THREADS_LEAVE(); // Drop lock so indicator_thread can finish
-	pthread_join(indicator_thread, NULL);
-	GDK_THREADS_ENTER();
 	if (f) { // Oh my, a very ugly HACK indeed! But it works
 		gdk_flush();
 		GDK_THREADS_LEAVE();
 		f(NULL);
 		GDK_THREADS_ENTER();
 	}
-	if (playlist_window_gtk)
+	if (playlist_window_gtk) {
+		Playlist *playlist = playlist_window_gtk->GetPlaylist();
+		GDK_THREADS_LEAVE();
+		playlist->UnRegisterNotifier(&notifier);
+		GDK_THREADS_ENTER();
 		delete playlist_window_gtk;
+	}	
 	gtk_main_quit();
 	
 	// Never reached
@@ -152,11 +206,9 @@ void press_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 	global_update = 0;
 }
 
-void draw_volume();
-
 void volume_move_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-	draw_volume();
+	//draw_volume();
 }
 
 void draw_title(char *title)
@@ -194,6 +246,7 @@ void draw_title(char *title)
 			// Do the drawing
 			gtk_widget_draw (ustr->drawing_area, &update_rect);	
 	}
+	gdk_flush();
 }
 
 void draw_format(char *format)
@@ -235,7 +288,7 @@ void draw_format(char *format)
 }
 
 
-void draw_volume()
+void draw_volume(int vol)
 {
 	update_struct *ustr = &global_ustr;
 	GtkAdjustment *adj;
@@ -243,8 +296,6 @@ void draw_volume()
 	CorePlayer *p = pl->GetCorePlayer();
 	GdkRectangle update_rect;
 	char str[60];
-	static int old_vol = -1;
-	static int count = UPDATE_COUNT;
 
 	if (!ustr->vol_scale)
 		return;
@@ -253,18 +304,7 @@ void draw_volume()
 #else	
 	adj = GTK_RANGE(ustr->vol_scale)->adjustment;
 #endif
-	int val = (int)GTK_ADJUSTMENT(adj)->value;
-
-	if (count-- > 0 && val == old_vol)
-		return;
-	else {
-		count = UPDATE_COUNT;
-		old_vol = val;
-		//p->SetVolume(val);
-	}	
-	int idx = val;
-  idx = (idx < 0) ? 0 : ((idx > 13) ? 13 : idx);
-	val = vol_scale[idx];
+	int val = vol; //(int)GTK_ADJUSTMENT(adj)->value;
 
 	val ? sprintf(str, "Volume: %d%%  ", val) : sprintf(str, "Volume: mute");
 
@@ -279,26 +319,26 @@ void draw_volume()
 			gdk_draw_string(val_ind, ustr->drawing_area->style->font,
 							ustr->drawing_area->style->white_gc, update_rect.x+6, update_rect.y+12, str);
 			gtk_widget_draw (ustr->drawing_area, &update_rect);
-	}		
+	}
+	gdk_flush();
 }
 
-void draw_balance();
 
 
-void balance_move_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+void pan_move_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	global_draw_volume = 0;
-	draw_balance();
+	//draw_balance();
 }
 
 
-void balance_release_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+void pan_release_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	global_draw_volume = 1;
 }
 
 
-void draw_balance()
+void draw_pan(int val)
 {
 	update_struct *ustr = &global_ustr;
 	GdkRectangle update_rect;
@@ -307,7 +347,7 @@ void draw_balance()
 	char str[60];
 	int pan, left, right;
 
-	pan = p->GetPan();
+	pan = val;
 	if (pan < 0) {
 		sprintf(str, "Pan: left %d%%", - pan);
 	} else if (pan > 0) {
@@ -330,51 +370,36 @@ void draw_balance()
 							update_rect.x+6, update_rect.y+12,
 							str);
 			gtk_widget_draw (ustr->drawing_area, &update_rect);
-	}		
+	}
+	gdk_flush();
 }
 
-void draw_speed();
 
 void speed_move_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-	draw_speed();
+	//draw_speed();
 }
 
-void draw_speed()
+void draw_speed(float speed)
 {
 	update_struct *ustr = &global_ustr;
 	GtkAdjustment *adj;
 	GdkRectangle update_rect;
 	char str[60];
 	int speed_val;
-	static int old_val = -20000;
-	static int count = UPDATE_COUNT;
-	static int pause_blink =  2000000;
-	static int pause_active = 1;
 #if 1
 	adj = GTK_RANGE(ustr->speed_scale)->adjustment;
 #else
 	adj = GTK_BSCALE(ustr->speed_scale)->adjustment;
 #endif	
 
-	speed_val = (int)GTK_ADJUSTMENT(adj)->value;
-	if (count-- > 0 && speed_val == old_val) 
-		return;
-	count = UPDATE_COUNT;	
-	old_val = speed_val;	
+	//speed_val = (int)GTK_ADJUSTMENT(adj)->value;
+	speed_val = (int)(speed * 100.0); // We need percentages
 	if (speed_val < ZERO_PITCH_TRESH && speed_val > -ZERO_PITCH_TRESH) {
-#if 0
-		if ((pause_blink -= (UPDATE_TIMEOUT * UPDATE_COUNT)) < 0) {
-			pause_blink = 200000;
-			pause_active = 1 - pause_active;
-		}
-		sprintf(str, "Speed: %s", pause_active ? "paused" : "");
-#else
 		sprintf(str, "Speed: pause");
-#endif
 	}
 	else
-		sprintf(str, "Speed: %d%%  ", (int)GTK_ADJUSTMENT(adj)->value);
+		sprintf(str, "Speed: %d%%  ", speed_val);
 	update_rect.x = 0; 
 	update_rect.y = 0;
 	update_rect.width = 82;
@@ -393,6 +418,7 @@ void draw_speed()
 							str);
 			gtk_widget_draw (ustr->drawing_area, &update_rect);		
 	}
+	gdk_flush();
 }	
 
 
@@ -442,8 +468,10 @@ void speed_cb(GtkWidget *widget, gpointer data)
 	float val =  GTK_ADJUSTMENT(widget)->value;
 	if (val < ZERO_PITCH_TRESH && val > -ZERO_PITCH_TRESH)
 		val = 0;
-	p->SetSpeed(  (float) val / 100.0 );
-	draw_speed();
+	GDK_THREADS_LEAVE();	
+	p->SetSpeed(  (float) val / 100.0);
+	GDK_THREADS_ENTER();
+	draw_speed(val / 100.0);
 }
 
 pthread_t smoother_thread;
@@ -574,7 +602,9 @@ void stop_cb(GtkWidget *widget, gpointer data)
 
 	if (p && p->IsPlaying()) {
 		pl->Pause();
+		GDK_THREADS_LEAVE();
 		p->Stop();
+		GDK_THREADS_ENTER();
 		clear_buffer();
 	}	
 }
@@ -590,7 +620,9 @@ void play_cb(GtkWidget *widget, gpointer data)
 		if (p->IsPlaying() || !pl->Length()) {
 			eject_cb(widget, data);
 		} else if (!p->IsPlaying() && pl->Length()) {
+			GDK_THREADS_LEAVE();
 			pl->Play(pl->GetCurrent());
+			GDK_THREADS_ENTER();
 		}	
 	}	
 }
@@ -617,12 +649,14 @@ void volume_cb(GtkWidget *widget, gpointer data)
 	if (p) {
 		int idx = (int)adj->value;
 		idx = (idx < 0) ? 0 : ((idx > 13) ? 13 : idx);
+		GDK_THREADS_LEAVE();
 		p->SetVolume(vol_scale[idx]);
+		GDK_THREADS_ENTER();
 	}
 }
 
 
-void balance_cb(GtkWidget *widget, gpointer data)
+void pan_cb(GtkWidget *widget, gpointer data)
 {
 	GtkAdjustment *adj = (GtkAdjustment *)widget;
 	Playlist *pl = (Playlist *)data;
@@ -632,7 +666,9 @@ void balance_cb(GtkWidget *widget, gpointer data)
 	if (p) {
 		val = (int)adj->value;
 		if (val > MIN_BAL_TRESH && val < MAX_BAL_TRESH) val = BAL_CENTER;
+		GDK_THREADS_LEAVE();
 		p->SetPan(val - 100);
+		GDK_THREADS_ENTER();
 	}	
 }
 
@@ -764,10 +800,7 @@ gint indicator_callback(gpointer data, int locking)
 		draw_title(title_string);
 	} else {
 		draw_title(info.title);
-	}	
-	draw_speed();
-	if (global_draw_volume)
-		draw_volume();
+	}
 	update_rect.x = 0;
 	update_rect.y = 0;
 	update_rect.width = ustr->drawing_area->allocation.width;
@@ -786,9 +819,14 @@ void cd_cb(GtkWidget *widget, gpointer data)
 
 	if (p) {
 		pl->Pause();
+		GDK_THREADS_LEAVE();
 		p->Stop();
-		if (p->Load("CD.cdda"))
+		GDK_THREADS_ENTER();
+		if (p->Load("CD.cdda")) {
+			GDK_THREADS_LEAVE();
 			p->Start();
+			GDK_THREADS_ENTER();
+		}	
 		pl->UnPause();
 	}
 }
@@ -799,9 +837,6 @@ void exit_cb(GtkWidget *widget, gpointer data)
 	GtkFunction f = (GtkFunction)data;
 	global_update = -1;
 	gdk_flush();
-	GDK_THREADS_LEAVE(); // Drop thread so indicator_thread can finish
-	pthread_join(indicator_thread, NULL);
-	GDK_THREADS_ENTER();
 	if (f) { // Oh my, a very ugly HACK indeed! But it works
 		GDK_THREADS_LEAVE();
 		f(NULL);
@@ -892,7 +927,9 @@ void play_file_ok(GtkWidget *widget, gpointer data)
 		sort(paths.begin(), paths.end());
 
 		// Add selections to the queue, and start playing them
+		GDK_THREADS_LEAVE();
 		playlist->AddAndPlay(paths);
+		GDK_THREADS_ENTER();
 		playlist->UnPause();
 		
 		gtk_clist_unselect_all(file_list);
@@ -941,21 +978,6 @@ gint alsaplayer_button_press(GtkWidget *widget, GdkEvent *event)
 	return false;
 }
 
-
-void indicator_looper(void *data)
-{
-#ifdef DEBUG
-	//alsaplayer_error("THREAD-%d=indicator thread", getpid());
-#endif
-	while (global_update >= 0) {
-		if (global_update == 1) {
-			indicator_callback(data, 1);
-		}
-		dosleep(UPDATE_TIMEOUT);
-	}
-	//alsaplayer_error("Exitting indicator_looper");	
-	pthread_exit(NULL);
-}
 
 
 GtkWidget *xpm_label_box(gchar * xpm_data[], GtkWidget *to_win)
@@ -1059,7 +1081,6 @@ void init_main_window(Playlist *pl, GtkFunction f)
 		"AlsaPlayer" : global_session_name);
 	gtk_window_set_wmclass(GTK_WINDOW(main_window), "AlsaPlayer", "alsaplayer");
 	gtk_widget_realize(main_window);
-
 	playlist_window_gtk = new PlaylistWindowGTK(playlist);
 
 	effects_window = init_effects_window();	
@@ -1203,14 +1224,14 @@ void init_main_window(Playlist *pl, GtkFunction f)
 		adj = GTK_RANGE(working)->adjustment;
 		gtk_adjustment_set_value(adj, 100.0);
 		gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-							GTK_SIGNAL_FUNC(balance_cb), playlist);
+							GTK_SIGNAL_FUNC(pan_cb), playlist);
 		global_ustr.bal_scale = working;
 		gtk_signal_connect (GTK_OBJECT (working), "motion_notify_event",
-							GTK_SIGNAL_FUNC(balance_move_event), &global_ustr);
+							GTK_SIGNAL_FUNC(pan_move_event), &global_ustr);
 		gtk_signal_connect (GTK_OBJECT (working), "button_press_event",
-							GTK_SIGNAL_FUNC(balance_move_event), &global_ustr);
+							GTK_SIGNAL_FUNC(pan_move_event), &global_ustr);
 		gtk_signal_connect (GTK_OBJECT(working), "button_release_event",
-							GTK_SIGNAL_FUNC(balance_release_event), &global_ustr);
+							GTK_SIGNAL_FUNC(pan_release_event), &global_ustr);
 	}
 
 	working = get_widget(main_window, "playlist_button");
@@ -1320,7 +1341,6 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	working = get_widget(main_window, "cd_button");
 	gtk_signal_connect_object (GTK_OBJECT (working), "event",
 							   GTK_SIGNAL_FUNC(alsaplayer_button_press), GTK_OBJECT(root_menu)); // cd
-
 	gdk_flush();
 
 	//gdk_window_set_decorations(GTK_WIDGET(main_window)->window, (GdkWMDecoration)0);
@@ -1331,11 +1351,14 @@ void init_main_window(Playlist *pl, GtkFunction f)
 		playlist_window_gtk->Show();
 	}	
 
-	// start indicator thread
-	//alsaplayer_error("About to start indicator_looper()");
-	pthread_create(&indicator_thread, NULL,
-				   (void * (*)(void *))indicator_looper, playlist);
-#ifdef DEBUG
-	printf("THREAD-%d=main thread\n", getpid());
-#endif
+	memset(&notifier, 0, sizeof(notifier));
+	notifier.speed_changed = speed_changed;
+	notifier.pan_changed = pan_changed;
+	notifier.volume_changed = volume_changed;
+	notifier.stop_notify = stop_notify;
+	notifier.position_notify = position_notify;
+
+	GDK_THREADS_LEAVE();
+	playlist->RegisterNotifier(&notifier);
+	GDK_THREADS_ENTER();
 }
