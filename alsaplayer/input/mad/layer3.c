@@ -1,5 +1,5 @@
 /*
- * mad - MPEG audio decoder
+ * libmad - MPEG audio decoder library
  * Copyright (C) 2000-2001 Robert Leslie
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,7 +27,10 @@
 
 # include <stdlib.h>
 # include <string.h>
-# include <assert.h>
+
+# ifdef HAVE_ASSERT_H
+#  include <assert.h>
+# endif
 
 # ifdef HAVE_LIMITS_H
 #  include <limits.h>
@@ -49,6 +52,11 @@ enum {
   scalefac_scale     = 0x02,
   preflag	     = 0x04,
   mixed_block_flag   = 0x08
+};
+
+enum {
+  I_STEREO  = 0x1,
+  MS_STEREO = 0x2
 };
 
 struct sideinfo {
@@ -503,7 +511,7 @@ enum mad_error III_sideinfo(struct mad_bitptr *ptr, unsigned int nch,
 			    unsigned int *priv_bitlen)
 {
   unsigned int ngr, gr, ch, i;
-  enum mad_error result = 0;
+  enum mad_error result = MAD_ERROR_NONE;
 
   *data_bitlen = 0;
   *priv_bitlen = lsf ? ((nch == 1) ? 1 : 2) : ((nch == 1) ? 5 : 3);
@@ -602,7 +610,7 @@ unsigned int III_scalefactors_lsf(struct mad_bitptr *ptr,
   index = (channel->block_type == 2) ?
     ((channel->flags & mixed_block_flag) ? 2 : 1) : 0;
 
-  if (!((mode_extension & 0x1) && gr1ch)) {
+  if (!((mode_extension & I_STEREO) && gr1ch)) {
     if (scalefac_compress < 400) {
       slen[0] = (scalefac_compress >> 4) / 5;
       slen[1] = (scalefac_compress >> 4) % 5;
@@ -643,7 +651,7 @@ unsigned int III_scalefactors_lsf(struct mad_bitptr *ptr,
     while (n < 39)
       channel->scalefac[n++] = 0;
   }
-  else {  /* (mode_extension & 0x1) && gr1ch (i.e. ch == 1) */
+  else {  /* (mode_extension & I_STEREO) && gr1ch (i.e. ch == 1) */
     scalefac_compress >>= 1;
 
     if (scalefac_compress < 180) {
@@ -775,6 +783,28 @@ unsigned int III_scalefactors(struct mad_bitptr *ptr, struct channel *channel,
 }
 
 /*
+ * The Layer III formula for requantization and scaling is defined by
+ * section 2.4.3.4.7.1 of ISO/IEC 11172-3, as follows:
+ *
+ *   long blocks:
+ *   xr[i] = sign(is[i]) * abs(is[i])^(4/3) *
+ *           2^((1/4) * (global_gain - 210)) *
+ *           2^-(scalefac_multiplier *
+ *               (scalefac_l[sfb] + preflag * pretab[sfb]))
+ *
+ *   short blocks:
+ *   xr[i] = sign(is[i]) * abs(is[i])^(4/3) *
+ *           2^((1/4) * (global_gain - 210 - 8 * subblock_gain[w])) *
+ *           2^-(scalefac_multiplier * scalefac_s[sfb][w])
+ *
+ *   where:
+ *   scalefac_multiplier = (scalefac_scale + 1) / 2
+ *
+ * The routines III_exponents() and III_requantize() facilitate this
+ * calculation.
+ */
+
+/*
  * NAME:	III_exponents()
  * DESCRIPTION:	calculate scalefactor exponents
  */
@@ -856,23 +886,7 @@ mad_fixed_t III_requantize(unsigned int value, signed int exp)
   signed int frac;
   struct fixedfloat const *power;
 
-  /*
-   * long blocks:
-   * xr[i] = sign(is[i]) * abs(is[i])^(4/3) *
-   *         2^((1/4) * (global_gain - 210)) *
-   *         2^-(scalefac_multiplier *
-   *             (scalefac_l[sfb] + preflag * pretab[sfb]))
-   *
-   * short blocks:
-   * xr[i] = sign(is[i]) * abs(is[i])^(4/3) *
-   *         2^((1/4) * (global_gain - 210 - 8 * subblock_gain[w])) *
-   *         2^-(scalefac_multiplier * scalefac_s[sfb][w])
-   *
-   * where:
-   * scalefac_multiplier = (scalefac_scale + 1) / 2
-   */
-
-  frac = exp % 4;
+  frac = exp % 4;  /* assumes sign(frac) == sign(exp) */
   exp /= 4;
 
   power = &rq_table[value];
@@ -884,8 +898,10 @@ mad_fixed_t III_requantize(unsigned int value, signed int exp)
       /* underflow */
       requantized = 0;
     }
-    else
+    else {
+      requantized += 1L << (-exp - 1);
       requantized >>= -exp;
+    }
   }
   else {
     if (exp >= 5) {
@@ -1251,7 +1267,7 @@ enum mad_error III_huffdecode(struct mad_bitptr *ptr, mad_fixed_t xr[576],
     xrptr += 2;
   }
 
-  return 0;
+  return MAD_ERROR_NONE;
 }
 
 # undef MASK
@@ -1266,36 +1282,38 @@ void III_reorder(mad_fixed_t xr[576], struct channel const *channel,
 		 unsigned char const sfbwidth[39])
 {
   mad_fixed_t tmp[32][3][6];
-  unsigned int sb, l, sfbi, f, w, sbw[3], sw[3];
+  unsigned int sb, l, f, w, sbw[3], sw[3];
 
   /* this is probably wrong for 8000 Hz mixed blocks */
 
-  if (channel->flags & mixed_block_flag)
-    sb = 2, sfbi = 3 * 3;
-  else
-    sb = 0, sfbi = 0;
+  sb = 0;
+  if (channel->flags & mixed_block_flag) {
+    sb = 2;
+
+    l = 0;
+    while (l < 36)
+      l += *sfbwidth++;
+  }
 
   for (w = 0; w < 3; ++w) {
     sbw[w] = sb;
     sw[w]  = 0;
   }
 
-  f = sfbwidth[sfbi];
+  f = *sfbwidth++;
   w = 0;
 
   for (l = 18 * sb; l < 576; ++l) {
+    if (f-- == 0) {
+      f = *sfbwidth++ - 1;
+      w = (w + 1) % 3;
+    }
+
     tmp[sbw[w]][w][sw[w]++] = xr[l];
 
     if (sw[w] == 6) {
       sw[w] = 0;
       ++sbw[w];
-    }
-
-    if (--f == 0) {
-      if (++w == 3)
-	w = 0;
-
-      f = sfbwidth[++sfbi];
     }
   }
 
@@ -1315,11 +1333,6 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
   short modes[39];
   unsigned int sfbi, l, n, i;
 
-  enum {
-    i_stereo  = 0x1,
-    ms_stereo = 0x2
-  };
-
   if (granule->ch[0].block_type !=
       granule->ch[1].block_type ||
       (granule->ch[0].flags & mixed_block_flag) !=
@@ -1331,7 +1344,7 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
 
   /* intensity stereo */
 
-  if (header->mode_extension & i_stereo) {
+  if (header->mode_extension & I_STEREO) {
     struct channel const *right_ch = &granule->ch[1];
     mad_fixed_t const *right_xr = xr[1];
     unsigned int is_pos;
@@ -1387,14 +1400,14 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
       /* long blocks */
 
       for (i = 0; i < lower; ++i)
-	modes[i] = header->mode_extension & ~i_stereo;
+	modes[i] = header->mode_extension & ~I_STEREO;
 
       /* short blocks */
 
       w = 0;
       for (i = start; i < max; ++i) {
 	if (i < bound[w])
-	  modes[i] = header->mode_extension & ~i_stereo;
+	  modes[i] = header->mode_extension & ~I_STEREO;
 
 	w = (w + 1) % 3;
       }
@@ -1417,7 +1430,7 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
       }
 
       for (i = 0; i < bound; ++i)
-	modes[i] = header->mode_extension & ~i_stereo;
+	modes[i] = header->mode_extension & ~I_STEREO;
     }
 
     /* now do the actual processing */
@@ -1432,11 +1445,11 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
       for (sfbi = l = 0; l < 576; ++sfbi, l += n) {
 	n = sfbwidth[sfbi];
 
-	if (!(modes[sfbi] & i_stereo))
+	if (!(modes[sfbi] & I_STEREO))
 	  continue;
 
 	if (illegal_pos[sfbi]) {
-	  modes[sfbi] &= ~i_stereo;
+	  modes[sfbi] &= ~I_STEREO;
 	  continue;
 	}
 
@@ -1468,13 +1481,13 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
       for (sfbi = l = 0; l < 576; ++sfbi, l += n) {
 	n = sfbwidth[sfbi];
 
-	if (!(modes[sfbi] & i_stereo))
+	if (!(modes[sfbi] & I_STEREO))
 	  continue;
 
 	is_pos = right_ch->scalefac[sfbi];
 
 	if (is_pos >= 7) {  /* illegal intensity position */
-	  modes[sfbi] &= ~i_stereo;
+	  modes[sfbi] &= ~I_STEREO;
 	  continue;
 	}
 
@@ -1492,7 +1505,7 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
 
   /* middle/side stereo */
 
-  if (header->mode_extension & ms_stereo) {
+  if (header->mode_extension & MS_STEREO) {
     register mad_fixed_t invsqrt2;
 
     header->flags |= MAD_FLAG_MS_STEREO;
@@ -1502,7 +1515,7 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
     for (sfbi = l = 0; l < 576; ++sfbi, l += n) {
       n = sfbwidth[sfbi];
 
-      if (modes[sfbi] != ms_stereo)
+      if (modes[sfbi] != MS_STEREO)
 	continue;
 
       for (i = 0; i < n; ++i) {
@@ -1517,7 +1530,7 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
     }
   }
 
-  return 0;
+  return MAD_ERROR_NONE;
 }
 
 /*
@@ -1533,15 +1546,12 @@ void III_aliasreduce(mad_fixed_t xr[576], int lines)
   bound = &xr[lines];
   for (xr += 18; xr < bound; xr += 18) {
     for (i = 0; i < 8; ++i) {
-      register mad_fixed_t *aptr, *bptr, a, b;
+      register mad_fixed_t a, b;
       register mad_fixed64hi_t hi;
       register mad_fixed64lo_t lo;
 
-      aptr = &xr[-1 - i];
-      bptr = &xr[     i];
-
-      a = *aptr;
-      b = *bptr;
+      a = xr[-1 - i];
+      b = xr[     i];
 
 # if defined(ASO_ZEROCHECK)
       if (a | b) {
@@ -1549,12 +1559,12 @@ void III_aliasreduce(mad_fixed_t xr[576], int lines)
 	MAD_F_ML0(hi, lo,  a, cs[i]);
 	MAD_F_MLA(hi, lo, -b, ca[i]);
 
-	*aptr = MAD_F_MLZ(hi, lo);
+	xr[-1 - i] = MAD_F_MLZ(hi, lo);
 
 	MAD_F_ML0(hi, lo,  b, cs[i]);
 	MAD_F_MLA(hi, lo,  a, ca[i]);
 
-	*bptr = MAD_F_MLZ(hi, lo);
+	xr[     i] = MAD_F_MLZ(hi, lo);
 # if defined(ASO_ZEROCHECK)
       }
 # endif
@@ -2141,8 +2151,8 @@ void III_freqinver(mad_fixed_t sample[18][32], unsigned int sb)
  * DESCRIPTION:	decode frame main_data
  */
 static
-int III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
-		struct sideinfo *si, unsigned int nch)
+enum mad_error III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
+			  struct sideinfo *si, unsigned int nch)
 {
   struct mad_header *header = &frame->header;
   unsigned int sfreqi, ngr, gr;
@@ -2169,7 +2179,7 @@ int III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
 
   for (gr = 0; gr < ngr; ++gr) {
     struct granule *granule = &si->gr[gr];
-    unsigned char const *sfbwidth = 0;
+    unsigned char const *sfbwidth[2];
     mad_fixed_t xr[2][576];
     unsigned int ch;
     enum mad_error error;
@@ -2178,9 +2188,9 @@ int III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
       struct channel *channel = &granule->ch[ch];
       unsigned int part2_length;
 
-      sfbwidth = sfbwidth_table[sfreqi].l;
+      sfbwidth[ch] = sfbwidth_table[sfreqi].l;
       if (channel->block_type == 2) {
-	sfbwidth = (channel->flags & mixed_block_flag) ?
+	sfbwidth[ch] = (channel->flags & mixed_block_flag) ?
 	  sfbwidth_table[sfreqi].m : sfbwidth_table[sfreqi].s;
       }
 
@@ -2194,7 +2204,7 @@ int III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
 					gr == 0 ? 0 : si->scfsi[ch]);
       }
 
-      error = III_huffdecode(ptr, xr[ch], channel, sfbwidth, part2_length);
+      error = III_huffdecode(ptr, xr[ch], channel, sfbwidth[ch], part2_length);
       if (error)
 	return error;
     }
@@ -2202,7 +2212,7 @@ int III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
     /* joint stereo processing */
 
     if (header->mode == MAD_MODE_JOINT_STEREO && header->mode_extension) {
-      error = III_stereo(xr, granule, header, sfbwidth);
+      error = III_stereo(xr, granule, header, sfbwidth[0]);
       if (error)
 	return error;
     }
@@ -2216,7 +2226,7 @@ int III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
       mad_fixed_t output[36];
 
       if (channel->block_type == 2) {
-	III_reorder(xr[ch], channel, sfbwidth_table[sfreqi].s);
+	III_reorder(xr[ch], channel, sfbwidth[ch]);
 
 # if !defined(OPT_STRICT)
 	/*
@@ -2300,7 +2310,7 @@ int III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
     }
   }
 
-  return 0;
+  return MAD_ERROR_NONE;
 }
 
 /*

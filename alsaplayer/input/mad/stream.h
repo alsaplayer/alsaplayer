@@ -1,5 +1,5 @@
 /*
- * mad - MPEG audio decoder
+ * libmad - MPEG audio decoder library
  * Copyright (C) 2000-2001 Robert Leslie
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,6 +28,8 @@
 # define MAD_BUFFER_MDLEN	(511 + 2048 + MAD_BUFFER_GUARD)
 
 enum mad_error {
+  MAD_ERROR_NONE	   = 0x0000,	/* no error */
+
   MAD_ERROR_BUFLEN	   = 0x0001,	/* input buffer too small (or EOF) */
   MAD_ERROR_BUFPTR	   = 0x0002,	/* invalid (null) buffer pointer */
 
@@ -80,23 +82,26 @@ struct mad_stream {
 
 enum {
   MAD_OPTION_IGNORECRC      = 0x0001,	/* ignore CRC errors */
-  MAD_OPTION_HALFSAMPLERATE = 0x0002,	/* generate PCM at 1/2 sample rate */
+  MAD_OPTION_HALFSAMPLERATE = 0x0002	/* generate PCM at 1/2 sample rate */
 # if 0  /* not yet implemented */
   MAD_OPTION_LEFTCHANNEL    = 0x0010,	/* decode left channel only */
   MAD_OPTION_RIGHTCHANNEL   = 0x0020,	/* decode right channel only */
-  MAD_OPTION_SINGLECHANNEL  = 0x0030,	/* combine channels */
+  MAD_OPTION_SINGLECHANNEL  = 0x0030	/* combine channels */
 # endif
 };
 
 void mad_stream_init(struct mad_stream *);
 void mad_stream_finish(struct mad_stream *);
 
-# define mad_stream_options(stream, opts)  ((stream)->options = (opts))
+# define mad_stream_options(stream, opts)  \
+    ((void) ((stream)->options = (opts)))
 
 void mad_stream_buffer(struct mad_stream *,
 		       unsigned char const *, unsigned long);
 void mad_stream_skip(struct mad_stream *, unsigned long);
 
 int mad_stream_sync(struct mad_stream *);
+
+char const *mad_stream_errorstr(struct mad_stream const *);
 
 # endif

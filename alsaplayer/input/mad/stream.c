@@ -1,5 +1,5 @@
 /*
- * mad - MPEG audio decoder
+ * libmad - MPEG audio decoder library
  * Copyright (C) 2000-2001 Robert Leslie
  *
  * This program is free software; you can redistribute it and/or modify
@@ -54,7 +54,7 @@ void mad_stream_init(struct mad_stream *stream)
   stream->md_len     = 0;
 
   stream->options    = 0;
-  stream->error      = 0;
+  stream->error      = MAD_ERROR_NONE;
 }
 
 /*
@@ -118,6 +118,43 @@ int mad_stream_sync(struct mad_stream *stream)
     return -1;
 
   mad_bit_init(&stream->ptr, ptr);
+
+  return 0;
+}
+
+/*
+ * NAME:	stream->errorstr()
+ * DESCRIPTION:	return a string description of the current error condition
+ */
+char const *mad_stream_errorstr(struct mad_stream const *stream)
+{
+  switch (stream->error) {
+  case MAD_ERROR_NONE:		 return "no error";
+
+  case MAD_ERROR_BUFLEN:	 return "input buffer too small (or EOF)";
+  case MAD_ERROR_BUFPTR:	 return "invalid (null) buffer pointer";
+
+  case MAD_ERROR_NOMEM:		 return "not enough memory";
+
+  case MAD_ERROR_LOSTSYNC:	 return "lost synchronization";
+  case MAD_ERROR_BADLAYER:	 return "reserved header layer value";
+  case MAD_ERROR_BADBITRATE:	 return "forbidden bitrate value";
+  case MAD_ERROR_BADSAMPLERATE:	 return "reserved sample frequency value";
+  case MAD_ERROR_BADEMPHASIS:	 return "reserved emphasis value";
+
+  case MAD_ERROR_BADCRC:	 return "CRC check failed";
+  case MAD_ERROR_BADBITALLOC:	 return "forbidden bit allocation value";
+  case MAD_ERROR_BADSCALEFACTOR: return "bad scalefactor index";
+  case MAD_ERROR_BADFRAMELEN:	 return "bad frame length";
+  case MAD_ERROR_BADBIGVALUES:	 return "bad big_values count";
+  case MAD_ERROR_BADBLOCKTYPE:	 return "reserved block_type";
+  case MAD_ERROR_BADSCFSI:	 return "bad scalefactor selection info";
+  case MAD_ERROR_BADDATAPTR:	 return "bad main_data_begin pointer";
+  case MAD_ERROR_BADPART3LEN:	 return "bad audio data length";
+  case MAD_ERROR_BADHUFFTABLE:	 return "bad Huffman table select";
+  case MAD_ERROR_BADHUFFDATA:	 return "Huffman data overrun";
+  case MAD_ERROR_BADSTEREO:	 return "incompatible block_type for JS";
+  }
 
   return 0;
 }

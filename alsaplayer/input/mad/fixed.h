@@ -1,5 +1,5 @@
 /*
- * mad - MPEG audio decoder
+ * libmad - MPEG audio decoder library
  * Copyright (C) 2000-2001 Robert Leslie
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,6 +32,18 @@ typedef   signed long mad_fixed_t;
 
 typedef   signed long mad_fixed64hi_t;
 typedef unsigned long mad_fixed64lo_t;
+# endif
+
+# if defined(_MSC_VER)
+#  define mad_fixed64_t  signed __int64
+# elif 1 || defined(__GNUC__)
+#  define mad_fixed64_t  signed long long
+# endif
+
+# if defined(FPM_FLOAT)
+typedef double mad_sample_t;
+# else
+typedef mad_fixed_t mad_sample_t;
 # endif
 
 /*
@@ -94,20 +106,31 @@ typedef unsigned long mad_fixed64lo_t;
 # define mad_f_add(x, y)	((x) + (y))
 # define mad_f_sub(x, y)	((x) - (y))
 
-# if defined(FPM_64BIT)
+# if defined(FPM_FLOAT)
+#  error "FPM_FLOAT not yet supported"
+
+#  undef MAD_F
+#  define MAD_F(x)		mad_f_todouble(x)
+
+#  define mad_f_mul(x, y)	((x) * (y))
+#  define mad_f_scale64
+
+#  undef ASO_ZEROCHECK
+
+# elif defined(FPM_64BIT)
 
 /*
- * This version should be the most accurate if 64-bit (long long) types are
- * supported by the compiler, although it may not be the most efficient.
+ * This version should be the most accurate if 64-bit types are supported by
+ * the compiler, although it may not be the most efficient.
  */
 #  if defined(OPT_ACCURACY)
 #   define mad_f_mul(x, y)  \
     ((mad_fixed_t)  \
-     ((((signed long long) (x) * (y)) +  \
+     ((((mad_fixed64_t) (x) * (y)) +  \
        (1L << (MAD_F_SCALEBITS - 1))) >> MAD_F_SCALEBITS))
 #  else
 #   define mad_f_mul(x, y)  \
-    ((mad_fixed_t) (((signed long long) (x) * (y)) >> MAD_F_SCALEBITS))
+    ((mad_fixed_t) (((mad_fixed64_t) (x) * (y)) >> MAD_F_SCALEBITS))
 #  endif
 
 #  define MAD_F_SCALEBITS  MAD_F_FRACBITS
@@ -116,21 +139,44 @@ typedef unsigned long mad_fixed64lo_t;
 
 # elif defined(FPM_INTEL)
 
+#  if defined(_MSC_VER)
+#   pragma warning(push)
+#   pragma warning(disable: 4035)  /* no return value */
+static __forceinline
+mad_fixed_t mad_f_mul_inline(mad_fixed_t x, mad_fixed_t y)
+{
+  enum {
+    fracbits = MAD_F_FRACBITS
+  };
+
+  __asm {
+    mov eax, x
+    imul y
+    shrd eax, edx, fracbits
+  }
+
+  /* implicit return of eax */
+}
+#   pragma warning(pop)
+
+#   define mad_f_mul		mad_f_mul_inline
+#   define mad_f_scale64
+#  else
 /*
  * This Intel version is fast and accurate; the disposition of the least
  * significant bit depends on OPT_ACCURACY via mad_f_scale64().
  */
-#  define MAD_F_MLX(hi, lo, x, y)  \
+#   define MAD_F_MLX(hi, lo, x, y)  \
     asm ("imull %3"  \
 	 : "=a" (lo), "=d" (hi)  \
 	 : "%a" (x), "rm" (y)  \
 	 : "cc")
 
-#  if defined(OPT_ACCURACY)
+#   if defined(OPT_ACCURACY)
 /*
  * This gives best accuracy but is not very fast.
  */
-#   define MAD_F_MLA(hi, lo, x, y)  \
+#    define MAD_F_MLA(hi, lo, x, y)  \
     ({ mad_fixed64hi_t __hi;  \
        mad_fixed64lo_t __lo;  \
        MAD_F_MLX(__hi, __lo, (x), (y));  \
@@ -140,13 +186,13 @@ typedef unsigned long mad_fixed64lo_t;
 	    : "r" (__lo), "r" (__hi), "0" (lo), "1" (hi)  \
 	    : "cc");  \
     })
-#  endif  /* OPT_ACCURACY */
+#   endif  /* OPT_ACCURACY */
 
-#  if defined(OPT_ACCURACY)
+#   if defined(OPT_ACCURACY)
 /*
  * Surprisingly, this is faster than SHRD followed by ADC.
  */
-#   define mad_f_scale64(hi, lo)  \
+#    define mad_f_scale64(hi, lo)  \
     ({ mad_fixed64hi_t __hi_;  \
        mad_fixed64lo_t __lo_;  \
        mad_fixed_t __result;  \
@@ -162,8 +208,8 @@ typedef unsigned long mad_fixed64lo_t;
 	    : "cc");  \
        __result;  \
     })
-#  else
-#   define mad_f_scale64(hi, lo)  \
+#   else
+#    define mad_f_scale64(hi, lo)  \
     ({ mad_fixed_t __result;  \
        asm ("shrdl %3,%2,%1"  \
 	    : "=rm" (__result)  \
@@ -171,9 +217,10 @@ typedef unsigned long mad_fixed64lo_t;
 	    : "cc");  \
        __result;  \
     })
-#  endif  /* OPT_ACCURACY */
+#   endif  /* OPT_ACCURACY */
 
-#  define MAD_F_SCALEBITS  MAD_F_FRACBITS
+#   define MAD_F_SCALEBITS  MAD_F_FRACBITS
+#  endif
 
 /* --- ARM ----------------------------------------------------------------- */
 
@@ -216,6 +263,13 @@ typedef unsigned long mad_fixed64lo_t;
     asm ("smlal	%0, %1, %2, %3"  \
 	 : "+r" (lo), "+r" (hi)  \
 	 : "%r" (x), "r" (y))
+
+#  define MAD_F_MLN(hi, lo)  \
+    asm ("rsbs	%0, %2, #0\n\t"  \
+	 "rsc	%1, %3, #0"  \
+	 : "=r" (lo), "=r" (hi)  \
+	 : "0" (lo), "1" (hi)  \
+	 : "cc")
 
 #  define mad_f_scale64(hi, lo)  \
     ({ mad_fixed_t __result;  \
@@ -357,8 +411,12 @@ typedef unsigned long mad_fixed64lo_t;
  *
  * Pre-rounding is required to stay within the limits of compliance.
  */
-#  define mad_f_mul(x, y)	((((x) + (1L << 11)) >> 12) *  \
+#  if defined(OPT_SPEED)
+#   define mad_f_mul(x, y)	(((x) >> 12) * ((y) >> 16))
+#  else
+#   define mad_f_mul(x, y)	((((x) + (1L << 11)) >> 12) *  \
 				 (((y) + (1L << 15)) >> 16))
+#  endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -380,11 +438,16 @@ typedef unsigned long mad_fixed64lo_t;
 # if !defined(MAD_F_MLA)
 #  define MAD_F_ML0(hi, lo, x, y)	((lo)  = mad_f_mul((x), (y)))
 #  define MAD_F_MLA(hi, lo, x, y)	((lo) += mad_f_mul((x), (y)))
+#  define MAD_F_MLN(hi, lo)		((lo)  = -(lo))
 #  define MAD_F_MLZ(hi, lo)		((void) (hi), (mad_fixed_t) (lo))
 # endif
 
 # if !defined(MAD_F_ML0)
 #  define MAD_F_ML0(hi, lo, x, y)	MAD_F_MLX((hi), (lo), (x), (y))
+# endif
+
+# if !defined(MAD_F_MLN)
+#  define MAD_F_MLN(hi, lo)		((hi) = ((lo) = -(lo)) ? ~(hi) : -(hi))
 # endif
 
 # if !defined(MAD_F_MLZ)

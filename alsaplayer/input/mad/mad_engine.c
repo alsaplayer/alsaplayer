@@ -418,10 +418,10 @@ void parse_id3(struct id3_tag const *tag, stream_info *sinfo)
 
 			if (j == 0 && name) {
 				if (strcmp(name, "Title") == 0) {
-					strcpy(sinfo->title, latin1);
+					sprintf(sinfo->title, "%s", latin1);
 				} 
 				if (strcmp(name, "Artist") == 0)
-					strcpy(sinfo->author, latin1);
+					sprintf(sinfo->author, "%s", latin1);
 				//alsaplayer_error("%s%s: %s", &spaces[namelen], name, latin1);
 			} else {
 				if (strcmp(info[i].id, "TCOP") == 0 ||
@@ -463,7 +463,7 @@ void parse_id3(struct id3_tag const *tag, stream_info *sinfo)
 			if (newline)
 				*newline = 0;
 
-			if (strlen(ptr) > 66) {
+			if (strlen((char*)ptr) > 66) {
 				id3_latin1_t *linebreak;
 
 				linebreak = ptr + 66;
@@ -494,7 +494,7 @@ void parse_id3(struct id3_tag const *tag, stream_info *sinfo)
 			else 
 				;//alsaplayer_error("%s  %s\n", spaces, ptr);
 
-			ptr += strlen(ptr) + (newline ? 1 : 0);
+			ptr += strlen((char*)ptr) + (newline ? 1 : 0);
 		}
 
 		free(latin1);

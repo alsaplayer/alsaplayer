@@ -1,5 +1,5 @@
 /*
- * mad - MPEG audio decoder
+ * libmad - MPEG audio decoder library
  * Copyright (C) 2000-2001 Robert Leslie
  *
  * This program is free software; you can redistribute it and/or modify
@@ -40,6 +40,19 @@
 
 # if defined(OPT_SPEED) && !defined(OPT_SSO)
 #  define OPT_SSO 1
+# endif
+
+# if defined(HAVE_UNISTD_H) && defined(HAVE_WAITPID) &&  \
+    defined(HAVE_FCNTL) && defined(HAVE_PIPE) && defined(HAVE_FORK)
+#  define USE_ASYNC
+# endif
+
+# if !defined(HAVE_ASSERT_H)
+#  if defined(NDEBUG)
+#   define assert(x)	/* nothing */
+#  else
+#   define assert(x)	do { if (!(x)) abort(); } while (0)
+#  endif
 # endif
 
 # endif

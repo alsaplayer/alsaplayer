@@ -1,5 +1,5 @@
 /*
- * mad - MPEG audio decoder
+ * libmad - MPEG audio decoder library
  * Copyright (C) 2000-2001 Robert Leslie
  *
  * This program is free software; you can redistribute it and/or modify
@@ -79,7 +79,7 @@ enum mad_units {
   MAD_UNITS_59_94_FPS	 =   -60
 };
 
-# define mad_timer_reset(timer)	(*(timer) = mad_timer_zero)
+# define mad_timer_reset(timer)	((void) (*(timer) = mad_timer_zero))
 
 int mad_timer_compare(mad_timer_t, mad_timer_t);
 

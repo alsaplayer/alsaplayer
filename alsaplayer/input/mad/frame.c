@@ -1,5 +1,5 @@
 /*
- * mad - MPEG audio decoder
+ * libmad - MPEG audio decoder library
  * Copyright (C) 2000-2001 Robert Leslie
  *
  * This program is free software; you can redistribute it and/or modify
@@ -142,7 +142,7 @@ int decode_header(struct mad_header *header, struct mad_stream *stream)
   }
 
   /* layer */
-  header->layer = (4 - mad_bit_read(&stream->ptr, 2));
+  header->layer = 4 - mad_bit_read(&stream->ptr, 2);
 
   if (header->layer == 4) {
     stream->error = MAD_ERROR_BADLAYER;
@@ -194,7 +194,7 @@ int decode_header(struct mad_header *header, struct mad_stream *stream)
     header->private_bits |= MAD_PRIVATE_HEADER;
 
   /* mode */
-  header->mode = (3 - mad_bit_read(&stream->ptr, 2));
+  header->mode = 3 - mad_bit_read(&stream->ptr, 2);
 
   /* mode_extension */
   header->mode_extension = mad_bit_read(&stream->ptr, 2);
@@ -373,7 +373,7 @@ int mad_header_decode(struct mad_header *header, struct mad_stream *stream)
 
   /* calculate free bit rate */
   if (header->bitrate == 0) {
-    if ((!stream->sync || !stream->freerate) &&
+    if ((stream->freerate == 0 || !stream->sync) &&
 	free_bitrate(stream, header) == -1)
       goto fail;
 

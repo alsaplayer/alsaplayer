@@ -1,5 +1,5 @@
 /*
- * mad - MPEG audio decoder
+ * libmad - MPEG audio decoder library
  * Copyright (C) 2000-2001 Robert Leslie
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,7 +26,10 @@
 # include "global.h"
 
 # include <stdio.h>
-# include <assert.h>
+
+# ifdef HAVE_ASSERT_H
+#  include <assert.h>
+# endif
 
 # include "timer.h"
 
@@ -150,68 +153,69 @@ unsigned long scale_rational(unsigned long numer, unsigned long denom,
 
 /*
  * NAME:	timer->set()
- * DESCRIPTION:	set timer to specific value
+ * DESCRIPTION:	set timer to specific (positive) value
  */
 void mad_timer_set(mad_timer_t *timer, unsigned long seconds,
-		   unsigned long fraction, unsigned long fracparts)
+		   unsigned long numer, unsigned long denom)
 {
   timer->seconds = seconds;
-
-  if (fraction == 0)
-    fracparts = 0;
-  else if (fracparts == 0) {
-    fracparts = fraction;
-    fraction  = 1;
+  if (numer >= denom && denom > 0) {
+    timer->seconds += numer / denom;
+    numer %= denom;
   }
 
-  switch (fracparts) {
+  switch (denom) {
   case 0:
+  case 1:
     timer->fraction = 0;
     break;
 
   case MAD_TIMER_RESOLUTION:
-    timer->fraction = fraction;
+    timer->fraction = numer;
+    break;
+
+  case 1000:
+    timer->fraction = numer * (MAD_TIMER_RESOLUTION /  1000);
     break;
 
   case 8000:
-    timer->fraction = fraction * (MAD_TIMER_RESOLUTION /  8000);
+    timer->fraction = numer * (MAD_TIMER_RESOLUTION /  8000);
     break;
 
   case 11025:
-    timer->fraction = fraction * (MAD_TIMER_RESOLUTION / 11025);
+    timer->fraction = numer * (MAD_TIMER_RESOLUTION / 11025);
     break;
 
   case 12000:
-    timer->fraction = fraction * (MAD_TIMER_RESOLUTION / 12000);
+    timer->fraction = numer * (MAD_TIMER_RESOLUTION / 12000);
     break;
 
   case 16000:
-    timer->fraction = fraction * (MAD_TIMER_RESOLUTION / 16000);
+    timer->fraction = numer * (MAD_TIMER_RESOLUTION / 16000);
     break;
 
   case 22050:
-    timer->fraction = fraction * (MAD_TIMER_RESOLUTION / 22050);
+    timer->fraction = numer * (MAD_TIMER_RESOLUTION / 22050);
     break;
 
   case 24000:
-    timer->fraction = fraction * (MAD_TIMER_RESOLUTION / 24000);
+    timer->fraction = numer * (MAD_TIMER_RESOLUTION / 24000);
     break;
 
   case 32000:
-    timer->fraction = fraction * (MAD_TIMER_RESOLUTION / 32000);
+    timer->fraction = numer * (MAD_TIMER_RESOLUTION / 32000);
     break;
 
   case 44100:
-    timer->fraction = fraction * (MAD_TIMER_RESOLUTION / 44100);
+    timer->fraction = numer * (MAD_TIMER_RESOLUTION / 44100);
     break;
 
   case 48000:
-    timer->fraction = fraction * (MAD_TIMER_RESOLUTION / 48000);
+    timer->fraction = numer * (MAD_TIMER_RESOLUTION / 48000);
     break;
 
   default:
-    timer->fraction =
-      scale_rational(fraction, fracparts, MAD_TIMER_RESOLUTION);
+    timer->fraction = scale_rational(numer, denom, MAD_TIMER_RESOLUTION);
     break;
   }
 
@@ -243,8 +247,8 @@ void mad_timer_multiply(mad_timer_t *timer, signed long scalar)
 
   factor = scalar;
   if (scalar < 0) {
-    mad_timer_negate(timer);
     factor = -scalar;
+    mad_timer_negate(timer);
   }
 
   addend = *timer;
@@ -317,11 +321,11 @@ signed long mad_timer_count(mad_timer_t timer, enum mad_units units)
  * NAME:	timer->fraction()
  * DESCRIPTION:	return fractional part of timer in arbitrary terms
  */
-unsigned long mad_timer_fraction(mad_timer_t timer, unsigned long fracparts)
+unsigned long mad_timer_fraction(mad_timer_t timer, unsigned long denom)
 {
   timer = mad_timer_abs(timer);
 
-  switch (fracparts) {
+  switch (denom) {
   case 0:
     return MAD_TIMER_RESOLUTION / timer.fraction;
 
@@ -329,7 +333,7 @@ unsigned long mad_timer_fraction(mad_timer_t timer, unsigned long fracparts)
     return timer.fraction;
 
   default:
-    return scale_rational(timer.fraction, MAD_TIMER_RESOLUTION, fracparts);
+    return scale_rational(timer.fraction, MAD_TIMER_RESOLUTION, denom);
   }
 }
 
@@ -377,12 +381,12 @@ void mad_timer_string(mad_timer_t timer,
   case MAD_UNITS_60_FPS:
   case MAD_UNITS_75_FPS:
     {
-      unsigned long fracparts;
+      unsigned long denom;
 
-      fracparts = MAD_TIMER_RESOLUTION / fracunits;
+      denom = MAD_TIMER_RESOLUTION / fracunits;
 
-      frac = timer.fraction / fracparts;
-      sub  = scale_rational(timer.fraction % fracparts, fracparts, subparts);
+      frac = timer.fraction / denom;
+      sub  = scale_rational(timer.fraction % denom, denom, subparts);
     }
     break;
 

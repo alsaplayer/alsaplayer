@@ -1,5 +1,5 @@
 /*
- * mad - MPEG audio decoder
+ * libmad - MPEG audio decoder library
  * Copyright (C) 2000-2001 Robert Leslie
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,32 +25,32 @@
 union huffquad {
   struct {
     unsigned short final  :  1;
+    unsigned short bits   :  3;
+    unsigned short offset : 12;
+  } ptr;
+  struct {
+    unsigned short final  :  1;
     unsigned short hlen   :  3;
     unsigned short v      :  1;
     unsigned short w      :  1;
     unsigned short x      :  1;
     unsigned short y      :  1;
   } value;
-  struct {
-    unsigned short final  :  1;
-    unsigned short bits   :  3;
-    unsigned short offset : 12;
-  } ptr;
   unsigned short final    :  1;
 };
 
 union huffpair {
   struct {
     unsigned short final  :  1;
+    unsigned short bits   :  3;
+    unsigned short offset : 12;
+  } ptr;
+  struct {
+    unsigned short final  :  1;
     unsigned short hlen   :  3;
     unsigned short x      :  4;
     unsigned short y      :  4;
   } value;
-  struct {
-    unsigned short final  :  1;
-    unsigned short bits   :  3;
-    unsigned short offset : 12;
-  } ptr;
   unsigned short final    :  1;
 };
 
