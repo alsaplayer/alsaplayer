@@ -35,6 +35,8 @@
 
 #define NUM_BANDS 16
 
+//#define NVIDIA_SYNC
+
 #ifndef FALSE
 #define FALSE 0
 #endif
@@ -59,8 +61,40 @@ static pthread_mutex_t scope_mutex;
 static int window_w;
 static int window_h;
 
+#ifdef NVIDIA_SYNC
+#include <sys/poll.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#endif
+
 static void stop_display(int);
 static void oglspectrum_start(void);
+
+static void wait_for_vsync()
+{
+#ifdef NVIDIA_SYNC	
+	static int init = 0;
+	static int fd = -1;
+	static struct pollfd pollfds;
+	if (!init) {
+		fd = open("/dev/nvidia0", O_RDONLY);
+		if (fd == -1) {
+			alsaplayer_error("Error opening NVIDIA device /dev/nvidia0");
+		} else {
+			pollfds.fd = fd;
+			pollfds.events = 0xffff;
+			pollfds.revents = 0xffff;
+			alsaplayer_error("Using NVIDIA poll method for vsync");
+		}	 
+		init = 1;	
+	}
+	poll (&pollfds, 1, -1);
+#else
+	dosleep(10000);
+#endif	
+}
+
 
 static Window create_window(int width, int height)
 {
@@ -191,7 +225,7 @@ static void draw_bars(void)
 	glEnd();
 
 	glPopMatrix();
-
+	wait_for_vsync();
 	glXSwapBuffers(dpy,window);
 }
 
@@ -331,7 +365,6 @@ void *draw_thread_func(void *arg)
 
 			draw_bars();
 		}
-		dosleep(10000);
 	}
 
 	if (glxcontext)
@@ -400,7 +433,7 @@ static void stop_display(int join_thread)
 	}
 }
 
-static int oglspectrum_init()
+static int oglspectrum_init(void *arg)
 {
 	pthread_mutex_init(&scope_mutex, NULL);
 

@@ -298,7 +298,7 @@ static void start_levelmeter(void)
 		(void * (*)(void *))run_levelmeter, NULL);
 }
 
-static int init_levelmeter(void)
+static int init_levelmeter(void *arg)
 {
 	if (prefs_get_bool(ap_prefs, "levelmeter", "active", 0))
 		start_levelmeter();

@@ -208,7 +208,7 @@ void start_spacescope(void)
 }
 
 
-static int init_spacescope(void)
+static int init_spacescope(void *arg)
 {
 	if (prefs_get_bool(ap_prefs, "spacescope", "active", 0))
 			start_spacescope();

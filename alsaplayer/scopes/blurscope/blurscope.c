@@ -313,7 +313,7 @@ static void start_bscope(void)
 }
 
 
-static int init_bscope(void)
+static int init_bscope(void *arg)
 {
 	bscope_init();
 

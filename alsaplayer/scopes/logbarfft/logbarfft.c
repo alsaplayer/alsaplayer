@@ -31,7 +31,7 @@
 #include "scope_config.h"
 #include "prefs.h"
 
-#define BARS 16 
+#define BARS 20 
 
 static GtkWidget *area = NULL;
 static GdkRgbCmap *color_map = NULL;
@@ -44,14 +44,7 @@ static pthread_mutex_t fftscope_mutex;
 static int is_init = 0;
 static int running = 0;
 
-#if 0
-static int xranges[] = {1, 2, 3, 4, 6, 8, 11, 15, 21,
-			29, 40, 54, 74, 101, 137, 187, 255};
-#endif
-#if 0
-static int xranges[] = {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 15, 17, 19, 21, 23, 25, 29, 33, 37, 40, 44, 48, 54, 61, 67, 74, 90, 101, 137, 158, 187, 255};
-#endif
-static int xranges[] = {0, 1, 2, 3, 5, 7, 10, 14, 20, 28, 40, 54, 74, 101, 137, 187, 255};
+static int xranges[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 15, 20, 27, 36, 47, 62, 82, 107, 141, 184, 255};
 
 static void fftscope_hide(void);
 static int fftscope_running(void);
@@ -83,24 +76,32 @@ static void the_fftscope(void)
 		guint val;
 		gint j;
 		gint k;
-
+		const double y_scale = 3.60673760222; /* 20.0 / log(256) */
+		
 		memset(bits, 0, 256 * 128);
 
 		for (i=0; i < BARS; i++) { 
 			val = 0;
 			for (j = xranges[i]; j < xranges[i + 1]; j++) {
-				/* k = (guint)(sqrt(fftout[j]) * fftmult); */
-				k = (fft_buf[j] + fft_buf[256+j]) / 256;
-				val += k;
+				k = (fft_buf[j] + fft_buf[256+j]) / 2;
+				if (k > val)
+					val = k;
 			}
-			if(val > 127) val = 127;
-			if (val > (guint)maxbar[ i ]) 
-				maxbar[ i ] = val;
-			else {
-				k = maxbar[ i ] - (4 + (8 / (128 - maxbar[ i ])));
-				val = k > 0 ? k : 0;
-				maxbar[ i ] = val;
+			val >>= 6;
+			if(val > 0) {
+				val = (log(val) * y_scale * y_scale);
+			} else {
+				val = 0;
 			}
+			if (val > maxbar[i]) {
+				maxbar[i] = val;
+			} else {
+				maxbar[i] -=2;
+				if (maxbar[i] < 0) 
+					maxbar[i] = 0;
+				val = maxbar[i];
+			}	
+			
 			loc = bits + 256 * 128;
 			for (h = val; h > 0; h--) {
 				for (j = (256 / BARS) * i + 0; j < (256 / BARS) * i + ((256 / BARS) - 1); j++) {
@@ -225,7 +226,7 @@ static void start_fftscope(void)
 }
 
 
-static int init_fftscope(void)
+static int init_fftscope(void *arg)
 {
 	int i;
 	

@@ -570,7 +570,7 @@ static int bitReverser(int i) {
     return sum;
 }
 
-static int init_synaescope(void)
+static int init_synaescope(void *arg)
 {
     int i;
 

@@ -292,7 +292,7 @@ void start_monoscope(void)
 }
 
 
-static int init_monoscope(void)
+static int init_monoscope(void *arg)
 {
 	state = convolve_init();
 	if(!state) return 0;
