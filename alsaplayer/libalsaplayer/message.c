@@ -644,6 +644,18 @@ int ap_get_album(int session, char *str)
 				AP_GET_ALBUM, str, AP_ALBUM_MAX));
 }
 
+int ap_get_year(int session, char *str)
+{
+	return (ap_get_single_string_command(session, 
+				AP_GET_YEAR, str, AP_YEAR_MAX));
+}
+
+int ap_get_track_number(int session, char *str)
+{
+	return (ap_get_single_string_command(session, 
+				AP_GET_TRACK_NUMBER, str, AP_TRACK_NUMBER_MAX));
+}
+
 int ap_get_stream_type(int session, char *str)
 {
 	return (ap_get_single_string_command(session,

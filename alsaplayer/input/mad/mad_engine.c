@@ -428,6 +428,10 @@ void parse_id3(struct id3_tag const *tag, stream_info *sinfo)
 					snprintf(sinfo->album, sizeof(sinfo->album), "%s", latin1);
 				} else if (strcmp(name, "Genre") == 0) {
 					snprintf(sinfo->genre, sizeof(sinfo->genre), "%s", latin1);
+				} else if (strcmp(name, "Track") == 0) {
+					snprintf(sinfo->track, sizeof(sinfo->track), "%s", latin1);
+				} else if (strcmp(name, "Year") == 0) {
+					snprintf(sinfo->year, sizeof(sinfo->year), "%s", latin1);
 				} else {
 				    //alsaplayer_error("%s%s: %s", &spaces[namelen], name, latin1);
 				}
@@ -553,6 +557,10 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 			snprintf(info->album, sizeof(info->album), "%s", data->sinfo.album);
 		if (strlen(data->sinfo.genre))
 			snprintf(info->genre, sizeof(info->genre), "%s", data->sinfo.genre);
+		if (strlen(data->sinfo.track))
+			snprintf(info->track, sizeof(info->track), "%s", data->sinfo.track);
+		if (strlen(data->sinfo.year))
+			snprintf(info->year, sizeof(info->year), "%s", data->sinfo.year);
 #else										
 		sprintf(info->title, "Unparsed: %s", data->filename);				
 #endif

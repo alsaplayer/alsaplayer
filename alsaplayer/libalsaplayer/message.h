@@ -49,7 +49,7 @@
 #define AP_GET_ARTIST           0xcc10
 #define AP_GET_ALBUM            0xcc11
 #define AP_GET_GENRE            0xcc12
-#define AP_GET_TRAcK_NUMBER     0xcc13
+#define AP_GET_TRACK_NUMBER     0xcc13
 #define AP_GET_YEAR             0xcc14
 #define AP_ADD_PATH             0xcc15
 #define AP_GET_SONG_LENGTH_SECOND	0xcc16

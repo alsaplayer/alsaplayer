@@ -49,6 +49,8 @@ class PlayItem
 		std::string artist;
 		std::string album;
 		std::string genre;
+		std::string year;
+		std::string track;
 		int playtime;
 };
 

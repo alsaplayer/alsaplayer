@@ -78,6 +78,8 @@ void info_looper(void *data)
 					(*p).artist = info.artist;
 					(*p).album = info.album;
 					(*p).genre = info.genre;
+					(*p).year = info.year;
+					(*p).track = info.track;
 				}
 				myplayer->Unload();	
 			}

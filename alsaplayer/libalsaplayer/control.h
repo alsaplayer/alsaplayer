@@ -25,6 +25,8 @@
 #define AP_GENRE_MAX		256
 #define AP_STREAM_TYPE_MAX	256
 #define AP_STATUS_MAX		256
+#define AP_TRACK_NUMBER_MAX	10
+#define AP_YEAR_MAX		10
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,6 +56,8 @@ int ap_get_title(int session, char *str);
 int ap_get_artist(int session, char *str);
 int ap_get_album(int session, char *str);
 int ap_get_genre(int session, char *str);
+int ap_get_year(int session, char *str);
+int ap_get_track_number(int session, char *str);
 
 int ap_set_position(int session, int pos);
 int ap_get_position(int session, int *val);

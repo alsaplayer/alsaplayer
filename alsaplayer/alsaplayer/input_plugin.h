@@ -145,6 +145,18 @@ typedef struct _stream_info
 	 */
 	char	genre[128];
 	/**
+	 * The year of this song
+	 */
+	char	year[10];
+	/**
+	 * The track number of this song
+	 */
+	char	track[10];
+	/**
+	 * The comment of this song
+	 */
+	char	comment[128];
+	/**
 	 * The status of the plugin. Can have something like "Seeking..."
 	 * or perhaps "Buffering" depending on what the plugin instance is
 	 * doing.
