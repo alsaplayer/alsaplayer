@@ -2,7 +2,7 @@ if HAVE_OGGVORBIS
 
 vorbisltlibs = libvorbis.la
 vorbisldflags = -export-dynamic -avoid-version
-vorbissources = vorbis_engine.c
+vorbissources = vorbis_engine.cpp
 
 else
 
@@ -12,11 +12,13 @@ vorbissources =
 
 endif
 
-EXTRA_DIST = vorbis_engine.c
+EXTRA_DIST = vorbis_engine.cpp
 
 lib_LTLIBRARIES = $(vorbisltlibs)
 
 CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include
+
+CXXFLAGS = $(CFLAGS)
 
 libdir = $(ADDON_DIR)/input
 
