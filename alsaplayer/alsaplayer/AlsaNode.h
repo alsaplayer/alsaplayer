@@ -90,7 +90,7 @@ class AlsaNode
 	int GetLatency();
 	int GetFragmentSize() { return fragment_size; }
 	void StartStreaming();
-	void StopStreaming();	
+	void StopStreaming();
 	bool IsInStream(int);
 	int AddStreamer(streamer_type str, void *arg, int);
 	bool RemoveStreamer(int);
