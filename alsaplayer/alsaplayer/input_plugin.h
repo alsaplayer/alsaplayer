@@ -50,6 +50,11 @@
  */
 #define P_STREAMBASED	16
 
+/**
+ * Set minimal buffer 
+ */
+#define P_BUFFERING	32
+
 /*
  * Format of version number is 0x1000 + version
  * So 0x1001 is *binary* format version 1
