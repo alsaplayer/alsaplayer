@@ -128,7 +128,7 @@ void insert_thread(void *data) {
 				printf("Can't find a player for `%s'\n", path->c_str());
 #endif 
 			} else {
-				if ((path->c_str())[0] != '/' || (path->c_str())[0] != '\\') {
+				if ((*path)[0] != '/') {
 					sprintf(fullpath, "%s/%s", cwd, path->c_str());
 					newitems.push_back(PlayItem(fullpath));
 				}	else
