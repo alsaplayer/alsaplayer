@@ -581,7 +581,6 @@ int main(int argc, char **argv)
 	}
 	// Add any command line arguments to the playlist
 	if (optind < argc) {
-		alsaplayer_error("Command line entries");
 		std::vector < std::string > newitems;
 		while (optind < argc) {
 			newitems.push_back(std::string(argv[optind++]));
@@ -589,7 +588,6 @@ int main(int argc, char **argv)
 		playlist->Insert(newitems, playlist->Length());
 		playlist->UnPause();
 	} else {
-		alsaplayer_error("Loading default playlist");
 		homedir = get_homedir();
 		sprintf(prefs_path, "%s/.alsaplayer/alsaplayer.m3u", homedir);
 		playlist->Load(prefs_path, playlist->Length(), false);
