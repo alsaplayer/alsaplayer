@@ -70,6 +70,7 @@ struct mad_local_data {
 				int bitrate;
 				int seekable;
 				int eof;
+				char str[17];
 };		
 
 
@@ -78,9 +79,8 @@ struct mad_local_data {
  * DESCRIPTION:	return a string describing a MAD error
  */
 				static
-char const *error_str(enum mad_error error)
+char const *error_str(enum mad_error error, char *str)
 {
-				static char str[17];
 
 				switch (error) {
 								case MAD_ERROR_BUFLEN:
@@ -242,11 +242,11 @@ static int mad_play_frame(input_object *obj, char *buf)
 
 				if (mad_frame_decode(&data->frame, &data->stream) == -1) {
 								if (!MAD_RECOVERABLE(data->stream.error)) {
-												/* printf("MAD error: %s\n", error_str(data->stream.error)); */
+												/* printf("MAD error: %s\n", error_str(data->stream.error, data->str)); */
 												mad_frame_mute(&data->frame);
 												return 0;
 								}	else {
-												/* printf("MAD error: %s\n", error_str(data->stream.error)); */
+												/* printf("MAD error: %s\n", error_str(data->stream.error, data->str)); */
 								}
 				}
 				data->current_frame++;
@@ -303,7 +303,7 @@ static int mad_nr_frames(input_object *obj)
 }
 
 
-int mad_stream_info(input_object *obj, stream_info *info)
+static int mad_stream_info(input_object *obj, stream_info *info)
 {
 				struct mad_local_data *data;	
 
