@@ -1,6 +1,6 @@
 /*
  *  text.cpp - Command Line Interface 
- *  Copyright (C) 2001 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 2001-2002 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*/ 
+ */ 
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -79,53 +79,58 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 
 	memset(&info, 0, sizeof(stream_info));
 	memset(&old_info, 0, sizeof(stream_info));
-	
+
 	playlist->UnPause();
-	
+
 	sleep(2);
 
 	// Fall through console player
 	while((coreplayer = playlist->GetCorePlayer()) &&
-				(coreplayer->IsActive() || coreplayer->IsPlaying() ||
-				 playlist->GetCurrent() != playlist->Length())) {
-			unsigned long secs, t_min, t_sec, c_min, c_sec;
-			t_min = t_sec = c_min = c_sec = 0;
-			while (coreplayer->IsActive() || coreplayer->IsPlaying()) {
-					int cur_val, block_val, i;
-					coreplayer->GetStreamInfo(&info);
-					if (strcmp(info.title, old_info.title) != 0) {
-							if (strlen(info.author))
-								fprintf(stdout, "\nPlaying: %s - %s\n", info.author, info.title);
-							else	
-								fprintf(stdout, "\nPlaying: %s\n", info.title);
-							memcpy(&old_info, &info, sizeof(stream_info));
-					}
-					if (coreplayer->GetFrames() == 0 || coreplayer->GetCurrentTime() == 0) {
-						dosleep(100000);
-						continue;
-					}	
-					block_val = secs = coreplayer->GetCurrentTime(coreplayer->GetFrames());
-					t_min = secs / 6000;
-					t_sec = (secs % 6000) / 100;
-					cur_val = secs = coreplayer->GetCurrentTime();
-					c_min = secs / 6000;
-					c_sec = (secs % 6000) / 100;	
-					fprintf(stdout, "\r   Time: %02ld:%02ld (%02ld:%02ld) ",
-									c_min, c_sec, t_min, t_sec);
-					// Draw nice indicator
-					block_val /= NR_BLOCKS; 
-					cur_val /= block_val;
-					//printf("%d - %d\n", block_val, cur_val);
-					fprintf(stdout, "[");
-					for (i = 0; i < NR_BLOCKS; i++) {
-							fprintf(stdout, "%c", cur_val >= i ? '*':' ');
-					}
-					fprintf(stdout,"]   ");
-					fflush(stdout);
-					dosleep(100000);
+			(coreplayer->IsActive() || coreplayer->IsPlaying() ||
+			 playlist->GetCurrent() != playlist->Length())) {
+		unsigned long secs, t_min, t_sec, c_min, c_sec;
+		t_min = t_sec = c_min = c_sec = 0;
+		while (coreplayer->IsActive() || coreplayer->IsPlaying()) {
+			int cur_val, block_val, i;
+			coreplayer->GetStreamInfo(&info);
+			if (strcmp(info.title, old_info.title) != 0) {
+				if (strlen(info.author))
+					fprintf(stdout, "\nPlaying: %s - %s\n", info.author, info.title);
+				else	
+					fprintf(stdout, "\nPlaying: %s\n", info.title);
+				memcpy(&old_info, &info, sizeof(stream_info));
 			}
-			dosleep(1000000);
-			fprintf(stdout, "\n\n");
+			block_val = secs = coreplayer->GetCurrentTime(coreplayer->GetFrames());
+
+			if (secs == 0) {
+				dosleep(100000);
+				continue;
+			}	
+			t_min = secs / 6000;
+			t_sec = (secs % 6000) / 100;
+			cur_val = secs = coreplayer->GetCurrentTime();
+			if (secs == 0) {
+				dosleep(100000);
+				continue;
+			}	
+			c_min = secs / 6000;
+			c_sec = (secs % 6000) / 100;	
+			fprintf(stdout, "\r   Time: %02ld:%02ld (%02ld:%02ld) ",
+					c_min, c_sec, t_min, t_sec);
+			// Draw nice indicator
+			block_val /= NR_BLOCKS; 
+			cur_val /= block_val;
+			//printf("%d - %d\n", block_val, cur_val);
+			fprintf(stdout, "[");
+			for (i = 0; i < NR_BLOCKS; i++) {
+				fprintf(stdout, "%c", cur_val >= i ? '*':' ');
+			}
+			fprintf(stdout,"]   ");
+			fflush(stdout);
+			dosleep(100000);
+		}
+		dosleep(1000000);
+		fprintf(stdout, "\n\n");
 	}		
 	fprintf(stdout, "...done playing\n");
 	return 0;
@@ -147,9 +152,9 @@ interface_plugin default_plugin =
 
 extern "C" {
 
-interface_plugin *interface_plugin_info()
-{
-	return &default_plugin;
-}
+	interface_plugin *interface_plugin_info()
+	{
+		return &default_plugin;
+	}
 
 }
