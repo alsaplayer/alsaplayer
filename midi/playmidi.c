@@ -809,7 +809,7 @@ printf("r=%d vol %f", reverb, d->voice[w].volume);
 #endif
 
 /* try 98->99 for melodic instruments ? (bit much for percussion) */
-	d->voice[w].volume *= vol_table[(127-reverb)/8 + 98];
+	d->voice[w].volume *= d->vol_table[(127-reverb)/8 + 98];
 
 #ifdef DEBUG_REVERBERATION
 printf(" -> vol %f", d->voice[w].volume);
@@ -1413,12 +1413,12 @@ static int check_quality(struct md *d)
 #ifdef QUALITY_DEBUG
   static int debug_count = 0;
 #endif
-  int obf = output_buffer_full, retvalue = 1;
+  int obf = d->output_buffer_full, retvalue = 1;
 
 #ifdef QUALITY_DEBUG
 if (!debug_count) {
-	if (dont_cspline) fprintf(stderr,"[%d-%d]", output_buffer_full, current_polyphony);
-	else fprintf(stderr,"{%d-%d}", output_buffer_full, current_polyphony);
+	if (dont_cspline) fprintf(stderr,"[%d-%d]", d->output_buffer_full, current_polyphony);
+	else fprintf(stderr,"{%d-%d}", d->output_buffer_full, current_polyphony);
 	debug_count = 30;
 }
 debug_count--;
@@ -2180,7 +2180,7 @@ static int compute_data(uint32 count, struct md *d)
 	      super_buffer_count = count;
 	      return 0;
       }
-      if (flushing_output_device && d->bbcount >= output_fragsize * 2) {
+      if (d->flushing_output_device && d->bbcount >= output_fragsize * 2) {
 	      super_buffer_count = count;
 	      return 0;
       }
@@ -2310,10 +2310,10 @@ int play_some_midi(struct md *d)
 	      compute_data(super_buffer_count, d);
 	      return 0;
       }
-      if (flushing_output_device && d->bbcount >= output_fragsize) {
+      if (d->flushing_output_device && d->bbcount >= output_fragsize) {
 	      return 0;
       }
-      if (flushing_output_device) {
+      if (d->flushing_output_device) {
 	      compute_data(0, d);
 	      return RC_TUNE_END;
       }
@@ -2575,7 +2575,7 @@ d->current_event->channel);
 	      /*
 	  fprintf(stderr,"midi end of tune\n");
 	       */
-	  flushing_output_device = TRUE;
+	  d->flushing_output_device = TRUE;
 	      /* Give the last notes a couple of seconds to decay  */
 	      compute_data(play_mode->rate * 2, d);
 	      /*
@@ -2621,7 +2621,7 @@ fprintf(stderr,"d->current_sample=%d d->current_event=%x, %ld left, d->bbcount=%
 	  fprintf(stderr,"play_some returning %d\n", rc);
 	  return rc;
       }
-      if (d->bbcount > output_fragsize && !flushing_output_device && d->current_sample < d->sample_count) return 0;
+      if (d->bbcount > output_fragsize && !d->flushing_output_device && d->current_sample < d->sample_count) return 0;
     }
 }
 

@@ -1,3 +1,6 @@
+Fri Apr 19 04:39:35 HST 2002
+	readinfo.c: remove
+	various: move a little more into local_data
 Thu Apr 18 09:19:58 HST 2002
 	got filter effects working again, but reverb is disabled (causes timeouts)
 Wed Apr 17 19:38:13 HST 2002

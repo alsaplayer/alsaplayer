@@ -3,7 +3,7 @@ SUBDIRS = timidity
 
 midi_inltlibs = libmidi_in.la
 midi_inldflags = -export-dynamic -avoid-version
-midi_insources = midi_engine.c common.c playmidi.c readmidi.c readinfo.c \
+midi_insources = midi_engine.c common.c playmidi.c readmidi.c \
 	resample.c mix.c instrum.c tables.c controls.c output.c filter.c \
 	fffload.c sndfont.c readsbk.c effects.c reverb_e.c chorus_e.c \
 	phaser_e.c celeste_e.c resample_l.c resample_f.c cfg.c dumb_c.c \
@@ -22,7 +22,7 @@ AM_CFLAGS = -DDEFAULT_PATH=\"$(TIMID_DIR)\"
 lib_LTLIBRARIES = $(midi_inltlibs)
 
 #CFLAGS = -D_REENTRANT -I./include
-CFLAGS = -I$(top_builddir) @ALSAPLAYER_CFLAGS@
+CFLAGS = -I$(top_builddir) -D_REENTRANT @ALSAPLAYER_CFLAGS@
 
 libdir = $(INPUTPLUGIN_DIR)
 

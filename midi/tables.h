@@ -34,7 +34,7 @@ extern FLOAT_T sine(int x);
 #define SINE_CYCLE_LENGTH 1024
 extern uint32 freq_table[];
 #ifdef tplus
-extern FLOAT_T *vol_table;
+/*extern FLOAT_T *vol_table;*/
 extern FLOAT_T def_vol_table[];
 extern FLOAT_T gs_vol_table[];
 extern FLOAT_T *xg_vol_table; /* == gs_vol_table */

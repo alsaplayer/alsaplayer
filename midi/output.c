@@ -46,9 +46,9 @@ PlayMode *play_mode_list[] = {
   PlayMode *play_mode=&dumb_play_mode;
 
 int output_clips = 0;
-int output_buffer_full = 50;
+/*int output_buffer_full = 50;*/
 int enable_output_device = TRUE;
-int flushing_output_device = FALSE;
+/*int flushing_output_device = FALSE;*/
 int output_frags = 0;
 int output_fragsize = 0;
 

@@ -134,7 +134,7 @@ static int look_midi_file(struct md *d)
 
   ctl->file_name(current_filename);
 
-  d->event=read_midi_file_info(d);
+  d->event=read_midi_file(d);
 
 
   if (d->fp != stdin)
@@ -148,7 +148,6 @@ static int look_midi_file(struct md *d)
 
   ctl->total_time(d->sample_count);
   d->is_open = TRUE;
-  d->count = d->sample_count;
   free(d->event);
   return 1;
 }
@@ -243,7 +242,6 @@ static int midi_open(input_object *obj, char *name)
 	d->event = 0;
 	d->is_playing = FALSE;
 	d->is_open = FALSE;
-	d->count = 0;
 	d->bboffset = 0;
 	d->bbcount = 0;
 	d->outchunk = 0;
@@ -259,6 +257,9 @@ static int midi_open(input_object *obj, char *name)
 	d->GM_System_On = 0;
 	d->XG_System_On = 0;
 	d->GS_System_On = 0;
+
+	d->output_buffer_full = 50;
+	d->flushing_output_device = FALSE;
 
 	if (!got_a_configuration) init_midi();
 
@@ -301,13 +302,11 @@ static int midi_truly_open(struct md *d)
 	init_effect(d);
 	effect_activate(TRUE);
 #endif
-  	flushing_output_device = FALSE;
 	play_mode->purge_output(d);
 
-  	play_midi_file(d);
 	d->is_playing = TRUE;
 	d->is_open = TRUE;
-	d->count = d->sample_count;
+  	play_midi_file(d);
 
 	return 1;
 }
@@ -353,7 +352,7 @@ fprintf(stderr,"midi_play_frame to %x\n", buf);
 		fprintf(stderr,"bbcount of %d < fragsize %d: ", d->bbcount, output_fragsize);
 #endif
 		rc = play_some_midi(d);
-		if (rc == RC_TUNE_END) flushing_output_device = TRUE;
+		if (rc == RC_TUNE_END) d->flushing_output_device = TRUE;
 #ifdef PLUGDEBUG
 if (rc == RC_TUNE_END) fprintf(stderr,"tune is ending: bbcount after play is %d\n", d->bbcount);
 		fprintf(stderr,"bbcount after play is %d\n", d->bbcount);
@@ -390,7 +389,7 @@ static int midi_frame_seek(input_object *obj, int frame)
 		/*if (current_frame > frame - 2 && current_frame < frame + 2) return 1;*/
 		tim_time = frame * output_fragsize / 4;
 		if (tim_time < 0) tim_time = 0;
-		if (tim_time > d->count) return 0;
+		if (tim_time > d->sample_count) return 0;
 		result = skip_to(tim_time, d);
 	}
 	else if (!frame) result = 1;
@@ -425,7 +424,7 @@ static int midi_nr_frames(input_object *obj)
 	if (!obj->local_data) return 0;
 	d = (struct md *)obj->local_data;
 
-	result = d->count * 4 / output_fragsize;
+	result = d->sample_count * 4 / output_fragsize;
 #ifdef PLUGDEBUG
 fprintf(stderr,"midi_nr_frames is %d\n", result);
 #endif

@@ -27,7 +27,7 @@ typedef struct {
   void *next;
 } MidiEventList;
 */
-extern int32 quietchannels;
+/*extern int32 quietchannels;*/
 
 extern MidiEvent *read_midi_file(struct md *d);
 extern MidiEvent *read_midi_file_info(struct md *d);

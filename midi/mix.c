@@ -134,8 +134,8 @@ void apply_envelope_to_amp(int v, struct md *d)
 	}
       if (d->voice[v].sample->modes & MODES_ENVELOPE)
 	{
-	  lamp *= vol_table[d->voice[v].envelope_volume>>23];
-	  ramp *= vol_table[d->voice[v].envelope_volume>>23];
+	  lamp *= d->vol_table[d->voice[v].envelope_volume>>23];
+	  ramp *= d->vol_table[d->voice[v].envelope_volume>>23];
 #if 0
 if (d->voice[v].envelope_volume>>23 > 127)
 fprintf(stderr,"env vol %d >>23 = %d\n", d->voice[v].envelope_volume,
@@ -173,7 +173,7 @@ d->voice[v].envelope_volume >> 23);
       if (d->voice[v].tremolo_phase_increment)
 	lamp *= d->voice[v].tremolo_volume;
       if (d->voice[v].sample->modes & MODES_ENVELOPE)
-	lamp *= vol_table[d->voice[v].envelope_volume>>23];
+	lamp *= d->vol_table[d->voice[v].envelope_volume>>23];
 
       la = (int32)FRSCALE(lamp,AMP_BITS);
 

@@ -54,9 +54,9 @@ extern PlayMode *play_mode_list[], *play_mode;
 extern char *cfg_names[];
 extern int got_a_configuration;
 
-extern int output_buffer_full;
-extern int output_device_open;
-extern int flushing_output_device;
+/*extern int output_buffer_full;*/
+/*extern int output_device_open;*/
+/*extern int flushing_output_device;*/
 extern int plug_output(unsigned char *buf, struct md *d);
 /* extern int current_sample_count(uint32 ct); */
 /* extern int driver_output_data(char *buf, uint32 count); */

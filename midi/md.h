@@ -2,7 +2,6 @@ struct md
 {
 	char midi_name[FILENAME_MAX+1];
 	char midi_path_name[FILENAME_MAX+1];
-	int count;
 	int is_playing;
 	int is_open;
 	unsigned char *bbuf;
@@ -13,6 +12,10 @@ struct md
 	int flushing;
 	int out_count;
 	int total_bytes;
+	int output_buffer_full;
+	int output_device_open;
+	int flushing_output_device;
+
 	MidiEvent *event;
 	MidiEvent *current_event;
 	MidiEventList *evlist;
@@ -21,6 +24,7 @@ struct md
 	uint32 at;
 	/* taken from tplus --gl */
 	int midi_port_number;
+	FLOAT_T *vol_table;
 	Channel channel[MAXCHAN];
 	Voice voice[MAX_VOICES];
 	int voices;

@@ -81,7 +81,7 @@ void b_out(char id, int fd, int *buf, int ocount, struct md *d)
 	d->out_count = d->bboffset = d->bbcount = d->outchunk = 0;
 	d->starting_up = 1;
 	d->flushing = 0;
-	output_buffer_full = PRESUMED_FULLNESS;
+	d->output_buffer_full = PRESUMED_FULLNESS;
 	d->total_bytes = 0;
 	return;
   }
@@ -107,7 +107,7 @@ void b_out(char id, int fd, int *buf, int ocount, struct md *d)
   if (!ucount) { d->starting_up = 0; d->flushing = 1; }
   else d->flushing = 0;
 
-  if (d->starting_up || d->flushing) output_buffer_full = PRESUMED_FULLNESS;
+  if (d->starting_up || d->flushing) d->output_buffer_full = PRESUMED_FULLNESS;
   else {
 	int samples_queued;
 #ifdef AU_OSS
@@ -118,9 +118,9 @@ void b_out(char id, int fd, int *buf, int ocount, struct md *d)
 #endif
 	    samples_queued = 0;
 
-	if (!samples_queued) output_buffer_full = PRESUMED_FULLNESS;
-	else output_buffer_full = ((d->bbcount+samples_queued) * 100) / (BB_SIZE + d->total_bytes);
-/* fprintf(stderr," %d",output_buffer_full); */
+	if (!samples_queued) d->output_buffer_full = PRESUMED_FULLNESS;
+	else d->output_buffer_full = ((d->bbcount+samples_queued) * 100) / (BB_SIZE + d->total_bytes);
+/* fprintf(stderr," %d",d->output_buffer_full); */
   }
 
   ret = 0;
