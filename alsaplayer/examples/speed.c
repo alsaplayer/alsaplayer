@@ -7,26 +7,40 @@
 int main (int argc, char *argv[])
 {
 	int i;
-	char str[1024];
-	float val = 0.0;
+	char *artist = NULL;
+	char *title = NULL;
+	float speed = 0.0;
+	float *qspeed = NULL;
+	int session_id = 0;
+	
 
-	if (ap_get_string(0, AP_GET_STRING_ARTIST, str)) {
-		printf("File playing: %s\n", str);
+	artist = ap_get_artist(session_id);
+	title = ap_get_title(session_id);
+
+	if (artist && title) {
+		printf("File playing: %s - %s\n", artist, title);
 	}
+	if (artist)
+		free(artist);
+	if (title)
+		free(title);
+	
 	if (argc == 2) {
-		if (sscanf (argv[1], "%f", &val) == 1) {
-			if (val == 0.0) {
+		if (sscanf (argv[1], "%f", &speed) == 1) {
+			if (speed == 0.0) {
 				printf ("Pausing player\n");
-				ap_do (0, AP_DO_PAUSE);
+				ap_pause(session_id);
 			} else {
-				float tester;
-				printf ("Setting speed to %.2f\n", val);
-				ap_set_float (0, AP_SET_FLOAT_SPEED, val);
+				printf ("Setting speed to %.2f\n", speed);
+				ap_set_speed(session_id, speed);
 			}
 		}
 	}
-	if (ap_get_float(0, AP_GET_FLOAT_SPEED, &val)) {
-		printf ("Current speed = %.2f\n", val);
+	qspeed = ap_get_speed(session_id);
+
+	if (qspeed) {
+		printf ("Current speed = %.2f\n", *qspeed);
+		free(qspeed);
 	}	
 	return 0;
 }
