@@ -681,7 +681,7 @@ static int http_eof (void *d)
     if (!desc->seekable)
 	return 0;
     
-    return desc->pos < desc->size;
+    return !(desc->pos < desc->size);
 }
 
 /* #################################################################### */

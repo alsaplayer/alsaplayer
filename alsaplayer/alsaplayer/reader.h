@@ -135,6 +135,8 @@ void reader_init (void);
 extern "C" {
 #endif
 
+int reader_can_handle (const char *uri);
+    
 reader_type *reader_open (const char *uri);
 int reader_close (reader_type *h);
 
@@ -144,6 +146,8 @@ long reader_tell (reader_type *h);
 long reader_length (reader_type *h);
 int reader_seekable (reader_type *h);
 int reader_eof (reader_type *h);
+
+int reader_readline (reader_type *h, char *buf, int size);
 
 char **reader_expand (const char *uri);
 void reader_free_expanded (char **list);

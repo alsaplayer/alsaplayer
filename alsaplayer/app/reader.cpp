@@ -191,6 +191,20 @@ void reader_init (void)
 /////////////////////////////////////// API for input plugins!!! /////////
 extern "C" {
 
+// Check for ability to handle this kind of URI
+int reader_can_handle (const char *uri) {
+    int i = plugin_count;
+    reader_plugin *plugin = plugins;
+
+    // Search for best reader plugin
+    for (;i--;plugin++) {
+	if (plugin->can_handle (uri) > 0)
+	    return 1;
+    }
+
+    return 0;
+}
+    
 // Like fopen
 reader_type *reader_open (const char *uri)
 {
@@ -346,5 +360,28 @@ void reader_free_expanded (char **list)
     free (list);
 }
 
+/**
+ * Read line from stream.
+ */
+
+int reader_readline (reader_type *h, char *buf, int size)
+{
+    int len = 0;
+    
+    while (size && !reader_eof(h)) {
+	reader_read (buf, 1, h);
+
+	if (*buf == '\n')
+	    break;
+
+	len++;
+	buf++;
+	size--;
+    }
+
+    *buf = '\0';
+    
+    return len;
+}
 
 } /* end of: extern "C" */

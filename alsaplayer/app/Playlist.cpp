@@ -765,98 +765,75 @@ Playlist::Save(std::string file, enum plist_format format) const
 // E_PL_BAD if file definitely isn't in a known format.
 // If "force" is true, will try to load anyway instead of returning E_PL_DUBIOUS
 enum plist_result
-Playlist::Load(std::string const &file, unsigned position, bool force)
+Playlist::Load(std::string const &uri, unsigned position, bool force)
 {
 	// Check extension
 	if(!force) {
-		if(file.length() < 4 ||
-		   strcasecmp(file.substr(file.length() - 4).c_str(), ".m3u")) {
+		if(uri.length() < 4 ||
+		   strcasecmp(uri.substr(uri.length() - 4).c_str(), ".m3u")) {
 			return E_PL_DUBIOUS;
 		}
 	}
 
-	// lstat file - allow regular files, pipes, unix sockets.
-	// Don't allow anything else
-	// FIXME - implement
+	// Open Playlist
+	reader_type *f = reader_open (uri.c_str());
+	if (!f)
+	    return E_PL_BAD;
 
-	// Try opening file
-#ifdef DEBUG
-	alsaplayer_error("Loading from: %s", file.c_str());
-#endif
-	FILE *in_list = fopen(file.c_str(), "r");
-	if(!in_list) return E_PL_BAD;
-	
-	// Directory of m3u file, might need it later
-	std::string dir = file;
-	std::string::size_type i = dir.rfind('/');
-	if(i != std::string::npos) dir.erase(i);
-	dir += '/';
-	
+	// Base part of m3u uri, might need it later
+	std::string base = uri;
+	std::string::size_type i = base.rfind('/');
+	if (i != std::string::npos)
+	    base.erase(i);
+	base += '/';
+
 	// Read the file
 	char path[READBUFSIZE + 1];
 	std::vector<std::string> newfiles;
-	
 
 	// Give up if too many failures (so we don't wait for almost ever if
 	// someone tries clicking on an mp3 file...)
 	// However, if its just that some of the files don't exist anymore,
 	// don't give up.
+
 	unsigned successes = 0;
 	unsigned failures = 0;
 	while(failures < MAXLOADFAILURES || failures < successes) {
-
-		if(fscanf(in_list,
-				  "%" STRINGISE(READBUFSIZE) "[^\n]\n",
-				  path) != 1) break;
-
-		if (strchr(path, '\\')) { // DOS style paths, convert
-			for (int c=0; path[c] != '\0'; c++) {
-				if (path[c] == '\\') path[c] = '/';
-			}
-			// And make sure there is no '\r' at the end
-			char *p;
-			if ((p = strrchr(path, '\r')) != NULL)
-				*p = '\0';
-		}
+		if (!reader_readline (f, path, READBUFSIZE))
+		    break;
 
 		std::string newfile;
-		if (path[0] == '#') { // Comment, so skip
-			continue;
-		}	
-		if (path[0] == '/') {
-			// Absolute path
-			newfile = std::string(path);
-		} else if(path[0] == '\0') {
-			// No path
-			failures++;
-			continue;
+		if (*path == '#') {
+		    // Comment... skip it for now
+		    continue;
+		} else if (*path=='/' || reader_can_handle (path)) {
+		    // This is a absolute path or URI
+		    newfile = std::string(path);
+		} else if (*path == '\0') {
+		    // No path
+		    failures++;
+		    continue;
 		} else {
-			// Relative path
-			newfile = dir + std::string(path);
+		    // This is probably realtive URI or not supported URI type.
+		    newfile = base + std::string(path);
 		}
 
-		// See if the file exists, and isn't a directory
-		struct stat buf;
-		if(lstat(newfile.c_str(), &buf)) {
-			failures++;
-			continue;
-		}
-		if (S_ISDIR(buf.st_mode)) {
-			failures++;
-			continue;
-		}
+		// Test result
+		if (!reader_can_handle (newfile.c_str()))
+		    continue;
 
-		// Don't allow directories
+		// Add this file
 		newfiles.push_back(newfile);
 		successes++;
 	}
 
-	// Check if we read whole file OK
-	if(ferror(in_list) || !feof(in_list)) {
-		fclose(in_list);
-		return E_PL_BAD;
+	// Entire file should be loaded
+	if (!reader_eof(f)) {
+	    reader_close (f);
+	    return E_PL_BAD;
 	}
-	fclose(in_list);
+	
+	reader_close (f);
 
 	// Do the insert
 	Insert(newfiles, position);
