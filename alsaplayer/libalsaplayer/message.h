@@ -66,6 +66,7 @@
 #define AP_ADD_AND_PLAY		0xcc21
 #define AP_SET_PAN		0xcc22
 #define AP_GET_PAN		0xcc23
+#define AP_SORT			0xcc24
 /* Add new commands here */
 
 #ifdef __cplusplus

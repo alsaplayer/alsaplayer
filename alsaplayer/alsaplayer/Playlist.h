@@ -32,6 +32,9 @@
 enum plist_result {E_PL_SUCCESS = 0, E_PL_DUBIOUS, E_PL_BAD};
 enum plist_format {PL_FORMAT_M3U};
 
+// This variable should be initialized when the program started.
+extern pthread_mutex_t playlist_sort_seq_mutex;
+
 class PlayItem
 {
 	private:
@@ -196,6 +199,9 @@ public:
 	// Shuffle playlist
 	void Shuffle();
 
+	// Sort playlist according to seq
+	void Sort (std::string const &seq);
+	
 	// Clear playlist
 	void Clear();
 

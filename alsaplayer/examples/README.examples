@@ -6,6 +6,7 @@ seek.c      Seek in songs
 speed.c     Set playback speed/pause, negative parameter is allowed ;-)
 time.c      Displays position info for a session
 relative.c  Jump relative amount of seconds
+sort.c	    Sort playlist items with a rule given in first arg.
 
 All these examples can be build as follows:
 

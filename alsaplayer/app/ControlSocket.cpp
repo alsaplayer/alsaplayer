@@ -148,6 +148,12 @@ void socket_looper(void *arg)
 				}
 				ap_message_add_int32(reply, "ack", 1);
 				break;
+			case AP_SORT:
+				if ((path = ap_message_find_string(msg, "seq"))) {
+					playlist->Sort(path);
+				}
+				ap_message_add_int32(reply, "ack", 1);
+				break;
 			case AP_ADD_PATH:
 				if ((path = ap_message_find_string(msg, "path1"))) {
 					playlist->Insert(strdup(path), playlist->Length());

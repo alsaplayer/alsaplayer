@@ -780,6 +780,35 @@ int ap_add_path(int session, char *path)
 	return 0;
 }
 
+int ap_sort (int session, char *seq)
+{
+	int fd;
+	int32_t *result, ret_val;
+	ap_message_t *msg, *reply;
+
+	fd = ap_connect_session(session);
+	if (fd < 0)
+		return 0;
+	msg = ap_message_new();
+	msg->header.cmd = AP_SORT;
+	ap_message_add_string(msg, "seq", seq);
+	ap_message_send(fd, msg);
+	ap_message_delete(msg);
+	msg = NULL;
+	
+	reply = ap_message_receive(fd);
+	close(fd);
+	
+	if ((result = ap_message_find_int32(reply, "ack"))) {
+		ret_val = *result;
+		ap_message_delete(reply);
+		return 1;
+	}
+	printf("ap_sort() failed for some reason\n");
+	ap_message_delete(reply);
+	return 0;
+}
+
 
 /* Convenience function for commands that take no argument */
 int ap_do_command_only(int session, int32_t cmd)

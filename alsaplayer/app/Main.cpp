@@ -454,6 +454,9 @@ int main(int argc, char **argv)
 	signal(SIGFPE, exit_sighandler);	// floating point exc.
 	signal(SIGABRT, exit_sighandler);	// abort()
 
+	// Init global mutexes
+	pthread_mutex_init(&playlist_sort_seq_mutex, NULL);
+	
 	strcpy(addon_dir, ADDON_DIR);
 
 	init_effects();

@@ -42,6 +42,178 @@
 
 static void additems(std::vector<std::string> *items, std::string path, int depth);
 
+// Pointer to sequence of soritng fields.
+// This is temporary variable, it is valid while Sort function active.
+// Meaning of chars:
+//	a - sort by artist in descending direction,
+//	A - sort by astist in ascending direction,
+//	l - sort by album in descending direction,
+//	L - sort by album in ascending direction,
+//	t - sort by title in descending direction,
+//	T - sort by title in ascending direction,
+//	y - sort by year in descending direction,
+//	Y - sort by year in ascending direction,
+//	n - sort by track number in descending direction,
+//	N - sort by track number in ascending direction,
+//	c - sort by comment in descending direction,
+//	C - sort by comment in ascending direction,
+//	f - sort by filename in descending direction,
+//	F - sort by filename in ascending direction,
+//	g - sort by genre in descending direction,
+//	G - sort by genre in ascending direction,
+//	p - sort by playtime in descending direction,
+//	P - sort by playtime in ascending direction.
+static const char *sort_seq;
+
+// Function is similar to strcmp, but this is for PlayItem type.
+// This function uses sort_seq variable. Also this function should 
+// be keept optimized for speed.
+static int sort_comparator (const PlayItem &a, const PlayItem &b) {
+    int rc;
+    
+    // For each kind of sorting field
+    for (const char *t = sort_seq; *t; t++) {
+	if (*t == 't') {
+	    // Compare titles with descending
+	    
+	    rc = a.title.compare (b.title);
+	    if (rc == 0)  continue;
+
+	    return rc > 0;
+	} else if (*t == 'T') {
+	    // Compare titles with ascending
+	    
+	    rc = a.title.compare (b.title);
+	    if (rc == 0)  continue;
+
+	    return rc < 0;
+	} else if (*t == 'a') {
+	    // Compare artists with descending
+	    
+	    rc = a.artist.compare (b.artist);
+	    if (rc == 0)  continue;
+
+	    return rc > 0;
+	} else if (*t == 'A') {
+	    // Compare artists with ascending
+	    
+	    rc = a.artist.compare (b.artist);
+	    if (rc == 0)  continue;
+
+	    return rc < 0;
+	} else if (*t == 'l') {
+	    // Compare albums with descending
+	    
+	    rc = a.album.compare (b.album);
+	    if (rc == 0)  continue;
+
+	    return rc > 0;
+	} else if (*t == 'L') {
+	    // Compare albums with ascending
+	    
+	    rc = a.album.compare (b.album);
+	    if (rc == 0)  continue;
+
+	    return rc < 0;
+	} else if (*t == 'y') {
+	    // Compare years with descending
+	    
+	    int ai = atoi (a.year.c_str ());
+	    int bi = atoi (b.year.c_str ());
+	    
+	    if (ai == bi)  continue;
+
+	    return ai > bi;
+	} else if (*t == 'Y') {
+	    // Compare years with ascending
+	    int ai = atoi (a.year.c_str ());
+	    int bi = atoi (b.year.c_str ());
+	    
+	    if (ai == bi)  continue;
+
+	    return ai < bi;
+	} else if (*t == 'n') {
+	    // Compare tracks with descending
+	    
+	    int ai = atoi (a.track.c_str ());
+	    int bi = atoi (b.track.c_str ());
+	    
+	    if (ai == bi)  continue;
+
+	    return ai > bi;
+	} else if (*t == 'N') {
+	    // Compare tracks with ascending
+	    
+	    int ai = atoi (a.track.c_str ());
+	    int bi = atoi (b.track.c_str ());
+	    
+	    if (ai == bi)  continue;
+
+	    return ai < bi;
+	} else if (*t == 'g') {
+	    // Compare genres with descending
+	    
+	    rc = a.genre.compare (b.genre);
+	    if (rc == 0)  continue;
+
+	    return rc > 0;
+	} else if (*t == 'G') {
+	    // Compare genres with ascending
+	    
+	    rc = a.genre.compare (b.genre);
+	    if (rc == 0)  continue;
+
+	    return rc < 0;
+	} else if (*t == 'f') {
+	    // Compare filenames with descending
+	    
+	    rc = a.filename.compare (b.filename);
+	    if (rc == 0)  continue;
+
+	    return rc > 0;
+	} else if (*t == 'F') {
+	    // Compare filenames with ascending
+	    
+	    rc = a.filename.compare (b.filename);
+	    if (rc == 0)  continue;
+
+	    return rc < 0;
+	} else if (*t == 'c') {
+	    // Compare comments with descending
+	    
+	    rc = a.comment.compare (b.comment);
+	    if (rc == 0)  continue;
+
+	    return rc > 0;
+	} else if (*t == 'C') {
+	    // Compare comments with ascending
+	    
+	    rc = a.comment.compare (b.comment);
+	    if (rc == 0)  continue;
+
+	    return rc < 0;
+	} else if (*t == 'p') {
+	    // Compare playtimes with descending
+	    
+	    if (a.playtime == b.playtime)  continue;
+
+	    return a.playtime > b.playtime;
+	} else if (*t == 'P') {
+	    // Compare playtimes with ascending
+	    
+	    if (a.playtime == b.playtime)  continue;
+
+	    return a.playtime < b.playtime;
+	}
+    }
+
+    // Don't sort
+    return 0;
+} /* end of: sort_comparator */
+
+// Since sort_seq varibale is a global variable, it should be locked when it is in use
+// This variable should be initialized when the program started.
+pthread_mutex_t playlist_sort_seq_mutex;
 
 void info_looper(void *data)
 {
@@ -583,7 +755,7 @@ void Playlist::Shuffle() {
 
 	}
 	Unlock();
-}	
+}
 
 // Empty playlist
 void Playlist::Clear() {
@@ -828,6 +1000,49 @@ bool Playlist::CanPlay(std::string const & path) {
 	//alsaplayer_error("CanPlay result = %d", result);
 	return result;
 }
+
+// Sort playlist
+void Playlist::Sort (std::string const &seq) {
+	std::set<PlaylistInterface *>::const_iterator i;
+	std::set<playlist_interface *>::const_iterator j;
+
+	Lock();
+
+	// We will use global sort_seq variable, so lock it
+	pthread_mutex_lock(&playlist_sort_seq_mutex);
+	
+	// Let the sort_comparator function to know seq value
+	sort_seq = seq.c_str ();
+
+	// Sort
+	sort (queue.begin(), queue.end(), sort_comparator);
+
+	// Lets other playlists use sort_seq variable
+	pthread_mutex_unlock(&playlist_sort_seq_mutex);
+	
+	// Tell the subscribing interfaces about the change
+	if(interfaces.size() > 0) {
+		// Clear and repopulate
+		for(i = interfaces.begin(); i != interfaces.end(); i++) {
+			(*i)->CbClear();
+			(*i)->CbInsert(queue, 0);
+			curritem = 0;
+			(*i)->CbSetCurrent(curritem);
+		}
+	}
+	if (cinterfaces.size() > 0) {
+		for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
+			(*j)->cbclear((*j)->data);
+			(*j)->cbinsert((*j)->data, queue, 0);
+			curritem = 0;
+			(*j)->cbsetcurrent((*j)->data, curritem);
+		}
+
+	}
+
+	Unlock();
+}	
+
 
 // Add a path to list, recursing through (to a maximum of depth subdirectories)
 static void additems(std::vector<std::string> *items, std::string path, int depth) {
