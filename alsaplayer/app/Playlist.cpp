@@ -444,6 +444,7 @@ Playlist::~Playlist() {
 		delete player2;
 
 	Lock();
+	Unlock();
 	pthread_mutex_destroy(&playlist_mutex);
 }
 
@@ -807,6 +808,7 @@ Playlist::Load(std::string const &uri, unsigned position, bool force)
 
 	// Read the file
 	char path[READBUFSIZE + 1];
+	memset(path, 0,READBUFSIZE);
 	std::vector<std::string> newfiles;
 
 	// Give up if too many failures (so we don't wait for almost ever if
