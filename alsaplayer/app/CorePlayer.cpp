@@ -872,8 +872,8 @@ void print_buf(sample_buf *start)
 int CorePlayer::SetDirection(int direction)
 {
 	sample_buf *tmp_buf;
-	
 	int buffers = 0;
+
 	if (read_direction != direction) {
 		tmp_buf = read_buf;
 		switch(direction) {
@@ -896,7 +896,6 @@ int CorePlayer::SetDirection(int direction)
 		write_buf_changed = 1;
 		read_direction = direction;
 		pthread_mutex_unlock(&counter_mutex);		
-	} else {
 	}
 	return 0;	
 	
@@ -949,7 +948,7 @@ void CorePlayer::update_pitch()
 
 // FIXME: some documentation needed
 //
-int CorePlayer::Read32(void *data, int size)
+int CorePlayer::Read32(void *data, int samples)
 {
 	if (repitched) {
 		update_pitch();
@@ -959,8 +958,8 @@ int CorePlayer::Read32(void *data, int size)
 		if (write_buf->next->start == -2 || !producing) {
 			return -2;
 		}	
-		memset(data, 0, size * 4);
-		return size;
+		memset(data, 0, samples * 4);
+		return samples;
 	}
 	int use_read_direction = read_direction;	
 	int *out_buf = (int *)data;
@@ -990,7 +989,7 @@ int CorePlayer::Read32(void *data, int size)
 	}
 	
 	if (use_read_direction == DIR_FORWARD) {
-		while (buf_index < size) {
+		while (buf_index < samples) {
 			tmp_index = (int) ((float)use_pitch*(float)(buf_index-base_corr));
 			if ((check_index + tmp_index) > (read_buf->buf->write_index)-1) {
 				if (read_buf->next->start < 0 ||
@@ -999,12 +998,12 @@ int CorePlayer::Read32(void *data, int size)
 						//alsaplayer_error("Next in queue (2)");
 						return -2;
 					}	
-					memset(data, 0, size * 4);
+					memset(data, 0, samples * 4);
 					if (!producing) {
 						//alsaplayer_error("blah 1");
 						return -1;
 					}
-					return size;
+					return samples;
 				} else if (read_buf->next->start !=
 					read_buf->start + frames_in_buffer) {
 					alsaplayer_error("------ WTF!!? %d - %d",
@@ -1023,7 +1022,7 @@ int CorePlayer::Read32(void *data, int size)
 			out_buf[buf_index++] =  *(in_buf + tmp_index);
 		}
 	} else { // DIR_BACK
-		while (buf_index < size) { // Read (size) amount of samples
+		while (buf_index < samples) {
 			tmp_index = (int)((float)use_pitch*(float)(buf_index-base_corr));
 			if ((check_index - tmp_index) < 0) { 
 				if (read_buf->prev->start < 0 ||
@@ -1034,8 +1033,8 @@ int CorePlayer::Read32(void *data, int size)
 						//printf("blah 2\n");
 						return -1;
 					}
-					memset(data, 0, size * 4);
-					return size;
+					memset(data, 0, samples * 4);
+					return samples;
 				}
 				read_buf = read_buf->prev;
 				pthread_mutex_unlock(&counter_mutex);
@@ -1053,8 +1052,8 @@ int CorePlayer::Read32(void *data, int size)
 	}
 	read_buf->buf->Seek(check_index + ((use_read_direction == DIR_FORWARD) ?
 		 tmp_index+1 : -((tmp_index+1) > check_index ? check_index : tmp_index+1)));
-	if (!size) alsaplayer_error("Humm, I copied nothing?");
-	return size;
+	if (!samples) alsaplayer_error("Humm, I copied nothing?");
+	return samples;
 }
 
 
