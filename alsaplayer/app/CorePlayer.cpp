@@ -478,6 +478,23 @@ int CorePlayer::GetFrames()
 }
 
 
+int CorePlayer::GetTracks()
+{
+	int result = 0;
+	Lock();
+	if (plugin && the_object && the_object->ready) {
+		if (plugin->nr_tracks) {
+			result = plugin->nr_tracks(the_object);
+		} else {
+			result = 1;
+		}
+	}
+	Unlock();
+
+	return result;
+}
+
+
 int CorePlayer::GetChannels()
 {
 	return 2;	// Hardcoded for now

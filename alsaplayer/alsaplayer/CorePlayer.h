@@ -158,6 +158,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 					// hundreths of seconds
 	int GetStreamInfo(stream_info *info); // Return stream info
 	int GetFrames();	// Total number of frames
+	int GetTracks();	// Total number of tracks
 	int GetSampleRate();	// Samplerat of this player
 	int GetChannels();	// Number of channels
 	int GetFrameSize();	// Frame size in bytes
