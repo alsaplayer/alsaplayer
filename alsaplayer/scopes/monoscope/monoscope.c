@@ -1,5 +1,5 @@
 /*  monoscope.h
- *  Copyright (C) 1998 Andy Lo A Foe <arloafoe@cs.vu.nl>
+ *  Copyright (C) 1998-2001 Andy Lo A Foe <andy@alsaplayer.org>
  *  Original code by Tinic Uro
  *
  *  This program is free software; you can redistribute it and/or modify
