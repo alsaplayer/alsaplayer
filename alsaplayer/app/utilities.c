@@ -111,7 +111,6 @@ char *parse_file_uri(const char *furi)
 					escape[e]=0;
 					if (e == 2) {
 						if ((sscanf(escape, "%x", &val) == 1)) {
-							alsaplayer_error("Whoop! found '%c'", val);
 							res[w++] = val;
 						} else {
 							alsaplayer_error("unandled percent escape (%s)", escape);
