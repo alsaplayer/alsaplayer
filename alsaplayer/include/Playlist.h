@@ -87,6 +87,8 @@ private:
 	// Flags used by thread to exit neatly
 	bool active;    // True until set to false by destructor
 	bool paused;	// Playlist is paused
+     	bool loopingSong;	//  Loop the current song
+	bool loopingPlaylist;	// Loop the Playlist
 
 	CorePlayer *coreplayer; // Core player - set this
 
@@ -145,6 +147,16 @@ public:
 	virtual bool Paused() { return paused; }
 	virtual void Pause() { paused = true; }
 	virtual void UnPause() { paused = false; }
+
+	// Loop_Song controls
+	virtual bool LoopingSong() { return loopingSong; }
+	virtual void LoopSong() { loopingSong = true; }
+	virtual void UnLoopSong() { loopingSong = false; }
+
+	// Loop_Playlist controls
+	virtual bool LoopingPlaylist() { return loopingPlaylist; }
+	virtual void LoopPlaylist() { loopingPlaylist = true; }
+	virtual void UnLoopPlaylist() { loopingPlaylist = false; }
 	
 	// Save playlist to file
 	enum plist_result Save(std::string, enum plist_format) const;

@@ -204,10 +204,22 @@ void Playlist::Next(int locking) {
 	pthread_mutex_lock(&playlist_mutex);
 	unsigned olditem = curritem;
 	if(queue.size() > 0) {
-		if(curritem < queue.size()) {
-			curritem++;
-			PlayFile(queue[curritem - 1]);
-		}
+	  if(curritem < queue.size()) {
+	    if (LoopingSong()){
+	      PlayFile(queue[curritem]);
+	      /*     } else if (LoopingPlaylist()){
+	      curritem++;
+	      PlayFile(queue[curritem - 1]); */
+	    } else {
+	      curritem++;
+	      PlayFile(queue[curritem - 1]); 
+	    }
+	  } else if (curritem == queue.size()){
+	    if (LoopingPlaylist()){
+	      curritem -= (curritem - 1);
+	      PlayFile(queue[curritem -1]); 
+	    }
+	  }
 	}
 
 	// Tell the subscribing interfaces about the change

@@ -209,7 +209,9 @@ static void help()
 "\n"
 "Testing options:\n"
 "\n"
-"  --reverb      	           use reverb function (CPU intensive!)\n"
+"  --reverb      	                 use reverb function (CPU intensive!)\n"
+"  -S, --loopsong                        Loop file\n"
+"  -P, --looplist                        Loop Playlist\n"
 "  -o,--output [alsa|oss|nas|sgi|sparc]  Use ALSA, OSS, NAS, SGI or Sparc driver for output\n"
 "\n", OUTPUT_RATE
 	);
@@ -228,6 +230,8 @@ int main(int argc, char **argv)
 	int use_fragsize = 4096;
 	int use_fragcount = 8;
 	int use_reverb = 0; // TEMP!
+	int use_loopSong = 0; 
+	int use_loopList = 0;
 	int be_quiet = 0;
 	int use_realtime = 0;
 	int use_freq = OUTPUT_RATE;
@@ -304,6 +308,14 @@ int main(int argc, char **argv)
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--reverb") == 0) {
 			use_reverb = 1;
+			last_arg = arg_pos;
+		} else if (strcmp(argv[arg_pos], "--loopsong") == 0 ||
+					strcmp(argv[arg_pos], "-S") == 0) {
+			use_loopSong = 1;
+			last_arg = arg_pos;
+		} else if (strcmp(argv[arg_pos], "--looplist") == 0 ||
+					strcmp(argv[arg_pos], "-P") == 0) {
+			use_loopList = 1;
 			last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--realtime") == 0 ||
 					strcmp(argv[arg_pos], "-r") == 0) {
@@ -466,6 +478,16 @@ int main(int argc, char **argv)
 			newitems.push_back(std::string(argv[last_arg++]));
 		}
 		playlist->Insert(newitems, playlist->Length());
+	}
+
+	// Loop song
+	if (use_loopSong) {	 
+	 playlist->LoopSong();
+	}
+
+	// Loop Playlist
+	if (use_loopList) {	 
+	 playlist->LoopPlaylist();
 	}
 
 	interface_plugin_info_type interface_plugin_info;
