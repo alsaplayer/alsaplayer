@@ -32,7 +32,7 @@
 #define NR_BUF 64	// Number of partitions in ringbuffer
 #define NR_CBUF 16	// Number of partition to read ahead
 
-#define MAX_PLUGINS 32
+#define MAX_PLUGINS 64
 
 typedef struct _sample_buf
 {
@@ -90,13 +90,14 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	virtual int SetDirection(int dir);
 	virtual int GetDirection() { return read_direction; }
 	void load_input_addons();
+	void UnregisterPlugins();
+	int RegisterPlugin(input_plugin *the_plugin);
 	int plugin_count; // Number of registered plugins
 	input_plugin plugins[MAX_PLUGINS]; // Be very optimistic
  public:
 	CorePlayer(AlsaNode *node=(AlsaNode *)NULL);
 	~CorePlayer();
 	AlsaNode *GetNode() { return node; }
-	int RegisterPlugin(input_plugin *the_plugin);
 	virtual int GetPosition();				// Current position in frames
 	virtual int SetSpeed(float val);	// Set the playback speed: 1.0 = 100%
 	virtual float GetSpeed();					// Get speed
