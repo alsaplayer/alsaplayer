@@ -224,8 +224,8 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	input_rate = output_rate = 44100;
 	SetSpeedMulti(1.0);
 	SetSpeed(1.0);
-	SetVolume(100);
-	SetPan(0);
+	SetVolume(1.0);
+	SetPan(0.0);
 	buffer = NULL;
 	the_object = NULL;
 
@@ -681,10 +681,14 @@ void CorePlayer::Stop()
 }
 
 
-void CorePlayer::SetVolume(int val)
+void CorePlayer::SetVolume(float val)
 {
+	if (val > 2.0) {
+		alsaplayer_error("ERROR: volume out of bound (%.2f)", val);
+		return;
+	}	
 	volume = val;
-
+	
 	std::set<coreplayer_notifier *>::const_iterator i;
 	LockNotifiers();
 	for (i = notifiers.begin(); i != notifiers.end(); i++) {
@@ -694,7 +698,7 @@ void CorePlayer::SetVolume(int val)
 	UnlockNotifiers();
 }
 
-void CorePlayer::SetPan(int val)
+void CorePlayer::SetPan(float val)
 {
 	pan = val;
 
@@ -1225,24 +1229,22 @@ bool CorePlayer::streamer_func(void *arg, void *data, int size)
 	int count;
 
 	if ((count = obj->Read32(obj->input_buffer, size / sizeof(short))) >= 0) {
-		int v, p, left, right;
+		float v, p, left, right;
 		p = obj->pan;
 		v = obj->volume;
-		if (v != 100 || p != 0) {
-			if (p == 0) {
-				left = right = 100;
+		if (v != 1.0 || p != 0.0) {
+			if (p == 0.0) {
+				left = right = 1.0;
 			} else 	if (p > 0) {
-				right = 100;
-				left = 100 - p;
+				right = 1.0;
+				left = 1.0 - p;
 			} else {
-				left = 100;
-				right = 100 + p;
+				left = 1.0;
+				right = 1.0 + p;
 			}
-			if (v != 100) {
+			if (v != 1.0) {
 				left *= v;
-				left /= 100;
 				right *= v;
-				right /= 100;
 			}
 			//printf("v = %d, p = %d, left = %d, right = %d\n",
 			//	p, v, left, right);

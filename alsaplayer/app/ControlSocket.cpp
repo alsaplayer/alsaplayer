@@ -303,29 +303,29 @@ static void socket_looper(void *arg)
 				break;
 			case AP_SET_VOLUME:
 				if (player) {
-					if ((int_val = ap_message_find_int32(msg, "int"))) {
-						player->SetVolume (*int_val);
+					if ((float_val = ap_message_find_float(msg, "float"))) {
+						player->SetVolume (*float_val);
 						ap_message_add_int32(reply, "ack", 1);
 					}
 				}
 				break;
 			case AP_GET_VOLUME:
 				if (player) {
-					ap_message_add_int32(reply, "int",  player->GetVolume());
+					ap_message_add_float(reply, "float",  player->GetVolume());
 					ap_message_add_int32(reply, "ack", 1);
 				}	
 				break;
 			case AP_SET_PAN:
 				if (player) {
-					if ((int_val = ap_message_find_int32(msg, "int"))) {
-						player->SetPan (*int_val);
+					if ((float_val = ap_message_find_float(msg, "float"))) {
+						player->SetPan (*float_val);
 						ap_message_add_int32(reply, "ack", 1);
 					}
 				}
 				break;
 			case AP_GET_PAN:
 				if (player) {
-					ap_message_add_int32(reply, "int",  player->GetPan());
+					ap_message_add_float(reply, "float",  player->GetPan());
 					ap_message_add_int32(reply, "ack", 1);
 				}	
 				break;

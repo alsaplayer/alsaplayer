@@ -1,3 +1,4 @@
+* VOLUME and PAN values are now FLOATS. Interface coders, take note!!
 * xosd interface: larger standard font
 * xosd interface: configurable font, timeout, hor/vert. offset and color
 

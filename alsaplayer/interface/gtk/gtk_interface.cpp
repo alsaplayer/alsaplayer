@@ -122,8 +122,8 @@ static int vol_scale[] = {
 
 gint indicator_callback(gpointer data, int locking);
 void draw_speed(float speed);
-void draw_pan(int pan);
-void draw_volume(int vol);
+void draw_pan(float pan);
+void draw_volume(float vol);
 void position_notify(void *data, int pos);
 void notifier_lock();
 void notifier_unlock();
@@ -135,14 +135,14 @@ void speed_changed(void *, float speed)
 	notifier_unlock();
 }
 
-void pan_changed(void *, int pan)
+void pan_changed(void *, float pan)
 {
 	notifier_lock();
 	draw_pan(pan);
 	notifier_unlock();
 }
 
-void volume_changed(void *, int vol)
+void volume_changed(void *, float vol)
 {
 	notifier_lock();
 	draw_volume(vol);
@@ -289,13 +289,15 @@ void draw_format(char *format)
 }
 
 
-void draw_volume(int vol)
+void draw_volume(float the_vol)
 {
 	update_struct *ustr = &global_ustr;
 	GtkAdjustment *adj;
 	GdkRectangle update_rect;
 	char str[60];
 
+	int vol = (int) (the_vol * 100); // quick hack
+	
 	if (!ustr->vol_scale)
 		return;
 	adj = GTK_RANGE(ustr->vol_scale)->adjustment;
@@ -334,14 +336,13 @@ void pan_release_event(GtkWidget *, GdkEvent *, gpointer)
 }
 
 
-void draw_pan(int val)
+void draw_pan(float the_val)
 {
 	update_struct *ustr = &global_ustr;
 	GdkRectangle update_rect;
 	char str[60];
-	int pan;
+	int pan = (int)(the_val * 100.0);
 
-	pan = val;
 	if (pan < 0) {
 		sprintf(str, "Pan: left %d%%", - pan);
 	} else if (pan > 0) {
@@ -641,7 +642,7 @@ void volume_cb(GtkWidget *widget, gpointer data)
 		int idx = (int)adj->value;
 		idx = (idx < 0) ? 0 : ((idx > 13) ? 13 : idx);
 		GDK_THREADS_LEAVE();
-		p->SetVolume(vol_scale[idx]);
+		p->SetVolume(((float) vol_scale[idx]) / 100.0);
 		GDK_THREADS_ENTER();
 	}
 }
@@ -658,7 +659,7 @@ void pan_cb(GtkWidget *widget, gpointer data)
 		val = (int)adj->value;
 		if (val > MIN_BAL_TRESH && val < MAX_BAL_TRESH) val = BAL_CENTER;
 		GDK_THREADS_LEAVE();
-		p->SetPan(val - 100);
+		p->SetPan((float)(val) / 100.0 - 1.0);
 		GDK_THREADS_ENTER();
 	}	
 }
@@ -1200,7 +1201,7 @@ void init_main_window(Playlist *pl)
 	if (working) {
 		
 		adj = GTK_RANGE(working)->adjustment;
-		gtk_adjustment_set_value(adj, (float)(pl->GetCorePlayer())->GetVolume());
+		gtk_adjustment_set_value(adj, (pl->GetCorePlayer())->GetVolume() * 100.0);
 		gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
 							GTK_SIGNAL_FUNC(volume_cb), playlist);
 	}

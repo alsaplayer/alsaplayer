@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <cstring>
+#include <string.h>
 
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>

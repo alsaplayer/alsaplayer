@@ -275,7 +275,7 @@ static void help()
 		" ]\n"
 		"  -I,--script file        script to pass to interface plugin\n"
 		"  -n,--session n          use this session id [default=0]\n"
-		"  -l,--startvolume vol    start with this volume [default=100]\n"
+		"  -l,--startvolume vol    start with this volume [default=1.0]\n"
 		"  -p,--path path          set the path alsaplayer looks for add-ons\n"
 		"  -q,--quiet              quiet operation. less output\n"
 		"  -s,--session-name name  name this session \"name\"\n"
@@ -288,7 +288,7 @@ static void help()
 		"  -e,--enqueue file(s)  queue files in running alsaplayer\n"
 		"  -E,--replace file(s)  clears and queues files in running alsaplayer\n"
 		"  --status              get some information about session\n"
-		"  --volume vol          set software volume [0-100]\n"
+		"  --volume vol          set software volume [0.0-1.0]\n"
 		"  --start               start playing\n"
 		"  --stop                stop playing\n"
 		"  --pause               pause/unpause playing\n"
@@ -350,7 +350,7 @@ int main(int argc, char **argv)
 	char *prefsdir;
 	char thefile[1024];
 	char str[1024];
-	int start_vol = 100;
+	float start_vol = 1.0;
 	int ap_result = 0;
 	int use_fragsize = -1; // Initialized
 	int use_fragcount = -1; // later
@@ -377,7 +377,7 @@ int main(int argc, char **argv)
 	float speed_val = 0.0;
 		
 	int use_freq = OUTPUT_RATE;
-	int use_vol = 100;
+	float use_vol = 1.0;
 	int use_session = 0;
 	int do_crossfade = 0;
 	int do_save = 1;
@@ -515,19 +515,19 @@ int main(int argc, char **argv)
 				use_interface = optarg;
 				break;
 			case 'l':
-				start_vol = atoi(optarg);
-				if (start_vol < 0 || start_vol > 100) {
-					alsaplayer_error("volume out of range: using 100");
-					start_vol = 100;
+				start_vol = atof(optarg);
+				if (start_vol < 0.0 || start_vol > 1.0) {
+					alsaplayer_error("volume out of range: using 1.0");
+					start_vol = 1.0;
 				}
 				break;
 			case 'Y':
 				do_remote_control = 1;
 				do_setvol = 1;
-				use_vol = atoi(optarg);
-				if (use_vol < 0 || use_vol > 100) {
-					alsaplayer_error("volume out of range: using 100");
-					use_vol = 100;
+				use_vol = atof(optarg);
+				if (use_vol < 0.0 || use_vol > 1.0) {
+					alsaplayer_error("volume out of range: using 1.0");
+					use_vol = 1.0;
 				}
 				break;
 			case 'n':
@@ -688,8 +688,8 @@ int main(int argc, char **argv)
 				fprintf(stdout, "name: %s\n", res);
 			if (ap_get_playlist_length(use_session, &ires))
 				fprintf(stdout, "playlist_length: %d\n", ires);
-			if (ap_get_volume(use_session, &ires))
-				fprintf(stdout, "volume: %d\n", ires);
+			if (ap_get_volume(use_session, &fres))
+				fprintf(stdout, "volume: %.2f\n", fres);
 			if (ap_get_speed(use_session, &fres))
 				fprintf(stdout, "speed: %d%%\n", (int)(fres * 100));
 			fprintf(stdout, "-------------- Current Track ------------\n");

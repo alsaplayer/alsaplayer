@@ -503,20 +503,48 @@ int ap_cmd_set_int(int session, int32_t cmd, int val)
 }
 
 
-
-/**
- * Convenience function for commands that return a single int
- *
- * @param int session Session to contact
- * @param int32_t cmd Command to execute
- * @param int *val Variable where the result will be copied to
- * @return true if command succeeded, false otherwise
- */
-int ap_cmd_get_int(int session, int32_t cmd, int *val)
+/* Convenience function for commands that take a single float */
+int ap_cmd_set_float(int session, int32_t cmd, float val)
 {
 	int fd;
 	ap_message_t *msg, *reply;
 	int32_t *result;
+	
+	fd = ap_connect_session(session);
+	if (fd < 0)
+		return 0;
+	msg = ap_message_new();
+	msg->header.cmd = cmd;
+	ap_message_add_float(msg, "float", val);
+
+	ap_message_send(fd, msg);
+	ap_message_delete(msg);
+	msg = NULL;
+
+	reply = ap_message_receive(fd);
+	close(fd);
+
+	if ((result = ap_message_find_int32(reply, "ack"))) {
+		ap_message_delete(reply);
+		return 1;
+	}
+	ap_message_delete(reply);
+	return 0;
+}
+
+/**
+ * Convenience function for commands that return a single float
+ *
+ * @param int session Session to contact
+ * @param int32_t cmd Command to execute
+ * @param float *val Variable where the result will be copied to
+ * @return true if command succeeded, false otherwise
+ */
+int ap_cmd_get_float(int session, int32_t cmd, float *val)
+{
+	int fd;
+	ap_message_t *msg, *reply;
+	float *res;
 	
 	fd = ap_connect_session(session);
 	if (fd < 0)
@@ -531,8 +559,45 @@ int ap_cmd_get_int(int session, int32_t cmd, int *val)
 	reply = ap_message_receive(fd);
 	close(fd);
 
-	if ((result = ap_message_find_int32(reply, "int"))) {
-		*val = *result;
+	if ((res = ap_message_find_float(reply, "float"))) {
+		*val = *res;
+		ap_message_delete(reply);
+		return 1;
+	}
+	ap_message_delete(reply);
+	return 0;
+}
+
+
+/**
+ * Convenience function for commands that return a single int
+ *
+ * @param int session Session to contact
+ * @param int32_t cmd Command to execute
+ * @param int *val Variable where the result will be copied to
+ * @return true if command succeeded, false otherwise
+ */
+int ap_cmd_get_int(int session, int32_t cmd, int *val)
+{
+	int fd;
+	ap_message_t *msg, *reply;
+	int32_t *res;
+	
+	fd = ap_connect_session(session);
+	if (fd < 0)
+		return 0;
+	msg = ap_message_new();
+	msg->header.cmd = cmd;
+
+	ap_message_send(fd, msg);
+	ap_message_delete(msg);
+	msg = NULL;
+
+	reply = ap_message_receive(fd);
+	close(fd);
+
+	if ((res = ap_message_find_int32(reply, "int"))) {
+		*val = *res;
 		ap_message_delete(reply);
 		return 1;
 	}
@@ -566,14 +631,14 @@ int ap_is_paused(int session , int *paused)
 	 return (ap_cmd_get_int(session, AP_IS_PAUSED, paused));
 }
 
-int ap_set_volume(int session, int volume)
+int ap_set_volume(int session, float volume)
 {
-	return (ap_cmd_set_int(session, AP_SET_VOLUME, volume));
+	return (ap_cmd_set_float(session, AP_SET_VOLUME, volume));
 }
 
-int ap_set_pan(int session, int pan)
+int ap_set_pan(int session, float pan)
 {
-	return (ap_cmd_set_int(session, AP_SET_PAN, pan));
+	return (ap_cmd_set_float(session, AP_SET_PAN, pan));
 }
 
 int ap_set_position(int session, int pos)
@@ -597,14 +662,14 @@ int ap_get_tracks(int session, int *val)
 }
 
 
-int ap_get_volume(int session, int *volume)
+int ap_get_volume(int session, float *volume)
 {
-	return (ap_cmd_get_int(session, AP_GET_VOLUME, volume));
+	return (ap_cmd_get_float(session, AP_GET_VOLUME, volume));
 }
 
-int ap_get_pan(int session, int *pan)
+int ap_get_pan(int session, float *pan)
 {
-	return (ap_cmd_get_int(session, AP_GET_PAN, pan));
+	return (ap_cmd_get_float(session, AP_GET_PAN, pan));
 }
 
 int ap_get_length(int session, int *length)

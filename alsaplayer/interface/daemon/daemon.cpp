@@ -46,8 +46,8 @@
 static pthread_mutex_t finish_mutex;
 static coreplayer_notifier notifier;
 
-static int vol = 0;
-static float speed = 0;
+static float vol = 0.0;
+static float speed = 0.0;
 static int busypipe[2];
 
 
@@ -62,7 +62,7 @@ void speed_changed(void *, float new_speed)
 }
 
 
-void volume_changed(void *, int new_vol)
+void volume_changed(void *, float new_vol)
 {
 	vol = new_vol;
 }
@@ -71,7 +71,7 @@ void volume_changed(void *, int new_vol)
 void position_notify(void *, int /*frame*/)
 {
 	//fprintf(stdout, "Frame: %6d  Vol: %3d   Speed: %.0f    \r", 
-	//	frame, vol, speed * 100.0);
+	//	frame, (int)(vol * 100), speed * 100.0);
 	//fflush(stdout);	
 }
 

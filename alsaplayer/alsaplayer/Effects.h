@@ -33,7 +33,7 @@ void clear_buffer(void);
 
 void init_effects(void);
 void echo_effect32(void *buf, int size, int delay, int vol);
-void volume_effect32(void *buf, int size, int left, int right=-1);
+void volume_effect32(void *buf, int size, float left, float right=-100.0);
 void buffer_effect(void *buf, int size);
 char *delay_feed(int delay, int max_size);
 

@@ -56,10 +56,10 @@ int ap_get_playlist_length(int session, int *length);
 
 int ap_set_speed(int session, float speed);
 int ap_get_speed(int session, float *val);
-int ap_set_volume(int session, int volume);
-int ap_get_volume(int session, int *volume);
-int ap_set_pan(int session, int pan);
-int ap_get_pan(int session, int *pan);
+int ap_set_volume(int session, float volume);
+int ap_get_volume(int session, float *volume);
+int ap_set_pan(int session, float pan);
+int ap_get_pan(int session, float *pan);
 
 int ap_set_looping(int session, int val);
 int ap_is_looping(int session, int *val);

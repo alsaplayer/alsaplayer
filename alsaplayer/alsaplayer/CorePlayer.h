@@ -43,9 +43,9 @@
 
 #define MAX_INPUT_PLUGINS 16
 
-typedef void(*volume_changed_type)(void *, int new_vol);
+typedef void(*volume_changed_type)(void *, float new_vol);
 typedef void(*speed_changed_type)(void *, float new_speed);
-typedef void(*pan_changed_type)(void *, int new_pan);
+typedef void(*pan_changed_type)(void *, float new_pan);
 typedef void(*position_notify_type)(void *, int pos);
 typedef void(*stop_notify_type)(void *);
 typedef void(*start_notify_type)(void *);		
@@ -87,8 +87,8 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	float pitch_multi;
 	bool jumped;
 	bool producing;
-	int volume;
-	int pan;
+	float volume;
+	float pan;
 	int output_rate;
 	int input_rate;
 	AlsaNode *node;
@@ -148,14 +148,14 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	void PositionUpdate();	// Notify the interfaces about the position
 	int SetSpeed(float val);	// Set the playback speed: 1.0 = 100%
 	float GetSpeed();	// Get speed
-	int GetVolume() { return volume; }	// Get Volume level
-	void SetVolume(int vol);	// Set volume level
-	int GetPan() { return pan; }	// Get Pan level
+	float GetVolume() { return volume; }	// Get Volume level
+	void SetVolume(float vol);	// Set volume level
+	float GetPan() { return pan; }	// Get Pan level
 	
-	void SetPan(int p);	// Set Pan level: 
-					// 0	= center
-					// -100	= right channel muted
-					// 100  = left channel muted
+	void SetPan(float p);	// Set Pan level: 
+					// 0.0	= center
+					// -1.0 = right channel muted
+					// 1.0  = left channel muted
 	
 	int GetCurrentTime(int frame=-1);
 					// Returns the time position of frame in

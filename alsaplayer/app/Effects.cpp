@@ -96,16 +96,16 @@ void echo_effect32(void *buffer, int size, int delay, int vol)
 }
 
 
-void volume_effect32(void *buffer, int length, int left, int right)
+void volume_effect32(void *buffer, int length, float left, float right)
 {
 	short *data = (short *)buffer;
 
-	if (right == -1) right = left;
-
+	if (right == -100.0) right=left;
+	
 	for (int i=0; i < length << 1; i+=2) {
-                int v=(int) ((*(data) * left) / 100);
+                int v=(int) ((*(data) * (int)(left * 100)) / 100);
                 *(data++)=(v>32767) ? 32767 : ((v<-32768) ? -32768 : v);
-        	v=(int) ((*(data) * right) / 100);
+        	v=(int) ((*(data) * (int)(right * 100)) / 100);
                 *(data++)=(v>32767) ? 32767 : ((v<-32768) ? -32768 : v);
 	}	
 }

@@ -22,7 +22,7 @@
 #include <sys/types.h>
 
 #define AP_CONTROL_BASE_VERSION 0x1000
-#define AP_CONTROL_VERSION      (AP_CONTROL_BASE_VERSION + 5)
+#define AP_CONTROL_VERSION      (AP_CONTROL_BASE_VERSION + 6)
 
 #define KEYID_LEN	32
 
