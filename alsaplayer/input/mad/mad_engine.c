@@ -364,6 +364,8 @@ static int mad_nr_frames(input_object *obj)
 	return obj->nr_frames;
 }
 
+/* TODO: Move all id3 code into the separated file. */
+
 /* Strip spaces from right to left */
 static void rstrip (char *s) {
 	int len = strlen (s);
@@ -553,10 +555,22 @@ static void parse_id3 (const char *path, stream_info *info)
 		    else if (memcmp (buf, "TRCK", 4)==0)
 			fill_from_id3v2 (info->track, buf + name_size,
 					 sizeof (info->track), size);
-		    else if (memcmp (buf, "TCON", 4)==0)
-			fill_from_id3v2 (info->genre, buf + name_size,
-					 sizeof (info->genre), size);
-
+		    else if (memcmp (buf, "TCON", 4)==0) {
+			/* Genre */
+			/* TODO: Optimize duplicated code */
+			unsigned int gindex;
+			
+			if (sscanf (buf + name_size+1, "(%u)", &gindex)==1) {
+			    if (gindex==255)
+				*info->genre = '\0';
+			    else if (sizeof (genres)/sizeof(char*) <= gindex)
+				snprintf (info->genre, sizeof (info->genre), "(%u)", gindex);
+			    else
+				snprintf (info->genre, sizeof (info->genre), "%s", genres[gindex]);
+			} else
+			    fill_from_id3v2 (info->genre, buf + name_size,
+					     sizeof (info->genre), size);
+		    }
 		} /* end of 'if name_size == 4' */
 		
 	    } /* end of frames read */
