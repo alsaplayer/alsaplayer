@@ -253,8 +253,11 @@ flac_stream_info (input_object * obj, stream_info * info)
 static float
 flac_can_handle (const char * name)
 {
-    return Flac::FlacStream::isFlacStream (name)    ? 1.0 :
-	Flac::OggFlacStream::isOggFlacStream (name) ? 1.0 : 0.0;
+	if (strncmp(name, "http://", 7) == 0) {
+		return 0.0;
+	}	    
+	return Flac::FlacStream::isFlacStream (name)    ? 1.0 :
+		Flac::OggFlacStream::isOggFlacStream (name) ? 1.0 : 0.0;
 }
 
 
