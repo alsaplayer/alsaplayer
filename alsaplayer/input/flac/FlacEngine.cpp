@@ -32,6 +32,7 @@
 #include <string.h>
 #include "FlacFile.h"
 #include "CorePlayer.h"
+#include "alsaplayer_error.h"
 
 namespace Flac
 {
@@ -92,11 +93,12 @@ FlacEngine::init ()
     if (tryme <= 32)
     {
 	_apFramesPerFlacFrame = tryme;
-    }
-    else
+	return true;
+    } else {
 	// ugh, give up, too big
+	alsaplayer_error("FlacEngine::init(): frame size too big"); 
 	return false;
-
+    }
 } // FlacEngine::init
 
 

@@ -159,8 +159,7 @@ flac_open (input_object * obj, const char * path)
     else
     {
 	alsaplayer_error ("flac_open: unable to open flac file or "
-			  "unsupported flac file.");
-
+			  "unsupported flac file. (%s)", path);
 	delete f;
 	delete e;
 	obj->frame_size  = 0;
@@ -170,6 +169,7 @@ flac_open (input_object * obj, const char * path)
 	obj->nr_tracks   = 0;
 	obj->ready       = 0;
 	obj->local_data  = 0;
+	alsaplayer_error ("flac_open: failed");
 	return 0;
     }
 }

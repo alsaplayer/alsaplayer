@@ -87,13 +87,15 @@ bool
 FlacFile::open ()
 {
     // it's illegal to call this on an already open file
-    if (_decoder)
+    if (_decoder) {
+	alsaplayer_error("FlacFile::open(): existing decoder");    
 	return false;
-
+    }
     _decoder = FLAC__file_decoder_new ();
-    if (!_decoder)
+    if (!_decoder) {
+	alsaplayer_error("FlacFile::open(): error creating FLAC__file_decoder");
 	return false;
-
+    }
     bool status = true;
     status &= FLAC__file_decoder_set_filename (_decoder, _path.c_str ());
     status &= FLAC__file_decoder_set_md5_checking (_decoder, _md5);
@@ -105,24 +107,29 @@ FlacFile::open ()
 						     errCallBack);
     status &= FLAC__file_decoder_set_client_data (_decoder, (void *) this);
 
-    if (!status)
+    if (!status) {
+	alsaplayer_error("FlacFile::open(): status error, huh?");    
 	return false;
-
+    }
     status = (FLAC__file_decoder_init (_decoder) == FLAC__FILE_DECODER_OK);
     
-    if (!status)
+    if (!status) {
+	alsaplayer_error("FlacFile::open(): status2 error, huh?");    
 	return false;
-
+    }
     // this will invoke the metaCallBack
-    if (!FLAC__file_decoder_process_until_end_of_metadata (_decoder))
+    if (!FLAC__file_decoder_process_until_end_of_metadata (_decoder)) {
+	alsaplayer_error("FlacFile::open(): decoder error");    
 	return false;
-
+    }
     // now that we've opened the file, tell the engine it's safe to 
     // initialize itself.
     
-    if (_engine && !_engine->init ())
+    if (_engine && !_engine->init ()) {
+	alsaplayer_error("FlacFile::open(): engine init failed (_engine = %x)",
+			_engine);    
 	return false;
-    
+    }
     // return the metaCallBack's status
     return _mcbSuccess;
     
