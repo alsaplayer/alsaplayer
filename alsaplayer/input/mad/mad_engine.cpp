@@ -477,6 +477,10 @@ static int mad_open(input_object *obj, char *path)
 								perror("fstat");
 								return 0;
 				}
+				if (!data->stat.st_size) {
+					fprintf(stderr, "empty file\n");
+					return 0;
+				}	
 				if (!S_ISREG(data->stat.st_mode)) {
 								fprintf(stderr, "%s: Not a regular file\n", path);
 								return 0;
