@@ -100,11 +100,9 @@ int interface_cli_start(CorePlayer *coreplayer, Playlist *playlist, int argc, ch
 					fprintf(stdout, "\r[%02ld:%02ld/%02ld:%02ld]       ",
 									c_min, c_sec, t_min, t_sec);
 					fflush(stdout);
-					//dosleep(100000);
-					sleep(1);
+					dosleep(100000);
 			}
-			//dosleep(1000000);
-			sleep(1);
+			dosleep(1000000);
 			fprintf(stdout, "\n");
 	}		
 	fprintf(stdout, "...done playing\n");
