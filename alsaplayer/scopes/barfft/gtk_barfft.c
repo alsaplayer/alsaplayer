@@ -308,7 +308,9 @@ static void stop_fftscope();
 
 static gboolean close_fftscope_window(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
+				GDK_THREADS_LEAVE();
         stop_fftscope();
+				GDK_THREADS_ENTER();
 
 		return TRUE;
 }

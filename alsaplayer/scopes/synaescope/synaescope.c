@@ -446,7 +446,9 @@ static void stop_synaescope();
 
 static gboolean close_synaescope_window(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
+				GDK_THREADS_LEAVE();
         stop_synaescope();
+				GDK_THREADS_ENTER();
 
 		return TRUE;
 }
