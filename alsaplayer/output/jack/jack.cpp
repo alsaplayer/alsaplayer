@@ -1,5 +1,5 @@
 /*  jack.cpp - JACK output driver
- *  Copyright (C) 2002 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 2002-2003 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,14 +30,16 @@
 #include "prefs.h"
 
 typedef jack_default_audio_sample_t sample_t;
-
+static pthread_t restarter;
 static jack_port_t *my_output_port1;
 static jack_port_t *my_output_port2;
 static jack_client_t *client = (jack_client_t *)NULL;
 static jack_nframes_t sample_rate;
 static jack_nframes_t latency = 0;
+static jack_transport_info_t transport;
 static char *mix_buffer = NULL;
 static int jack_reconnect = 1;
+static int jack_transport_aware = 0;
 
 static char dest_port1[128];
 static char dest_port2[128];
@@ -67,9 +69,12 @@ void jack_restarter(void *arg)
 	sleep (2);
 
 	if (client) {
+		alsaplayer_error("jack: about ot close old jack client link");
 		jack_client_close(client);
 		client = (jack_client_t *)NULL;
-	}	
+		alsaplayer_error("jack: closed old jack client link");
+	}
+	alsaplayer_error("jack: reconnecting...");
 	if (jack_prepare(arg) < 0) {
 		alsaplayer_error("failed reconnecting to jack...exitting");
 		kill(0, SIGTERM);
@@ -80,10 +85,9 @@ void jack_restarter(void *arg)
 void jack_shutdown (void *arg)
 {
 	if (jack_reconnect) {
-		pthread_t restarter;
+		pthread_join(restarter, NULL);
 		alsaplayer_error("trying to reconnect to jack (spawning thread)");
 		pthread_create(&restarter, (pthread_attr_t *)NULL, (void * (*)(void *))jack_restarter, arg);
-		pthread_detach(restarter);
 	} else {
 		alsaplayer_error("not retrying jack connect, as requested");
 	}	
@@ -137,6 +141,7 @@ int jack_prepare(void *arg)
 		if (jack_activate (client)) {
 			alsaplayer_error("cannot activate client");
 			free(mix_buffer);
+			mix_buffer = NULL;
 			return -1;
 		}       
 		if (global_verbose)
@@ -146,12 +151,14 @@ int jack_prepare(void *arg)
 			alsaplayer_error("cannot connect output port 1 (%s)",
 				dest_port1);
 			free(mix_buffer);
+			mix_buffer = NULL;
 			return -1;
 		}               
 		if (jack_connect (client, jack_port_name(my_output_port2), dest_port2)) {
 			alsaplayer_error("cannot connect output port 2 (%s)",
 				dest_port2);
 			free(mix_buffer);
+			mix_buffer = NULL;
 			return -1;
 		}               
 		return 0;
@@ -221,11 +228,14 @@ static int jack_open(const char *name)
 			strncpy(dest_port1, t, 127);
 			strncpy(dest_port2, s, 127);
 			dest_port1[127] = dest_port2[127] = 0;
-			alsaplayer_error("jack: using ports %s & %s for output",
+			alsaplayer_error("jack: using ports \"%s\" and \"%s\" for output",
 					dest_port1, dest_port2);
 		} else if (strcmp(t, "noreconnect") == 0) {
 			alsaplayer_error("jack: driver will not try to reconnect");
 			jack_reconnect = 0;
+		} else if (strcmp(t, "transport") == 0) {
+			alsaplayer_error("jack: alsaplayer is transport aware");
+			jack_transport_aware = 1;
 		} else {
 			/* alsaplayer_error("Unkown jack parameter: %s", t); */
 		}	
@@ -255,7 +265,7 @@ static void jack_close()
 		if (mix_buffer) {
 			free(mix_buffer);
 			mix_buffer = NULL;
-		}	
+		}
 	}	
 	return;
 }
@@ -284,6 +294,19 @@ int process(jack_nframes_t nframes, void *arg)
 	if (subs) {
 		subscriber *i;
 		int c;
+
+		if (jack_transport_aware) {
+			transport.valid = jack_transport_bits_t(JackTransportState|
+					JackTransportPosition|
+					JackTransportLoop);
+			jack_get_transport_info(client, &transport);
+			if ((transport.valid & JackTransportState) &&
+					transport.transport_state & JackTransportStopped) {
+				return 0;
+			}	
+				
+		}	
+		
 		sample_t *out1 = (sample_t *) jack_port_get_buffer(my_output_port1, nframes);
 		sample_t *out2 = (sample_t *) jack_port_get_buffer(my_output_port2, nframes);
 
