@@ -1,17 +1,30 @@
 #include "trackball.h"
 
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef MIN
+#define MIN(a, b) (((a) > (b)) ? (a) : (b))
+#endif
+
+#ifndef MAX
+#define MAX(a, b)  (((a) > (b)) ? (a) : (b)) 
+#endif
+
 Display *meshscope_dpy = NULL;
-static sound_sample actSS[FFT_BUFFER_SIZE];
-static sound_sample oldSS[FFT_BUFFER_SIZE];
 static float val[NUMOLD][NUMBARS];
 static Colormap colormap = 0;
 static Atom wm_delete_window_atom;
 static GLXContext glxcontext = NULL;
-static fft_state *fftstate;
 static pthread_t meshscope_thread;
 static pthread_mutex_t meshscope_mutex;
 static int running = 0;
-Window *meshscope_win;
+Window meshscope_win;
 static int is_init = 0;
 float meshscope_curquat[4];
 
@@ -21,8 +34,7 @@ GLfloat lightZeroColor[] =
 {1.0, 1.0, 1.0, 1.0};
 static int lighting = 0;
 static int solid = 0;
-static double fftmult[FFT_BUFFER_SIZE / 2 + 2];
-
+static int fft_buf[512];
 
 void stop_meshscope ()
 {
@@ -31,25 +43,13 @@ void stop_meshscope ()
 }
 
 
-void meshscope_set_data (void *audio_buffer, int size)
+void meshscope_set_fft (void *fft_data, int samples, int channels)
 {
-	int i;
-	short *sound = (short *) audio_buffer;
-
-	if (!sound) {
-		memset (&actSS, 0, sizeof (actSS));
+	if (!fft_data || (samples * channels) > 512) {
+		memset (fft_buf, 0, sizeof (fft_buf));
 		return;
 	}
-	if (running && sound) {
-		sound_sample *newset = actSS;
-		sound += (size / 2 - FFT_BUFFER_SIZE) * 2; // Use the very latest data
-
-		for (i = 0; i < FFT_BUFFER_SIZE; i++) {
-			*newset++ = (sound_sample) ((
-			(int) (*sound) + (int) *(sound + 1)) >> 1);
-			sound += 2;
-		}
-	}
+	memcpy(fft_buf, fft_data, sizeof(int) * samples * channels);
 }
 
 
@@ -92,6 +92,7 @@ static Window create_window (int width, int height)
   XMapWindow (meshscope_dpy, win);
   XFlush (meshscope_dpy);
 
+	printf("Window created...\n");
   return win;
 }
 
@@ -125,14 +126,15 @@ void initGL ()
   if (!solid)
     glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
   glEnable (GL_DEPTH_TEST);
-
+	printf("initGL done...\n");
 }
 
 
-Window *create_meshscope_window ()
+Window create_meshscope_window ()
 {
 	meshscope_dpy = XOpenDisplay (NULL);
-	meshscope_win = create_window (MESH_W, MESH_H);
+	meshscope_win = create_window(MESH_W, MESH_H);
+	printf("create_meshscope_window done...\n");
 	return meshscope_win;
 }
 
@@ -142,10 +144,7 @@ void drawMesh ()
   int i, j, k, m;
   static unsigned short l = NUMOLD;
   float f, g, color[3];
-  double fftout[NUMSAMPLES];
-  memcpy (&oldSS, &actSS, sizeof (actSS));
 
-  fft_perform (oldSS, fftout, fftstate);
   glXMakeCurrent (meshscope_dpy, meshscope_win, glxcontext);
   /* Draw simple triangle */
   glClearColor (0, 0, 0, 1);
@@ -155,7 +154,7 @@ void drawMesh ()
     glBegin (PRIMITIVES);
     k = i / STEPSIZE+1;
     for (j = i, val[l % NUMOLD][k] = 0; j < i + STEPSIZE; j++) {
-      f = (sqrt (fftout[j]) * fftmult[j]);
+      f = fft_buf[j];
       if (f > val[l % NUMOLD][k])
         val[l % NUMOLD][k] = f;
     }
@@ -191,7 +190,7 @@ void drawMesh ()
 }
 
 
-static void meshscope(GtkWidget * win)
+static void meshscope(Window *win)
 {
 	Bool configured = FALSE;
 	while (running) {
@@ -222,7 +221,6 @@ static void meshscope(GtkWidget * win)
 		animate();
 		dosleep (25000);
 	}
-	//XUnmapWindow(meshscope_win, d);
 }
 
 
@@ -230,22 +228,14 @@ void run_meshscope (void *data)
 {
 	int i;
 	nice (SCOPE_NICE);
-	meshscope_win = create_meshscope_window ();
+	printf("Going to create window...\n");
+	create_meshscope_window ();
+	printf("Going to initGL...\n");
 	initGL ();
 
-	for (i = 0; i <= FFT_BUFFER_SIZE / 2 + 1; i++) {
-		double mult = (double) 128 / ((FFT_BUFFER_SIZE * 16384) ^ 2);
-		// Result now guaranteed (well, almost) to be in range 0..128
-		// Low values represent more frequencies, and thus get more
-		// intensity - this helps correct for that
-		mult *= log (i + 1) / log (2);
-		mult *= 3;	// Adhoc parameter, looks about right for me.
-
-		fftmult[i] = mult;
-	}
 	memset(&val, 0, sizeof(val)); // reset
-	memset(&actSS, 0, sizeof(actSS));
-	meshscope(meshscope_win);
+	printf("going to run...\n");
+	meshscope(&meshscope_win);
 	pthread_mutex_unlock (&meshscope_mutex);
 	pthread_exit(NULL);
 }
@@ -258,6 +248,7 @@ void start_meshscope (void *data)
 		return;
 	}
 	running = 1;
+	printf("Going to spawn thread...\n");
 	pthread_create (&meshscope_thread, NULL,
 		(void *(*)(void *)) run_meshscope, data);
 }
@@ -265,9 +256,6 @@ void start_meshscope (void *data)
 
 static int open_meshscope ()
 {
-	fftstate = fft_init ();
-	if (!fftstate)
-		return 0;
 	return 1;
 }
 
@@ -275,6 +263,7 @@ static int open_meshscope ()
 static int init_meshscope ()
 {
 	pthread_mutex_init (&meshscope_mutex, NULL);		
+	memset (fft_buf, 0, sizeof (fft_buf));
 	return 1;
 }
 
@@ -302,8 +291,8 @@ scope_plugin meshscope_plugin =
   meshscope_running,
   stop_meshscope,
   close_meshscope,
-  meshscope_set_data,
-	NULL
+	NULL,
+	meshscope_set_fft
 };
 
 

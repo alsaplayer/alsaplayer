@@ -39,8 +39,7 @@
  * A virtual trackball implementation
  * Written by Gavin Bell for Silicon Graphics, November 1988.
  */
-#include "scope_config.h"
-#include "fft.h"
+#include "scope_plugin.h"
 #include <assert.h>
 #include <dirent.h>
 #include <GL/gl.h>
@@ -49,7 +48,6 @@
 #ifdef HAVE_XMESAFINDBUFFER
 #include <GL/xmesa.h>
 #endif
-#include <gtk/gtk.h>
 #include <malloc.h>
 #include <math.h>
 #include <pthread.h>
@@ -64,7 +62,7 @@
 
 #define MESH_W	440
 #define MESH_H	300
-#define NUMSAMPLES (FFT_BUFFER_SIZE / 2 + 1)
+#define NUMSAMPLES (512 / 2 + 1)
 #define STEPSIZE   (NUMSAMPLES/NUMBARS)
 #define NUMBARS 32
 #define NUMOLD 18 
@@ -112,7 +110,7 @@ void idleFunc(void);
 void mousepress(XEvent event);
 void mouserelease(XEvent event);
 void mousemove(XEvent event);
-extern Window *meshscope_win;
+extern Window meshscope_win;
 extern Display *meshscope_dpy;
 extern float meshscope_curquat[4];	
 void animate(void);
