@@ -312,6 +312,7 @@ static int mad_open(input_object *obj, char *path)
 	
 		obj->local_data = malloc(sizeof(struct mad_local_data));
 		if (!obj->local_data) {
+				printf("failed to allocate local data\n");		
 				return 0;
 		}
 		data = (struct mad_local_data *)obj->local_data;
