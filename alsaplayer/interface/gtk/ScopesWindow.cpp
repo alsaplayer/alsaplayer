@@ -74,10 +74,10 @@ void apUnregiserScopePlugins()
 	GtkWidget *list;
 	void *handle;
 
-	//list = (GtkWidget *)gtk_object_get_data(GTK_OBJECT(scopes_window), "list");
+	list = (GtkWidget *)gtk_object_get_data(GTK_OBJECT(scopes_window), "list");
 
-	//if (list)
-	//	gtk_clist_clear(GTK_CLIST(list));
+	if (list)
+		gtk_clist_clear(GTK_CLIST(list));
 
 	pthread_mutex_lock(&sl_mutex);
 	while (current && current->sp) {

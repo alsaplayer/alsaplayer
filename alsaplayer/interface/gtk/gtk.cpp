@@ -169,12 +169,10 @@ int interface_gtk_start(CorePlayer *coreplayer, Playlist *playlist, int argc, ch
 	GDK_THREADS_ENTER();
 	load_scope_addons();
 	gtk_main();
+	//unload_scope_addons();
+	delete scopes;
 	unload_scope_addons();
 	GDK_THREADS_LEAVE();
-	
-	delete scopes;	// Remove scope_feeder
-	
-	unload_scope_addons();
 
 	return 0;
 }

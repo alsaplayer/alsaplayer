@@ -44,6 +44,7 @@
 #include "pixmaps/play.xpm"
 #include "pixmaps/playlist.xpm"
 #include "pixmaps/cd.xpm"
+#include "pixmaps/menu.xpm"
 
 #include "PlaylistWindow.h"
 
@@ -1091,7 +1092,7 @@ void init_main_window(CorePlayer *p, Playlist *pl)
 #endif
 
 	working = get_widget(main_window, "cd_button");
-	pix = xpm_label_box(cd_xpm, main_window);
+	pix = xpm_label_box(menu_xpm, main_window);
 	gtk_widget_show(pix);
 	gtk_container_add(GTK_CONTAINER(working), pix);
 	//gtk_signal_connect(GTK_OBJECT(working), "clicked",
