@@ -581,9 +581,9 @@ bool CorePlayer::Start()
 	dosleep(20000);
 
 	//alsaplayer_error("Prebuffering...");
-	// Wait for up to 4 seconds
+	// wait up to 4 seconds to get all (really: half) the PCM buffers filled
 	tries = 100;
-	while (--tries && (FilledBuffers() < 2) && producing) { 
+	while (--tries && (FilledBuffers() < NR_CBUF / 2) && producing) { 
 		//alsaplayer_error("Waiting for buffers...");
 		dosleep(40000);
 	}
