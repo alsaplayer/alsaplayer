@@ -208,8 +208,9 @@ static int mad_sample_rate(input_object *obj)
 		if (!obj)
 				return 44100;
 		data = (struct mad_local_data *)obj->local_data;
-		
-		return data->sample_rate;
+		if (data)	
+			return data->sample_rate;
+		return 44100;
 }
 
 static int mad_init() 
@@ -290,6 +291,8 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 									pos++;
 					}				
 	}
+	printf("MAD debug: (%x %x %x %x)\n",
+													data[0], data[1], data[2], data[3]);
 	return 0;
 }
 
@@ -312,6 +315,7 @@ static int mad_open(input_object *obj, char *path)
 		if ((data->mad_fd = open(path, O_RDONLY)) < 0) {
 					fprintf(stderr, "mad_open() failed\n");
 					free(obj->local_data);
+					obj->local_data = NULL;
 					return 0;
 		}
 		if ((bytes_read = read(data->mad_fd,
@@ -320,6 +324,7 @@ static int mad_open(input_object *obj, char *path)
 				fprintf(stderr, "mad_open() can't read enough initial data\n");
 				close(data->mad_fd);
 				free(obj->local_data);
+				obj->local_data = NULL;
 				return 0;
 		}		
 		mad_synth_init  (&data->synth);
@@ -332,6 +337,7 @@ static int mad_open(input_object *obj, char *path)
 						fprintf(stderr, "mad_open() couldn't find valid MPEG header\n");
 						close(data->mad_fd);
 						free(obj->local_data);
+						obj->local_data = NULL;
 						return 0;
 		} else {
 						memmove(data->stream_buffer, data->stream_buffer + data->offset, 
@@ -354,12 +360,14 @@ static int mad_open(input_object *obj, char *path)
 														printf("MAD_ERROR_BUFLEN...\n");
 														close(data->mad_fd);
 														free(obj->local_data);
+														obj->local_data = NULL;
 														break;
 										default:
 														printf("MAD debug: no valid frame found at start\n");
 					}
 					close(data->mad_fd);
 					free(obj->local_data);
+					obj->local_data = NULL;
 					return 0;
 		} else {
 					int mode = (data->frame.header.mode == MAD_MODE_SINGLE_CHANNEL) ?
@@ -395,14 +403,14 @@ static void mad_close(input_object *obj)
 			return;
 	data = (struct mad_local_data *)obj->local_data;
 
-	if (data->mad_fd) 
+	if (data && data->mad_fd) {
 					close(data->mad_fd);
-	
-	mad_synth_finish (&data->synth);
-	mad_frame_finish (&data->frame);
-	mad_stream_finish(&data->stream);
-
-	free(obj->local_data);
+					mad_synth_finish (&data->synth);
+					mad_frame_finish (&data->frame);
+					mad_stream_finish(&data->stream);
+					free(obj->local_data);
+					obj->local_data = NULL;
+	}				
 }
 
 
