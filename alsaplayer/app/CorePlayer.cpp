@@ -270,10 +270,12 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 		plugins_loaded = 1;
 		load_input_addons();
 	}
+#if !defined(EMBEDDED)
 	if ((input_buffer = new char[128 * 1024]) == NULL) {
 		alsaplayer_error("cannot allocate mix buffer");
 		exit(1);
 	}	
+#endif
 	pthread_mutex_unlock(&plugins_mutex);
 }
 
@@ -302,7 +304,9 @@ CorePlayer::~CorePlayer()
 	pthread_mutex_destroy(&the_object->object_mutex);
 	delete []buffer;
 	delete the_object;
+#if !defined(EMBEDDED)
 	delete []input_buffer;
+#endif
 }
 
 
@@ -1044,8 +1048,7 @@ int CorePlayer::Read32(void *data, int samples)
 		while (buf_index < samples) {
 			tmp_index = (int) ((float)use_pitch*(float)(buf_index-base_corr));
 			if ((check_index + tmp_index) > (read_buf->buf->write_index)-1) {
-				if (read_buf->next->start < 0 ||
-					read_buf->next == write_buf) {
+				if (read_buf->next->start < 0 || read_buf->next == write_buf) {
 					if (read_buf->next->start == -2) {
 						//alsaplayer_error("Next in queue (2)");
 						return -2;

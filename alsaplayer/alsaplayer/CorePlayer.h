@@ -106,7 +106,10 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	pthread_mutex_t counter_mutex;
 	pthread_mutex_t thread_mutex;
 	pthread_mutex_t notifier_mutex;
+#if !defined(EMBEDDED)
+	// this buffer is used to apply volume/pan and mixing channels
 	char *input_buffer;
+#endif
 	sample_buf *buffer;
 	sample_buf *read_buf, *write_buf, *new_write_buf;
 	int FrameSeek(int);
