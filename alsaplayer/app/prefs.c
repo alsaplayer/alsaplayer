@@ -296,6 +296,29 @@ int prefs_save(prefs_handle_t *prefs)
 	fclose(fd);
 }
 
+// Function to free user created prefs
+void prefs_free(prefs_handle_t *prefs)
+{
+	prefs_key_t *entry;
+    
+	if (!prefs)  return;
+
+	entry = prefs->keys;
+	while (entry) {
+		prefs_key_t *next = entry->next;
+
+		free (entry->section);
+		free (entry->key);
+		free (entry->value);
+	    
+		free (entry);
+		entry = next;
+	}
+    
+	if (prefs->filename)  free (prefs->filename);
+	free (prefs);
+}
+
 #ifdef __cplusplus
 }
 #endif	
