@@ -1090,7 +1090,7 @@ static void groom_list(int32 divisions, struct md *d)
 #endif
   int current_bank[MAXCHAN], current_banktype[MAXCHAN], current_set[MAXCHAN],
     current_kit[MAXCHAN], current_program[MAXCHAN]; 
-  int dset, dnote;
+  int dset, dnote, drumsflag, mprog;
   /* Or should each bank have its own current program? */
 
   for (i=0; i<MAXCHAN; i++)
@@ -1226,9 +1226,11 @@ static void groom_list(int32 divisions, struct md *d)
 #endif
 	  if (!d->is_open)
 	    break;
-	  if (current_kit[meep->event.channel]) /* percussion channel? */
+
+	  drumsflag = current_kit[meep->event.channel];
+
+	  if (drumsflag) /* percussion channel? */
 	    {
-	      int drumsflag = 1;
 	      dset = current_set[meep->event.channel];
 	      dnote=meep->event.a;
 #ifdef SFXDRUMOLD
@@ -1240,8 +1242,10 @@ static void groom_list(int32 divisions, struct md *d)
 #endif
 	      if (d->XG_System_On) xremap_percussion(&dset, &dnote, current_kit[meep->event.channel]);
 
-	      if (current_config_pc42b) pcmap(&dset, &dnote, &drumsflag);
+	      if (current_config_pc42b) pcmap(&dset, &dnote, &mprog, &drumsflag);
 
+	     if (drumsflag)
+	     {
 	      /* Mark this instrument to be loaded */
 	      if (!(drumset[dset]->tone[dnote].layer))
 	       {
@@ -1252,12 +1256,13 @@ static void groom_list(int32 divisions, struct md *d)
 		 = current_tune_number;
 	      if (!d->channel[meep->event.channel].name) d->channel[meep->event.channel].name=
 		    drumset[dset]->name;
+	     }
 	    }
-	  else /* not percussion */
+
+	  if (!drumsflag) /* not percussion */
 	    {
 	      int chan=meep->event.channel;
-	      int banknum, mprog;
-	      int drumsflag = 0;
+	      int banknum;
 
 	      if (current_banktype[chan]) banknum=SFXBANK;
 	      else banknum=current_bank[chan];
@@ -1270,7 +1275,7 @@ static void groom_list(int32 divisions, struct md *d)
 	      if (d->XG_System_On && banknum==SFXBANK && tonebank[120]) 
 		      banknum = 120;
 
-	      if (current_config_pc42b) pcmap(&banknum, &mprog, &drumsflag);
+	      if (current_config_pc42b) pcmap(&banknum, &dnote, &mprog, &drumsflag);
 
 	      /* Mark this instrument to be loaded */
 	      if (!(tonebank[banknum]->tone[mprog].layer))

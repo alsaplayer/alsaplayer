@@ -173,4 +173,4 @@ extern int max_patch_memory;
 extern int current_patch_memory;
 #define XMAPMAX 800
 extern int xmap[XMAPMAX][5];
-extern void pcmap(int *b, int *v, int *drums);
+extern void pcmap(int *b, int *v, int *p, int *drums);

@@ -246,17 +246,17 @@ static int pc42bmap[][7] = {
 
 /* drumset 0 sf	Standard */
 
-{ SDS, 0, 13,   0, 13, 0, 0 }, /* surdo1       note=86 pan=-21 */
-{ SDS, 0, 14,   0, 14, 0, 0 }, /* surdo2       note=87 pan=-32 */
-{ SDS, 0, 15,   0, 15, 0, 0 }, /* highq        note=65 pan=-21 amp=50 */
-{ SDS, 0, 16,   0, 16, 0, 0 }, /* slap         note=28 pan=-21 */
-{ SDS, 0, 17,   0, 17, 0, 0 }, /* scratch1     note=29 pan=-19 amp=30 */
-{ SDS, 0, 18,   0, 18, 0, 0 }, /* scratch2     note=30 pan=-19 amp=30 */
-{ SDS, 0, 19,   0, 19, 0, 0 }, /* snap         note=65 pan=center */
-{ SDS, 0, 20,   0, 20, 0, 0 }, /* sqrclick     note=60 pan=center */
-{ SDS, 0, 21,   0, 21, 0, 0 }, /* metclick     note=60 pan=center */
-{ SDS, 0, 22,   0, 22, 0, 0 }, /* metbell      note=60 pan=center */
-{ SDS, 0, 23,   0, 23, 0, 0 }, /* metclick     note=60 pan=center              # Seq Click L */
+{ SDS, 0, 13,   0, 86, 0, 0 }, /* surdo1       note=86 pan=-21 */
+{ SDS, 0, 14,   0, 87, 0, 0 }, /* surdo2       note=87 pan=-32 */
+{ SDS, 0, 15,   0, 27, 0, 0 }, /* highq        note=65 pan=-21 amp=50 */
+{ SDS, 0, 16,   8, 28, 0, 0 }, /* slap         note=28 pan=-21 */
+{ SDS, 0, 17,   0, 29, 0, 0 }, /* scratch1     note=29 pan=-19 amp=30 */
+{ SDS, 0, 18,   0, 30, 0, 0 }, /* scratch2     note=30 pan=-19 amp=30 */
+{ SDS, 0, 19,   0, 27, 0, 0 }, /* snap         note=65 pan=center */
+{ SDS, 0, 20,   8, 32, 0, 0 }, /* sqrclick     note=60 pan=center */
+{ SDS, 0, 21,   0, 33, 0, 0 }, /* metclick     note=60 pan=center */
+{ SDS, 0, 22,   0, 53, 0, 0 }, /* metbell      note=60 pan=center */ /* ?? Ride Bell */
+{ SDS, 0, 23,   0, 34, 0, 0 }, /* metclick     note=60 pan=center              # Seq Click L */
 /* 24 metclick     note=60 pan=center              # Seq Click H */
 
 /* # needed to remap sets 24/25 */
@@ -594,18 +594,34 @@ static int pc42bmap[][7] = {
 {   0,   0,   0,  0,   0, 0, 0 }  /*  sfx/bubbles1        note=48 keep=loop keep=env pan=center   # Bubble */
 };
 
-void pcmap(int *b, int *v, int *drums) {
+#include <stdio.h>
+
+void pcmap(int *b, int *v, int *p, int *drums) {
 	int bank = *b;
 	int voi = *v;
 	int i, bktype;
+#if 0
+int debug = 0;
+if (*drums && !bank && (voi == 14 || voi == 16)) {
+debug = 1;
+fprintf(stderr,"pcmap %d\n", voi);
+}
+#endif
+	if (!*drums) voi = *p;
 	for (i = 0; ; i++) {
 		bktype = pc42bmap[i][0];
 		if (!bktype) return;
-		if (drums && bktype != SDS) continue;
+		if (*drums && (bktype != SDS)) continue;
+		if (!*drums && (bktype != STS)) continue;
 		if (bank != pc42bmap[i][1]) continue;
 		if (voi != pc42bmap[i][2]) continue;
+#if 0
+fprintf(stderr,"drum?%d: %d/%d -> %d/%d [%d]\n", *drums, bank, voi, pc42bmap[i][3], pc42bmap[i][4], pc42bmap[i][5]);
+#endif
+if (!*drums) return;
 		*b = pc42bmap[i][3];
-		*v = pc42bmap[i][4];
+		if (*drums) *v = pc42bmap[i][4];
+		else *p = pc42bmap[i][4];
 		if (bktype == SDS && pc42bmap[i][5]) *drums = 0;
 		return;
 	}

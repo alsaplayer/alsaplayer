@@ -261,11 +261,18 @@ static
 void recompute_freq(int v, struct md *d)
 {
   int 
-    sign=(d->voice[v].sample_increment < 0), /* for bidirectional loops */
-    pb=d->channel[d->voice[v].channel].pitchbend;
+    sign, /* for bidirectional loops */
+    pb;
   double a;
   int32 tuning = 0;
-  
+
+  if (!d->voice[v].sample) {
+	  fprintf(stderr,"No SAMPLE!!\n");
+	  return;
+  }
+  sign=(d->voice[v].sample_increment < 0); /* for bidirectional loops */
+  pb=d->channel[d->voice[v].channel].pitchbend;
+
   if (!d->voice[v].sample->sample_rate)
     return;
 
@@ -976,6 +983,7 @@ static void start_note(MidiEvent *e, int i, struct md *d)
   int this_note = e->a;
   int this_velocity = e->b;
   int drumsflag = d->channel[ch].kit;
+  int this_prog = d->channel[ch].program;
 
   if (check_for_rc()) return;
 
@@ -984,11 +992,50 @@ static void start_note(MidiEvent *e, int i, struct md *d)
 
   d->voice[i].velocity=this_velocity;
 
-  if (d->XG_System_On) xremap(&banknum, &this_note, d->channel[ch].kit);
+#if 0
+if (drumsflag) {
+	if (!drumset[banknum]) fprintf(stderr,"before remap no drumset %d\n", banknum);
+	else if (!drumset[banknum]->tone[this_note].layer) 
+		fprintf(stderr,"before remap no note %d layer for drumset %d\n", this_note, banknum);
+}
+else {
+	if (!tonebank[banknum]) fprintf(stderr,"before remap no tonebank %d\n", banknum);
+	else if (!tonebank[banknum]->tone[this_prog].layer) 
+		fprintf(stderr,"before remap no prog %d layer for tonebank %d\n", this_prog, banknum);
+}
+#endif
 
-  if (current_config_pc42b) pcmap(&banknum, &this_note, &drumsflag);
+  if (d->XG_System_On) xremap(&banknum, &this_note, drumsflag);
 
-  if (d->channel[ch].kit)
+#if 0
+if (drumsflag) {
+	if (!drumset[banknum]) fprintf(stderr,"after xremap no drumset %d\n", banknum);
+	else if (!drumset[banknum]->tone[this_note].layer) 
+		fprintf(stderr,"after xremap no note %d layer for drumset %d\n", this_note, banknum);
+}
+else {
+	if (!tonebank[banknum]) fprintf(stderr,"after xremap no tonebank %d\n", banknum);
+	else if (!tonebank[banknum]->tone[this_prog].layer) 
+		fprintf(stderr,"after xremap no prog %d layer for tonebank %d\n", this_prog, banknum);
+}
+#endif
+
+  if (current_config_pc42b) pcmap(&banknum, &this_note, &this_prog, &drumsflag);
+
+#if 0
+if (drumsflag) {
+	if (!drumset[banknum]) fprintf(stderr,"after pcmap no drumset %d\n", banknum);
+	else if (!drumset[banknum]->tone[this_note].layer) 
+		fprintf(stderr,"after pcmap no note %d layer for drumset %d\n", this_note, banknum);
+}
+else {
+	if (!tonebank[banknum]) fprintf(stderr,"after pcmap no tonebank %d\n", banknum);
+	else if (!tonebank[banknum]->tone[this_prog].layer) 
+		fprintf(stderr,"after pcmap no prog %d layer for tonebank %d\n", this_prog, banknum);
+}
+#endif
+
+  if (drumsflag)
     {
       if (!(lp=drumset[banknum]->tone[this_note].layer))
 	{
@@ -1013,11 +1060,11 @@ static void start_note(MidiEvent *e, int i, struct md *d)
     }
   else
     {
-      if (d->channel[ch].program==SPECIAL_PROGRAM)
+      if (this_prog==SPECIAL_PROGRAM)
 	lp=default_instrument;
-      else if (!(lp=tonebank[banknum]->tone[d->channel[ch].program].layer))
+      else if (!(lp=tonebank[banknum]->tone[this_prog].layer))
 	{
-	  if (!(lp=tonebank[0]->tone[d->channel[ch].program].layer))
+	  if (!(lp=tonebank[0]->tone[this_prog].layer))
 	    return; /* No instrument? Then we can't play. */
 	}
       ip = lp->instrument;
@@ -1279,7 +1326,7 @@ printf("(new rel time = %ld)\n",
      * high notes come from the right, so we'll spread piano etc. notes
      * out horizontally according to their pitches.
      */
-    if (d->channel[ch].program < 21) {
+    if (this_prog < 21) {
 	    int n = d->voice[i].velocity - 32;
 	    if (n < 0) n = 0;
 	    if (n > 64) n = 64;

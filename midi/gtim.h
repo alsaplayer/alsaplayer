@@ -45,7 +45,7 @@
 #define tplus
 
 /* Enable Nicolas Witczak's effects processing */
-#define CHANNEL_EFFECT
+/*#define CHANNEL_EFFECT*/
 
 /* Filename extension, followed by command to run decompressor so that
    output is written to stdout. Terminate the list with a 0. 

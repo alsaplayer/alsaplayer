@@ -39,7 +39,7 @@ int autocfg() {
 
 	if (!haveone) {
 		strcpy(cfg_path, prefs_path);
-		strcat(cfg_path,"PC42b.sf2");
+		strcat(cfg_path,"/PC42b.sf2");
 		if ( (fp=fopen(cfg_path, "r")) ) {
 			fclose(fp);
 			current_config_pc42b = 1;
