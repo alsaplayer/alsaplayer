@@ -157,7 +157,7 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 		alsaplayer_error("Sorry - this interface requires working threads.\n");
 		return 1;
 	}
-	
+
 	// Scope functions
 	scopes = new AlsaSubscriber();
 	scopes->Subscribe(the_coreplayer->GetNode(), POS_END);

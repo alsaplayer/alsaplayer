@@ -1,4 +1,4 @@
-if HAVE_FLAC
+if HAVE_FLC
 
 flac_inltlibs = libflac_in.la
 flac_inldflags = -export-dynamic -avoid-version
@@ -35,5 +35,5 @@ CXXFLAGS = -D_REENTRANT $(EXTRA_CFLAGS)
 libdir = $(ADDON_DIR)/input
 
 libflac_in_la_LDFLAGS = $(flac_inldflags)
-libflac_in_la_LIBADD = @FLAC_LDADD@
+libflac_in_la_LIBADD = @FLC_LDADD@
 libflac_in_la_SOURCES= $(flac_insources) $(flac_inid3sources)

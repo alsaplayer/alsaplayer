@@ -259,7 +259,7 @@ dnl flac library
 dnl ============
 
 AC_CHECK_LIB(FLAC, FLAC__file_decoder_new,
-     FLAC_LDADD="-lFLAC -lm"; have_flac=yes; AC_DEFINE(HAVE_LIBFLAC, 1, [Define if you have flac library (-lFLAC)]), have_flac=no; FLAC_LDADD=, -lm)
+     FLC_LDADD="-lFLAC -lm"; have_flac=yes; AC_DEFINE(HAVE_LIBFLC, 1, [Define if you have flac library (-lFLAC)]), have_flac=no; FLC_LDADD=, -lm)
 
 
 dnl ===========
@@ -278,11 +278,11 @@ oldcflags=$CFLAGS
 CFLAGS="$CFLAGS -lz"
 
 AC_CHECK_LIB(id3tag, id3_file_open,
-     MAD_LDADD="$MAD_LDADD -lid3tag -lz"; FLAC_LDADD="$FLAC_LDADD -lid3tag -lz"; use_libid3tag=yes; AC_DEFINE(HAVE_LIBID3TAG, 1, [Define if you have libid3tag library (-lid3tag)]), use_libid3tag=no)
+     MAD_LDADD="$MAD_LDADD -lid3tag -lz"; FLC_LDADD="$FLC_LDADD -lid3tag -lz"; use_libid3tag=yes; AC_DEFINE(HAVE_LIBID3TAG, 1, [Define if you have libid3tag library (-lid3tag)]), use_libid3tag=no)
 
 CFLAGS=$oldcflags
 
-AC_SUBST(FLAC_LDADD)
+AC_SUBST(FLC_LDADD)
 AC_SUBST(MAD_LDADD)
 
 dnl =================
@@ -566,7 +566,7 @@ fi
 AM_CONDITIONAL(HAVE_DOXYGEN, $HAVE_DOXYGEN)
 AM_CONDITIONAL(USE_LIBMAD,test "x$use_libmad" = xyes)
 AM_CONDITIONAL(USE_LIBID3TAG, test "x$use_libid3tag" = xyes)
-AM_CONDITIONAL(HAVE_FLAC, test "x$have_flac" = xyes)
+AM_CONDITIONAL(HAVE_FLC, test "x$have_flac" = xyes)
 AM_CONDITIONAL(HAVE_JACK,	test "x$have_jack" = xyes)
 AM_CONDITIONAL(HAVE_ALSA_05X, test "x$have_alsa_05x" = xyes)
 AM_CONDITIONAL(HAVE_ALSA_FINAL, test "x$have_alsa_final" = xyes)
