@@ -429,6 +429,7 @@ ap_playlist_update_playitem (ApPlaylist	    *playlist,
 {
     g_return_if_fail (AP_IS_PLAYLIST (playlist));
     g_return_if_fail (AP_IS_PLAYITEM (playitem));
+    g_return_if_fail (ap_playitem_get_filename (playitem));
 
     g_object_ref (playitem);
     g_async_queue_push (playlist->info_queue, playitem);
