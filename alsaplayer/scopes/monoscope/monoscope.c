@@ -1,5 +1,5 @@
 /*  monoscope.h
- *  Copyright (C) 1998-2001 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 1998-2002 Andy Lo A Foe <andy@alsaplayer.org>
  *  Original code by Tinic Uro
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -321,7 +321,8 @@ scope_plugin monoscope_plugin = {
 	monoscope_running,
 	stop_monoscope,
 	close_monoscope,
-	monoscope_set_data
+	monoscope_set_data,
+	NULL
 };
 
 

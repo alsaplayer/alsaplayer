@@ -1,5 +1,5 @@
 /*  spacescope.c
- *  Copyright (C) 1998 Andy Lo A Foe <arloafoe@cs.vu.nl>
+ *  Copyright (C) 1998-2002 Andy Lo A Foe <andy@alsaplayer.org>
  *  Original code by Tinic Uro
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -246,7 +246,8 @@ scope_plugin spacescope_plugin = {
 	spacescope_running,
 	stop_spacescope,
 	close_spacescope,
-	spacescope_set_data
+	spacescope_set_data,
+	NULL
 };
 
 

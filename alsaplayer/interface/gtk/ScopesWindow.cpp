@@ -1,19 +1,22 @@
 /*  ScopesWindow.cpp
-*  Copyright (C) 1999 Andy Lo A Foe <andy@alsa-project.org>
-*
-*  This program is free software; you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation; either version 2 of the License, or
-*  (at your option) any later version.
-*
-*  This program is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  You should have received a copy of the GNU General Public License
-*  along with this program; if not, write to the Free Software
-*  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  Copyright (C) 1999-2002 Andy Lo A Foe <andy@alsaplayer.org>
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *
+ *  $Id$
+ *
 */ 
 #include "ScopesWindow.h"
 #include "CorePlayer.h"
@@ -23,8 +26,10 @@
 #include "gtk_interface.h"
 #include "pixmaps/note.xpm"
 #include "error.h"
+#include "fft.h"
 #include <pthread.h>
 #include <dlfcn.h>
+#include <math.h>
 
 extern int global_scopes_show;
 static GtkWidget *scopes_window = (GtkWidget *)NULL;
@@ -39,7 +44,6 @@ void dl_close_scopes()
 
 	while (current) {
 		if (current->sp) {
-			//printf("dlclosing %s\n", current->sp->name);
 			dlclose(current->sp->handle);
 		}	
 		current = current->next;
@@ -55,9 +59,44 @@ void scope_entry_destroy_notify(gpointer data)
 bool  scope_feeder_func(void *arg, void *data, int size) 
 {
 	static char buf[16384];
+	static int fft_buf[512];
 	static int fill = 0;
 	static int left = 0;
 	static int warn = 0;
+	static int init = 0;
+	static int buf_size = 0;
+	int i;
+	short *sound;
+	int *left_pos;
+	int *right_pos;
+
+	static double fftmult[FFT_BUFFER_SIZE / 2 + 1];
+
+	static sound_sample left_actEq[SCOPE_BUFFER];
+	static double left_fftout[FFT_BUFFER_SIZE / 2 + 1];
+	static fft_state *left_fftstate;
+
+	static sound_sample right_actEq[SCOPE_BUFFER];
+	static double right_fftout[FFT_BUFFER_SIZE / 2 + 1];
+	static fft_state *right_fftstate;
+
+	sound_sample *left_newset;
+	sound_sample *right_newset;
+
+	if (!init) {
+		for(i = 0; i <= FFT_BUFFER_SIZE / 2 + 1; i++) {
+			double mult = (double)128 / ((FFT_BUFFER_SIZE * 16384) ^ 2);
+			mult *= log(i + 1) / log(2);
+			mult *= 3;
+			fftmult[i] = mult;
+		}
+		right_fftstate = fft_init();
+		left_fftstate = fft_init();
+		if (!left_fftstate || !right_fftstate)
+			alsaplayer_error("WARNING: could not do fft_init()");
+		buf_size = SCOPE_BUFFER <= (FFT_BUFFER_SIZE * 2) ? SCOPE_BUFFER : FFT_BUFFER_SIZE;
+		init = 1;	
+	}	
 
 	scope_entry *se = root_scope;
 
@@ -67,10 +106,35 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 
 		if (pthread_mutex_trylock(&sl_mutex) != 0) {
 			return true;	// List is being manipulated
+		}
+#if 1	
+		// Do global FFT
+		left_newset = left_actEq;
+		right_newset = right_actEq;
+		
+		sound = (short *)buf;
+			
+		for (i = 0; i < buf_size; i++) {
+			*left_newset++ = (sound_sample)((int)(*sound));
+			*right_newset++ = (sound_sample)((int)(*(sound+1)));
+			sound +=2;
+		}
+		
+		fft_perform(right_actEq, right_fftout, right_fftstate);
+		fft_perform(left_actEq, left_fftout, left_fftstate);
+			
+		for (i = 0, left_pos = fft_buf, right_pos = fft_buf + 256; i < 256; i++) {
+			left_pos[i] = (int)(sqrt(left_fftout[i]) * fftmult[i]);
+			right_pos[i] = (int)(sqrt(right_fftout[i]) * fftmult[i]);
 		}	
+#endif
 		while (se && se->sp && se->active) {
-			if (se->sp->running())
-				se->sp->set_data((short *)buf, SCOPE_BUFFER >> 1);
+			if (se->sp->running()) {
+				if (se->sp->set_data)
+					se->sp->set_data((short *)buf, SCOPE_BUFFER >> 1);
+				if (se->sp->set_fft)
+					se->sp->set_fft((int *)fft_buf, 256, 2);
+			}	
 			if (se->next) 
 				se = se->next;
 			else 

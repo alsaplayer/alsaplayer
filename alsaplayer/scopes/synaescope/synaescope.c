@@ -1,5 +1,6 @@
 /*  synaescope.cpp
  *  Copyright (C) 1999 Richard Boulton <richard@tartarus.org>
+ *  Further support (C) 2002 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  Much code copied from Synaesthesia - a program to display sound
  *  graphically, by Paul Francis Harrison <pfh@yoyo.cc.monash.edu.au>
@@ -651,7 +652,8 @@ scope_plugin synaescope_plugin = {
 	synaescope_running,
 	stop_synaescope,
 	close_synaescope,
-	synaescope_set_data
+	synaescope_set_data,
+	NULL
 };
 
 

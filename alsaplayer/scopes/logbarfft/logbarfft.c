@@ -1,5 +1,5 @@
 /*  barfft.cpp
- *  Copyright (C) 1999 Andy Lo A Foe <andy@alsa-project.org>
+ *  Copyright (C) 1999-2002 Andy Lo A Foe <andy@alsaplayer.org>
  *  Based on code by Richard Boulton <richard@tartarus.org>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -29,18 +29,23 @@
 #include <string.h>
 #include <assert.h>
 #include "scope_config.h"
+#if 0
 #include "fft.h"
+#endif
 
 #define BARS 32
 
 static GtkWidget *area = NULL;
 static GdkRgbCmap *color_map = NULL;
-static sound_sample actEq[FFT_BUFFER_SIZE];
-static sound_sample oldEq[FFT_BUFFER_SIZE];
+static int fft_buf[512];
+//static sound_sample actEq[FFT_BUFFER_SIZE];
+//static sound_sample oldEq[FFT_BUFFER_SIZE];
 static int maxbar[BARS];
+#if 0
 static double fftout[FFT_BUFFER_SIZE / 2 + 1];
 static double fftmult;
 static fft_state *fftstate;
+#endif
 static GdkImage *image = NULL;
 static GtkWidget *scope_win = NULL;
 static int ready_state = 0;
@@ -49,8 +54,10 @@ static pthread_mutex_t fftscope_mutex;
 static int is_init = 0;
 static int running = 0;
 
-//static int xranges[] = {1, 2, 3, 4, 6, 8, 11, 15, 21,
-//			29, 40, 54, 74, 101, 137, 187, 255};
+#if 0
+static int xranges[] = {1, 2, 3, 4, 6, 8, 11, 15, 21,
+			29, 40, 54, 74, 101, 137, 187, 255};
+#endif
 static int xranges[] = {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 15, 17, 19, 21, 23, 25, 29, 33, 37, 40, 44, 48, 54, 61, 67, 74, 90, 101, 137, 158, 187, 255};
 
 
@@ -63,25 +70,15 @@ static const int default_colors[] = {
 };
 
 
-void logscope_set_data(void *audio_buffer, int size)
+void logscope_set_fft(void *fft_data, int samples, int channels)
 {
 	int i;
-	short *sound = (short *)audio_buffer;
 	
-	if (!sound) {
-			memset(&actEq, 0, sizeof(actEq));
+	if (!fft_data) {
+			memset(fft_buf, 0, sizeof(fft_buf));
 			return;
 	}
-	if (running && size > FFT_BUFFER_SIZE * 2) {
-		sound_sample *newset = actEq;
-		sound += (size / 2 - FFT_BUFFER_SIZE) * 2; // Use the very latest data
-		for (i=0; i < FFT_BUFFER_SIZE; i++) {
-			*newset++=(sound_sample)((
-			          (int)(*sound) + (int)*(sound + 1)
-				  ) >> 1);
-			sound += 2;
-		}
-	}
+	memcpy(fft_buf, fft_data, sizeof(int) * samples * channels);
 }
 
 static void the_fftscope()
@@ -99,14 +96,15 @@ static void the_fftscope()
 		gint w;
    
 		memset(bits, 0, 256 * 128);
-    
+#if 0 
 		memcpy(&oldEq, &actEq, sizeof(actEq));
-
     fft_perform(oldEq, fftout, fftstate);
-    for (i=0; i < BARS; i++) { 
+#endif    
+		for (i=0; i < BARS; i++) { 
 				val = 0;
 				for (j = xranges[i]; j < xranges[i + 1]; j++) {
-					k = (guint)(sqrt(fftout[j]) * fftmult);
+					/* k = (guint)(sqrt(fftout[j]) * fftmult); */
+					k = (fft_buf[j] + fft_buf[256+j]) / 4;
 					val += k;
 				}
 				if(val > 127) val = 127;
@@ -186,8 +184,6 @@ static GtkWidget *init_fftscope_window()
 	gtk_widget_show(area);
 	gtk_widget_show(fftscope_win);
 	
-	// Signals
-		
 	gtk_signal_connect(GTK_OBJECT(fftscope_win), "delete_event",
                 GTK_SIGNAL_FUNC(close_fftscope_window), fftscope_win);
 
@@ -230,9 +226,11 @@ static void run_fftscope(void *data)
 
 static void start_fftscope(void *data)
 {
+#if 0	
 	fftstate = fft_init();
 	if (!fftstate)
 		return;
+#endif
 	if (!is_init) {
 		is_init = 1;
 		scope_win = init_fftscope_window();
@@ -254,17 +252,17 @@ static int open_fftscope()
 static int init_fftscope()
 {
 	int i;
-
-        fft_init();
+#if 0
+  fft_init();
 	
 	fftmult = (double)128 / ((FFT_BUFFER_SIZE * 16384) ^ 2);
-		// Result now guaranteed (well, almost) to be in range 0..128
+	// Result now guaranteed (well, almost) to be in range 0..128
 
-		// Low values represent more frequencies, and thus get more
-		// intensity - this helps correct for that.
+	// Low values represent more frequencies, and thus get more
+	// intensity - this helps correct for that.
 
 	fftmult *= 3; // Adhoc parameter, looks about right for me.
-
+#endif
 	for (i = 0; i < BARS; i++) {
 		maxbar[ i ] = 0;
 	}	
@@ -291,7 +289,8 @@ scope_plugin logscope_plugin = {
 	fftscope_running,
 	stop_fftscope,
 	close_fftscope,
-	logscope_set_data
+	NULL,
+	logscope_set_fft,
 };
 
 

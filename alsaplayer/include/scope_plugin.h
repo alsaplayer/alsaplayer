@@ -30,10 +30,10 @@
  * THE VERSION NUMBER IS *NOT* A USER SERVICABLE PART!
  */
 
-#define SCOPE_PLUGIN_VERSION    0x1002
+#define SCOPE_PLUGIN_VERSION    0x1003
 
 #define SCOPE_NICE	15
-#define SCOPE_SLEEP 30000
+#define SCOPE_SLEEP 25000
 #define SCOPE_BG_RED	0
 #define SCOPE_BG_BLUE	0
 #define SCOPE_BG_GREEN	0
@@ -46,6 +46,7 @@ typedef int(*scope_running_type)();
 typedef void(*scope_stop_type)();
 typedef void(*scope_close_type)();
 typedef void(*scope_set_data_type)(void *, int);
+typedef void(*scope_set_fft_type)(void *, int, int);
 
 typedef struct _scope_plugin
 {
@@ -60,6 +61,7 @@ typedef struct _scope_plugin
 	scope_stop_type stop;
 	scope_close_type close;
 	scope_set_data_type set_data;
+	scope_set_fft_type set_fft;
 } scope_plugin;
 
 typedef scope_plugin*(*scope_plugin_info_type)();

@@ -30,13 +30,8 @@
 #include <string.h>
 #include <assert.h>
 #include "scope_config.h"
-#include "fft.h"
 
-static sound_sample actEq[FFT_BUFFER_SIZE];
-static sound_sample oldEq[FFT_BUFFER_SIZE];
-static double fftout[FFT_BUFFER_SIZE / 2 + 1];
-static double fftmult[FFT_BUFFER_SIZE / 2 + 1];
-static fft_state *fftstate;
+static int act_fft[512];
 static GdkImage *image = NULL;
 static GtkWidget *scope_win = NULL;
 static int ready_state = 0;
@@ -53,24 +48,13 @@ static const int default_colors[] = {
 };
 
 
-void fftscope_set_data(void *audio_buffer, int size)
+void fftscope_set_fft(void *fft_buffer, int samples, int channels)
 {
-	int i;	
-	short *sound = (short *)audio_buffer;
-	if (!sound) {
-			memset(&actEq, 0, sizeof(actEq));
+	if (!fft_buffer || (samples * channels) > 512) {
+			memset(act_fft, 0, sizeof(act_fft));
 			return;
 	}	
-	if (running && size > FFT_BUFFER_SIZE * 2) {
-		sound_sample *newset = actEq;
-		sound += (size / 2 - FFT_BUFFER_SIZE) * 2; // Use the very latest data
-		for (i=0; i < FFT_BUFFER_SIZE; i++) {
-			*newset++=(sound_sample)((
-			          (int)(*sound) + (int)*(sound + 1)
-				  ) >> 1);
-			sound += 2;
-		}
-	}
+	memcpy(act_fft, fft_buffer, (sizeof(int)) * samples * channels);
 }
 
 #define FFTSCOPE_DOLOOP() \
@@ -82,13 +66,8 @@ while (running) { \
 	bits[w] = bg_color.pixel; \
     } \
 \
-    /*memset(bits,0x0, 256 * 128 * image->bpp);*/ \
-    memcpy(&oldEq, &actEq,sizeof(actEq)); \
-\
-    fft_perform(oldEq, fftout, fftstate); \
-\
     for (i=0; i < 256; i++) { \
-	val = (guint)(sqrt(fftout[i]) * fftmult[i]);\
+	val = (act_fft[i] + act_fft[i+256]) / 2; \
 	if(val > 127) val = 127; \
 	loc = bits + i + 256 * 127; \
 	for (h = val; h > 0; h--) { \
@@ -295,11 +274,11 @@ static void stop_fftscope();
 
 static gboolean close_fftscope_window(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-  			GDK_THREADS_LEAVE();
-				stop_fftscope();
-				GDK_THREADS_ENTER();
+	GDK_THREADS_LEAVE();
+	stop_fftscope();
+	GDK_THREADS_ENTER();
 
-		return TRUE;
+	return TRUE;
 }
 
 
@@ -394,14 +373,9 @@ static void run_fftscope(void *data)
 
 static void start_fftscope(void *data)
 {
-        fftstate = fft_init();
-	if(!fftstate) return;
-	/* FIXME - Need to call convolve_close(state); at some point
-	 * if this is going to become a proper plugin. */
-
 	if (!is_init) {
-		is_init = 1;
 		scope_win = init_fftscope_window();
+		is_init = 1;
 	}
 	if (pthread_mutex_trylock(&fftscope_mutex) != 0) {
 		printf("fftscope already running\n");
@@ -421,18 +395,7 @@ static int init_fftscope()
 {
 	int i;
 
-	for(i = 0; i <= FFT_BUFFER_SIZE / 2 + 1; i++) {
-		double mult = (double)128 / ((FFT_BUFFER_SIZE * 16384) ^ 2);
-		// Result now guaranteed (well, almost) to be in range 0..128
-
-		// Low values represent more frequencies, and thus get more
-		// intensity - this helps correct for that.
-		mult *= log(i + 1) / log(2);
-
-		mult *= 3; // Adhoc parameter, looks about right for me.
-
-		fftmult[i] = mult;
-	}
+	memset(act_fft, 0, sizeof(act_fft));
 
 	return 1;
 }
@@ -457,7 +420,8 @@ scope_plugin fftscope_plugin = {
 	fftscope_running,
 	stop_fftscope,
 	close_fftscope,
-	fftscope_set_data
+	NULL,
+	fftscope_set_fft
 };
 
 

@@ -1,5 +1,5 @@
 /*  levelmeter.c
- *  Copyright (C) 1998 Andy Lo A Foe <arloafoe@cs.vu.nl>
+ *  Copyright (C) 1998-2002 Andy Lo A Foe <andy@alsaplayer.org>
  *  Original code by Tinic Uro
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -342,7 +342,8 @@ scope_plugin levelmeter_plugin = {
 	levelmeter_running,
 	stop_levelmeter,
 	close_levelmeter,
-	levelmeter_set_data
+	levelmeter_set_data,
+	NULL
 };
 
 

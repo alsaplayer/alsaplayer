@@ -1,3 +1,13 @@
+- Modified scope plugin interface, optional set_fft() call to scope. There is 
+  a global FFT calculation routine fso scopes can feed off this instead.
+	Doing internal FFT is of course still possible, see synaescope.
+- Fix CDDA (CD) plugin to recognize "Track XX.cdda" files again
+- Make our jack output ports terminal.
+- alsaplayer will now remember the paths of the play, add, load and save
+  dialogs whenever you sucessfully complete one of these actions (all paths
+	default to / initially)
+
+
 Tue Feb 26 20:56:34 CET 2002
 ----------------------------
 

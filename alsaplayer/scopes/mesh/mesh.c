@@ -302,7 +302,8 @@ scope_plugin meshscope_plugin =
   meshscope_running,
   stop_meshscope,
   close_meshscope,
-  meshscope_set_data
+  meshscope_set_data,
+	NULL
 };
 
 

@@ -1,5 +1,5 @@
 /*  gtk_barfft.cpp
- *  Copyright (C) 1999 Andy Lo A Foe <andy@alsa-project.org>
+ *  Copyright (C) 1999-2002 Andy Lo A Foe <andy@alsaplayer.org>
  *  Based on code by Richard Boulton <richard@tartarus.org>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -29,16 +29,10 @@
 #include <string.h>
 #include <assert.h>
 #include "scope_config.h"
-#include "fft.h"
 
 #define FALLOFF_STEP	6
-
-static sound_sample actEq[FFT_BUFFER_SIZE];
-static sound_sample oldEq[FFT_BUFFER_SIZE];
 static int maxbar[16];
-static double fftout[FFT_BUFFER_SIZE / 2 + 1];
-static double fftmult[FFT_BUFFER_SIZE / 2 + 1];
-static fft_state *fftstate;
+static int fft_buf[512];
 static GdkImage *image = NULL;
 static GtkWidget *scope_win = NULL;
 static int ready_state = 0;
@@ -55,24 +49,13 @@ static const int default_colors[] = {
 };
 
 
-void barscope_set_data(void *audio_buffer, int size)
+void barfft_set_fft(void *fft_data, int samples, int channels)
 {
-	int i;	
-	short *sound = (short *)audio_buffer;
-	if (!sound) {
-			memset(&actEq, 0, sizeof(actEq));
-			return;
-	}	
-	if (running && size > FFT_BUFFER_SIZE * 2) {
-		sound_sample *newset = actEq;
-		sound += (size / 2 - FFT_BUFFER_SIZE) * 2; // Use the very latest data
-		for (i=0; i < FFT_BUFFER_SIZE; i++) {
-			*newset++=(sound_sample)((
-			          (int)(*sound) + (int)*(sound + 1)
-				  ) >> 1);
-			sound += 2;
-		}
+	if (!fft_data || (samples * channels) > 512) {
+		memset(fft_buf, 0, sizeof(fft_buf));
+		return;
 	}
+	memcpy(fft_buf, fft_data, samples * channels * sizeof(int));
 }
 
 #define FFTSCOPE_DOLOOP() \
@@ -86,15 +69,10 @@ while (running) { \
 	bits[w] = bg_color.pixel; \
     } \
 \
-    /*memset(bits,0x0, 256 * 128 * image->bpp);*/ \
-    memcpy(&oldEq, &actEq,sizeof(actEq)); \
-\
-    fft_perform(oldEq, fftout, fftstate); \
-\
     for (i=0; i < 256; i+=16) { \
 		val = 0; \
 		for (j=i; j < i+16; j++) { \
-			k = (guint)(sqrt(fftout[j]) * fftmult[j]);\
+			k = (fft_buf[j] + fft_buf[j+256]) / 2;\
 			if (k > val) val = k;\
 		} \
 		if(val > 127) val = 127; \
@@ -407,9 +385,6 @@ static void run_fftscope(void *data)
 
 static void start_fftscope(void *data)
 {
-	fftstate = fft_init();
-	if (!fftstate)
-		return;
 	if (!is_init) {
 		is_init = 1;
 		scope_win = init_fftscope_window();
@@ -432,20 +407,6 @@ static int init_fftscope()
 {
 	int i;
 
-	fft_init();
-	
-	for(i = 0; i <= FFT_BUFFER_SIZE / 2 + 1; i++) {
-		double mult = (double)128 / ((FFT_BUFFER_SIZE * 16384) ^ 2);
-		// Result now guaranteed (well, almost) to be in range 0..128
-
-		// Low values represent more frequencies, and thus get more
-		// intensity - this helps correct for that.
-		mult *= log(i + 1) / log(2);
-
-		mult *= 3; // Adhoc parameter, looks about right for me.
-
-		fftmult[i] = mult;
-	}
 	for (i = 0; i < 16; i++) {
 		maxbar[ i ] = 0;
 	}	
@@ -472,7 +433,8 @@ scope_plugin barscope_plugin = {
 	fftscope_running,
 	stop_fftscope,
 	close_fftscope,
-	barscope_set_data
+	NULL,
+	barfft_set_fft,
 };
 
 
