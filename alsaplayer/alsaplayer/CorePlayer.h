@@ -106,6 +106,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	pthread_mutex_t counter_mutex;
 	pthread_mutex_t thread_mutex;
 	pthread_mutex_t notifier_mutex;
+	char *input_buffer;
 	sample_buf *buffer;
 	sample_buf *read_buf, *write_buf, *new_write_buf;
 	int FrameSeek(int);
@@ -113,6 +114,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	void ResetBuffer();
 	void SetSpeedMulti(float multi) { pitch_multi = multi; }
 	void update_pitch();
+	void kill_producer();
 	static void producer_func(void *data);
 	static bool streamer_func(void *, void *, int);
 	int pcm_worker(sample_buf *dest, int start);
@@ -120,6 +122,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	int SetDirection(int dir);
 	int GetDirection() { return read_direction; }
 	void load_input_addons();
+	void unregister_plugins();
 	void UnregisterPlugins();
 	void Lock();
 	void Unlock();

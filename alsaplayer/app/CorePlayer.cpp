@@ -269,6 +269,10 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 		plugins_loaded = 1;
 		load_input_addons();
 	}
+	if ((input_buffer = new char[128 * 1024]) == NULL) {
+		alsaplayer_error("cannot allocate mix buffer");
+		exit(1);
+	}	
 	pthread_mutex_unlock(&plugins_mutex);
 }
 
@@ -297,6 +301,7 @@ CorePlayer::~CorePlayer()
 	pthread_mutex_destroy(&the_object->object_mutex);
 	delete []buffer;
 	delete the_object;
+	delete []input_buffer;
 }
 
 
@@ -962,7 +967,7 @@ int CorePlayer::Read32(void *data, int samples)
 		if (write_buf->next->start == -2 || !producing) {
 			return -2;
 		}
-		alsaplayer_error("Nothing to play (spitting out silence)");
+		//alsaplayer_error("Nothing to play (spitting out silence)");
 		memset(data, 0, samples * 4);
 		return samples;
 	}
@@ -1176,9 +1181,8 @@ bool CorePlayer::streamer_func(void *arg, void *data, int size)
 {
 	CorePlayer *obj = (CorePlayer *)arg;
 	int count;
-	char *input_buffer = (char *)data;
 
-	if ((count = obj->Read32(input_buffer, size / sizeof(short))) >= 0) {
+	if ((count = obj->Read32(obj->input_buffer, size / sizeof(short))) >= 0) {
 		int v, p, left, right;
 		p = obj->pan;
 		v = obj->volume;
@@ -1200,13 +1204,13 @@ bool CorePlayer::streamer_func(void *arg, void *data, int size)
 			}
 			//printf("v = %d, p = %d, left = %d, right = %d\n",
 			//	p, v, left, right);
-			volume_effect32(input_buffer, count, left, right);
+			volume_effect32(obj->input_buffer, count, left, right);
 		}	
 		// Now add the data to the current stream
 		int16_t *in_buffer;
 		int16_t *out_buffer;
 		int32_t level;
-		in_buffer = (int16_t *)input_buffer;
+		in_buffer = (int16_t *)obj->input_buffer;
 		out_buffer = (int16_t *)data;
 		for (int i=0; i < size ; i++) {
 				level = *(in_buffer++) + *out_buffer;
