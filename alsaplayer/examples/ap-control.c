@@ -1,7 +1,7 @@
 /*
 	ap-control
 
-	Author: Frank Baumgart, godot@upb.de
+	Author: Frank Baumgart, frank.baumgart@gmx.net
 
 	TODO:
 	- "playlist" without further parameters should output current playlist

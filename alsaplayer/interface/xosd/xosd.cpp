@@ -1,6 +1,6 @@
 /*
  *  daemon-xosd.cpp - XOSD Daemon interface
- *  Copyright (C) 2003 Frank Baumgart <godot@upb.de>
+ *  Copyright (C) 2003 Frank Baumgart <frank.baumgart@gmx.net>
  *  Copyright (C) 2002 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -198,7 +198,11 @@ int daemon_start(Playlist *playlist, int argc, char **argv)
 			dosleep(1000000);
 		}
 
-		dosleep(1000000);
+		// remove current title from playlist, so we do not loop forever
+//		playlist->Remove(1,1);
+
+		if (!finished)
+			dosleep(1000000);
 	}
 
 	xosd_destroy(osd);
