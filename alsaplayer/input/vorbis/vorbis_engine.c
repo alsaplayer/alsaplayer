@@ -81,7 +81,7 @@ static int ovcb_seek(void *datasource, int64_t offset, int whence)
 
 static int ovcb_noseek(void *datasource, int64_t offset, int whence)
 {
-	/* When we are streaming we do not allow seeking */
+	/* When we are streaming without seeking support in reader plugin */
 	return -1;
 }
 
@@ -282,7 +282,7 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 
 	if (data) {
 		strncpy (info->path, data->path, sizeof (info->path));
-		if ((comment = ov_comment(&data->vf, -1)) != NULL) {
+		if (obj->flags & P_SEEK && (comment = ov_comment(&data->vf, -1)) != NULL) {
 			t = vorbis_comment_query(comment, "title", 0);
 			a = vorbis_comment_query(comment, "artist", 0);
 			l = vorbis_comment_query(comment, "album", 0);
@@ -405,12 +405,12 @@ static int vorbis_open(input_object *obj, const char *path)
 	}
 
 	obj->flags = 0;
-	if (strncmp(path, "http://", 7) == 0) {
-		obj->flags |= P_STREAMBASED;
-	} else {
+	if (reader_seekable (datasource)) {
 		obj->flags |= P_SEEK;
 		obj->flags |= P_PERFECTSEEK;
 		obj->flags |= P_FILEBASED;
+	} else {
+		obj->flags |= P_STREAMBASED;
 	}	
 
 	if (ov_open_callbacks(datasource, &vf_temp, NULL, 0, 
@@ -418,6 +418,7 @@ static int vorbis_open(input_object *obj, const char *path)
 		ov_clear(&vf_temp);
 		return 0;
 	}
+
 	vi = ov_info(&vf_temp, -1);
 	if (!vi) {
 		ov_clear(&vf_temp);

@@ -60,7 +60,6 @@ typedef struct http_desc_t_ {
     pthread_cond_t read_condition;  /* Notice reader_read about new block. */
     pthread_cond_t fast_condition;  /* Give me data as soon as possible. */
     int error;			    /* Error status (0 - none). */
-    int fastmode;		    /* No delay while reading from socket. */
     int seekable;
     reader_status_type status;
 } http_desc_t;
@@ -71,6 +70,9 @@ typedef struct http_desc_t_ {
 /* How long should be buffer? (bytes) */
 #define  DEFAULT_HTTP_BUFFER_SIZE  (1*1024*1024)
 int http_buffer_size;
+
+/* Debug mode on/off */
+/* #define DEBUG_HTTP_BUFFERING  0 */
 
 /* --------------------------------------------------------------- */
 /* ----------------------------- MISC FUNCTIONS ------------------ */
@@ -86,6 +88,39 @@ static int cond_timedwait_relative (pthread_cond_t *cond, pthread_mutex_t *mut, 
 	    
     return pthread_cond_timedwait (cond, mut, &timeout);
 }
+
+static int calc_time_to_wait (http_desc_t *desc)
+{
+    int timetowait;
+    int suggested_len = http_buffer_size;
+    int useless_buffer_len = desc->pos - desc->begin;
+
+    /* if size of stream is known we could use it to limit suggested len */
+    if (desc->size) {
+	int rest_of_stream = desc->size - desc->buffer_pos + 1;
+
+	if (rest_of_stream < suggested_len)
+	    suggested_len = rest_of_stream;
+    };
+
+    /* calculate waiting time */
+    timetowait = (int)((float)(desc->len - useless_buffer_len) / (float)suggested_len*2000000.0);
+
+    return timetowait;
+}
+
+#ifdef DEBUG_HTTP_BUFFERING
+static void print_debug_info (http_desc_t *desc)
+{
+    struct timeval now;
+
+    gettimeofday (&now, NULL);
+    
+    printf ("%lld %ld %d %d %ld %d\n", (long long int)now.tv_sec * 1000 + (long long int)now.tv_usec/1000,
+	    desc->size, desc->begin, desc->begin + desc->len,
+	    desc->pos, desc->buffer_pos);
+}
+#endif
 
 /* --------------------------------------------------------------- */
 /* ---------------------- NETWORK RELATED FUNCTIONS -------------- */
@@ -236,16 +271,20 @@ static void buffer_thread (http_desc_t *desc)
 	void *newbuf;
 	int readed;
 
+#ifdef DEBUG_HTTP_BUFFERING
+	    print_debug_info (desc);
+#endif
+
 	/* check for overflow */
 	going = desc->going;
 	rest = metasize = 0;
 	if (desc->len > http_buffer_size) {
 	    /* Notice waiting function that the new block of data has arrived */
 	    pthread_cond_signal (&desc->read_condition);
-
+    
 	    /* Make pause */
 	    pthread_mutex_lock (&mut);
-	    cond_timedwait_relative (&desc->fast_condition, &mut, 300000);
+	    cond_timedwait_relative (&desc->fast_condition, &mut, calc_time_to_wait (desc));
 	    pthread_mutex_unlock (&mut);
 
 	    continue;
@@ -264,6 +303,7 @@ static void buffer_thread (http_desc_t *desc)
 	    going = 0;
 	}
 	
+	/* Metadata stuff */
 	if (desc->icy_metaint > 0 && 
 		(desc->buffer_pos+readed) >  desc->icy_metaint) {
 		/* Metadata block is next! */
@@ -302,7 +342,8 @@ static void buffer_thread (http_desc_t *desc)
 		metasize++; /* Length byte */
 	} else {
 		desc->buffer_pos += readed;
-	}	
+	}
+
 	/* These operations are fast. -> doesn't break reader_read */
 	if (readed > 0) {
 	   /* ---------------- lock buffer ( */
@@ -332,15 +373,11 @@ static void buffer_thread (http_desc_t *desc)
 	pthread_cond_signal (&desc->read_condition);
 
 	/* Do wait */
-	if (going && !desc->fastmode) {
+	if (going) {    
 	    pthread_mutex_lock (&mut);
-	    cond_timedwait_relative (&desc->fast_condition, &mut, 300000);
+	    cond_timedwait_relative (&desc->fast_condition, &mut, calc_time_to_wait (desc));
 	    pthread_mutex_unlock (&mut);
 	}
-
-	/* Decrement fast mode TTL ;) */
-	if (desc->fastmode)
-	    desc->fastmode--;
     }
     
     free (ibuffer);
@@ -446,7 +483,7 @@ static int reconnect (http_desc_t *desc, char *redirect)
 			     desc->pos);
     //alsaplayer_error("%s", request); 
     write (desc->sock, request, strlen (request));
-    desc->begin = desc->pos;
+    desc->begin = desc->buffer_pos = desc->pos;
  
     /* Get response */
     if (get_response_head (desc->sock, response, 10240))
@@ -548,7 +585,6 @@ static int reconnect (http_desc_t *desc, char *redirect)
     
     /* Attach thread to fill a buffer */
     desc->going = 1;
-    desc->fastmode = 0;
     pthread_create (&desc->thread, NULL, (void* (*)(void *)) buffer_thread, desc);
 
     /* Prebuffer if this is stream */
@@ -754,8 +790,7 @@ static size_t http_read (void *ptr, size_t size, void *d)
 	    break;
 	}
 	
-	/* turn on fast mode */
-	desc->fastmode = 2;
+	/* break waiting */
 	pthread_cond_signal (&desc->fast_condition);
 	
 	/* Allow buffer_thread to use buffer */
@@ -776,13 +811,14 @@ static size_t http_read (void *ptr, size_t size, void *d)
 	/* trying to shrink buffer */
 	if (desc->len + HTTP_BLOCK_SIZE > http_buffer_size && desc->pos - desc->begin > http_buffer_size/2) {
 	    void *newbuf;
-	    
-	    desc->len -= tocopy;
-	    desc->begin += tocopy;
+	    int shrinking_len = (desc->pos - desc->begin) - http_buffer_size / 2 + HTTP_BLOCK_SIZE;
+	 
+	    desc->len -= shrinking_len;
+	    desc->begin += shrinking_len;
 	    
 	    /* allocate new buffer with the part of old one */
 	    newbuf = malloc (desc->len);    
-	    memcpy (newbuf, desc->buffer + tocopy, desc->len);
+	    memcpy (newbuf, desc->buffer + shrinking_len, desc->len);
 
 	    /* replace old buffer */
 	    free (desc->buffer);
