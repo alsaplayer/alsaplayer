@@ -472,6 +472,7 @@ dnl ===========================
 AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MEMCMP
 AC_FUNC_MMAP
+AC_CHECK_FUNCS(madvise)
 AC_CHECK_FUNCS(strdup strstr)
 
 

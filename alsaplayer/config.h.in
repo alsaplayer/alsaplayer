@@ -68,6 +68,9 @@
 /* Define if you have the <linux/cdrom.h> header file. */
 #undef HAVE_LINUX_CDROM_H
 
+/* Define if you have the `madvise' function. */
+#undef HAVE_MADVISE
+
 /* Define if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
 
