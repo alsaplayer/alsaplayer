@@ -561,11 +561,13 @@ gint indicator_callback(gpointer data)
 	GdkColor color;
 	stream_info info;
 	char str[60];
-	unsigned long slider_val, t_min, t_sec;
-	unsigned long c_hsec, secs, c_min, c_sec;
-	unsigned long sr;
+	long slider_val, t_min, t_sec;
+	long c_hsec, secs, c_min, c_sec;
+	long sr;
 	static char old_str[60] = "";
+	char seeking[12]; 
 
+	seeking[0] = 0;	
 	ustr = &global_ustr;
 	p = (CorePlayer *)ustr->data;
 	drawable = ustr->drawing_area->window;
@@ -582,9 +584,12 @@ gint indicator_callback(gpointer data)
 	if (p->IsActive()) { 
 		int pos;
 		pos = global_update ? p->GetPosition() : (int) adj->value;
-		slider_val = pos;
+				slider_val = pos;
 		secs = global_update ? 
-		p->GetCurrentTime() : p->GetCurrentTime((int) adj->value);
+						p->GetCurrentTime() : p->GetCurrentTime((int) adj->value);
+		if (secs < 0) {
+			sprintf(seeking, "Seeking...");
+		}
 		c_min = secs / 6000;
 		c_sec = (secs % 6000) / 100;
 #ifdef SUBSECOND_DISPLAY		
@@ -603,13 +608,16 @@ gint indicator_callback(gpointer data)
 		c_hsec = 0;
 		sprintf(info.title, "No stream");
 	}
-	if (t_min == 0 && t_sec == 0) {
+	if (t_min == 0 && t_sec == 0 && !strlen(seeking)) {
 		sprintf(str, "No time data");
 	} else {
 #ifdef SUBSECOND_DISPLAY	
 		sprintf(str, "%02ld:%02ld.%02d/%02d:%02d", c_min, c_sec, c_hsec, t_min, t_sec);
 #else
-		sprintf(str, "%02ld:%02ld/%02ld:%02ld", c_min, c_sec, t_min, t_sec);
+		if (strlen(seeking))
+			sprintf(str, "%s", seeking);
+		else	
+			sprintf(str, "%02ld:%02ld/%02ld:%02ld", c_min, c_sec, t_min, t_sec);
 #endif
 	}
 	if (val_ind && strcmp(old_str, str) != 0) {
