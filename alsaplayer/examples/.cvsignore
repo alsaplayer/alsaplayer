@@ -3,3 +3,9 @@ Makefile.in
 .deps
 time
 speed
+add_and_play
+next
+prev
+quit
+session_list
+relative
