@@ -890,11 +890,12 @@ first_frame:
 				return 0;
 			case MAD_ERROR_LOSTSYNC:
 			case MAD_ERROR_BADEMPHASIS:
+			case MAD_ERROR_BADBITRATE:	
 			case MAD_ERROR_BADSAMPLERATE:	
 				if (mad_header_decode(&data->frame.header, &data->stream) == -1) {
 					alsaplayer_error("Lost synchronisation (%s)", path);
 				}
-				alsaplayer_error("avail = %d", data->bytes_avail);
+				//alsaplayer_error("avail = %d", data->bytes_avail);
 				data->bytes_avail-=(data->stream.next_frame - data->stream.this_frame);
 				goto first_frame;
 				break;
