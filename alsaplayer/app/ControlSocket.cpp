@@ -15,12 +15,14 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */ 
+#include "AlsaPlayer.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <pwd.h>
 #include "control.h"
 #include "packet.h"
 #include "Playlist.h"
@@ -46,6 +48,7 @@ void socket_looper(void *arg)
 		socklen_t len;
 		int fd;
 		ap_pkt_t pkt;
+		struct passwd *pwd;
 		
 		socket_thread_running = 1;
 	
@@ -53,10 +56,14 @@ void socket_looper(void *arg)
 			alsaplayer_error("No playlist for control socket\n");
 			return;
 		}
-		unlink("/tmp/alsaplayer_0");
+	
+		pwd = getpwuid(geteuid());
+
 		if ((socket_fd = socket(AF_UNIX, SOCK_STREAM, 0)) != -1) {
 			saddr.sun_family = AF_UNIX;
-			sprintf(saddr.sun_path, "/tmp/alsaplayer_%d", 0);
+			sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ? 
+				"anonymous" : pwd->pw_name, 0);
+			unlink(saddr.sun_path); // Wipe before use, XXX FIXME
 			if (bind(socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
 				listen(socket_fd, 100);
 			} else {
@@ -155,10 +162,15 @@ void socket_looper(void *arg)
 					}	
 					break;
 				case AP_GET_STRING_SESSION_NAME:
-					// Hackery
-					pkt.pld_length = strlen("AlsaPlayer");
-					write (fd, &pkt, sizeof(ap_pkt_t));
-					write (fd, "AlsaPayer", pkt.pld_length);
+					if (global_session_name) {
+						pkt.pld_length = strlen(global_session_name);
+						write (fd, &pkt, sizeof(ap_pkt_t));
+						write (fd, global_session_name, pkt.pld_length);
+					} else {	
+						pkt.pld_length = strlen("AlsaPlayer");
+						write (fd, &pkt, sizeof(ap_pkt_t));
+						write (fd, "AlsaPayer", pkt.pld_length);
+					}	
 					break;
 				case AP_SET_STRING_ADD_FILE:
 					if (pkt.pld_length && data) {
@@ -196,7 +208,7 @@ void socket_looper(void *arg)
 				free(data);
 			close(fd);	
 		}
-		unlink("/tmp/alsaplayer_0");
+		unlink(saddr.sun_path);
 }
 
 

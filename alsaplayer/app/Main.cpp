@@ -38,6 +38,7 @@
 
 #include "config.h"
 
+#include "AlsaPlayer.h"
 #include "SampleBuffer.h"
 #include "CorePlayer.h"
 #include "Playlist.h"
@@ -56,6 +57,8 @@ int global_reverb_delay = 2;
 int global_reverb_feedback = 0;
 
 int global_verbose = 0;
+
+char *global_session_name = NULL;
 
 void control_socket_start(Playlist *);
 void control_socket_stop();
@@ -232,6 +235,7 @@ static void help()
 "  -p,--path [path]        print/set the path alsaplayer looks for add-ons\n" 
 "  -q,--quiet              quiet operation. no output\n"
 "  -r,--realtime           enable realtime scheduling (must be SUID root)\n"
+"  -s,--session-name name  name this session \"name\"\n"
 "  -v,--version            print version of this program\n"
 "\n"
 "Testing options:\n"
@@ -331,6 +335,17 @@ int main(int argc, char **argv)
 						do_enqueue = 1;
 						arg_pos++;
 						last_arg = arg_pos;
+		} else if (strcmp(argv[arg_pos], "--session-name") == 0 ||
+						strcmp(argv[arg_pos], "-s") == 0) {
+						if (0 < strlen(argv[++arg_pos]) < 32) {
+							global_session_name = (char *)malloc(strlen(argv[arg_pos])+1);
+							if (global_session_name)
+								strcpy(global_session_name, argv[arg_pos]);
+							last_arg = arg_pos;
+						} else {
+							alsaplayer_error("expecting session name (32 chars max)\n");
+							return 1;
+						}	
 		} else if (strcmp(argv[arg_pos], "--crossfade") == 0 ||
 						strcmp(argv[arg_pos], "-x") == 0) {
 						use_crossfade = 1;
@@ -585,5 +600,7 @@ _fatal_err:
 	delete playlist;
 	//delete p;
 	delete node;
+	if (global_session_name)
+		free(global_session_name);
 	return 0;	
 }
