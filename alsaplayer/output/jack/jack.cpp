@@ -41,6 +41,9 @@ static char *mix_buffer = NULL;
 static int jack_reconnect = 1;
 static int jack_initialconnect = 1;
 static int jack_transport_aware = 0;
+#ifdef TEST_MASTER
+static int jack_master = 0;
+#endif
 
 static char dest_port1[128];
 static char dest_port2[128];
@@ -164,6 +167,13 @@ int jack_prepare(void *arg)
 				return -1;
 			}
 		}
+#ifdef TEST_MASTER		
+		if (jack_master) {
+			alsaplayer_error("jack: taking over timebase");
+			if (jack_engine_takeover_timebase(client) != 0)
+				jack_master = 0;
+		}
+#endif		
 		return 0;
 	}
 	return -1;
@@ -239,6 +249,11 @@ static int jack_open(const char *name)
 		} else if (strcmp(t, "noconnect") == 0) {
 			alsaplayer_error("jack: not connecting ports");
 			jack_initialconnect = 0;
+#ifdef TEST_MASTER			
+		} else if (strcmp(t, "master") == 0) {
+			alsaplayer_error("jack: will attempt to become master");
+			jack_master = 1;
+#endif			
 		} else if (strcmp(t, "transport") == 0) {
 			alsaplayer_error("jack: alsaplayer is transport aware");
 			jack_transport_aware = 1;
@@ -295,11 +310,16 @@ static unsigned int jack_set_sample_rate(unsigned int rate)
 
 int process(jack_nframes_t nframes, void *arg)
 {
+#ifdef TEST_MASTER	
+	jack_transport_info_t tinfo;
+	static int framepos = 0;
+#endif	
 	subscriber *subs = (subscriber *)arg;
 	
 	if (subs) {
 		subscriber *i;
 		int c;
+		int stopped = 0;
 
 		if (jack_transport_aware) {
 			transport.valid = jack_transport_bits_t(JackTransportState|
@@ -307,8 +327,8 @@ int process(jack_nframes_t nframes, void *arg)
 					JackTransportLoop);
 			jack_get_transport_info(client, &transport);
 			if ((transport.valid & JackTransportState) &&
-					transport.transport_state & JackTransportStopped) {
-				return 0;
+					(transport.transport_state == JackTransportStopped)) {
+				stopped = 1;
 			}	
 				
 		}	
@@ -325,11 +345,24 @@ int process(jack_nframes_t nframes, void *arg)
 			if (!i->active || !i->streamer) { // Skip inactive streamers
 				continue;
 			}       
-			i->active = i->streamer(i->arg, mix_buffer, nframes * 2);
+			if (!stopped)
+				i->active = i->streamer(i->arg, mix_buffer, nframes * 2);
 		}
 		sample_move_dS_s16(out1, mix_buffer, nframes, sizeof(short) << 1);
 		sample_move_dS_s16(out2, mix_buffer + sizeof(short), nframes, sizeof(short) << 1); 
-	}       
+	}
+#ifdef TEST_MASTER	
+	if (jack_master) { // master control
+		tinfo.valid = jack_transport_bits_t(JackTransportPosition | JackTransportState | JackTransportLoop);
+		tinfo.frame = framepos++; 
+		tinfo.loop_start = tinfo.loop_end = 0;
+		if (framepos < 200 || framepos > 600)
+			tinfo.transport_state = JackTransportRolling;
+		else
+			tinfo.transport_state = JackTransportStopped;
+		jack_set_transport_info(client, &tinfo);
+	}	
+#endif	
 	return 0;
 }
 
