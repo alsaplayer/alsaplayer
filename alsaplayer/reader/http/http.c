@@ -292,6 +292,7 @@ static int reconnect (http_desc_t *desc)
     fd_set set;
     struct timeval tv;
     int flags;
+    int rc;
 
     /* Clear error status */
     desc->error = 0;
@@ -364,7 +365,7 @@ static int reconnect (http_desc_t *desc)
 	return 1;
     }
 
-    /* Get info about remote file */
+    /* Send request for remote file */
     snprintf (request, 2048, "GET %s HTTP/1.1\r\n"
 			     "Host: %s\r\n"
 			     "Connection: close\r\n"
@@ -377,9 +378,34 @@ static int reconnect (http_desc_t *desc)
     write (desc->sock, request, strlen (request));
     desc->begin = desc->pos;
  
+    /* Get response */
     if (get_response_head (desc->sock, response, 10240))
 	return 1;
 
+    /* Check protocol */
+    if (strncmp (response, "HTTP/1.1 ", 9)) {
+	alsaplayer_error ("HTTP: Wrong server protocol for http://%s:%u%s",
+		desc->host, desc->port, desc->path);
+	return 1;
+    }
+
+    /* Check return code */
+    rc = atoi (response + 9);
+    if (rc != 200) {
+	/* Wrong code */
+	if (rc == 404) {
+	    /* 404 */
+	    alsaplayer_error ("HTTP: File not found: http://%s:%u%s",
+		desc->host, desc->port, desc->path);
+	    return 1;
+	} else {
+	    /* unknown */
+	    alsaplayer_error ("HTTP: We doesn't support %d response code: http://%s:%u%s",
+		rc, desc->host, desc->port, desc->path);
+	    return 1;
+	}
+    }
+    
     /* Looking for size */
     s = strstr (response, "\r\nContent-Length: ");
     if (s) {
