@@ -6,7 +6,7 @@ EXTRA_DIST = D.dat huffman.h mad.h stream.h fixed.h \
 madltlibs = libmad.la
 madldflags = -export-dynamic -avoid-version
 madsources = bit.c frame.c layer12.c stream.c timer.c \
-		fixed.c huffman.c layer3.c synth.c mad_engine.c
+		fixed.c huffman.c layer3.c synth.c mad_engine.cpp
 
 lib_LTLIBRARIES = $(madltlibs)
 
@@ -16,6 +16,8 @@ COMMON_CFLAGS = -I$(top_builddir) -I$(top_srcdir)/include \
 	@ARCH_CFLAGS@ -D_REENTRANT @DFLAGS@
 
 CFLAGS = $(COMMON_CFLAGS) $(EXTRA_CFLAGS)
+
+CXXFLAGS = $(CFLAGS)
 
 INCLUDES = -I$(ROOT_DIR)/app $(GLIB_CFLAGS)
 

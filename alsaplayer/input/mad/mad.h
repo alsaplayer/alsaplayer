@@ -20,7 +20,7 @@
  * so by contacting the author: Robert Leslie <rob@mars.org>
  */
 
-# define FPM_INTEL
+/* # define FPM_INTEL */
 
 # define SIZEOF_INT 4
 # define SIZEOF_LONG 4

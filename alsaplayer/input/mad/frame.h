@@ -45,25 +45,26 @@ enum mad_emphasis {
   MAD_EMPHASIS_CCITT_J_17 = 3		/* CCITT J.17 emphasis */
 };
 
+struct mad_header {
+				enum mad_layer layer;		/* audio layer (1, 2, or 3) */
+				enum mad_mode mode;			/* channel mode (see above) */
+				int mode_extension;			/* additional mode info */
+				enum mad_emphasis emphasis;		/* de-emphasis to use (see above) */
+
+				unsigned long bitrate;		/* stream bitrate (bps) */
+				unsigned int samplerate;		/* sampling frequency (Hz) */
+
+				unsigned short crc_check;		/* frame CRC accumulator */
+				unsigned short crc_target;		/* final target CRC checksum */
+
+				int flags;				/* flags (see below) */
+				int private_bits;			/* private bits (see below) */
+
+				mad_timer_t duration;		/* audio playing time of frame */
+};
+
 struct mad_frame {
-  struct mad_header {
-    enum mad_layer layer;		/* audio layer (1, 2, or 3) */
-    enum mad_mode mode;			/* channel mode (see above) */
-    int mode_extension;			/* additional mode info */
-    enum mad_emphasis emphasis;		/* de-emphasis to use (see above) */
-
-    unsigned long bitrate;		/* stream bitrate (bps) */
-    unsigned int samplerate;		/* sampling frequency (Hz) */
-
-    unsigned short crc_check;		/* frame CRC accumulator */
-    unsigned short crc_target;		/* final target CRC checksum */
-
-    int flags;				/* flags (see below) */
-    int private_bits;			/* private bits (see below) */
-
-    mad_timer_t duration;		/* audio playing time of frame */
-  } header;
-
+	struct mad_header header;
   int options;				/* decoding options (from stream) */
 
   mad_fixed_t sbsample[2][36][32];	/* synthesis subband filter samples */
