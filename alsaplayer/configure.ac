@@ -172,6 +172,7 @@ dnl ======================
 
 CFLAGS="$CFLAGS -I$x_includes -L$x_libraries"
 CPPFLAGS="$CPPFLAGS -I$x_includes"
+ASFLAGS="$ASFLAGS"
 
 AC_HEADER_STDC
 AC_HEADER_DIRENT
