@@ -83,14 +83,18 @@ struct _ApPlaylist {
      * ApObject pointer.
      */
     ApObject	    ap_object;
-    
+ 
+    gboolean	    active;
+   
     gboolean	    paused;
     gboolean	    looping_song;
     gboolean	    looping_playlist;
 
     GAsyncQueue*    info_queue;
     GThread*	    info_thread;
-    gboolean	    info_thread_active;
+
+    GAsyncQueue*    insert_queue;
+    GThread*	    insert_thread;
 };
 
 struct _ApPlaylistClass {
@@ -117,7 +121,7 @@ struct _ApPlaylistClass {
 						 gboolean	looping_playlist,
 						 gpointer	data);
 
-    void*   (*playitem_updated_signal)		(ApPlaylist	*playlist,
+    void*   (*updated_signal)			(ApPlaylist	*playlist,
 						 ApPlayItem	*playitem,
 						 gpointer	data);
 };
@@ -132,8 +136,11 @@ gboolean	    ap_playlist_is_looping_song		(ApPlaylist	*playlist);
 void		    ap_playlist_set_loop_playlist	(ApPlaylist	*playlist,
 							 gboolean	loop_playlist);
 gboolean	    ap_playlist_is_looping_playlist	(ApPlaylist	*playlist);
-void		    ap_playlist_update_playitem		(ApPlaylist	*playlist,
+void		    ap_playlist_update			(ApPlaylist	*playlist,
 							 ApPlayItem	*playitem);
+void		    ap_playlist_insert			(ApPlaylist	*playlist,
+							 GPtrArray	*array,
+							 guint		pos);
 
 #ifdef __cplusplus
 }
