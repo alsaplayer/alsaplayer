@@ -103,11 +103,11 @@ AlsaNode::~AlsaNode()
 	plugin->close();
 	
 	if (driver_name) {
-		delete driver_name;
+		delete []driver_name;
 		driver_name = NULL;
 	}
 	if (driver_args) {
-		delete driver_args;
+		delete []driver_args;
 		driver_args = NULL;
 	}	
 }
@@ -226,10 +226,11 @@ int AlsaNode::SetStreamBuffers(int frag_size, int frag_count, int channels)
 	}	
 }
 
+#define MAX_WRITE	(128*1024)
 
 void AlsaNode::looper(void *pointer)
 {
-	char *buffer_data;
+	char *buffer_data = NULL;
 	AlsaNode *node = (AlsaNode *)pointer;
 	int read_size = node->GetFragmentSize();
 	bool status;
@@ -238,11 +239,12 @@ void AlsaNode::looper(void *pointer)
 
 	assert(node->plugin);
 
-	buffer_data = (char *)malloc(1024*128);
+	buffer_data = new char[MAX_WRITE+1];
 	if (!buffer_data) {
 		alsaplayer_error("Error allocating mix buffer");
 		return;
-	}	
+	}
+	memset(buffer_data, 0, MAX_WRITE+1);
 #ifdef DEBUG
 	alsaplayer_error("THREAD-%d=soundcard thread\n", getpid());
 #endif
@@ -267,11 +269,15 @@ void AlsaNode::looper(void *pointer)
 	node->looping = true;
 
 	read_size = node->GetFragmentSize();
+	if (read_size > MAX_WRITE) {
+		alsaplayer_error("Fragment size too large. Exitting looper");
+		pthread_exit(NULL);
+	}	
 	while (node->looping) {
 		subscriber *i;
 		int c;
 
-		memset(buffer_data, 0, read_size);
+		memset(buffer_data, 0, read_size * sizeof(short));
 		for (c = 0; c < MAX_SUB; c++) {
 			i = &node->subs[c];
 
@@ -291,8 +297,8 @@ void AlsaNode::looper(void *pointer)
 
 		read_size = node->GetFragmentSize(); // Change on the fly
 	}
-	free(buffer_data);
-	pthread_mutex_unlock(&node->thread_mutex);
+	delete []buffer_data;
+	//alsaplayer_error("Exitting looper thread...");
 	pthread_exit(NULL);
 }
 
@@ -458,11 +464,16 @@ void AlsaNode::StartStreaming()
 
 	if (plugin->start_callbacks)
 		return;
-	if (pthread_mutex_trylock(&thread_mutex) != 0) {
+	pthread_mutex_lock(&thread_mutex);
+	if (thread_running) {
+		//alsaplayer_error("Already looping...");
+		pthread_mutex_unlock(&thread_mutex);
 		return;
-	} 
+	}	
+	//alsaplayer_error("Creating looper thread");
 	pthread_create(&looper_thread, NULL, (void * (*)(void *))looper, this);
 	thread_running = true;
+	pthread_mutex_unlock(&thread_mutex);
 }
 
 
@@ -475,12 +486,14 @@ void AlsaNode::StopStreaming()
 	}	
 	
 	looping = false;
+	pthread_mutex_lock(&thread_mutex);
 	if (thread_running) {
 		if (pthread_join(looper_thread, NULL)) {
 			// Hmmm
 		}
 		thread_running = false;
-	}	
+	}
+	pthread_mutex_unlock(&thread_mutex);
 }
 
 
