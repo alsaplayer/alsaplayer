@@ -55,8 +55,8 @@ dnl static libs make no sense for alsaplayer
 AM_DISABLE_STATIC
 AM_PROG_LIBTOOL
 AC_PROG_MAKE_SET
-AM_PATH_GTK(1.2.8, have_gtk=yes , have_gtk=no, gthread)
-AM_PATH_GLIB(1.2.8, have_glib=yes, have_glib=no)
+AM_PATH_GTK(1.2.6, have_gtk=yes , have_gtk=no, gthread)
+AM_PATH_GLIB(1.2.6, have_glib=yes, have_glib=no)
 AM_PATH_LIBMIKMOD(3.1.7, have_mikmod=yes, have_mikmod=no)
 AM_PATH_OGG(have_ogg=yes, have_ogg=no)
 AM_PATH_VORBIS(have_vorbis=yes, have_vorbis=no)

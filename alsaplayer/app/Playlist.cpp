@@ -112,7 +112,14 @@ void insert_thread(void *data) {
 	}
 	std::vector<PlayItem> newitems;
 	if(vetted_items.size() > 0) {
+		char cwd[512];
+		char fullpath[1024];
 		std::vector<std::string>::const_iterator path;
+
+		if (!getcwd(cwd, 511)) {
+			alsaplayer_error("Failed to get current working directory");
+			cwd[0] = 0;
+		}	
 		// Check items for adding to list
 		for(path = vetted_items.begin(); path != vetted_items.end(); path++) {
 			// Check that item is valid
@@ -121,7 +128,11 @@ void insert_thread(void *data) {
 				printf("Can't find a player for `%s'\n", path->c_str());
 #endif 
 			} else {
-				newitems.push_back(PlayItem(*path));
+				if ((path->c_str())[0] != '/' || (path->c_str())[0] != '\\') {
+					sprintf(fullpath, "%s/%s", cwd, path->c_str());
+					newitems.push_back(PlayItem(fullpath));
+				}	else
+					newitems.push_back(PlayItem(*path));
 			}
 		}
 	}
