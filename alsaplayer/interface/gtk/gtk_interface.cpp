@@ -593,6 +593,7 @@ void stop_cb(GtkWidget *, gpointer data)
 		pl->Pause();
 		GDK_THREADS_LEAVE();
 		p->Stop();
+		p->Close();
 		GDK_THREADS_ENTER();
 		//clear_buffer();
 	}	
