@@ -124,7 +124,7 @@ static int vorbis_frame_seek(input_object *obj, int frame)
 static int vorbis_frame_size(input_object *obj)
 {
 	if (!obj) {
-		printf("No frame size!!!!\n");
+		puts("No frame size!!!!");
 		return 0;
 	}
 	return obj->frame_size;
@@ -140,11 +140,9 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 	struct vorbis_local_data *data;
 	vorbis_info* vi;
 
-	if (!obj)
+	if (!obj || !obj->local_data)
 		return 0;
 	data = (struct vorbis_local_data *)obj->local_data;
-	if (!data)
-		return 0;
 
 	bytes_needed = BLOCK_SIZE;
 	if (obj->nr_channels == 1) { /* mono stream */
@@ -204,12 +202,9 @@ static  long vorbis_frame_to_sec(input_object *obj, int frame)
 	int64_t l;
 	int sec;
 
-	if (!obj)
+	if (!obj || !obj->local_data)
 		return 0;
 	data = (struct vorbis_local_data *)obj->local_data;
-	if (!data) {
-		return 0;
-	}
 	sec = (frame * BLOCK_SIZE ) / (44100 * 2 * 2 / 100); 
 	return sec;
 }
@@ -220,12 +215,9 @@ static int vorbis_nr_frames(input_object *obj)
 	vorbis_info *vi;
 	int64_t	l;
 	int frames = 10000;		
-	if (!obj)
+	if (!obj || !obj->local_data)
 		return 0;
 	data = (struct vorbis_local_data *)obj->local_data;
-	if (!data) {
-		return 0;
-	}		
 	vi = ov_info(&data->vf, -1);
 	if (!vi)
 		return 0;
@@ -409,14 +401,15 @@ static int vorbis_open(input_object *obj, const char *path)
 	memcpy(&data->vf, &vf_temp, sizeof(vf_temp));
 	memcpy(data->path, path, sizeof(data->path)-1);
 
-/*	if (strncmp(path, "http", 4) == 0) {
+	data->is_local = 1;
+	obj->flags = P_SEEK;
+#if 0
+	if (strncmp(path, "http://", 7) == 0) {
 		alsaplayer_error("No seeking allowed");
 		data->is_local = 0;
 		obj->flags = 0;
-	} else {*/
-		data->is_local = 1;
-		obj->flags = P_SEEK;
-/*	}	*/
+	}
+#endif
 
 	return 1;
 }
