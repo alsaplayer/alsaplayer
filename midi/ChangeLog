@@ -1,3 +1,11 @@
+Sun Apr 14 04:17:37 HST 2002
+	ChangeLog
+	sf2cfg.c: added; reads soundfont and writes timidity.cfg
+	autocfg.c: added; constructs timidity.cfg in ~/.alsaplayer
+	Makefile.am: add above two sources
+	midi_engine.c: call autocfg()
+	README
+	cfg.l (cfg.c): ensure same timidity.cfg always read
 Sat Apr 13 08:18:19 HST 2002
 	Changelog
 	midi_engine.c: add _shutdown (does nothing)
