@@ -148,7 +148,7 @@ public:
 	virtual void Shuffle(int locking=0);
 	
 	// Clear playlist
-	virtual void Clear();
+	virtual void Clear(int lockig=0);
 
 	// Pause controls
 	virtual bool Paused() { return paused; }
