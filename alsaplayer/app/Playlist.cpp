@@ -944,15 +944,15 @@ void Playlist::Stop() {
 
 bool Playlist::PlayFile(PlayItem const & item) {
 	bool result;
-
 	Pause();
 	coreplayer->Stop();
+	coreplayer->Close();
 	result = coreplayer->Open(item.filename.c_str());
 	if (result) {
 		result = coreplayer->Start();
 		if (coreplayer->GetSpeed() == 0.0) { // Unpause
 			coreplayer->SetSpeed(1.0);
-		}	
+		}
 	}
 	UnPause();
 	return result;
