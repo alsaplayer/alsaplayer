@@ -1608,7 +1608,7 @@ debug_count--;
  */
 
   polyreduction = cpoly - permitted;
-  polyreduction += permitted / 5;
+  polyreduction += permitted / 10;
 
 /*
 fprintf(stderr,"\tred %d = cpoly %d - permitted %d + p/4 %d\n", polyreduction, cpoly, permitted,

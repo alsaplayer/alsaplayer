@@ -143,106 +143,106 @@
 
 static int pc42bmap[][7] = {
 /* Toneset?, bank, prog, newbank, newprog, note, pan */
-{STS, 1, 123, 56, 76, 0, 0 }, /* Dog1oct1 */
-{STS, 1, 124,  0, 124, 1, 0 }, /*  sfx/dialtone                # telephone dial */
-{STS, 1, 125, 56, 125, 0, 0 }, /*  sfx/carengin                # car engine */
-{STS, 1, 126, 56, 126, 0, 0 }, /*  sfx/laugh                   # laughing */
-{STS, 1, 127, 56, 127, 0, 0 }, /*  sfx/machgun2                # machine gun */
+{STS, 1, 123, 56, 76, 1, 0 }, /* Dog1oct1 */
+{STS, 1, 124,  0, 124, 0, 0 }, /*  sfx/dialtone                # telephone dial */
+{STS, 1, 125, 56, 125, 1, 0 }, /*  sfx/carengin                # car engine */
+{STS, 1, 126, 56,  52, 1, 0 }, /*  sfx/laugh                   # laughing */
+{STS, 1, 127, 56,  73, 1, 0 }, /*  sfx/machgun2                # machine gun */
 
-{STS, 2, 120,  0, 120, 1, 0 }, /*  fx-fret                     # string slap */
+{STS, 2, 120,  0, 120, 0, 0 }, /*  fx-fret                     # string slap */
 /*	122 Thunder*/
-{STS, 2, 123, 56, 123, 0, 0 }, /*  sfx/hoofs                   # horse gallop */
-{STS, 2, 124, 56, 124, 0, 0 }, /*  sfx/creak                   # door creaking */
-{STS, 2, 125, 56, 125, 0, 0 }, /*  sfx/carstop                 # car stop */
-{STS, 2, 126, 56, 126, 0, 0 }, /*  sfx/scream                  # screaming */
-{STS, 2, 127, 56, 127, 0, 0 }, /*  gus/sqrwave                 # laser gun */
+{STS, 2, 123, 56,  77, 1, 0 }, /*  sfx/hoofs                   # horse gallop */
+{STS, 2, 124, 56,  59, 1, 0 }, /*  sfx/creak                   # door creaking */
+{STS, 2, 125, 56,  64, 1, 0 }, /*  sfx/carstop                 # car stop */
+{STS, 2, 126, 56,  53, 1, 0 }, /*  sfx/scream                  # screaming */
+{STS, 2, 127, 56,  81, 1, 0 }, /*  gus/sqrwave                 # laser gun */
 
-{STS, 3, 120, 56, 120, 0, 0 }, /*  sfx/cutnoiz                 # cut noise 2 */
-{STS, 3, 122, 56, 122, 0, 0 }, /*  sfx/newwind amp=75          # wind */
-{STS, 3, 123, 56, 123, 0, 0 }, /*  sfx/birdtwee amp=25         # bird 2 */
-{STS, 3, 124, 56, 124, 0, 0 }, /*  sfx/door                    # door slam */
-{STS, 3, 125, 56, 125, 0, 0 }, /*  sfx/carpass                 # car pass */
-{STS, 3, 126, 56, 126, 0, 0 }, /*  sfx/punch                   # punch */
-{STS, 3, 127, 56, 127, 0, 0 }, /*  pistol                      # explosion */
+{STS, 3, 120, 56,  49, 1, 0 }, /*  sfx/cutnoiz                 # cut noise 2 */
+{STS, 3, 122, 56,  82, 1, 0 }, /*  sfx/newwind amp=75          # wind */
+{STS, 3, 123, 56,  78, 1, 0 }, /*  sfx/birdtwee amp=25         # bird 2 */
+{STS, 3, 124, 56,  60, 1, 0 }, /*  sfx/door                    # door slam */
+{STS, 3, 125, 56,  65, 1, 0 }, /*  sfx/carpass                 # car pass */
+{STS, 3, 126, 56,  54, 1, 0 }, /*  sfx/punch                   # punch */
+{STS, 3, 127, 56,  75, 1, 0 }, /*  pistol                      # explosion */
 
-{STS, 4, 120, 56, 120, 0, 0 }, /*  sfx/cutnoiz                 # dist cut noise */
-{STS, 4, 122, 56, 122, 0, 0 }, /*  sfx/stream amp=75           # stream */
-{STS, 4, 123, 56, 123, 0, 0 }, /*  sfx/meow                    # kitty */
-{STS, 4, 124, 56, 124, 0, 0 }, /*  sfx/scratch1                # scratch */
-{STS, 4, 125, 56, 125, 0, 0 }, /*  sfx/carcrash                # car crash */
-{STS, 4, 126, 56, 126, 0, 0 }, /*  sfx/heartbt                 # heart beat */
-{STS, 4, 127, 56, 127, 0, 0 }, /*  sfx/firework                # fireworks (?) */
+{STS, 4, 120, 56,  48, 1, 0 }, /*  sfx/cutnoiz                 # dist cut noise */
+{STS, 4, 122, 56,  83, 1, 0 }, /*  sfx/stream amp=75           # stream */
+{STS, 4, 123, 56,  78, 1, 0 }, /*  sfx/meow           BIRD!    # kitty */
+{STS, 4, 124, 56,  61, 1, 0 }, /*  sfx/scratch1                # scratch */
+{STS, 4, 125, 56,  66, 1, 0 }, /*  sfx/carcrash                # car crash */
+{STS, 4, 126, 56,  55, 1, 0 }, /*  sfx/heartbt                 # heart beat */
+{STS, 4, 127, 56,  58, 1, 0 }, /*  sfx/firework    APPLAUSE!   # fireworks (?) */
 
-{STS, 5, 120,  0, 120, 1, 0 }, /*  fx-fret                     # bass slide */
-{STS, 5, 122, 56, 122, 0, 0 }, /*  sfx/bubbles1                # bubble */
-{STS, 5, 123, 56, 123, 0, 0 }, /*  sfx/doggrowl                # growl */
-{STS, 5, 124, 56, 124, 0, 0 }, /*  sfx/windchim                # wind chime */
-{STS, 5, 125, 56, 125, 0, 0 }, /*  sfx/ambulanc                # siren */
-{STS, 5, 126, 56, 126, 0, 0 }, /*  mazpat/fx/newstep           # footsteps */
+{STS, 5, 120,  0, 120, 0, 0 }, /*  fx-fret                     # bass slide */
+{STS, 5, 122, 56,  84, 1, 0 }, /*  sfx/bubbles1                # bubble */
+{STS, 5, 123, 56,  76, 1, 0 }, /*  sfx/doggrowl                # growl */
+{STS, 5, 124, 56,  74, 1, 0 }, /*  sfx/windchim    RIDE BELL!  # wind chime */
+{STS, 5, 125, 56,  67, 1, 0 }, /*  sfx/ambulanc                # siren */
+{STS, 5, 126, 56,  56, 1, 0 }, /*  mazpat/fx/newstep           # footsteps */
 
-{STS, 6, 120,  0, 120, 1, 0 }, /*  fx-fret                     # pick strape */
-{STS, 6, 124, 56, 124, 0, 0 }, /*  sfx/scratch2                # scratch 2 (?) */
-{STS, 6, 125, 56, 125, 0, 0 }, /*  mazpat/fx/newtrain          # train */
-{STS, 6, 126, 56, 126, 0, 0 }, /*  applause                    # applause 2 */
+{STS, 6, 120,  0, 120, 0, 0 }, /*  fx-fret                     # pick strape */
+{STS, 6, 124, 56,  61, 1, 0 }, /*  sfx/scratch2                # scratch 2 (?) */
+{STS, 6, 125, 56,  68, 1, 0 }, /*  mazpat/fx/newtrain          # train */
+{STS, 6, 126, 56,  58, 1, 0 }, /*  applause                    # applause 2 */
 
-{STS, 7, 124, 56, 124, 0, 0 }, /*  sfx/scratch2                # scratch 2 */
-{STS, 7, 125, 56, 125, 0, 0 }, /*  mazpat/fx/jet amp=70        # jetplane */
+{STS, 7, 124, 56,  61, 1, 0 }, /*  sfx/scratch2                # scratch 2 */
+{STS, 7, 125, 56,  82, 1, 0 }, /*  mazpat/fx/jet amp=70        # jetplane */
 
-{STS, 8, 125, 56, 125, 0, 0 }, /*  sfx/starship                # starship */
+{STS, 8, 125, 56,  81, 1, 0 }, /*  sfx/starship                # starship */
 
-{STS, 9, 125, 56, 125, 0, 0 }, /*  pistol                      # burst noise */
+{STS, 9, 125, 56,  72, 1, 0 }, /*  pistol                      # burst noise */
 
 /* bank 120 */
 
-{ STS, 120, 0, 56, 0, 0, 0 }, /*   sfx/cutnoiz                  # cut noise */
-{ STS, 120, 1, 56, 1, 0, 0 }, /*   sfx/cutnoiz                  # cut noise 2 */
-{ STS, 120, 2, 56, 2, 0, 0 }, /*   sfx/cutnoiz                  # dist cut noise */
-{ STS, 120, 3,  0, 120, 1, 0 }, /*   fx-fret			# string slap */
-{ STS, 120, 4,  0, 120, 1, 0 }, /*   fx-fret                      # bass slide */
-{ STS, 120, 5,  0, 120, 1, 0 }, /*   fx-fret                      # pick strape */
-{ STS, 120, 16, 56, 16, 0, 0 }, /*  sfx/flclick                  # fl key click */
-{ STS, 120, 32, 56, 32, 0, 0 }, /*  mazpat/fx/rainyday           # rain */
-{ STS, 120, 33, 56, 33, 0, 0 }, /*  sfx/thunder2			# thunder */
-{ STS, 120, 34, 56, 34, 0, 0 }, /*  sfx/newwind amp=75		# wind */
-{ STS, 120, 35, 56, 35, 0, 0 }, /*  sfx/stream amp=75		# stream */
-{ STS, 120, 36, 56, 36, 0, 0 }, /*  sfx/bubbles1			# bubbling */
+{ STS, 120, 0, 56,  48, 1, 0 }, /*   sfx/cutnoiz                  # cut noise */
+{ STS, 120, 1, 56,  49, 1, 0 }, /*   sfx/cutnoiz                  # cut noise 2 */
+{ STS, 120, 2, 56,  48, 1, 0 }, /*   sfx/cutnoiz                  # dist cut noise */
+{ STS, 120, 3,  0, 120, 0, 0 }, /*   fx-fret			# string slap */
+{ STS, 120, 4,  0, 120, 0, 0 }, /*   fx-fret                      # bass slide */
+{ STS, 120, 5,  0, 120, 0, 0 }, /*   fx-fret                      # pick strape */
+{ STS, 120, 16, 56, 44, 1, 0 }, /*  sfx/flclick                  # fl key click */
+{ STS, 120, 32, 56, 82, 1, 0 }, /*  mazpat/fx/rainyday           # rain */
+{ STS, 120, 33, 56, 80, 1, 0 }, /*  sfx/thunder2			# thunder */
+{ STS, 120, 34, 56, 82, 1, 0 }, /*  sfx/newwind amp=75		# wind */
+{ STS, 120, 35, 56, 81, 1, 0 }, /*  sfx/stream amp=75		# stream */
+{ STS, 120, 36, 56, 84, 1, 0 }, /*  sfx/bubbles1			# bubbling */
 /* #37 # feed */
-{ STS, 120, 48, 56, 48, 0, 0 }, /*  sfx/dog1                     # dog */
-{ STS, 120, 49, 56, 49, 0, 0 }, /*  sfx/hoofs			# horse gallop */
-{ STS, 120, 50, 56, 50, 0, 0 }, /*  sfx/birdtwee amp=25		# bird 2 */
-{ STS, 120, 51, 56, 51, 0, 0 }, /*  sfx/meow			# kitty */
-{ STS, 120, 52, 56, 52, 0, 0 }, /*  sfx/doggrowl                 # growl */
+{ STS, 120, 48, 56, 76, 1, 0 }, /*  sfx/dog1                     # dog */
+{ STS, 120, 49, 56, 77, 1, 0 }, /*  sfx/hoofs			# horse gallop */
+{ STS, 120, 50, 56, 78, 1, 0 }, /*  sfx/birdtwee amp=25		# bird 2 */
+{ STS, 120, 51, 56, 78, 1, 0 }, /*  sfx/meow			# kitty */
+{ STS, 120, 52, 56, 76, 1, 0 }, /*  sfx/doggrowl                 # growl */
 /* #53 # haunted */
-{ STS, 120, 54, 56, 54, 0, 0 }, /*  sfx/ghost			# ghost */
+{ STS, 120, 54, 56, 82, 1, 0 }, /*  sfx/ghost			# ghost */
 /* #55 sfx/badmaou    		# maou */
-{ STS, 120, 64,  0, 124, 1, 0 }, /*  sfx/dialtone                 # telephone dial */
-{ STS, 120, 65, 56, 65, 0, 0 }, /*  sfx/creak                    # door creaking */
-{ STS, 120, 66, 56, 66, 0, 0 }, /*  sfx/door                     # door slam */
-{ STS, 120, 67, 56, 67, 0, 0 }, /*  sfx/scratch1                 # scratch */
-{ STS, 120, 68, 56, 68, 0, 0 }, /*  sfx/scratch2                 # scratch 2 */
-{ STS, 120, 69, 56, 69, 0, 0 }, /*  sfx/windchim                 # wind chime */
-{ STS, 120, 70,  0, 124, 1, 0 }, /*  telephon                     # telephone 2 */
-{ STS, 120, 80, 56, 80, 0, 0 }, /*  sfx/carengin                 # car engine */
-{ STS, 120, 81, 56, 81, 0, 0 }, /*  sfx/carstop                  # car stop */
-{ STS, 120, 82, 56, 82, 0, 0 }, /*  sfx/carpass                  # car pass */
-{ STS, 120, 83, 56, 83, 0, 0 }, /*  sfx/carcrash                 # car crash */
-{ STS, 120, 84, 56, 84, 0, 0 }, /*  sfx/ambulanc                 # siren */
-{ STS, 120, 85, 56, 85, 0, 0 }, /*  mazpat/fx/newtrain           # train */
-{ STS, 120, 86, 56, 86, 0, 0 }, /*  mazpat/fx/jet amp=70         # jetplane */
-{ STS, 120, 87, 56, 87, 0, 0 }, /*  sfx/starship                 # starship */
-{ STS, 120, 88, 56, 88, 0, 0 }, /*  pistol                       # burst noise */
-{ STS, 120, 89, 56, 89, 0, 0 }, /*  mazpat/fx/train              # coaster */
-{ STS, 120, 90, 56, 90, 0, 0 }, /*  sfx/bubbles1			# submarine (needs to be replaced) */
-{ STS, 120, 96, 56, 96, 0, 0 }, /*  sfx/laugh                    # laughing */
-{ STS, 120, 97, 56, 97, 0, 0 }, /*  sfx/scream                   # screaming */
-{ STS, 120, 98, 56, 98, 0, 0 }, /*  sfx/punch                    # punch */
-{ STS, 120, 99, 56, 99, 0, 0 }, /*  sfx/heartbt                  # heart beat */
-{ STS, 120, 100, 56, 100, 0, 0 }, /*  mazpat/fx/newstep           # footsteps */
-{ STS, 120, 101, 56, 101, 0, 0 }, /*  applause                    # applause 2 */
-{ STS, 120, 112, 56, 112, 0, 0 }, /*  sfx/machgun2                # machine gun */
-{ STS, 120, 113, 56, 113, 0, 0 }, /*  gus/sqrwave                 # laser gun */
-{ STS, 120, 114, 56, 114, 0, 0 }, /*  pistol			# explosion */
-{ STS, 120, 115, 56, 115, 0, 0 }, /*  sfx/firework                # fireworks */
+{ STS, 120, 64,  0, 124, 0, 0 }, /*  sfx/dialtone                 # telephone dial */
+{ STS, 120, 65, 56, 59, 1, 0 }, /*  sfx/creak                    # door creaking */
+{ STS, 120, 66, 56, 60, 1, 0 }, /*  sfx/door                     # door slam */
+{ STS, 120, 67, 56, 29, 1, 0 }, /*  sfx/scratch1                 # scratch */
+{ STS, 120, 68, 56, 30, 1, 0 }, /*  sfx/scratch2                 # scratch 2 */
+{ STS, 120, 69, 56, 74, 1, 0 }, /*  sfx/windchim                 # wind chime */
+{ STS, 120, 70,  0, 124, 0, 0 }, /*  telephon                     # telephone 2 */
+{ STS, 120, 80, 56, 63, 1, 0 }, /*  sfx/carengin                 # car engine */
+{ STS, 120, 81, 56, 64, 1, 0 }, /*  sfx/carstop                  # car stop */
+{ STS, 120, 82, 56, 65, 1, 0 }, /*  sfx/carpass                  # car pass */
+{ STS, 120, 83, 56, 66, 1, 0 }, /*  sfx/carcrash                 # car crash */
+{ STS, 120, 84, 56, 67, 1, 0 }, /*  sfx/ambulanc                 # siren */
+{ STS, 120, 85, 56, 68, 1, 0 }, /*  mazpat/fx/newtrain           # train */
+{ STS, 120, 86, 56, 82, 1, 0 }, /*  mazpat/fx/jet amp=70         # jetplane */
+{ STS, 120, 87, 56, 81, 1, 0 }, /*  sfx/starship                 # starship */
+{ STS, 120, 88, 56, 72, 1, 0 }, /*  pistol                       # burst noise */
+{ STS, 120, 89, 56, 68, 1, 0 }, /*  mazpat/fx/train              # coaster */
+{ STS, 120, 90, 56, 84, 1, 0 }, /*  sfx/bubbles1			# submarine (needs to be replaced) */
+{ STS, 120, 96, 56, 52, 1, 0 }, /*  sfx/laugh                    # laughing */
+{ STS, 120, 97, 56, 53, 1, 0 }, /*  sfx/scream                   # screaming */
+{ STS, 120, 98, 56, 54, 1, 0 }, /*  sfx/punch                    # punch */
+{ STS, 120, 99, 56, 55, 1, 0 }, /*  sfx/heartbt                  # heart beat */
+{ STS, 120, 100, 56, 56, 1, 0 }, /*  mazpat/fx/newstep           # footsteps */
+{ STS, 120, 101, 56, 58, 1, 0 }, /*  applause                    # applause 2 */
+{ STS, 120, 112, 56, 73, 1, 0 }, /*  sfx/machgun2                # machine gun */
+{ STS, 120, 113, 56, 69, 1, 0 }, /*  gus/sqrwave                 # laser gun */
+{ STS, 120, 114, 56, 72, 1, 0 }, /*  pistol			# explosion */
+{ STS, 120, 115, 56, 58, 1, 0 }, /*  sfx/firework                # fireworks */
 
 /* drumset 0 sf	Standard */
 
@@ -594,19 +594,11 @@ static int pc42bmap[][7] = {
 {   0,   0,   0,  0,   0, 0, 0 }  /*  sfx/bubbles1        note=48 keep=loop keep=env pan=center   # Bubble */
 };
 
-#include <stdio.h>
 
 void pcmap(int *b, int *v, int *p, int *drums) {
 	int bank = *b;
 	int voi = *v;
 	int i, bktype;
-#if 0
-int debug = 0;
-if (*drums && !bank && (voi == 14 || voi == 16)) {
-debug = 1;
-fprintf(stderr,"pcmap %d\n", voi);
-}
-#endif
 	if (!*drums) voi = *p;
 	for (i = 0; ; i++) {
 		bktype = pc42bmap[i][0];
@@ -615,14 +607,11 @@ fprintf(stderr,"pcmap %d\n", voi);
 		if (!*drums && (bktype != STS)) continue;
 		if (bank != pc42bmap[i][1]) continue;
 		if (voi != pc42bmap[i][2]) continue;
-#if 0
-fprintf(stderr,"drum?%d: %d/%d -> %d/%d [%d]\n", *drums, bank, voi, pc42bmap[i][3], pc42bmap[i][4], pc42bmap[i][5]);
-#endif
-if (!*drums) return;
 		*b = pc42bmap[i][3];
 		if (*drums) *v = pc42bmap[i][4];
 		else *p = pc42bmap[i][4];
 		if (bktype == SDS && pc42bmap[i][5]) *drums = 0;
+		else if (bktype == STS && pc42bmap[i][5]) *drums = 1;
 		return;
 	}
 }

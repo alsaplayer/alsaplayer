@@ -1277,6 +1277,21 @@ static void groom_list(int32 divisions, struct md *d)
 
 	      if (current_config_pc42b) pcmap(&banknum, &dnote, &mprog, &drumsflag);
 
+	     if (drumsflag)
+	     {
+	      /* Mark this instrument to be loaded */
+	      if (!(drumset[dset]->tone[dnote].layer))
+	       {
+		drumset[dset]->tone[dnote].layer=
+		    MAGIC_LOAD_INSTRUMENT;
+	       }
+	      else drumset[dset]->tone[dnote].last_used
+		 = current_tune_number;
+	      if (!d->channel[meep->event.channel].name) d->channel[meep->event.channel].name=
+		    drumset[dset]->name;
+	     }
+	     if (!drumsflag)
+	     {
 	      /* Mark this instrument to be loaded */
 	      if (!(tonebank[banknum]->tone[mprog].layer))
 		{
@@ -1286,6 +1301,7 @@ static void groom_list(int32 divisions, struct md *d)
 	      else tonebank[banknum]->tone[mprog].last_used = current_tune_number;
 	      if (!d->channel[meep->event.channel].name) d->channel[meep->event.channel].name=
 		    tonebank[banknum]->tone[mprog].name;
+	     }
 	    }
 	  break;
 
