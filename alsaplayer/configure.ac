@@ -85,17 +85,6 @@ fi
 export PKG_CONFIG_PATH
 
 
-dnl ==================
-dnl Hackety hack stuff
-dnl ==================
-
-AC_ARG_ENABLE(top-fooling,
-[  --enable-top-fooling    enable fooling of top, pretend to be faster ],, enable_top_fooling=no)
-
-if test "$enable_top_fooling" = yes; then
-DFLAGS="$DFLAGS -DTOP_FOOLING"
-fi
-
 AC_ARG_ENABLE(prefer-mad,
 [  --enable-prefer-mad     prefer MAD plugin over mpg123 (default=yes)],
 [if test "$enableval" = "no"

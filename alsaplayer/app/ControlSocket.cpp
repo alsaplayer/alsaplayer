@@ -236,7 +236,7 @@ void socket_looper(void *arg)
 				player = playlist->GetCorePlayer();
 				if (player) {
 					long_val = player->GetCurrentTime(
-							player->GetPosition());
+							player->GetFrames());
 					// we get centiseconds
 					int_val = (int)(long_val / 100);
 					pkt.pld_length = sizeof(int);

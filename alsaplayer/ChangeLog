@@ -1,3 +1,9 @@
+- Round the total time calculation of mp3's upwards
+- Implement some more libalsaplayer commands (AP_GET_INT_SONG_LENGTH_SECOND,
+  AP_GET_INT_SONG_LENGTH_SECOND)
+- Implement C interface for playlist interface subscription. It still uses some
+  STL based datatypes for some parameters so the conversion is not total, just
+  enough to not need pure virtual member functions.
 - Made the song scanning function more efficient.
 - Fix nasty bug with CDDA menu entry. 
 - No playlist interface locking was done when playlist entries were removed.
