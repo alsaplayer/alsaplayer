@@ -49,7 +49,6 @@ static char addon_dir[1024];
 void unload_scope_addons()
 {
 	apUnregiserScopePlugins();
-	// No unloading of shared libs is done yet
 }
 
 void load_scope_addons()
@@ -171,6 +170,9 @@ int interface_gtk_start(CorePlayer *coreplayer, Playlist *playlist, int argc, ch
 	GDK_THREADS_ENTER();
 	gtk_main();
 	GDK_THREADS_LEAVE();
+	
+	delete scopes;	// Remove scope_feeder
+	
 	unload_scope_addons();
 
 	return 0;

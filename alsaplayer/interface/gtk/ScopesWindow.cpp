@@ -23,6 +23,7 @@
 #include "gtk_interface.h"
 #include "pixmaps/note.xpm"
 #include <pthread.h>
+#include <dlfcn.h>
 
 extern int global_scopes_show;
 static GtkWidget *scopes_window = (GtkWidget *)NULL;
@@ -70,10 +71,17 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 void apUnregiserScopePlugins()
 {
 	scope_entry *current = &root_scope;
+	void *handle;
 	while (current && current->sp) {
-		printf("closing scope plugin %s\n", current->sp->name);
+		//printf("closing and unloading scope plugin %s\n", current->sp->name);
 		current->sp->stop();
 		current->sp->close();
+		if (current->sp->handle) {
+			fprintf(stdout, "Unloading Scope plugin: %s\n", current->sp->name);
+			handle = current->sp->handle;	
+			current->sp = NULL;
+			dlclose(handle);
+		}	
 		current = current->next;
 	}
 }	
@@ -129,7 +137,7 @@ int apRegisterScopePlugin(scope_plugin *plugin)
 		se->active = 1;
 	}
 	pthread_mutex_unlock(&sl_mutex);
-	fprintf(stdout, "Scope plugin: %s\n", se->sp->name);
+	fprintf(stdout, "Loading Scope plugin: %s\n", se->sp->name);
 	return 1;
 }
 
