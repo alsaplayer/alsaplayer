@@ -22,6 +22,8 @@
 #include "tables.h"
 #include "instrum.h"
 #include "playmidi.h"
+#include "effects.h"
+#include "md.h"
 #include "controls.h"
 #include "sbk.h"
 #include "sflayer.h"
@@ -726,8 +728,10 @@ static int load_one_side(SFInsts *rec, SampleList *sp, int sample_count, Sample 
 	if (!sample->sample_rate && !dont_filter_drums) {
     	        if (!i) ctl->cmsg(CMSG_INFO, VERB_DEBUG, "cutoff = %ld ; resonance = %g",
 			sp->cutoff_freq, sp->resonance);
+#ifdef TOTALLY_LOCAL
 		do_lowpass(sample, samplerate_save, sample->data, sample->data_length >> FRACTION_BITS,
 			sp->cutoff_freq, sp->resonance);
+#endif
 	}
 
 /*

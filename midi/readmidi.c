@@ -40,6 +40,8 @@
 #include "common.h"
 #include "instrum.h"
 #include "playmidi.h"
+#include "effects.h"
+#include "md.h"
 #include "readmidi.h"
 #include "output.h"
 #include "controls.h"
@@ -51,34 +53,34 @@ static
 int32 quietchannels=0;
 
 #ifdef INFO_ONLY
-static int GM_System_On;
-static int XG_System_On;
-static int GS_System_On;
+/*static int GM_System_On;*/
+/*static int XG_System_On;*/
+/*static int GS_System_On;*/
 
-static int XG_System_reverb_type;
-static int XG_System_chorus_type;
-static int XG_System_variation_type;
+/*static int XG_System_reverb_type;*/
+/*static int XG_System_chorus_type;*/
+/*static int XG_System_variation_type;*/
 
-static Channel channel[MAXCHAN];
-static signed char drumvolume[MAXCHAN][MAXNOTE];
-static signed char drumpanpot[MAXCHAN][MAXNOTE];
-static signed char drumreverberation[MAXCHAN][MAXNOTE];
-static signed char drumchorusdepth[MAXCHAN][MAXNOTE];
+/*static Channel channel[MAXCHAN];*/
+/*static signed char drumvolume[MAXCHAN][MAXNOTE];*/
+/*static signed char drumpanpot[MAXCHAN][MAXNOTE];*/
+/*static signed char drumreverberation[MAXCHAN][MAXNOTE];*/
+/*static signed char drumchorusdepth[MAXCHAN][MAXNOTE];*/
 #endif
 
 /* to avoid some unnecessary parameter passing */
-static MidiEventList *evlist;
-static int32 event_count;
-static FILE *fp;
-static uint32 at;
+/*static MidiEventList *evlist;*/
+/*static int32 event_count;*/
+/*static FILE *fp;*/
+/*static uint32 at;*/
 
 /* taken from tplus --gl */
-static int midi_port_number;
+/*static int midi_port_number;*/
 
 #if MAXCHAN <= 16
 #define MERGE_CHANNEL_PORT(ch) ((int)(ch))
 #else
-#define MERGE_CHANNEL_PORT(ch) ((int)(ch) | (midi_port_number << 4))
+#define MERGE_CHANNEL_PORT(ch) ((int)(ch) | (d->midi_port_number << 4))
 #endif
 
 
@@ -133,15 +135,15 @@ static void compute_sample_increment(int32 tempo, int32 divisions)
 }
 
 #ifdef tplus
-static int tf_getc(void)
+static int tf_getc(struct md *d)
 {
     uint8 b;
-    if (fread(&b,1,1,fp) != 1) return EOF;
+    if (fread(&b,1,1,d->fp) != 1) return EOF;
     return (uint8)b;
 }
 
 /* Read variable-length number (7 bits per byte, MSB first) */
-static int32 getvl(void)
+static int32 getvl(struct md *d)
 {
     int32 l;
     int c;
@@ -150,25 +152,25 @@ static int32 getvl(void)
     l = 0;
 
     /* 1 */
-    if((c = tf_getc()) == EOF)
+    if((c = tf_getc(d)) == EOF)
 	goto eof;
     if(!(c & 0x80)) return l | c;
     l = (l | (c & 0x7f)) << 7;
 
     /* 2 */
-    if((c = tf_getc()) == EOF)
+    if((c = tf_getc(d)) == EOF)
 	goto eof;
     if(!(c & 0x80)) return l | c;
     l = (l | (c & 0x7f)) << 7;
 
     /* 3 */
-    if((c = tf_getc()) == EOF)
+    if((c = tf_getc(d)) == EOF)
 	goto eof;
     if(!(c & 0x80)) return l | c;
     l = (l | (c & 0x7f)) << 7;
 
     /* 4 */
-    if((c = tf_getc()) == EOF)
+    if((c = tf_getc(d)) == EOF)
 	goto eof;
     if(!(c & 0x80)) return l | c;
 
@@ -193,13 +195,13 @@ static int32 getvl(void)
 #else
 
 /* Read variable-length number (7 bits per byte, MSB first) */
-static uint32 getvl(void)
+static uint32 getvl(struct md *d)
 {
   uint32 l=0;
   uint8 c;
   for (;;)
     {
-      fread(&c,1,1,fp);
+      fread(&c,1,1,d->fp);
       l += (c & 0x7f);
       if (!(c & 0x80)) return l;
       l<<=7;
@@ -226,7 +228,7 @@ static void free_metatext()
     }
 }
 
-static int metatext(int type, uint32 leng, char *mess)
+static int metatext(int type, uint32 leng, char *mess, struct md *d)
 {
     static int continued_flag = 0;
     int c;
@@ -235,8 +237,8 @@ static int metatext(int type, uint32 leng, char *mess)
     struct meta_text_type *meta, *mlast;
     char *meta_string;
 
-    /* if (at > 0 && (type == 1||type == 5||type == 6||type == 7)) { */
-    if (type==5 || ( at > 0 && (type==1||type==6||type==7) )) {
+    /* if (d->at > 0 && (type == 1||type == 5||type == 6||type == 7)) { */
+    if (type==5 || ( d->at > 0 && (type==1||type==6||type==7) )) {
 	meta = (struct meta_text_type *)safe_malloc(sizeof(struct meta_text_type));
 	if (leng > 72) leng = 72;
 	meta_string = (char *)safe_malloc(leng+8);
@@ -271,10 +273,10 @@ static int metatext(int type, uint32 leng, char *mess)
 	meta_string[leng] = '\0';
 	meta->type = type;
 	meta->text = meta_string;
-	meta->time = at;
+	meta->time = d->at;
 	meta->next = NULL;
 /*
-while at==0
+while d->at==0
 1. head = meta1; head->next = NULL
 2. for ...: mlast = head
    if ...: not <
@@ -308,11 +310,11 @@ while at==0
     else return 0;
 }
 
-static int sysex(uint32 len, uint8 *syschan, uint8 *sysa, uint8 *sysb)
+static int sysex(uint32 len, uint8 *syschan, uint8 *sysa, uint8 *sysb, struct md *d)
 {
   unsigned char *s=(unsigned char *)safe_malloc(len);
   int id, model, ch, port, adhi, adlo, cd, dta, dtb, dtc;
-  if (len != fread(s, 1, len, fp))
+  if (len != fread(s, 1, len, d->fp))
     {
       free(s);
       return 0;
@@ -322,7 +324,7 @@ static int sysex(uint32 len, uint8 *syschan, uint8 *sysa, uint8 *sysb)
   if (id==0x7e && port==0x7f && model==0x09 && adhi==0x01)
     {
       ctl->cmsg(CMSG_TEXT, VERB_VERBOSE, "GM System On", len);
-      GM_System_On=1;
+      d->GM_System_On=1;
       free(s);
       return 0;
     }
@@ -352,7 +354,7 @@ static int sysex(uint32 len, uint8 *syschan, uint8 *sysa, uint8 *sysb)
 	if (!adhi && !adlo && cd==0x7e && !dta)
 	  {
       	    ctl->cmsg(CMSG_TEXT, VERB_VERBOSE, "XG System On", len);
-	    XG_System_On=1;
+	    d->XG_System_On=1;
 	    #ifdef tplus
 #ifndef INFO_ONLY
 	    vol_table = xg_vol_table;
@@ -365,13 +367,13 @@ static int sysex(uint32 len, uint8 *syschan, uint8 *sysa, uint8 *sysb)
 	    switch (cd)
 	      {
 		case 0x00:
-		  XG_System_reverb_type=(dta<<3)+dtb;
+		  d->XG_System_reverb_type=(dta<<3)+dtb;
 		  break;
 		case 0x20:
-		  XG_System_chorus_type=((dta-64)<<3)+dtb;
+		  d->XG_System_chorus_type=((dta-64)<<3)+dtb;
 		  break;
 		case 0x40:
-		  XG_System_variation_type=dta;
+		  d->XG_System_variation_type=dta;
 		  break;
 		case 0x5a:
 		  /* dta==0 Insertion; dta==1 System */
@@ -391,12 +393,12 @@ static int sysex(uint32 len, uint8 *syschan, uint8 *sysa, uint8 *sysb)
 		  return ME_TONE_BANK;
 		  break;
 		case 0x03: /* program number */
-	      		/** MIDIEVENT(at, ME_PROGRAM, lastchan, a, 0); **/
+	      		/** MIDIEVENT(d->at, ME_PROGRAM, lastchan, a, 0); **/
 		  return ME_PROGRAM;
 		  break;
 		case 0x08: /*  */
-		  /* channel[adlo&0x0f].transpose = (char)(dta-64); */
-		  channel[ch].transpose = (char)(dta-64);
+		  /* d->channel[adlo&0x0f].transpose = (char)(dta-64); */
+		  d->channel[ch].transpose = (char)(dta-64);
       	    	  ctl->cmsg(CMSG_TEXT, VERB_DEBUG, "transpose channel %d by %d",
 			(adlo&0x0f)+1, dta-64);
 		  break;
@@ -431,7 +433,7 @@ static int sysex(uint32 len, uint8 *syschan, uint8 *sysa, uint8 *sysb)
 	if (!cd && dta==0x7f && !dtb && dtc==0x41)
 	  {
       	    ctl->cmsg(CMSG_TEXT, VERB_VERBOSE, "GS System On", len);
-	    GS_System_On=1;
+	    d->GS_System_On=1;
 	    #ifdef tplus
 #ifndef INFO_ONLY
 	    vol_table = gs_vol_table;
@@ -444,34 +446,34 @@ static int sysex(uint32 len, uint8 *syschan, uint8 *sysa, uint8 *sysb)
 	    if (!chan) chan=9;
 	    else if (chan<10) chan--;
 	    chan = MERGE_CHANNEL_PORT(chan);
-	    channel[chan].kit=dtb;
+	    d->channel[chan].kit=dtb;
 	  }
 	else if (cd==0x01) switch(dta)
 	  {
 	    case 0x30:
 		switch(dtb)
 		  {
-		    case 0: XG_System_reverb_type=16+0; break;
-		    case 1: XG_System_reverb_type=16+1; break;
-		    case 2: XG_System_reverb_type=16+2; break;
-		    case 3: XG_System_reverb_type= 8+0; break;
-		    case 4: XG_System_reverb_type= 8+1; break;
-		    case 5: XG_System_reverb_type=32+0; break;
-		    case 6: XG_System_reverb_type=8*17; break;
-		    case 7: XG_System_reverb_type=8*18; break;
+		    case 0: d->XG_System_reverb_type=16+0; break;
+		    case 1: d->XG_System_reverb_type=16+1; break;
+		    case 2: d->XG_System_reverb_type=16+2; break;
+		    case 3: d->XG_System_reverb_type= 8+0; break;
+		    case 4: d->XG_System_reverb_type= 8+1; break;
+		    case 5: d->XG_System_reverb_type=32+0; break;
+		    case 6: d->XG_System_reverb_type=8*17; break;
+		    case 7: d->XG_System_reverb_type=8*18; break;
 		  }
 		break;
 	    case 0x38:
 		switch(dtb)
 		  {
-		    case 0: XG_System_chorus_type= 8+0; break;
-		    case 1: XG_System_chorus_type= 8+1; break;
-		    case 2: XG_System_chorus_type= 8+2; break;
-		    case 3: XG_System_chorus_type= 8+4; break;
-		    case 4: XG_System_chorus_type=  -1; break;
-		    case 5: XG_System_chorus_type= 8*3; break;
-		    case 6: XG_System_chorus_type=  -1; break;
-		    case 7: XG_System_chorus_type=  -1; break;
+		    case 0: d->XG_System_chorus_type= 8+0; break;
+		    case 1: d->XG_System_chorus_type= 8+1; break;
+		    case 2: d->XG_System_chorus_type= 8+2; break;
+		    case 3: d->XG_System_chorus_type= 8+4; break;
+		    case 4: d->XG_System_chorus_type=  -1; break;
+		    case 5: d->XG_System_chorus_type= 8*3; break;
+		    case 6: d->XG_System_chorus_type=  -1; break;
+		    case 7: d->XG_System_chorus_type=  -1; break;
 		  }
 		break;
 	  }
@@ -485,16 +487,16 @@ static int sysex(uint32 len, uint8 *syschan, uint8 *sysa, uint8 *sysb)
 
 /* Print a string from the file, followed by a newline. Any non-ASCII
    or unprintable characters will be converted to periods. */
-static int dumpstring(uint32 len, const char *label, int type)
+static int dumpstring(uint32 len, const char *label, int type, struct md *d)
 {
   char *s=(char *)safe_malloc(len+1);
-  if (len != fread(s, 1, len, fp))
+  if (len != fread(s, 1, len, d->fp))
     {
       free(s);
       return -1;
     }
   s[len]='\0';
-  if (!metatext(type, len, s))
+  if (!metatext(type, len, s, d))
   {
    while (len--)
     {
@@ -526,7 +528,7 @@ static int dumpstring(uint32 len, const char *label, int type)
 
 /* Read a MIDI event, returning a freshly allocated element that can
    be linked to the event list */
-static MidiEventList *read_midi_event(void)
+static MidiEventList *read_midi_event(struct md *d)
 {
   static uint8 laststatus, lastchan;
   static uint8 nrpn=0, rpn_msb[MAXCHAN], rpn_lsb[MAXCHAN]; /* one per channel */
@@ -541,14 +543,14 @@ static MidiEventList *read_midi_event(void)
   for (;;)
     {
 #ifdef tplus
-      if ( (len=getvl()) < 0) return 0;
-      at+= len;
+      if ( (len=getvl(d)) < 0) return 0;
+      d->at+= len;
 #else
-      at+=getvl();
+      d->at+=getvl(d);
 #endif
 
 #ifdef tplus
-      if((i = tf_getc()) == EOF)
+      if((i = tf_getc(d)) == EOF)
 	{
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -562,7 +564,7 @@ static MidiEventList *read_midi_event(void)
 	}
       me = (uint8)i;
 #else
-      if (fread(&me,1,1,fp)!=1)
+      if (fread(&me,1,1,d->fp)!=1)
 	{
 	  ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "\"%s\": read_midi_event: %s", 
 	       current_filename, sys_errlist[errno]);
@@ -575,20 +577,20 @@ static MidiEventList *read_midi_event(void)
 	  int32 sret;
 	  uint8 sysa=0, sysb=0, syschan=0;
 #ifdef tplus
-          if ( (len=getvl()) < 0) return 0;
+          if ( (len=getvl(d)) < 0) return 0;
 #else
-	  len=getvl();
+	  len=getvl(d);
 #endif
-	  sret=sysex(len, &syschan, &sysa, &sysb);
+	  sret=sysex(len, &syschan, &sysa, &sysb, d);
 	  if (sret)
 	   {
-	     MIDIEVENT(at, sret, syschan, sysa, sysb);
+	     MIDIEVENT(d->at, sret, syschan, sysa, sysb);
 	   }
 	}
       else if(me==0xFF) /* Meta event */
 	{
 #ifdef tplus
-      if((i = tf_getc()) == EOF)
+      if((i = tf_getc(d)) == EOF)
 	{
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -602,19 +604,19 @@ static MidiEventList *read_midi_event(void)
 	}
       type = (uint8)i;
 #else
-	  fread(&type,1,1,fp);
+	  fread(&type,1,1,d->fp);
 #endif
 #ifdef tplus
-          if ( (len=getvl()) < 0) return 0;
+          if ( (len=getvl(d)) < 0) return 0;
 #else
-	  len=getvl();
+	  len=getvl(d);
 #endif
 	  if (type>0 && type<16)
 	    {
 	      static const char *label[]={
 		"text: ", "text: ", "Copyright: ", "track: ",
 		"instrument: ", "lyric: ", "marker: ", "cue point: "};
-	      dumpstring(len, label[(type>7) ? 0 : type], type);
+	      dumpstring(len, label[(type>7) ? 0 : type], type, d);
 	    }
 	  else
 	    switch(type)
@@ -623,21 +625,21 @@ static MidiEventList *read_midi_event(void)
 	      case 0x21: /* MIDI port number */
 		if(len == 1)
 		{
-	  	    fread(&midi_port_number,1,1,fp);
-		    if(midi_port_number == EOF)
+	  	    fread(&d->midi_port_number,1,1,d->fp);
+		    if(d->midi_port_number == EOF)
 		    {
 			    ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 				      "Warning: \"%s\": Short midi file.",
 				      current_filename);
 			    return 0;
 		    }
-		    midi_port_number &= 0x0f;
-		    if (midi_port_number)
+		    d->midi_port_number &= 0x0f;
+		    if (d->midi_port_number)
 			ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
-			  "(MIDI port number %d)", midi_port_number);
-		    midi_port_number &= 0x03;
+			  "(MIDI port number %d)", d->midi_port_number);
+		    d->midi_port_number &= 0x03;
 		}
-		else skip(fp, len);
+		else skip(d->fp, len);
 		break;
 
 	      case 0x2F: /* End of Track */
@@ -645,7 +647,7 @@ static MidiEventList *read_midi_event(void)
 
 	      case 0x51: /* Tempo */
 #ifdef tplus
-      if((i = tf_getc()) == EOF)
+      if((i = tf_getc(d)) == EOF)
 	{
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -658,7 +660,7 @@ static MidiEventList *read_midi_event(void)
 	    return 0;
 	}
       a = (uint8)i;
-      if((i = tf_getc()) == EOF)
+      if((i = tf_getc(d)) == EOF)
 	{
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -671,7 +673,7 @@ static MidiEventList *read_midi_event(void)
 	    return 0;
 	}
       b = (uint8)i;
-      if((i = tf_getc()) == EOF)
+      if((i = tf_getc(d)) == EOF)
 	{
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -685,14 +687,14 @@ static MidiEventList *read_midi_event(void)
 	}
       c = (uint8)i;
 #else
-		fread(&a,1,1,fp); fread(&b,1,1,fp); fread(&c,1,1,fp);
+		fread(&a,1,1,d->fp); fread(&b,1,1,d->fp); fread(&c,1,1,d->fp);
 #endif
-		MIDIEVENT(at, ME_TEMPO, c, a, b);
+		MIDIEVENT(d->at, ME_TEMPO, c, a, b);
 		
 	      default:
 		ctl->cmsg(CMSG_INFO, VERB_DEBUG, 
 		     "(Meta event type 0x%02x, length %ld)", type, len);
-		skip(fp, len);
+		skip(d->fp, len);
 		break;
 	      }
 	}
@@ -704,7 +706,7 @@ static MidiEventList *read_midi_event(void)
 	      lastchan = MERGE_CHANNEL_PORT(a & 0x0F);
 	      laststatus=(a>>4) & 0x07;
 #ifdef tplus
-      if((i = tf_getc()) == EOF)
+      if((i = tf_getc(d)) == EOF)
 	{
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -718,7 +720,7 @@ static MidiEventList *read_midi_event(void)
 	}
       a = (uint8)i;
 #else
-	      fread(&a, 1,1, fp);
+	      fread(&a, 1,1, d->fp);
 #endif
 	      a &= 0x7F;
 	    }
@@ -726,7 +728,7 @@ static MidiEventList *read_midi_event(void)
 	    {
 	    case 0: /* Note off */
 #ifdef tplus
-      if((i = tf_getc()) == EOF)
+      if((i = tf_getc(d)) == EOF)
 	{
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -740,15 +742,15 @@ static MidiEventList *read_midi_event(void)
 	}
       b = (uint8)i;
 #else
-	      fread(&b, 1,1, fp);
+	      fread(&b, 1,1, d->fp);
 #endif
 	      b &= 0x7F;
-	      /*MIDIEVENT(at, ME_NOTEOFF, lastchan, a,b);*/
-	      MIDIEVENT(at, ME_NOTEON, lastchan, a,0);
+	      /*MIDIEVENT(d->at, ME_NOTEOFF, lastchan, a,b);*/
+	      MIDIEVENT(d->at, ME_NOTEON, lastchan, a,0);
 
 	    case 1: /* Note on */
 #ifdef tplus
-      if((i = tf_getc()) == EOF)
+      if((i = tf_getc(d)) == EOF)
 	{
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -762,14 +764,14 @@ static MidiEventList *read_midi_event(void)
 	}
       b = (uint8)i;
 #else
-	      fread(&b, 1,1, fp);
+	      fread(&b, 1,1, d->fp);
 #endif
 	      b &= 0x7F;
-	      MIDIEVENT(at, ME_NOTEON, lastchan, a,b);
+	      MIDIEVENT(d->at, ME_NOTEON, lastchan, a,b);
 
 	    case 2: /* Key Pressure */
 #ifdef tplus
-      if((i = tf_getc()) == EOF)
+      if((i = tf_getc(d)) == EOF)
 	{
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -783,14 +785,14 @@ static MidiEventList *read_midi_event(void)
 	}
       b = (uint8)i;
 #else
-	      fread(&b, 1,1, fp);
+	      fread(&b, 1,1, d->fp);
 #endif
 	      b &= 0x7F;
-	      MIDIEVENT(at, ME_KEYPRESSURE, lastchan, a, b);
+	      MIDIEVENT(d->at, ME_KEYPRESSURE, lastchan, a, b);
 
 	    case 3: /* Control change */
 #ifdef tplus
-      if((i = tf_getc()) == EOF)
+      if((i = tf_getc(d)) == EOF)
 	{
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -804,7 +806,7 @@ static MidiEventList *read_midi_event(void)
 	}
       b = (uint8)i;
 #else
-	      fread(&b, 1,1, fp);
+	      fread(&b, 1,1, d->fp);
 #endif
 	      b &= 0x7F;
 	      {
@@ -848,12 +850,12 @@ ctl->cmsg(CMSG_INFO, VERB_NORMAL, "PHASER");
 		       continuous controller. This will cause lots of
 		       warnings about undefined tone banks. */
 		  case 0:
-		    if (XG_System_On)
+		    if (d->XG_System_On)
 		    	control=ME_TONE_KIT;
 		    else control=ME_TONE_BANK;
 		    break;
 		  case 32:
-	            if (XG_System_On) control=ME_TONE_BANK;
+	            if (d->XG_System_On) control=ME_TONE_BANK;
 		    break;
 
 		  case 100: nrpn=0; rpn_msb[lastchan]=b; break;
@@ -888,13 +890,13 @@ ctl->cmsg(CMSG_INFO, VERB_NORMAL, "PHASER");
 			   case 0x18: pitch coarse
 			   case 0x19: pitch fine
 			*/
-			   case 0x1a: drumvolume[lastchan][0x7f & rpn_lsb[lastchan]] = b; break;
+			   case 0x1a: d->drumvolume[lastchan][0x7f & rpn_lsb[lastchan]] = b; break;
 			   case 0x1c:
 			     if (!b) b=(int) (127.0*rand()/(RAND_MAX));
-			     drumpanpot[lastchan][0x7f & rpn_lsb[lastchan]] = b;
+			     d->drumpanpot[lastchan][0x7f & rpn_lsb[lastchan]] = b;
 			     break;
-			   case 0x1d: drumreverberation[lastchan][0x7f & rpn_lsb[lastchan]] = b; break;
-			   case 0x1e: drumchorusdepth[lastchan][0x7f & rpn_lsb[lastchan]] = b; break;
+			   case 0x1d: d->drumreverberation[lastchan][0x7f & rpn_lsb[lastchan]] = b; break;
+			   case 0x1e: d->drumchorusdepth[lastchan][0x7f & rpn_lsb[lastchan]] = b; break;
 			/*
 			   case 0x1f: variation send level
 			*/
@@ -918,7 +920,7 @@ ctl->cmsg(CMSG_INFO, VERB_NORMAL, "PHASER");
 
 		      case 0x7F7F: /* RPN reset */
 			/* reset pitch bend sensitivity to 2 */
-			MIDIEVENT(at, ME_PITCH_SENS, lastchan, 2, 0);
+			MIDIEVENT(d->at, ME_PITCH_SENS, lastchan, 2, 0);
 
 		      default:
 			ctl->cmsg(CMSG_INFO, VERB_DEBUG, 
@@ -936,18 +938,18 @@ ctl->cmsg(CMSG_INFO, VERB_NORMAL, "PHASER");
 		  }
 		if (control != 255)
 		  { 
-		    MIDIEVENT(at, control, lastchan, b, 0); 
+		    MIDIEVENT(d->at, control, lastchan, b, 0); 
 		  }
 	      }
 	      break;
 
 	    case 4: /* Program change */
 	      a &= 0x7f;
-	      MIDIEVENT(at, ME_PROGRAM, lastchan, a, 0);
+	      MIDIEVENT(d->at, ME_PROGRAM, lastchan, a, 0);
 
 #ifdef tplus
 	    case 5: /* Channel pressure */
-	      MIDIEVENT(at, ME_CHANNEL_PRESSURE, lastchan, a, 0);
+	      MIDIEVENT(d->at, ME_CHANNEL_PRESSURE, lastchan, a, 0);
 #else
 	    case 5: /* Channel pressure - NOT IMPLEMENTED */
 	      break;
@@ -955,7 +957,7 @@ ctl->cmsg(CMSG_INFO, VERB_NORMAL, "PHASER");
 
 	    case 6: /* Pitch wheel */
 #ifdef tplus
-      if((i = tf_getc()) == EOF)
+      if((i = tf_getc(d)) == EOF)
 	{
 	    if(errno)
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
@@ -969,10 +971,10 @@ ctl->cmsg(CMSG_INFO, VERB_NORMAL, "PHASER");
 	}
       b = (uint8)i;
 #else
-	      fread(&b, 1,1, fp);
+	      fread(&b, 1,1, d->fp);
 #endif
 	      b &= 0x7F;
-	      MIDIEVENT(at, ME_PITCHWHEEL, lastchan, a, b);
+	      MIDIEVENT(d->at, ME_PITCHWHEEL, lastchan, a, b);
 
 	    case 7:
 	      break;
@@ -993,28 +995,28 @@ ctl->cmsg(CMSG_INFO, VERB_NORMAL, "PHASER");
 
 /* Read a midi track into the linked list, either merging with any previous
    tracks or appending to them. */
-static int read_track(int append)
+static int read_track(int append, struct md *d)
 {
   MidiEventList *meep;
   MidiEventList *next, *newev;
   int32 len;
   char tmp[4];
 
-  midi_port_number = 0;
-  meep=evlist;
+  d->midi_port_number = 0;
+  meep=d->evlist;
   if (append && meep)
     {
       /* find the last event in the list */
       for (; meep->next; meep=(MidiEventList *)meep->next)
 	;
-      at=meep->event.time;
+      d->at=meep->event.time;
     }
   else
-    at=0;
+    d->at=0;
 
   /* Check the formalities */
   
-  if ((fread(tmp,1,4,fp) != 4) || (fread(&len,4,1,fp) != 1))
+  if ((fread(tmp,1,4,d->fp) != 4) || (fread(&len,4,1,d->fp) != 1))
     {
       ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 	   "\"%s\": Can't read track header.", current_filename);
@@ -1030,7 +1032,7 @@ static int read_track(int append)
 
   for (;;)
     {
-      if (!(newev=read_midi_event())) /* Some kind of error  */
+      if (!(newev=read_midi_event(d))) /* Some kind of error  */
 	return -2;
 
       if (newev==MAGIC_EOT) /* End-of-track Hack. */
@@ -1048,30 +1050,30 @@ static int read_track(int append)
       newev->next=next;
       meep->next=newev;
 
-      event_count++; /* Count the event. (About one?) */
+      d->event_count++; /* Count the event. (About one?) */
       meep=newev;
     }
 }
 
 /* Free the linked event list from memory. */
-static void free_midi_list(void)
+static void free_midi_list(struct md *d)
 {
   MidiEventList *meep, *next;
-  if (!(meep=evlist)) return;
+  if (!(meep=d->evlist)) return;
   while (meep)
     {
       next=(MidiEventList *)meep->next;
       free(meep);
       meep=next;
     }
-  evlist=0;
+  d->evlist=0;
 }
 
 /* Allocate an array of MidiEvents and fill it from the linked list of
    events, marking used instruments for loading. Convert event times to
    samples: handle tempo changes. Strip unnecessary events from the list.
    Free the linked list. */
-static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
+static MidiEvent *groom_list(int32 divisions, struct md *d)
 {
   MidiEvent *groomed_list, *lp;
   MidiEventList *meep;
@@ -1081,7 +1083,7 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
   MidiEvent *hind_list;
 #endif
   int32 sample_cum, samples_to_do, st, dt, counting_time;
-  uint32 at;
+  uint32 our_at;
   struct meta_text_type *meta = meta_text_list;
 
   int current_bank[MAXCHAN], current_banktype[MAXCHAN], current_set[MAXCHAN],
@@ -1093,7 +1095,7 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
       current_bank[i]=0;
       current_banktype[i]=0;
       current_set[i]=0;
-      current_kit[i]=channel[i].kit;
+      current_kit[i]=d->channel[i].kit;
       current_program[i]=default_program;
     }
 
@@ -1101,11 +1103,11 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
   compute_sample_increment(tempo, divisions);
 
   /* This may allocate a bit more than we need */
-  groomed_list=lp=(MidiEvent *)safe_malloc(sizeof(MidiEvent) * (event_count+1));
-  meep=evlist;
+  groomed_list=lp=(MidiEvent *)safe_malloc(sizeof(MidiEvent) * (d->event_count+1));
+  meep=d->evlist;
 
   our_event_count=0;
-  st=at=sample_cum=0;
+  st=our_at=sample_cum=0;
   counting_time=2; /* We strip any silence before the first NOTE ON. */
 
 #ifdef POLYPHONY_COUNT
@@ -1114,14 +1116,14 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
   future_interval = play_mode->rate / 2;
 #endif
 
-  for (i=0; i<event_count; i++)
+  for (i=0; i<d->event_count; i++)
     {
       skip_this_event=0;
       ctl->cmsg(CMSG_INFO, VERB_DEBUG_SILLY,
 		"%6d: ch %2d: event %d (%d,%d)",
 		meep->event.time, meep->event.channel + 1,
 		meep->event.type, meep->event.a, meep->event.b);
-      while (meta && meta->time <= at)
+      while (meta && meta->time <= our_at)
 	{
 	   meta->time = st;
 	   meta = meta->next;
@@ -1212,7 +1214,7 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
 #if 0
 /* trying to play canyon.mid, but this doesn't work */
 	  if (meep->event.channel == 15 && current_program[15] == SPECIAL_PROGRAM)
-	    channel[15].kit = current_kit[15] = 127;
+	    d->channel[15].kit = current_kit[15] = 127;
 #endif
 #ifndef INFO_ONLY
 	  if (current_kit[meep->event.channel])
@@ -1235,7 +1237,7 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
 	       }
 	      else drumset[dset]->tone[meep->event.a].last_used
 		 = current_tune_number;
-	      if (!channel[meep->event.channel].name) channel[meep->event.channel].name=
+	      if (!d->channel[meep->event.channel].name) d->channel[meep->event.channel].name=
 		    drumset[dset]->name;
 	    }
 	  else
@@ -1256,7 +1258,7 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
 		}
 	      else tonebank[banknum]->tone[current_program[chan]].last_used
 		 = current_tune_number;
-	      if (!channel[meep->event.channel].name) channel[meep->event.channel].name=
+	      if (!d->channel[meep->event.channel].name) d->channel[meep->event.channel].name=
 		    tonebank[banknum]->tone[current_program[chan]].name;
 	    }
 #endif
@@ -1326,8 +1328,8 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
 	      skip_this_event=1;
 	      break;
 	    }
-	  if (XG_System_On && meep->event.a > 0 && meep->event.a < 48) {
-	      channel[meep->event.channel].variationbank=meep->event.a;
+	  if (d->XG_System_On && meep->event.a > 0 && meep->event.a < 48) {
+	      d->channel[meep->event.channel].variationbank=meep->event.a;
 	      ctl->cmsg(CMSG_WARNING, VERB_VERBOSE,
 		   "XG variation bank %d", meep->event.a);
 	      new_value=meep->event.a=0;
@@ -1350,16 +1352,16 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
 	  break;
 
 	case ME_HARMONICCONTENT:
-	  channel[meep->event.channel].harmoniccontent=meep->event.a;
+	  d->channel[meep->event.channel].harmoniccontent=meep->event.a;
 	  break;
 	case ME_BRIGHTNESS:
-	  channel[meep->event.channel].brightness=meep->event.a;
+	  d->channel[meep->event.channel].brightness=meep->event.a;
 	  break;
 
 	}
 
       /* Recompute time in samples*/
-      if ((dt=meep->event.time - at) && !counting_time)
+      if ((dt=meep->event.time - our_at) && !counting_time)
 	{
 	  samples_to_do=sample_increment * dt;
 	  sample_cum += sample_correction * dt;
@@ -1394,24 +1396,25 @@ static MidiEvent *groom_list(int32 divisions, uint32 *eventsp, uint32 *samplesp)
 	  lp++;
 	  our_event_count++;
 	}
-      at=meep->event.time;
+      our_at=meep->event.time;
       meep=(MidiEventList *)meep->next;
     }
   /* Add an End-of-Track event */
   lp->time=st;
   lp->type=ME_EOT;
   our_event_count++;
-  free_midi_list();
+  free_midi_list(d);
  
-  *eventsp=our_event_count;
-  *samplesp=st;
+  /**eventsp=our_event_count;*/
+  d->event_count = our_event_count;
+  d->sample_count = st;
   return groomed_list;
 }
 
 #ifdef INFO_ONLY
-MidiEvent *read_midi_file_info(FILE *mfp, uint32 *count, uint32 *sp)
+MidiEvent *read_midi_file_info(struct md *d)
 #else
-MidiEvent *read_midi_file(FILE *mfp, uint32 *count, uint32 *sp)
+MidiEvent *read_midi_file(struct md *d)
 #endif
 {
   uint32 len;
@@ -1420,36 +1423,35 @@ MidiEvent *read_midi_file(FILE *mfp, uint32 *count, uint32 *sp)
   int i;
   char tmp[4];
 
-  fp=mfp;
-  event_count=0;
-  at=0;
-  evlist=0;
+  d->event_count=0;
+  d->at=0;
+  d->evlist=0;
   free_metatext();
-  GM_System_On=GS_System_On=XG_System_On=0;
+  d->GM_System_On=d->GS_System_On=d->XG_System_On=0;
 #ifndef INFO_ONLY
   vol_table = def_vol_table;
 #endif
-  XG_System_reverb_type=XG_System_chorus_type=XG_System_variation_type=0;
-  memset(&drumvolume,-1,sizeof(drumvolume));
-  memset(&drumchorusdepth,-1,sizeof(drumchorusdepth));
-  memset(&drumreverberation,-1,sizeof(drumreverberation));
-  memset(&drumpanpot,NO_PANNING,sizeof(drumpanpot));
+  d->XG_System_reverb_type=d->XG_System_chorus_type=d->XG_System_variation_type=0;
+  memset(&d->drumvolume,-1,sizeof(d->drumvolume));
+  memset(&d->drumchorusdepth,-1,sizeof(d->drumchorusdepth));
+  memset(&d->drumreverberation,-1,sizeof(d->drumreverberation));
+  memset(&d->drumpanpot,NO_PANNING,sizeof(d->drumpanpot));
   for (i=0; i<MAXCHAN; i++)
      {
-	channel[i].transpose = 0;
-	if (ISDRUMCHANNEL(i)) channel[i].kit = 127;
-	else channel[i].kit = 0;
-	channel[i].brightness = 64;
-	channel[i].harmoniccontent = 64;
-	channel[i].variationbank = 0;
-	channel[i].chorusdepth = 0;
-	channel[i].reverberation = 0;
-	channel[i].name = 0;
+	d->channel[i].transpose = 0;
+	if (ISDRUMCHANNEL(i)) d->channel[i].kit = 127;
+	else d->channel[i].kit = 0;
+	d->channel[i].brightness = 64;
+	d->channel[i].harmoniccontent = 64;
+	d->channel[i].variationbank = 0;
+	d->channel[i].chorusdepth = 0;
+	d->channel[i].reverberation = 0;
+	d->channel[i].name = 0;
      }
 
-  if ((fread(tmp,1,4,fp) != 4) || (fread(&len,4,1,fp) != 1))
+  if ((fread(tmp,1,4,d->fp) != 4) || (fread(&len,4,1,d->fp) != 1))
     {
-      if (ferror(fp))
+      if (ferror(d->fp))
 	{
 	  ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "\"%s\": %s", current_filename, 
 	       sys_errlist[errno]);
@@ -1467,9 +1469,9 @@ MidiEvent *read_midi_file(FILE *mfp, uint32 *count, uint32 *sp)
       return 0;
     }
 
-  if ( fread(&format, 2, 1, fp) != 1 )
+  if ( fread(&format, 2, 1, d->fp) != 1 )
     {
-      if (ferror(fp))
+      if (ferror(d->fp))
 	{
 	  ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "\"%s\": %s", current_filename, 
 	       sys_errlist[errno]);
@@ -1479,9 +1481,9 @@ MidiEvent *read_midi_file(FILE *mfp, uint32 *count, uint32 *sp)
 	     "\"%s\": Not a MIDI file!", current_filename);
       return 0;
     }
-  if ( fread(&tracks, 2, 1, fp) != 1 )
+  if ( fread(&tracks, 2, 1, d->fp) != 1 )
     {
-      if (ferror(fp))
+      if (ferror(d->fp))
 	{
 	  ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "\"%s\": %s", current_filename, 
 	       sys_errlist[errno]);
@@ -1491,9 +1493,9 @@ MidiEvent *read_midi_file(FILE *mfp, uint32 *count, uint32 *sp)
 	     "\"%s\": Not a MIDI file!", current_filename);
       return 0;
     }
-  if ( fread(&divisions_tmp, 2, 1, fp) != 1 )
+  if ( fread(&divisions_tmp, 2, 1, d->fp) != 1 )
     {
-      if (ferror(fp))
+      if (ferror(d->fp))
 	{
 	  ctl->cmsg(CMSG_ERROR, VERB_NORMAL, "\"%s\": %s", current_filename, 
 	       sys_errlist[errno]);
@@ -1503,7 +1505,7 @@ MidiEvent *read_midi_file(FILE *mfp, uint32 *count, uint32 *sp)
 	     "\"%s\": Not a MIDI file!", current_filename);
       return 0;
     }
-  /* fread(&divisions_tmp, 2, 1, fp); */
+  /* fread(&divisions_tmp, 2, 1, d->fp); */
   format=BE_SHORT(format);
   tracks=BE_SHORT(tracks);
   divisions_tmp=BE_SHORT(divisions_tmp);
@@ -1521,7 +1523,7 @@ MidiEvent *read_midi_file(FILE *mfp, uint32 *count, uint32 *sp)
       ctl->cmsg(CMSG_WARNING, VERB_NORMAL, 
 	   "%s: MIDI file header size %ld bytes", 
 	   current_filename, len);
-      skip(fp, len-6); /* skip the excess */
+      skip(d->fp, len-6); /* skip the excess */
     }
   if (format<0 || format >2)
     {
@@ -1533,39 +1535,39 @@ MidiEvent *read_midi_file(FILE *mfp, uint32 *count, uint32 *sp)
        "Format: %d  Tracks: %d  Divisions: %d", format, tracks, divisions);
 
   /* Put a do-nothing event first in the list for easier processing */
-  evlist=(MidiEventList *)safe_malloc(sizeof(MidiEventList));
-  evlist->event.time=0;
-  evlist->event.type=ME_NONE;
-  evlist->next=0;
-  event_count++;
+  d->evlist=(MidiEventList *)safe_malloc(sizeof(MidiEventList));
+  d->evlist->event.time=0;
+  d->evlist->event.type=ME_NONE;
+  d->evlist->next=0;
+  d->event_count++;
 
   switch(format)
     {
     case 0:
-      if (read_track(0))
+      if (read_track(0, d))
 	{
-	  free_midi_list();
+	  free_midi_list(d);
 	  return 0;
 	}
       break;
 
     case 1:
       for (i=0; i<tracks; i++)
-	if (read_track(0))
+	if (read_track(0, d))
 	  {
-	    free_midi_list();
+	    free_midi_list(d);
 	    return 0;
 	  }
       break;
 
     case 2: /* We simply play the tracks sequentially */
       for (i=0; i<tracks; i++)
-	if (read_track(1))
+	if (read_track(1, d))
 	  {
-	    free_midi_list();
+	    free_midi_list(d);
 	    return 0;
 	  }
       break;
     }
-  return groom_list(divisions, count, sp);
+  return groom_list(divisions, d);
 }

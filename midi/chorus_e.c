@@ -24,6 +24,7 @@
 #include "instrum.h"
 #include "playmidi.h"
 #include "effects.h"
+#include "md.h"
 #include "output.h"
 #include "tables.h"
 

@@ -21,15 +21,16 @@
    
    */
 
+/*
 typedef struct {
   MidiEvent event;
   void *next;
 } MidiEventList;
-
+*/
 extern int32 quietchannels;
 
-extern MidiEvent *read_midi_file(FILE *mfp, uint32 *count, uint32 *sp);
-extern MidiEvent *read_midi_file_info(FILE *mfp, uint32 *count, uint32 *sp);
+extern MidiEvent *read_midi_file(struct md *d);
+extern MidiEvent *read_midi_file_info(struct md *d);
 
 struct meta_text_type {
     unsigned long time;

@@ -32,6 +32,8 @@
 #include "common.h"
 #include "instrum.h"
 #include "playmidi.h"
+#include "effects.h"
+#include "md.h"
 #include "output.h"
 #include "controls.h"
 #include "tables.h"
@@ -39,73 +41,73 @@
 #include "mix.h"
 
 /* Returns 1 if envelope runs out */
-int recompute_envelope(int v)
+int recompute_envelope(int v, struct md *d)
 {
   int stage;
 
-  stage = voice[v].envelope_stage;
+  stage = d->voice[v].envelope_stage;
 
 #if 0
-if (voice[v].envelope_offset[stage] >> 23 > 127)
-fprintf(stderr, "offset %d\n", voice[v].envelope_offset[stage]>>23);
+if (d->voice[v].envelope_offset[stage] >> 23 > 127)
+fprintf(stderr, "offset %d\n", d->voice[v].envelope_offset[stage]>>23);
 #endif
 
   if (stage>5)
     {
       /* Envelope ran out. */
-      if (!(voice[v].status & VOICE_FREE))
+      if (!(d->voice[v].status & VOICE_FREE))
 	{
-          voice[v].status = VOICE_FREE;
+          d->voice[v].status = VOICE_FREE;
 	  ctl->note(v);
 	}
       return 1;
     }
 
-  /**if (voice[v].sample->modes & MODES_ENVELOPE)**/
-  if ((voice[v].sample->modes & MODES_ENVELOPE) && (voice[v].sample->modes & MODES_SUSTAIN))
+  /**if (d->voice[v].sample->modes & MODES_ENVELOPE)**/
+  if ((d->voice[v].sample->modes & MODES_ENVELOPE) && (d->voice[v].sample->modes & MODES_SUSTAIN))
     {
-      if (voice[v].status & (VOICE_ON | VOICE_SUSTAINED))
+      if (d->voice[v].status & (VOICE_ON | VOICE_SUSTAINED))
 	{
 	  if (stage>2)
 	    {
 	      /* Freeze envelope until note turns off. Trumpets want this. */
-	      voice[v].envelope_increment=0;
+	      d->voice[v].envelope_increment=0;
 	      return 0;
 	    }
 	}
     }
-  voice[v].envelope_stage=stage+1;
+  d->voice[v].envelope_stage=stage+1;
 
 #if 0
 fprintf(stderr, "v=%d stage %d, inc %ld[%ld], vol %ld[%ld], offset %ld[%ld]\n", v,
-stage, voice[v].envelope_increment, voice[v].envelope_increment>>23,
- voice[v].envelope_volume, voice[v].envelope_volume>>23,
- voice[v].envelope_offset[stage], voice[v].envelope_offset[stage]>>23);
+stage, d->voice[v].envelope_increment, d->voice[v].envelope_increment>>23,
+ d->voice[v].envelope_volume, d->voice[v].envelope_volume>>23,
+ d->voice[v].envelope_offset[stage], d->voice[v].envelope_offset[stage]>>23);
 #endif
 
 
 #ifdef tplus
-  if (voice[v].envelope_volume==(int)voice[v].envelope_offset[stage] ||
-      (stage > 2 && voice[v].envelope_volume < (int)voice[v].envelope_offset[stage]))
+  if (d->voice[v].envelope_volume==(int)d->voice[v].envelope_offset[stage] ||
+      (stage > 2 && d->voice[v].envelope_volume < (int)d->voice[v].envelope_offset[stage]))
 #else
-  if (voice[v].envelope_volume==voice[v].envelope_offset[stage])
+  if (d->voice[v].envelope_volume==d->voice[v].envelope_offset[stage])
 #endif
 
 #if 0
-  if ( (voice[v].envelope_increment >= 0 && voice[v].envelope_volume >= voice[v].envelope_offset[stage])
-    || (voice[v].envelope_increment < 0  && voice[v].envelope_volume <= voice[v].envelope_offset[stage]) )
+  if ( (d->voice[v].envelope_increment >= 0 && d->voice[v].envelope_volume >= d->voice[v].envelope_offset[stage])
+    || (d->voice[v].envelope_increment < 0  && d->voice[v].envelope_volume <= d->voice[v].envelope_offset[stage]) )
 #endif
-    return recompute_envelope(v);
-  voice[v].envelope_target=voice[v].envelope_offset[stage];
-  voice[v].envelope_increment = voice[v].envelope_rate[stage];
-  if ((int)voice[v].envelope_target<voice[v].envelope_volume)
-    voice[v].envelope_increment = -voice[v].envelope_increment;
+    return recompute_envelope(v, d);
+  d->voice[v].envelope_target=d->voice[v].envelope_offset[stage];
+  d->voice[v].envelope_increment = d->voice[v].envelope_rate[stage];
+  if ((int)d->voice[v].envelope_target<d->voice[v].envelope_volume)
+    d->voice[v].envelope_increment = -d->voice[v].envelope_increment;
 
 #if 0
 fprintf(stderr, "	cont:v=%d, stage %d, inc %ld[%ld], vol %ld[%ld], offset %ld[%ld]\n", v,
-stage, voice[v].envelope_increment, voice[v].envelope_increment>>23,
- voice[v].envelope_volume, voice[v].envelope_volume>>23,
- voice[v].envelope_offset[stage], voice[v].envelope_offset[stage]>>23);
+stage, d->voice[v].envelope_increment, d->voice[v].envelope_increment>>23,
+ d->voice[v].envelope_volume, d->voice[v].envelope_volume>>23,
+ d->voice[v].envelope_offset[stage], d->voice[v].envelope_offset[stage]>>23);
 #endif
 
 
@@ -115,29 +117,29 @@ stage, voice[v].envelope_increment, voice[v].envelope_increment>>23,
 }
 
 #ifdef tplus
-int apply_envelope_to_amp(int v)
+int apply_envelope_to_amp(int v, struct md *d)
 #else
-void apply_envelope_to_amp(int v)
+void apply_envelope_to_amp(int v, struct md *d)
 #endif
 {
-  FLOAT_T lamp=voice[v].left_amp, ramp;
+  FLOAT_T lamp=d->voice[v].left_amp, ramp;
   int32 la,ra;
-  if (voice[v].panned == PANNED_MYSTERY)
+  if (d->voice[v].panned == PANNED_MYSTERY)
     {
-      ramp=voice[v].right_amp;
-      if (voice[v].tremolo_phase_increment)
+      ramp=d->voice[v].right_amp;
+      if (d->voice[v].tremolo_phase_increment)
 	{
-	  lamp *= voice[v].tremolo_volume;
-	  ramp *= voice[v].tremolo_volume;
+	  lamp *= d->voice[v].tremolo_volume;
+	  ramp *= d->voice[v].tremolo_volume;
 	}
-      if (voice[v].sample->modes & MODES_ENVELOPE)
+      if (d->voice[v].sample->modes & MODES_ENVELOPE)
 	{
-	  lamp *= vol_table[voice[v].envelope_volume>>23];
-	  ramp *= vol_table[voice[v].envelope_volume>>23];
+	  lamp *= vol_table[d->voice[v].envelope_volume>>23];
+	  ramp *= vol_table[d->voice[v].envelope_volume>>23];
 #if 0
-if (voice[v].envelope_volume>>23 > 127)
-fprintf(stderr,"env vol %d >>23 = %d\n", voice[v].envelope_volume,
-voice[v].envelope_volume >> 23);
+if (d->voice[v].envelope_volume>>23 > 127)
+fprintf(stderr,"env vol %d >>23 = %d\n", d->voice[v].envelope_volume,
+d->voice[v].envelope_volume >> 23);
 #endif
 	}
 
@@ -151,27 +153,27 @@ voice[v].envelope_volume >> 23);
 	ra=MAX_AMP_VALUE;
 
 #ifdef tplus
-      if ((voice[v].status & (VOICE_OFF | VOICE_DIE | VOICE_FREE | VOICE_SUSTAINED))
+      if ((d->voice[v].status & (VOICE_OFF | VOICE_DIE | VOICE_FREE | VOICE_SUSTAINED))
 	  && (la | ra) <= MIN_AMP_VALUE)
       {
-	  if (!(voice[v].status & VOICE_FREE))
+	  if (!(d->voice[v].status & VOICE_FREE))
 	    {
-	      voice[v].status = VOICE_FREE;
+	      d->voice[v].status = VOICE_FREE;
 	      ctl->note(v);
 	    }
 	  return 1;
       }
 #endif
  
-      voice[v].left_mix=FINAL_VOLUME(la);
-      voice[v].right_mix=FINAL_VOLUME(ra);
+      d->voice[v].left_mix=FINAL_VOLUME(la);
+      d->voice[v].right_mix=FINAL_VOLUME(ra);
     }
   else
     {
-      if (voice[v].tremolo_phase_increment)
-	lamp *= voice[v].tremolo_volume;
-      if (voice[v].sample->modes & MODES_ENVELOPE)
-	lamp *= vol_table[voice[v].envelope_volume>>23];
+      if (d->voice[v].tremolo_phase_increment)
+	lamp *= d->voice[v].tremolo_volume;
+      if (d->voice[v].sample->modes & MODES_ENVELOPE)
+	lamp *= vol_table[d->voice[v].envelope_volume>>23];
 
       la = (int32)FRSCALE(lamp,AMP_BITS);
 
@@ -179,68 +181,68 @@ voice[v].envelope_volume >> 23);
 	la=MAX_AMP_VALUE;
 
 #ifdef tplus
-      if ( (voice[v].status & (VOICE_OFF | VOICE_DIE | VOICE_FREE | VOICE_SUSTAINED))
+      if ( (d->voice[v].status & (VOICE_OFF | VOICE_DIE | VOICE_FREE | VOICE_SUSTAINED))
 	 && la <= MIN_AMP_VALUE)
       {
-	  if (!(voice[v].status & VOICE_FREE))
+	  if (!(d->voice[v].status & VOICE_FREE))
 	    {
-	      voice[v].status = VOICE_FREE;
+	      d->voice[v].status = VOICE_FREE;
 	      ctl->note(v);
 	    }
 	  return 1;
       }
 #endif
 
-      voice[v].left_mix=FINAL_VOLUME(la);
+      d->voice[v].left_mix=FINAL_VOLUME(la);
     }
 #ifdef tplus
     return 0;
 #endif
 }
 
-static int update_envelope(int v)
+static int update_envelope(int v, struct md *d)
 {
-  voice[v].envelope_volume += voice[v].envelope_increment;
-  if (voice[v].envelope_volume<0) voice[v].envelope_volume = 0;
+  d->voice[v].envelope_volume += d->voice[v].envelope_increment;
+  if (d->voice[v].envelope_volume<0) d->voice[v].envelope_volume = 0;
   /* Why is there no ^^ operator?? */
-  if (((voice[v].envelope_increment < 0) &&
-       (voice[v].envelope_volume <= (int)voice[v].envelope_target)) ||
-      ((voice[v].envelope_increment > 0) &&
-	   (voice[v].envelope_volume >= (int)voice[v].envelope_target)))
+  if (((d->voice[v].envelope_increment < 0) &&
+       (d->voice[v].envelope_volume <= (int)d->voice[v].envelope_target)) ||
+      ((d->voice[v].envelope_increment > 0) &&
+	   (d->voice[v].envelope_volume >= (int)d->voice[v].envelope_target)))
     {
-      voice[v].envelope_volume = voice[v].envelope_target;
-      if (recompute_envelope(v))
+      d->voice[v].envelope_volume = d->voice[v].envelope_target;
+      if (recompute_envelope(v, d))
 	return 1;
     }
   return 0;
 }
 
-static void update_tremolo(int v)
+static void update_tremolo(int v, struct md *d)
 {
-  int32 depth=voice[v].sample->tremolo_depth<<7;
+  int32 depth=d->voice[v].sample->tremolo_depth<<7;
 
-  if (voice[v].tremolo_sweep)
+  if (d->voice[v].tremolo_sweep)
     {
       /* Update sweep position */
 
-      voice[v].tremolo_sweep_position += voice[v].tremolo_sweep;
-      if (voice[v].tremolo_sweep_position>=(1<<SWEEP_SHIFT))
-	voice[v].tremolo_sweep=0; /* Swept to max amplitude */
+      d->voice[v].tremolo_sweep_position += d->voice[v].tremolo_sweep;
+      if (d->voice[v].tremolo_sweep_position>=(1<<SWEEP_SHIFT))
+	d->voice[v].tremolo_sweep=0; /* Swept to max amplitude */
       else
 	{
 	  /* Need to adjust depth */
-	  depth *= voice[v].tremolo_sweep_position;
+	  depth *= d->voice[v].tremolo_sweep_position;
 	  depth >>= SWEEP_SHIFT;
 	}
     }
 
-  voice[v].tremolo_phase += voice[v].tremolo_phase_increment;
+  d->voice[v].tremolo_phase += d->voice[v].tremolo_phase_increment;
 
-  /* if (voice[v].tremolo_phase >= (SINE_CYCLE_LENGTH<<RATE_SHIFT))
-     voice[v].tremolo_phase -= SINE_CYCLE_LENGTH<<RATE_SHIFT;  */
+  /* if (d->voice[v].tremolo_phase >= (SINE_CYCLE_LENGTH<<RATE_SHIFT))
+     d->voice[v].tremolo_phase -= SINE_CYCLE_LENGTH<<RATE_SHIFT;  */
 
-  voice[v].tremolo_volume = 
-    1.0 - FRSCALENEG((sine(voice[v].tremolo_phase >> RATE_SHIFT) + 1.0)
+  d->voice[v].tremolo_volume = 
+    1.0 - FRSCALENEG((sine(d->voice[v].tremolo_phase >> RATE_SHIFT) + 1.0)
 		    * depth * TREMOLO_AMPLITUDE_TUNING,
 		    17);
 
@@ -249,18 +251,18 @@ static void update_tremolo(int v)
 }
 
 /* Returns 1 if the note died */
-static int update_signal(int v)
+static int update_signal(int v, struct md *d)
 {
-  if (voice[v].envelope_increment && update_envelope(v))
+  if (d->voice[v].envelope_increment && update_envelope(v, d))
     return 1;
 
-  if (voice[v].tremolo_phase_increment)
-    update_tremolo(v);
+  if (d->voice[v].tremolo_phase_increment)
+    update_tremolo(v, d);
 
 #ifdef tplus
-  return apply_envelope_to_amp(v);
+  return apply_envelope_to_amp(v, d);
 #else
-  apply_envelope_to_amp(v);
+  apply_envelope_to_amp(v, d);
   return 0;
 #endif
 }
@@ -271,9 +273,9 @@ static int update_signal(int v)
 #  define MIXATION(a)	*lp++ += (a)*s;
 #endif
 
-static void mix_mystery_signal(sample_t *sp, int32 *lp, int v, uint32 count)
+static void mix_mystery_signal(sample_t *sp, int32 *lp, int v, uint32 count, struct md *d)
 {
-  Voice *vp = voice + v;
+  Voice *vp = d->voice + v;
   final_volume_t 
     left=vp->left_mix, 
     right=vp->right_mix;
@@ -283,7 +285,7 @@ static void mix_mystery_signal(sample_t *sp, int32 *lp, int v, uint32 count)
   if (!(cc = vp->control_counter))
     {
       cc = control_ratio;
-      if (update_signal(v))
+      if (update_signal(v, d))
 	return;	/* Envelope ran out */
       left = vp->left_mix;
       right = vp->right_mix;
@@ -300,7 +302,7 @@ static void mix_mystery_signal(sample_t *sp, int32 *lp, int v, uint32 count)
 	    MIXATION(right);
 	  }
 	cc = control_ratio;
-	if (update_signal(v))
+	if (update_signal(v, d))
 	  return;	/* Envelope ran out */
 	left = vp->left_mix;
 	right = vp->right_mix;
@@ -318,9 +320,9 @@ static void mix_mystery_signal(sample_t *sp, int32 *lp, int v, uint32 count)
       }
 }
 
-static void mix_center_signal(sample_t *sp, int32 *lp, int v, uint32 count)
+static void mix_center_signal(sample_t *sp, int32 *lp, int v, uint32 count, struct md *d)
 {
-  Voice *vp = voice + v;
+  Voice *vp = d->voice + v;
   final_volume_t 
     left=vp->left_mix;
   uint32 cc;
@@ -329,7 +331,7 @@ static void mix_center_signal(sample_t *sp, int32 *lp, int v, uint32 count)
   if (!(cc = vp->control_counter))
     {
       cc = control_ratio;
-      if (update_signal(v))
+      if (update_signal(v, d))
 	return;	/* Envelope ran out */
       left = vp->left_mix;
     }
@@ -345,7 +347,7 @@ static void mix_center_signal(sample_t *sp, int32 *lp, int v, uint32 count)
 	    MIXATION(left);
 	  }
 	cc = control_ratio;
-	if (update_signal(v))
+	if (update_signal(v, d))
 	  return;	/* Envelope ran out */
 	left = vp->left_mix;
       }
@@ -362,9 +364,9 @@ static void mix_center_signal(sample_t *sp, int32 *lp, int v, uint32 count)
       }
 }
 
-static void mix_single_signal(sample_t *sp, int32 *lp, int v, uint32 count)
+static void mix_single_signal(sample_t *sp, int32 *lp, int v, uint32 count, struct md *d)
 {
-  Voice *vp = voice + v;
+  Voice *vp = d->voice + v;
   final_volume_t 
     left=vp->left_mix;
   uint32 cc;
@@ -373,7 +375,7 @@ static void mix_single_signal(sample_t *sp, int32 *lp, int v, uint32 count)
   if (!(cc = vp->control_counter))
     {
       cc = control_ratio;
-      if (update_signal(v))
+      if (update_signal(v, d))
 	return;	/* Envelope ran out */
       left = vp->left_mix;
     }
@@ -389,7 +391,7 @@ static void mix_single_signal(sample_t *sp, int32 *lp, int v, uint32 count)
 	    lp++;
 	  }
 	cc = control_ratio;
-	if (update_signal(v))
+	if (update_signal(v, d))
 	  return;	/* Envelope ran out */
 	left = vp->left_mix;
       }
@@ -406,9 +408,9 @@ static void mix_single_signal(sample_t *sp, int32 *lp, int v, uint32 count)
       }
 }
 
-static void mix_mono_signal(sample_t *sp, int32 *lp, int v, uint32 count)
+static void mix_mono_signal(sample_t *sp, int32 *lp, int v, uint32 count, struct md *d)
 {
-  Voice *vp = voice + v;
+  Voice *vp = d->voice + v;
   final_volume_t 
     left=vp->left_mix;
   uint32 cc;
@@ -417,7 +419,7 @@ static void mix_mono_signal(sample_t *sp, int32 *lp, int v, uint32 count)
   if (!(cc = vp->control_counter))
     {
       cc = control_ratio;
-      if (update_signal(v))
+      if (update_signal(v, d))
 	return;	/* Envelope ran out */
       left = vp->left_mix;
     }
@@ -432,7 +434,7 @@ static void mix_mono_signal(sample_t *sp, int32 *lp, int v, uint32 count)
 	    MIXATION(left);
 	  }
 	cc = control_ratio;
-	if (update_signal(v))
+	if (update_signal(v, d))
 	  return;	/* Envelope ran out */
 	left = vp->left_mix;
       }
@@ -448,11 +450,11 @@ static void mix_mono_signal(sample_t *sp, int32 *lp, int v, uint32 count)
       }
 }
 
-static void mix_mystery(sample_t *sp, int32 *lp, int v, uint32 count)
+static void mix_mystery(sample_t *sp, int32 *lp, int v, uint32 count, struct md *d)
 {
   final_volume_t 
-    left=voice[v].left_mix, 
-    right=voice[v].right_mix;
+    left=d->voice[v].left_mix, 
+    right=d->voice[v].right_mix;
   sample_t s;
   
   while (count--)
@@ -463,10 +465,10 @@ static void mix_mystery(sample_t *sp, int32 *lp, int v, uint32 count)
     }
 }
 
-static void mix_center(sample_t *sp, int32 *lp, int v, uint32 count)
+static void mix_center(sample_t *sp, int32 *lp, int v, uint32 count, struct md *d)
 {
   final_volume_t 
-    left=voice[v].left_mix;
+    left=d->voice[v].left_mix;
   sample_t s;
   
   while (count--)
@@ -477,10 +479,10 @@ static void mix_center(sample_t *sp, int32 *lp, int v, uint32 count)
     }
 }
 
-static void mix_single(sample_t *sp, int32 *lp, int v, uint32 count)
+static void mix_single(sample_t *sp, int32 *lp, int v, uint32 count, struct md *d)
 {
   final_volume_t 
-    left=voice[v].left_mix;
+    left=d->voice[v].left_mix;
   sample_t s;
   
   while (count--)
@@ -491,10 +493,10 @@ static void mix_single(sample_t *sp, int32 *lp, int v, uint32 count)
     }
 }
 
-static void mix_mono(sample_t *sp, int32 *lp, int v, uint32 count)
+static void mix_mono(sample_t *sp, int32 *lp, int v, uint32 count, struct md *d)
 {
   final_volume_t 
-    left=voice[v].left_mix;
+    left=d->voice[v].left_mix;
   sample_t s;
   
   while (count--)
@@ -505,7 +507,7 @@ static void mix_mono(sample_t *sp, int32 *lp, int v, uint32 count)
 }
 
 /* Ramp a note out in c samples */
-static void ramp_out(sample_t *sp, int32 *lp, int v, uint32 c)
+static void ramp_out(sample_t *sp, int32 *lp, int v, uint32 c, struct md *d)
 {
 
   /* should be final_volume_t, but uint8 gives trouble. */
@@ -513,7 +515,7 @@ static void ramp_out(sample_t *sp, int32 *lp, int v, uint32 c)
 
   sample_t s=0; /* silly warning about uninitialized s */
 
-  left=voice[v].left_mix;
+  left=d->voice[v].left_mix;
   if (c < 1) return;
   li=-(left/c); /*NB: c can be 0 here */
   if (!li) li=-1;
@@ -522,9 +524,9 @@ static void ramp_out(sample_t *sp, int32 *lp, int v, uint32 c)
 
   if (!(play_mode->encoding & PE_MONO))
     {
-      if (voice[v].panned==PANNED_MYSTERY)
+      if (d->voice[v].panned==PANNED_MYSTERY)
 	{
-	  right=voice[v].right_mix;
+	  right=d->voice[v].right_mix;
 	  ri=-(right/c);
 	  while (c--)
 	    {
@@ -539,7 +541,7 @@ static void ramp_out(sample_t *sp, int32 *lp, int v, uint32 c)
 	      MIXATION(right);
 	    }
 	}
-      else if (voice[v].panned==PANNED_CENTER)
+      else if (d->voice[v].panned==PANNED_CENTER)
 	{
 	  while (c--)
 	    {
@@ -551,7 +553,7 @@ static void ramp_out(sample_t *sp, int32 *lp, int v, uint32 c)
 	      MIXATION(left);
 	    }
 	}
-      else if (voice[v].panned==PANNED_LEFT)
+      else if (d->voice[v].panned==PANNED_LEFT)
 	{
 	  while (c--)
 	    {
@@ -563,7 +565,7 @@ static void ramp_out(sample_t *sp, int32 *lp, int v, uint32 c)
 	      lp++;
 	    }
 	}
-      else if (voice[v].panned==PANNED_RIGHT)
+      else if (d->voice[v].panned==PANNED_RIGHT)
 	{
 	  while (c--)
 	    {
@@ -592,9 +594,9 @@ static void ramp_out(sample_t *sp, int32 *lp, int v, uint32 c)
 
 /**************** interface function ******************/
 
-void mix_voice(int32 *buf, int v, uint32 c)
+void mix_voice(int32 *buf, int v, uint32 c, struct md *d)
 {
-  Voice *vp=voice+v;
+  Voice *vp=d->voice+v;
   sample_t *sp;
   uint32 count=c;
   if (vp->status&VOICE_DIE)
@@ -604,13 +606,13 @@ void mix_voice(int32 *buf, int v, uint32 c)
 */
       if (count>=MAX_DIE_TIME)
 	count=MAX_DIE_TIME;
-      sp=resample_voice(v, &count);
-      ramp_out(sp, buf, v, count);
+      sp=resample_voice(v, &count, d);
+      ramp_out(sp, buf, v, count, d);
       vp->status=VOICE_FREE;
     }
   else
     {
-      sp=resample_voice(v, &count);
+      sp=resample_voice(v, &count, d);
       if (count<1)
 	{
           vp->status=VOICE_FREE;
@@ -620,25 +622,25 @@ void mix_voice(int32 *buf, int v, uint32 c)
 	{
 	  /* Mono output. */
 	  if (vp->envelope_increment || vp->tremolo_phase_increment)
-	    mix_mono_signal(sp, buf, v, count);
+	    mix_mono_signal(sp, buf, v, count, d);
 	  else
-	    mix_mono(sp, buf, v, count);
+	    mix_mono(sp, buf, v, count, d);
 	}
       else
 	{
 	  if (vp->panned == PANNED_MYSTERY)
 	    {
 	      if (vp->envelope_increment || vp->tremolo_phase_increment)
-		mix_mystery_signal(sp, buf, v, count);
+		mix_mystery_signal(sp, buf, v, count, d);
 	      else
-		mix_mystery(sp, buf, v, count);
+		mix_mystery(sp, buf, v, count, d);
 	    }
 	  else if (vp->panned == PANNED_CENTER)
 	    {
 	      if (vp->envelope_increment || vp->tremolo_phase_increment)
-		mix_center_signal(sp, buf, v, count);
+		mix_center_signal(sp, buf, v, count, d);
 	      else
-		mix_center(sp, buf, v, count);
+		mix_center(sp, buf, v, count, d);
 	    }
 	  else
 	    { 
@@ -647,9 +649,9 @@ void mix_voice(int32 *buf, int v, uint32 c)
 	      if (vp->panned == PANNED_RIGHT) buf++;
 	      
 	      if (vp->envelope_increment || vp->tremolo_phase_increment)
-		mix_single_signal(sp, buf, v, count);
+		mix_single_signal(sp, buf, v, count, d);
 	      else 
-		mix_single(sp, buf, v, count);
+		mix_single(sp, buf, v, count, d);
 	    }
 	}
     }

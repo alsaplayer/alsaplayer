@@ -27,10 +27,13 @@
 
 #include "gtim.h"
 #include "common.h"
-#include "output.h"
-#include "controls.h"
 #include "instrum.h"
 #include "playmidi.h"
+#include "effects.h"
+#include "md.h"
+#include "readmidi.h"
+#include "output.h"
+#include "controls.h"
 
 static void ctl_refresh(void);
 static void ctl_total_time(uint32 tt);
@@ -59,7 +62,7 @@ ControlMode ctl=
 {
   "dumb interface", 'd',
   1,0,0,
-  ctl_open,dumb_pass_playing_list, ctl_close, ctl_read, cmsg,
+  ctl_open,0, ctl_close, ctl_read, cmsg,
   ctl_refresh, ctl_reset, ctl_file_name, ctl_total_time, ctl_current_time, 
   ctl_note, 
   ctl_master_volume, ctl_program, ctl_volume, 

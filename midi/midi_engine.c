@@ -30,6 +30,7 @@
 #include "instrum.h"
 #include "playmidi.h"
 #include "effects.h"
+#include "md.h"
 #include "readmidi.h"
 #include "output.h"
 #include "controls.h"
@@ -52,113 +53,12 @@ static char def_instr_name[256]="";
 int cfg_select = 0;
 #ifdef CHANNEL_EFFECT
 extern void effect_activate( int iSwitch ) ;
-extern int init_effect(void) ;
+extern int init_effect(struct md *d) ;
 #endif /*CHANNEL_EFFECT*/
 
 int have_commandline_midis = 0;
 int32 tmpi32, output_rate=0;
 char *output_name=0;
-
-#if 0
-static int set_channel_flag(int32 *flags, int32 i, const char *name)
-{
-  if (i==0) *flags=0;
-  else if ((i<1 || i>16) && (i<-16 || i>-1))
-    {
-		fprintf(stderr,
-	      "%s must be between 1 and 16, or between -1 and -16, or 0\n", 
-	      name);
-      return -1;
-	 }
-  else
-    {
-      if (i>0) *flags |= (1<<(i-1));
-		else *flags &= ~ ((1<<(-1-i)));
-    }
-  return 0;
-}
-
-static int set_value(int32 *param, int32 i, int32 low, int32 high, const char *name)
-{
-  if (i<low || i > high)
-    {
-      fprintf(stderr, "%s must be between %ld and %ld\n", name, low, high);
-      return -1;
-    }
-  else *param=i;
-  return 0;
-}
-#endif
-
-int set_play_mode(char *cp)
-{
-  PlayMode *pmp, **pmpp=play_mode_list;
-
-  while ((pmp=*pmpp++))
-    {
-      if (pmp->id_character == *cp)
-	{
-	  play_mode=pmp;
-	  while (*(++cp))
-		 switch(*cp)
-	      {
-	      case 'U': pmp->encoding |= PE_ULAW; break; /* uLaw */
-			case 'l': pmp->encoding &= ~PE_ULAW; break; /* linear */
-
-			case '1': pmp->encoding |= PE_16BIT; break; /* 1 for 16-bit */
-	      case '8': pmp->encoding &= ~PE_16BIT; break;
-
-	      case 'M': pmp->encoding |= PE_MONO; break;
-	      case 'S': pmp->encoding &= ~PE_MONO; break; /* stereo */
-
-	      case 's': pmp->encoding |= PE_SIGNED; break;
-	      case 'u': pmp->encoding &= ~PE_SIGNED; break;
-
-	      case 'x': pmp->encoding ^= PE_BYTESWAP; break; /* toggle */
-
-			default:
-		fprintf(stderr, "Unknown format modifier `%c'\n", *cp);
-		return 1;
-	      }
-	  return 0;
-	}
-	 }
-  
-  fprintf(stderr, "Playmode `%c' is not compiled in.\n", *cp);
-  return 1;
-}
-
-#if 0
-static int set_ctl(char *cp)
-{
-  ControlMode *cmp, **cmpp=ctl_list;
-
-  while ((cmp=*cmpp++))
-    {
-      if (cmp->id_character == *cp)
-	{
-	  ctl=cmp;
-	  while (*(++cp))
-	    switch(*cp)
-			{
-			case 'v': cmp->verbosity++; break;
-	   		case 'q': cmp->verbosity--; break;
-			case 't': /* toggle */
-		cmp->trace_playing= (cmp->trace_playing) ? 0 : 1; 
-		break;
-
-	      default:
-		fprintf(stderr, "Unknown interface option `%c'\n", *cp);
-		return 1;
-	      }
-	  return 0;
-	}
-	 }
-  
-  fprintf(stderr, "Interface `%c' is not compiled in.\n", *cp);
-  return 1;
-}
-#endif
 
 char *cfg_names[30];
 
@@ -220,70 +120,36 @@ int global_detune = 0;
 
 int got_a_configuration=0;
 
-/*
-static char midi_name[FILENAME_MAX+1];
-static char midi_path_name[FILENAME_MAX+1];
-*/
-
-/************************************/
-
-struct midi_local_data
+static int look_midi_file(struct md *d)
 {
-	char midi_name[FILENAME_MAX+1];
-	char midi_path_name[FILENAME_MAX+1];
-	int count;
-	FILE *midi_fd;
-	int is_playing;
-	int is_open;
-};
-
-/************************************/
-
-static uint32 info_sample_count = 0;
-
-static int look_midi_file(input_object *obj)
-{
-        struct midi_local_data *data;
-	MidiEvent *event;
-	uint32 events, samples;
 	int rc;
 	int32 val;
-	FILE *fp;
 
-	if (!obj) return 0;
-	if (!obj->local_data) return 0;
-	data = (struct midi_local_data *)obj->local_data;
+  ctl->cmsg(CMSG_INFO, VERB_VERBOSE, "MIDI file: %s", d->midi_name);
 
-  ctl->cmsg(CMSG_INFO, VERB_VERBOSE, "MIDI file: %s", data->midi_name);
+	d->is_open = FALSE;
 
-	data->is_open = FALSE;
-
-  if (!strcmp(data->midi_path_name, "-"))
-    {
-      fp=stdin;
-      strcpy(current_filename, "(stdin)");
-    }
-  else if (!(fp=open_file(data->midi_path_name, 1, OF_VERBOSE, 0)))
+  if (!(d->fp=open_file(d->midi_path_name, 1, OF_VERBOSE, 0)))
     return 0;
 
   ctl->file_name(current_filename);
 
-  event=read_midi_file_info(fp, &events, &samples);
+  d->event=read_midi_file_info(d);
 
 
-  if (fp != stdin)
-      close_file(fp);
+  if (d->fp != stdin)
+      close_file(d->fp);
   
-  if (!event)
+  if (!d->event)
       return 0;
 
   ctl->cmsg(CMSG_INFO, VERB_NOISY, 
-	    "%d supported events, %d samples", events, samples);
+	    "%d supported events, %d samples", d->event_count, d->sample_count);
 
-  ctl->total_time(samples);
-  data->is_open = TRUE;
-  data->count = samples;
-  free(event);
+  ctl->total_time(d->sample_count);
+  d->is_open = TRUE;
+  d->count = d->sample_count;
+  free(d->event);
   return 1;
 }
 
@@ -363,22 +229,43 @@ static int test_midifile(char *buffer)
 
 static int midi_open(input_object *obj, char *name)
 {
-        struct midi_local_data *data;
+        struct md *d;
 	int rc = 0;
 	char *ptr;
 	
 	if (!obj) return 0;
 
-	obj->local_data = malloc(sizeof(struct midi_local_data));
+	obj->local_data = malloc(sizeof(struct md));
 	if (!obj->local_data) return 0;
-	data = (struct midi_local_data *)obj->local_data;
+	d = (struct md *)obj->local_data;
+
+	d->bbuf = 0;
+	d->event = 0;
+	d->is_playing = FALSE;
+	d->is_open = FALSE;
+	d->count = 0;
+	d->bboffset = 0;
+	d->bbcount = 0;
+	d->outchunk = 0;
+	d->starting_up = 1;
+	d->flushing = 0;
+	d->out_count = 0;
+	d->total_bytes = 0;
+	d->voices = DEFAULT_VOICES;
+	d->amplification = DEFAULT_AMPLIFICATION;
+	d->drumchannels = DEFAULT_DRUMCHANNELS;
+	d->adjust_panning_immediately = 1;
+	d->voice_reserve = 0;
+	d->GM_System_On = 0;
+	d->XG_System_On = 0;
+	d->GS_System_On = 0;
 
 	if (!got_a_configuration) init_midi();
 
         if (strlen(name) > FILENAME_MAX) {
-                strncpy(data->midi_path_name, name, FILENAME_MAX-1);
-                data->midi_path_name[FILENAME_MAX-1] = 0;
-        } else  strcpy(data->midi_path_name, name);
+                strncpy(d->midi_path_name, name, FILENAME_MAX-1);
+                d->midi_path_name[FILENAME_MAX-1] = 0;
+        } else  strcpy(d->midi_path_name, name);
 
 
 	ptr = strrchr(name, '/');
@@ -386,14 +273,11 @@ static int midi_open(input_object *obj, char *name)
         else ptr = name;
 
         if (strlen(ptr) > FILENAME_MAX) {
-                strncpy(data->midi_name, ptr, FILENAME_MAX-1);
-                data->midi_name[FILENAME_MAX-1] = 0;
-        } else  strcpy(data->midi_name, ptr);
+                strncpy(d->midi_name, ptr, FILENAME_MAX-1);
+                d->midi_name[FILENAME_MAX-1] = 0;
+        } else  strcpy(d->midi_name, ptr);
 
-	data->is_open = FALSE;
-	data->is_playing = FALSE;
-
-  	rc = look_midi_file(obj);
+  	rc = look_midi_file(d);
 #ifdef PLUGDEBUG
 	fprintf(stderr,"midi open maybe(%s) returned %d\n", name, rc);
 #endif
@@ -402,30 +286,26 @@ static int midi_open(input_object *obj, char *name)
 	return rc;
 }
 
-static int midi_truly_open(input_object *obj)
+static int midi_truly_open(struct md *d)
 {
-        struct midi_local_data *data;
-	
-	if (!obj) return 0;
-	if (!obj->local_data) return 0;
-	data = (struct midi_local_data *)obj->local_data;
-
-	if (data->is_playing) {
-		play_midi_finish();
-		data->is_playing = FALSE;
+	if (d->is_playing) {
+		play_midi_finish(d);
+		d->is_playing = FALSE;
 	}
 #ifdef PLUGDEBUG
-	fprintf(stderr,"midi truly open(%s)\n", data->midi_path_name);
+	fprintf(stderr,"midi truly open(%s)\n", d->midi_path_name);
 #endif
 	if (!got_a_configuration) init_midi();
 
+	init_effect(d);
+	effect_activate(TRUE);
   	flushing_output_device = FALSE;
-	play_mode->purge_output();
+	play_mode->purge_output(d);
 
-  	play_midi_file(data->midi_path_name);
-	data->is_playing = TRUE;
-	data->is_open = TRUE;
-	data->count = sample_count;
+  	play_midi_file(d);
+	d->is_playing = TRUE;
+	d->is_open = TRUE;
+	d->count = d->sample_count;
 
 	return 1;
 }
@@ -433,15 +313,16 @@ static int midi_truly_open(input_object *obj)
 
 void midi_close(input_object *obj)
 {
-        struct midi_local_data *data;
+        struct md *d;
 
 	if (!obj) return;
 	if (!obj->local_data) return;
-	data = (struct midi_local_data *)obj->local_data;
+	d = (struct md *)obj->local_data;
 
-	if (data->is_playing) {
-		play_midi_finish();
+	if (d->is_playing) {
+		play_midi_finish(d);
 	}
+	if (d->bbuf) free(d->bbuf);
 	free(obj->local_data);
 	obj->local_data = NULL;
 #ifdef PLUGDEBUG
@@ -451,7 +332,7 @@ fprintf(stderr,"midi_close\n");
 
 static int midi_play_frame(input_object *obj, char *buf)
 {
-        struct midi_local_data *data;
+        struct md *d;
 	int rc = 0;
 	
 #ifdef PLUGDEBUG
@@ -459,30 +340,30 @@ fprintf(stderr,"midi_play_frame to %x\n", buf);
 #endif
 	if (!obj) return 0;
 	if (!obj->local_data) return 0;
-	data = (struct midi_local_data *)obj->local_data;
+	d = (struct md *)obj->local_data;
 
-	if (!data->is_playing) midi_truly_open(obj);
+	if (!d->is_playing) midi_truly_open(d);
 
-	if (!data->is_playing) return 0;
+	if (!d->is_playing) return 0;
 
-	if (bbcount < output_fragsize /*|| (!flushing_output_device && bbcount < 3 * output_fragsize)*/) {
+	if (d->bbcount < output_fragsize) {
 #ifdef PLUGDEBUG
-		fprintf(stderr,"bbcount of %d < fragsize %d: ", bbcount, output_fragsize);
+		fprintf(stderr,"bbcount of %d < fragsize %d: ", d->bbcount, output_fragsize);
 #endif
-		rc = play_some_midi();
+		rc = play_some_midi(d);
 		if (rc == RC_TUNE_END) flushing_output_device = TRUE;
 #ifdef PLUGDEBUG
-if (rc == RC_TUNE_END) fprintf(stderr,"tune is ending: bbcount after play is %d\n", bbcount);
-		fprintf(stderr,"bbcount after play is %d\n", bbcount);
+if (rc == RC_TUNE_END) fprintf(stderr,"tune is ending: bbcount after play is %d\n", d->bbcount);
+		fprintf(stderr,"bbcount after play is %d\n", d->bbcount);
 #endif
 	}
 
 #ifdef PLUGDEBUG
-if (bbcount < output_fragsize) fprintf(stderr, "Can't play -- wish to stop.\n");
+if (d->bbcount < output_fragsize) fprintf(stderr, "Can't play -- wish to stop.\n");
 #endif
-	if (bbcount < output_fragsize) return 0;
+	if (d->bbcount < output_fragsize) return 0;
 
-	rc = plug_output(buf);
+	rc = plug_output(buf, d);
 
 #ifdef PLUGDEBUG
 if (!rc) fprintf(stderr, "Nothing to write -- wish to stop.\n");
@@ -494,26 +375,26 @@ if (!rc) fprintf(stderr, "Nothing to write -- wish to stop.\n");
 
 static int midi_frame_seek(input_object *obj, int frame)
 {
-        struct midi_local_data *data;
+        struct md *d;
 	int result = 0;
 	int current_frame = 0, tim_time = 0;
 
 	if (!obj) return 0;
 	if (!obj->local_data) return 0;
-	data = (struct midi_local_data *)obj->local_data;
-	if (data->is_playing) {
-		current_frame = (b_out_count() + bbcount) / output_fragsize;
+	d = (struct md *)obj->local_data;
+	if (d->is_playing) {
+		current_frame = (b_out_count(d) + d->bbcount) / output_fragsize;
 		if (current_frame == frame) return 1;
 		/*if (current_frame > frame - 2 && current_frame < frame + 2) return 1;*/
 		tim_time = frame * output_fragsize / 4;
 		if (tim_time < 0) tim_time = 0;
-		if (tim_time > data->count) return 0;
-		result = skip_to(tim_time);
+		if (tim_time > d->count) return 0;
+		result = skip_to(tim_time, d);
 	}
 	else if (!frame) result = 1;
 	else result = 0;
 #ifdef PLUGDEBUG
-fprintf(stderr,"midi_frame_seek to %d; result %d from skip_to(%d)\n", frame,
+fprintf(stderr,"midi_frame_seek to %d; result %d from skip_to(%d, d)\n", frame,
 		result, tim_time);
 #endif
 	return result;
@@ -522,10 +403,10 @@ fprintf(stderr,"midi_frame_seek to %d; result %d from skip_to(%d)\n", frame,
 
 static int midi_frame_size(input_object *obj)
 {
-        struct midi_local_data *data;
+        struct md *d;
 	if (!obj) return 0;
 	if (!obj->local_data) return 0;
-	data = (struct midi_local_data *)obj->local_data;
+	d = (struct md *)obj->local_data;
 #ifdef PLUGDEBUG
 fprintf(stderr,"midi_frame_size is %d\n", output_fragsize);
 #endif
@@ -535,14 +416,14 @@ fprintf(stderr,"midi_frame_size is %d\n", output_fragsize);
 
 static int midi_nr_frames(input_object *obj)
 {
-        struct midi_local_data *data;
+        struct md *d;
 	int result = 0;	
 
 	if (!obj) return 0;
 	if (!obj->local_data) return 0;
-	data = (struct midi_local_data *)obj->local_data;
+	d = (struct md *)obj->local_data;
 
-	result = data->count * 4 / output_fragsize;
+	result = d->count * 4 / output_fragsize;
 #ifdef PLUGDEBUG
 fprintf(stderr,"midi_nr_frames is %d\n", result);
 #endif
@@ -552,12 +433,12 @@ fprintf(stderr,"midi_nr_frames is %d\n", result);
 
 static int midi_sample_rate(input_object *obj)
 {
-        struct midi_local_data *data;
+        struct md *d;
 	int result = 0;	
 
 	if (!obj) return 0;
 	if (!obj->local_data) return 0;
-	data = (struct midi_local_data *)obj->local_data;
+	d = (struct md *)obj->local_data;
 
 	result = 44100;
 #ifdef PLUGDEBUG
@@ -575,41 +456,15 @@ fprintf(stderr,"midi_channels\n");
 	return 2; /* Yes, always stereo ...  */
 }
 
-/************
-
-	result = sample_count * 4 / output_fragsize;
-
-midi_nr_frames is 11042
-midi_frame_to_sec for 11042 frames is 1025 for frag=4096
-midi_nr_frames is 9304
-midi_frame_to_sec for 9304 frames is 864 for frag=4096
-midi_nr_frames is 9100
-midi_frame_to_sec for 9100 frames is 845 for frag=4096
-midi_nr_frames is 9070
-midi_frame_to_sec for 9070 frames is 842 for frag=4096
-midi_nr_frames is 19291
-midi_frame_to_sec for 19291 frames is 1791 for frag=4096
-midi_frame_seek to 0; result 0 from skip_to(0)
-midi_frame_to_sec for 0 frames is 0 for frag=4096
-midi_nr_frames is 11042
-midi_frame_to_sec for 11042 frames is 1025 for frag=4096
-midi_frame_to_sec for 4 frames is 0 for frag=4096
-midi_nr_frames is 11042
-midi_frame_to_sec for 11042 frames is 1025 for frag=4096
-midi_frame_to_sec for 9 frames is 0 for frag=4096
-midi_nr_frames is 11042
-
-4096 bytes = 1 frame = 1024 samples at 44100 samples/sec takes 1024/44100 seconds
-********/
 static long midi_frame_to_sec(input_object *obj, int frame)
 {
-        struct midi_local_data *data;
+        struct md *d;
 	unsigned long result = 0;
 	unsigned long sample_pos;
 	
 	if (!obj) return 0;
 	if (!obj->local_data) return 0;
-	data = (struct midi_local_data *)obj->local_data;
+	d = (struct md *)obj->local_data;
 
 	sample_pos = frame * output_fragsize / 4;
 	/*result = (unsigned long)( pos / 44100 / 100 / 4 );*/
@@ -651,11 +506,11 @@ fprintf(stderr,"midi_can_handle(%s)?\n", name);
 
 static int midi_stream_info(input_object *obj, stream_info *info)
 {
-        struct midi_local_data *data;
+        struct md *d;
 
 	if (!obj) return 0;
 	if (!obj->local_data) return 0;
-	data = (struct midi_local_data *)obj->local_data;
+	d = (struct md *)obj->local_data;
 
 #ifdef PLUGDEBUG
 fprintf(stderr,"midi_stream_info\n");
@@ -666,7 +521,7 @@ fprintf(stderr,"midi_stream_info\n");
 		44100 / 1000, "stereo");
 	info->author[0] = 0;
 	info->status[0] = 0;
-	strcpy(info->title, data->midi_name);	
+	strcpy(info->title, d->midi_name);	
 	
 	return 1;
 }

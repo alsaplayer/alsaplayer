@@ -12,6 +12,8 @@
 #include "common.h"
 #include "instrum.h"
 #include "playmidi.h"
+#include "effects.h"
+#include "md.h"
 #include "readmidi.h"
 #include "output.h"
 #include "controls.h"
@@ -24,7 +26,9 @@
 #define YY_INPUT(buf,result,max_size) \
 	 result = fread( buf, 1, max_size, yyin );
 
+#ifdef STANDALONE
 extern int set_play_mode(char *cp);
+#endif
 static int prescanning;
 static char doing_drums = 0;
 static char doing_sf = 0;
@@ -392,12 +396,16 @@ cm	[ \t]*("#".*)?\n
 ^{owh}"-p"{owh}[0-9]+	{ if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		j = atoi(yytext+i+2);
+#ifdef TOTALLY_LOCAL
 		if (j > 1 && j < MAX_VOICES) voices = j;
+#endif
 	} }
 ^{owh}"-A"{wh}[0-9]+	{ if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		j = atoi(yytext+i+2);
+#ifdef TOTALLY_LOCAL
 		if (j > 1 && j < MAX_AMPLIFICATION) amplification = j;
+#endif
 	} }
 ^{owh}"-C"{owh}[0-9]+	{ if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
@@ -434,7 +442,9 @@ cm	[ \t]*("#".*)?\n
 		i=0; while(isspace(yytext[i])) i++;
 		i+=2;
 		while(isspace(yytext[i])) i++;
+#ifdef STANDALONE
 		if (set_play_mode(yytext+i)) /* error */;
+#endif
 	} }
 
 <P>{owh}"amp"{owh}"="{owh}[0-9]+	{

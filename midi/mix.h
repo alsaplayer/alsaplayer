@@ -22,10 +22,10 @@
 
 */
 
-extern void mix_voice(int32 *buf, int v, uint32 c);
-extern int recompute_envelope(int v);
+extern void mix_voice(int32 *buf, int v, uint32 c, struct md *d);
+extern int recompute_envelope(int v, struct md *d);
 #ifdef tplus
-extern int apply_envelope_to_amp(int v);
+extern int apply_envelope_to_amp(int v, struct md *d);
 #else
-extern void apply_envelope_to_amp(int v);
+extern void apply_envelope_to_amp(int v, struct md *d);
 #endif

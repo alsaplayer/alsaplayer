@@ -3,16 +3,21 @@
 */
 
 #include "gtim.h"
+#include "common.h"
+#include "instrum.h"
+#include "playmidi.h"
+#include "effects.h"
+#include "md.h"
 #include "output.h"
 #include "controls.h"
 
-static int open_output(void); /* 0=success, 1=warning, -1=fatal error */
-static void close_output(void);
-static void output_data(int32 *buf, uint32 count);
-static int driver_output_data(unsigned char *buf, uint32 count);
-static void flush_output(void);
-static void purge_output(void);
-static int output_count(uint32 ct);
+static int open_output(struct md *d); /* 0=success, 1=warning, -1=fatal error */
+static void close_output(struct md *d);
+static void output_data(int32 *buf, uint32 count, struct md *d);
+static int driver_output_data(unsigned char *buf, uint32 count, struct md *d);
+static void flush_output(struct md *d);
+static void purge_output(struct md *d);
+static int output_count(uint32 ct, struct md *d);
 
 /* export the playback mode */
 
@@ -35,7 +40,7 @@ PlayMode dpm = {
 };
 
 
-static int open_output(void)
+static int open_output(struct md *d)
 {
 
   dpm.fd=0;
@@ -43,18 +48,18 @@ static int open_output(void)
 }
 
 
-static int output_count(uint32 ct)
+static int output_count(uint32 ct, struct md *d)
 {
   int samples = (int)ct;
   return samples;
 }
 
-static int driver_output_data(unsigned char *buf, uint32 count)
+static int driver_output_data(unsigned char *buf, uint32 count, struct md *d)
 {
   return count;
 }
 
-static void output_data(int32 *buf, uint32 count)
+static void output_data(int32 *buf, uint32 count, struct md *d)
 {
   int ocount;
 
@@ -75,22 +80,22 @@ static void output_data(int32 *buf, uint32 count)
       }
   }
 
-  b_out(dpm.id_character, dpm.fd, (int *)buf, ocount);
+  b_out(dpm.id_character, dpm.fd, (int *)buf, ocount, d);
 }
 
 
-static void close_output(void)
+static void close_output(struct md *d)
 {
 }
 
-static void flush_output(void)
+static void flush_output(struct md *d)
 {
-  output_data(0, 0);
+  output_data(0, 0, d);
 }
 
-static void purge_output(void)
+static void purge_output(struct md *d)
 {
 /*fprintf(stderr,"dumb purge\n");*/
-  b_out(dpm.id_character, dpm.fd, 0, -1);
+  b_out(dpm.id_character, dpm.fd, 0, -1, d);
 }
 

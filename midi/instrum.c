@@ -42,6 +42,8 @@
 #include "common.h"
 #include "instrum.h"
 #include "playmidi.h"
+#include "effects.h"
+#include "md.h"
 #include "output.h"
 #include "controls.h"
 #include "resample.h"

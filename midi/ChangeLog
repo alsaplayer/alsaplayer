@@ -1,3 +1,5 @@
+Wed Apr 17 19:38:13 HST 2002
+	many changes, aiming to make cross-fading work
 Sun Apr 14 04:17:37 HST 2002
 	ChangeLog
 	sf2cfg.c: added; reads soundfont and writes timidity.cfg

@@ -33,6 +33,8 @@
 #include "common.h"
 #include "instrum.h"
 #include "playmidi.h"
+#include "effects.h"
+#include "md.h"
 #include "output.h"
 #include "controls.h"
 #include "tables.h"
@@ -55,86 +57,86 @@
 #define OVERSHOOT_STEP 50
 
 
-static sample_t *vib_resample_voice(int, uint32 *, int);
-static sample_t *normal_resample_voice(int, uint32 *, int);
+static sample_t *vib_resample_voice(int, uint32 *, int, struct md *);
+static sample_t *normal_resample_voice(int, uint32 *, int, struct md *);
 
 
 #ifdef FILTER_INTERPOLATION
-static void update_lfo(int v)
+static void update_lfo(int v, struct md *d)
 {
-  FLOAT_T depth=voice[v].modLfoToFilterFc;
+  FLOAT_T depth=d->voice[v].modLfoToFilterFc;
 
-  if (voice[v].lfo_sweep)
+  if (d->voice[v].lfo_sweep)
     {
       /* Update sweep position */
 
-      voice[v].lfo_sweep_position += voice[v].lfo_sweep;
-      if (voice[v].lfo_sweep_position>=(1<<SWEEP_SHIFT))
-	voice[v].lfo_sweep=0; /* Swept to max amplitude */
+      d->voice[v].lfo_sweep_position += d->voice[v].lfo_sweep;
+      if (d->voice[v].lfo_sweep_position>=(1<<SWEEP_SHIFT))
+	d->voice[v].lfo_sweep=0; /* Swept to max amplitude */
       else
 	{
 	  /* Need to adjust depth */
-	  depth *= (FLOAT_T)voice[v].lfo_sweep_position / (FLOAT_T)(1<<SWEEP_SHIFT);
+	  depth *= (FLOAT_T)d->voice[v].lfo_sweep_position / (FLOAT_T)(1<<SWEEP_SHIFT);
 	}
     }
 
-  voice[v].lfo_phase += voice[v].lfo_phase_increment;
+  d->voice[v].lfo_phase += d->voice[v].lfo_phase_increment;
 
-  voice[v].lfo_volume = depth;
+  d->voice[v].lfo_volume = depth;
 }
 #endif
 
 
 #ifdef FILTER_INTERPOLATION
-static int calc_bw_index(int v)
+static int calc_bw_index(int v, struct md *d)
 {
-  FLOAT_T mod_amount=voice[v].modEnvToFilterFc;
-  int32 freq = voice[v].sample->cutoff_freq;
+  FLOAT_T mod_amount=d->voice[v].modEnvToFilterFc;
+  int32 freq = d->voice[v].sample->cutoff_freq;
   int ix;
 
-  if (voice[v].lfo_phase_increment) update_lfo(v);
+  if (d->voice[v].lfo_phase_increment) update_lfo(v, d);
 
-  if (!voice[v].lfo_phase_increment && update_modulation_signal(v)) return 0;
+  if (!d->voice[v].lfo_phase_increment && update_modulation_signal(v, d)) return 0;
 
 /* printf("mod_amount %f ", mod_amount); */
-  if (voice[v].lfo_volume>0.001) {
-	if (mod_amount) mod_amount *= voice[v].lfo_volume;
-	else mod_amount = voice[v].lfo_volume;
-/* printf("lfo %f -> mod %f ", voice[v].lfo_volume, mod_amount); */
+  if (d->voice[v].lfo_volume>0.001) {
+	if (mod_amount) mod_amount *= d->voice[v].lfo_volume;
+	else mod_amount = d->voice[v].lfo_volume;
+/* printf("lfo %f -> mod %f ", d->voice[v].lfo_volume, mod_amount); */
   }
 
   if (mod_amount > 0.001) {
-    if (voice[v].modulation_volume)
+    if (d->voice[v].modulation_volume)
        freq =
-	(int32)( (double)freq*(1.0 + (mod_amount - 1.0) * (voice[v].modulation_volume>>22) / 255.0) );
+	(int32)( (double)freq*(1.0 + (mod_amount - 1.0) * (d->voice[v].modulation_volume>>22) / 255.0) );
     else freq = (int32)( (double)freq*mod_amount );
 /*
-printf("v%d freq %d (was %d), modvol %d, mod_amount %f\n", v, (int)freq, (int)voice[v].sample->cutoff_freq,
-(int)voice[v].modulation_volume>>22,
+printf("v%d freq %d (was %d), modvol %d, mod_amount %f\n", v, (int)freq, (int)d->voice[v].sample->cutoff_freq,
+(int)d->voice[v].modulation_volume>>22,
 mod_amount);
 */
 	ix = 1 + (freq+50) / 100;
 	if (ix > 100) ix = 100;
-	voice[v].bw_index = ix;
+	d->voice[v].bw_index = ix;
 	return 1;
   }
-  voice[v].bw_index = 1 + (freq+50) / 100;
+  d->voice[v].bw_index = 1 + (freq+50) / 100;
   return 0;
 }
 #endif
 
 /*************** resampling with fixed increment *****************/
 
-static sample_t *rs_plain(int v, uint32 *countptr)
+static sample_t *rs_plain(int v, uint32 *countptr, struct md *d)
 {
   /* Play sample until end, then free the voice. */
   Voice
-    *vp=&voice[v];
+    *vp=&d->voice[v];
    int32   ofsd, v0, v1, v2, v3, overshoot;
    int offset;
   uint32 cc_count=vp->modulation_counter;
   sample_t
-    *dest=resample_buffer+resample_buffer_offset,
+    *dest=d->resample_buffer+d->resample_buffer_offset,
     *src=vp->sample->data;
   int32
     incr=vp->sample_increment;
@@ -150,7 +152,7 @@ static sample_t *rs_plain(int v, uint32 *countptr)
   uint32
     count=*countptr;
 
-  if (!incr) return resample_buffer+resample_buffer_offset; /* --gl */
+  if (!incr) return d->resample_buffer+d->resample_buffer_offset; /* --gl */
 
   overshoot = src[(se>>FRACTION_BITS)-1] / OVERSHOOT_STEP;
   if (overshoot < 0) overshoot = -overshoot;
@@ -201,8 +203,8 @@ static sample_t *rs_plain(int v, uint32 *countptr)
 
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
-		    if (!update_modulation_signal(v))
-		        incr = calc_mod_freq(v, incr);
+		    if (!update_modulation_signal(v, d))
+		        incr = calc_mod_freq(v, incr, d);
 		}
       ofs += incr;
       if (ofs >= se + (overshoot << FRACTION_BITS))
@@ -219,10 +221,10 @@ static sample_t *rs_plain(int v, uint32 *countptr)
 
   vp->sample_offset=ofs; /* Update offset */
   vp->modulation_counter=cc_count;
-  return resample_buffer+resample_buffer_offset;
+  return d->resample_buffer+d->resample_buffer_offset;
 }
 
-static sample_t *rs_loop(int v, Voice *vp, uint32 *countptr)
+static sample_t *rs_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
 {
   /* Play sample until end-of-loop, skip back and continue. */
    int32   ofsd, v0, v1, v2, v3, overshoot;
@@ -239,7 +241,7 @@ static sample_t *rs_loop(int v, Voice *vp, uint32 *countptr)
 #endif /* LAGRANGE_INTERPOLATION */
     ll=le - vp->loop_start;
   sample_t
-    *dest=resample_buffer+resample_buffer_offset,
+    *dest=d->resample_buffer+d->resample_buffer_offset,
     *src=vp->sample->data;
   uint32
     se=vp->sample->data_length,
@@ -302,8 +304,8 @@ static sample_t *rs_loop(int v, Voice *vp, uint32 *countptr)
 
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
-		    if (!update_modulation_signal(v))
-		        incr = calc_mod_freq(v, incr);
+		    if (!update_modulation_signal(v, d))
+		        incr = calc_mod_freq(v, incr, d);
 		}
       ofs += incr;
       if (ofs>=le)
@@ -329,10 +331,10 @@ static sample_t *rs_loop(int v, Voice *vp, uint32 *countptr)
 
   vp->sample_offset=ofs; /* Update offset */
   vp->modulation_counter=cc_count;
-  return resample_buffer+resample_buffer_offset;
+  return d->resample_buffer+d->resample_buffer_offset;
 }
 
-static sample_t *rs_bidir(int v, Voice *vp, uint32 count)
+static sample_t *rs_bidir(int v, Voice *vp, uint32 count, struct md *d)
 {
    int32   ofsd, v0, v1, v2, v3, overshoot;
    int offset;
@@ -345,7 +347,7 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count)
     ofs=vp->sample_offset,
     se=vp->sample->data_length;
   sample_t
-    *dest=resample_buffer+resample_buffer_offset,
+    *dest=d->resample_buffer+d->resample_buffer_offset,
     *src=vp->sample->data;
 
 
@@ -505,13 +507,13 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count)
 
   vp->sample_increment=incr;
   vp->sample_offset=ofs; /* Update offset */
-  return resample_buffer+resample_buffer_offset;
+  return d->resample_buffer+d->resample_buffer_offset;
 }
 
 /*********************** vibrato versions ***************************/
 
 /* We only need to compute one half of the vibrato sine cycle */
-static uint32 vib_phase_to_inc_ptr(uint32 phase)
+static uint32 vib_phase_to_inc_ptr(uint32 phase, struct md *d)
 {
   if (phase < VIBRATO_SAMPLE_INCREMENTS/2)
     return VIBRATO_SAMPLE_INCREMENTS/2-1-phase;
@@ -521,7 +523,7 @@ static uint32 vib_phase_to_inc_ptr(uint32 phase)
     return phase-VIBRATO_SAMPLE_INCREMENTS/2;
 }
 
-static int32 update_vibrato(Voice *vp, int sign)
+static int32 update_vibrato(Voice *vp, int sign, struct md *d)
 {
   uint32 depth, freq=vp->frequency;
 #ifdef ENVELOPE_PITCH_MODULATION
@@ -540,7 +542,7 @@ static int32 update_vibrato(Voice *vp, int sign)
 
   if (vp->vibrato_phase++ >= 2*VIBRATO_SAMPLE_INCREMENTS-1)
     vp->vibrato_phase=0;
-  phase=vib_phase_to_inc_ptr(vp->vibrato_phase);
+  phase=vib_phase_to_inc_ptr(vp->vibrato_phase, d);
 
   if (vp->vibrato_sample_increment[phase])
     {
@@ -573,7 +575,7 @@ static int32 update_vibrato(Voice *vp, int sign)
 
 #ifdef ENVELOPE_PITCH_MODULATION
 #ifndef FILTER_INTERPOLATION
-  if (update_modulation_signal(0)) mod_amount = 0;
+  if (update_modulation_signal(0, d)) mod_amount = 0;
   else
 #endif
   if (mod_amount>0.02)
@@ -608,16 +610,16 @@ static int32 update_vibrato(Voice *vp, int sign)
   return (int32) a;
 }
 
-static sample_t *rs_vib_plain(int v, uint32 *countptr)
+static sample_t *rs_vib_plain(int v, uint32 *countptr, struct md *d)
 {
 
   /* Play sample until end, then free the voice. */
 
-  Voice *vp=&voice[v];
+  Voice *vp=&d->voice[v];
    int32   ofsd, v0, v1, v2, v3, overshoot;
    int offset;
   sample_t
-    *dest=resample_buffer+resample_buffer_offset,
+    *dest=d->resample_buffer+d->resample_buffer_offset,
     *src=vp->sample->data;
   int32
     incr=vp->sample_increment;
@@ -645,7 +647,7 @@ static sample_t *rs_vib_plain(int v, uint32 *countptr)
       if (!cc--)
 	{
 	  cc=vp->vibrato_control_ratio;
-	  incr=update_vibrato(vp, 0);
+	  incr=update_vibrato(vp, 0, d);
 	}
 
 	offset = ofs >> FRACTION_BITS;
@@ -705,10 +707,10 @@ static sample_t *rs_vib_plain(int v, uint32 *countptr)
   vp->vibrato_control_counter=cc;
   vp->sample_increment=incr;
   vp->sample_offset=ofs; /* Update offset */
-  return resample_buffer+resample_buffer_offset;
+  return d->resample_buffer+d->resample_buffer_offset;
 }
 
-static sample_t *rs_vib_loop(int v, Voice *vp, uint32 *countptr)
+static sample_t *rs_vib_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
 {
   /* Play sample until end-of-loop, skip back and continue. */
    int32   ofsd, v0, v1, v2, v3, overshoot;
@@ -723,7 +725,7 @@ static sample_t *rs_vib_loop(int v, Voice *vp, uint32 *countptr)
     le=vp->loop_end,
     ll=le - vp->loop_start;
   sample_t
-    *dest=resample_buffer+resample_buffer_offset,
+    *dest=d->resample_buffer+d->resample_buffer_offset,
     *src=vp->sample->data;
   uint32
     ofs=vp->sample_offset,
@@ -747,7 +749,7 @@ static sample_t *rs_vib_loop(int v, Voice *vp, uint32 *countptr)
       if (!cc--)
 	{
 	  cc=vp->vibrato_control_ratio;
-	  incr=update_vibrato(vp, 0);
+	  incr=update_vibrato(vp, 0, d);
 	}
 
 	offset = ofs >> FRACTION_BITS;
@@ -816,10 +818,10 @@ static sample_t *rs_vib_loop(int v, Voice *vp, uint32 *countptr)
   vp->vibrato_control_counter=cc;
   vp->sample_increment=incr;
   vp->sample_offset=ofs; /* Update offset */
-  return resample_buffer+resample_buffer_offset;
+  return d->resample_buffer+d->resample_buffer_offset;
 }
 
-static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count)
+static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
 {
    int32   ofsd, v0, v1, v2, v3, overshoot;
    int offset;
@@ -833,7 +835,7 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count)
     ofs=vp->sample_offset,
     se=vp->sample->data_length;
   sample_t
-    *dest=resample_buffer+resample_buffer_offset,
+    *dest=d->resample_buffer+d->resample_buffer_offset,
     *src=vp->sample->data;
   uint32
     cc=vp->vibrato_control_counter;
@@ -913,7 +915,7 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count)
       if (vibflag)
 	{
 	  cc = vp->vibrato_control_ratio;
-	  incr = update_vibrato(vp, 0);
+	  incr = update_vibrato(vp, 0, d);
 	  vibflag = 0;
 	}
     }
@@ -986,7 +988,7 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count)
       if (vibflag)
 	{
 	  cc = vp->vibrato_control_ratio;
-	  incr = update_vibrato(vp, (incr < 0));
+	  incr = update_vibrato(vp, (incr < 0), d);
 	  vibflag = 0;
 	}
       if (ofs >= le)
@@ -1010,44 +1012,44 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count)
   vp->vibrato_control_counter=cc;
   vp->sample_increment=incr;
   vp->sample_offset=ofs; /* Update offset */
-  return resample_buffer+resample_buffer_offset;
+  return d->resample_buffer+d->resample_buffer_offset;
 }
 
-static int rs_update_porta(int v)
+static int rs_update_porta(int v, struct md *d)
 {
-    Voice *vp=&voice[v];
-    int32 d;
+    Voice *vp=&d->voice[v];
+    int32 db;
 
-    d = vp->porta_dpb;
+    db = vp->porta_dpb;
     if(vp->porta_pb < 0)
     {
-	if(d > -vp->porta_pb)
-	    d = -vp->porta_pb;
+	if(db > -vp->porta_pb)
+	    db = -vp->porta_pb;
     }
     else
     {
-	if(d > vp->porta_pb)
-	    d = -vp->porta_pb;
+	if(db > vp->porta_pb)
+	    db = -vp->porta_pb;
 	else
-	    d = -d;
+	    db = -db;
     }
 
-    vp->porta_pb += d;
+    vp->porta_pb += db;
     if(vp->porta_pb == 0)
     {
 	vp->porta_control_ratio = 0;
 	vp->porta_pb = 0;
     }
-    recompute_freq(v);
+    recompute_freq(v, d);
     return vp->porta_control_ratio;
 }
 
-static sample_t *porta_resample_voice(int v, uint32 *countptr, int mode)
+static sample_t *porta_resample_voice(int v, uint32 *countptr, int mode, struct md *d)
 {
-    Voice *vp=&voice[v];
+    Voice *vp=&d->voice[v];
     uint32 n = *countptr;
     uint32 i;
-    sample_t *(* resampler)(int, uint32 *, int);
+    sample_t *(* resampler)(int, uint32 *, int, struct md *);
     int cc = vp->porta_control_counter;
     int loop;
 
@@ -1061,62 +1063,62 @@ static sample_t *porta_resample_voice(int v, uint32 *countptr, int mode)
 	loop = 0;
 
     /* vp->cache = NULL; */
-    resample_buffer_offset = 0;
-    while(resample_buffer_offset < n)
+    d->resample_buffer_offset = 0;
+    while(d->resample_buffer_offset < n)
     {
 	if(cc == 0)
 	{
-	    if((cc = rs_update_porta(v)) == 0)
+	    if((cc = rs_update_porta(v, d)) == 0)
 	    {
-		i = n - resample_buffer_offset;
-		resampler(v, &i, mode);
-		resample_buffer_offset += i;
+		i = n - d->resample_buffer_offset;
+		resampler(v, &i, mode, d);
+		d->resample_buffer_offset += i;
 		break;
 	    }
 	}
 
-	i = n - resample_buffer_offset;
+	i = n - d->resample_buffer_offset;
 	if(i > (uint32)cc)
 	    i = (uint32)cc;
-	resampler(v, &i, mode);
-	resample_buffer_offset += i;
+	resampler(v, &i, mode, d);
+	d->resample_buffer_offset += i;
 
 	/* if(!loop && vp->status == VOICE_FREE) */
 	if(vp->status == VOICE_FREE)
 	    break;
 	cc -= (int)i;
     }
-    *countptr = resample_buffer_offset;
-    resample_buffer_offset = 0;
+    *countptr = d->resample_buffer_offset;
+    d->resample_buffer_offset = 0;
     vp->porta_control_counter = cc;
-    return resample_buffer;
+    return d->resample_buffer;
 }
 
-static sample_t *vib_resample_voice(int v, uint32 *countptr, int mode)
+static sample_t *vib_resample_voice(int v, uint32 *countptr, int mode, struct md *d)
 {
-    Voice *vp = &voice[v];
+    Voice *vp = &d->voice[v];
 
     /* vp->cache = NULL; */
     if(mode == 0)
-	return rs_vib_loop(v, vp, countptr);
+	return rs_vib_loop(v, vp, countptr, d);
     if(mode == 1)
-	return rs_vib_plain(v, countptr);
-    return rs_vib_bidir(v, vp, *countptr);
+	return rs_vib_plain(v, countptr, d);
+    return rs_vib_bidir(v, vp, *countptr, d);
 }
 
-static sample_t *normal_resample_voice(int v, uint32 *countptr, int mode)
+static sample_t *normal_resample_voice(int v, uint32 *countptr, int mode, struct md *d)
 {
-    Voice *vp = &voice[v];
+    Voice *vp = &d->voice[v];
     if(mode == 0)
-	return rs_loop(v, vp, countptr);
+	return rs_loop(v, vp, countptr, d);
     if(mode == 1)
-	return rs_plain(v, countptr);
-    return rs_bidir(v, vp, *countptr);
+	return rs_plain(v, countptr, d);
+    return rs_bidir(v, vp, *countptr, d);
 }
 
-sample_t *resample_voice_lagrange(int v, uint32 *countptr)
+sample_t *resample_voice_lagrange(int v, uint32 *countptr, struct md *d)
 {
-    Voice *vp=&voice[v];
+    Voice *vp=&d->voice[v];
     int mode;
 
     mode = vp->sample->modes;
@@ -1136,11 +1138,11 @@ sample_t *resample_voice_lagrange(int v, uint32 *countptr)
 	mode = 1;
 
     if(vp->porta_control_ratio)
-	return porta_resample_voice(v, countptr, mode);
+	return porta_resample_voice(v, countptr, mode, d);
 
     if(vp->vibrato_control_ratio)
-	return vib_resample_voice(v, countptr, mode);
+	return vib_resample_voice(v, countptr, mode, d);
 
-    return normal_resample_voice(v, countptr, mode);
+    return normal_resample_voice(v, countptr, mode, d);
 }
 

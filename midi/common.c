@@ -39,6 +39,11 @@
 #include <errno.h>
 #include "gtim.h"
 #include "common.h"
+#include "instrum.h"
+#include "playmidi.h"
+#include "effects.h"
+#include "md.h"
+#include "readmidi.h"
 #include "output.h"
 #include "controls.h"
 
@@ -230,8 +235,8 @@ void *safe_malloc(size_t count)
     ctl->cmsg(CMSG_FATAL, VERB_NORMAL, "Sorry. Couldn't malloc %d bytes.", count);
 
   ctl->close();
-  play_mode->purge_output();
-  play_mode->close_output();
+  /*play_mode->purge_output();*/
+  /*play_mode->close_output();*/
     #ifdef ADAGIO
     X_EXIT
     #else

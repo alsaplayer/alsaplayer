@@ -26,6 +26,7 @@
 #include "instrum.h"
 #include "playmidi.h"
 #include "effects.h"
+#include "md.h"
 #include "output.h"
 #include "mix.h"
 #include "controls.h"
@@ -47,19 +48,19 @@ EFFECT_CTOR effect_type_list[]={
 };
 
 /* number of effects*/
-#define NUM_EFFECTS (int)(( sizeof(effect_type_list) / sizeof(EFFECT_CTOR) ) - 1)
+/*#define NUM_EFFECTS (int)(( sizeof(effect_type_list) / sizeof(EFFECT_CTOR) ) - 1)*/
 
-Effect* effect_list[ NUM_EFFECTS ][MAXCHAN] ; 
+/* Effect* effect_list[ NUM_EFFECTS ][MAXCHAN] ; */
 
 char effect_name[NUM_EFFECTS][MAXCHAN] ;
 
 /**************************************************************************/
 /**	 channel buffers and empty flags
  */
-static int32 channel_buffer[MAXCHAN][AUDIO_BUFFER_SIZE*2] ; /* stereo samples */
-static int channel_buffer_state[MAXCHAN] ; /* 0 means null signal , 1 non null */
+/*static int32 channel_buffer[MAXCHAN][AUDIO_BUFFER_SIZE*2] ;*/ /* stereo samples */
+/*static int channel_buffer_state[MAXCHAN] ;*/ /* 0 means null signal , 1 non null */
 
-void do_compute_data_effect(uint32 count);
+void do_compute_data_effect(uint32 count, struct md *d);
 
 /**************************************************************************/
 /**	c_buff structure helpers functions */
@@ -208,7 +209,7 @@ static void DebugCircBuffer()
 /**************************************************************************/
 /** do_compute_data redefined from playmidi
  */ 
-void do_compute_data_effect(uint32 count)
+void do_compute_data_effect(uint32 count, struct md *d)
 {
 	int idChannel , idVoice , idEffect;
 	uint32 byteCount;
@@ -220,23 +221,23 @@ void do_compute_data_effect(uint32 count)
 		byteCount = count * 8 ;
 
 /* mix voices into channel buffers*/
-	for ( idVoice = 0; idVoice < voices; ++idVoice )
+	for ( idVoice = 0; idVoice < d->voices; ++idVoice )
 	{
-		if( voice[ idVoice ].status != VOICE_FREE )
+		if( d->voice[ idVoice ].status != VOICE_FREE )
 		{
-		  idChannel = voice[ idVoice ].channel ;
-		  if (!voice[ idVoice ].sample_offset && voice[ idVoice ].echo_delay_count)
+		  idChannel = d->voice[ idVoice ].channel ;
+		  if (!d->voice[ idVoice ].sample_offset && d->voice[ idVoice ].echo_delay_count)
 		    {
-			if (voice[ idVoice ].echo_delay_count >= count) voice[ idVoice ].echo_delay_count -= count;
+			if (d->voice[ idVoice ].echo_delay_count >= count) d->voice[ idVoice ].echo_delay_count -= count;
 			else
 			  {
-		            mix_voice( channel_buffer[ idChannel ] + voice[ idVoice ].echo_delay_count, idVoice,
-						count - voice[ idVoice ].echo_delay_count);
-			    voice[ idVoice ].echo_delay_count = 0;
+		            mix_voice( d->channel_buffer[ idChannel ] + d->voice[ idVoice ].echo_delay_count, idVoice,
+						count - d->voice[ idVoice ].echo_delay_count, d);
+			    d->voice[ idVoice ].echo_delay_count = 0;
 			  }
 		    }
-		  else mix_voice( channel_buffer[ idChannel ] , idVoice , count );
-		  channel_buffer_state[ idChannel ] = 1 ;
+		  else mix_voice( d->channel_buffer[ idChannel ] , idVoice , count, d );
+		  d->channel_buffer_state[ idChannel ] = 1 ;
 
 		}
 	}
@@ -247,10 +248,10 @@ void do_compute_data_effect(uint32 count)
 	{		
 		for( idChannel = 0 ; idChannel < MAXCHAN ; ++ idChannel )		
 		{
-		if( effect_list[idEffect][idChannel] != 0 )
-			(( effect_list[idEffect][idChannel] )->m_pfnActionMono)
-				( effect_list[idEffect][idChannel] , channel_buffer[ idChannel ] 
-					, count , &(channel_buffer_state[ idChannel ]) ) ;
+		if( d->effect_list[idEffect][idChannel] != 0 )
+			(( d->effect_list[idEffect][idChannel] )->m_pfnActionMono)
+				( d->effect_list[idEffect][idChannel] , d->channel_buffer[ idChannel ] 
+					, count , &(d->channel_buffer_state[ idChannel ]) ) ;
 		}
 	}
 	else
@@ -258,29 +259,29 @@ void do_compute_data_effect(uint32 count)
 	{
 		for( idChannel = 0 ; idChannel < MAXCHAN ; ++ idChannel )		
 		{
-		if( effect_list[idEffect][idChannel] != 0 )
-			(( effect_list[idEffect][idChannel] )->m_pfnActionStereo)
-				( effect_list[idEffect][idChannel] , channel_buffer[ idChannel ] 
-					, count , &(channel_buffer_state[ idChannel ]) ) ;
+		if( d->effect_list[idEffect][idChannel] != 0 )
+			(( d->effect_list[idEffect][idChannel] )->m_pfnActionStereo)
+				( d->effect_list[idEffect][idChannel] , d->channel_buffer[ idChannel ] 
+					, count , &(d->channel_buffer_state[ idChannel ]) ) ;
 		}
 	}
 
 /* clear common buffer */
-	  memset(buffer_pointer, 0, byteCount );
+	  memset(d->buffer_pointer, 0, byteCount );
 
 /* mix channel buffers into common_buffer */
 	if( play_mode->encoding & PE_MONO )
-		pBuffDestEnd = buffer_pointer + count  ;
+		pBuffDestEnd = d->buffer_pointer + count  ;
 	else
-		pBuffDestEnd = buffer_pointer + ( count * 2 ) ;
+		pBuffDestEnd = d->buffer_pointer + ( count * 2 ) ;
 
 	for( idChannel = 0 ; idChannel < MAXCHAN ; ++ idChannel )
 	{
 		int32 *pBuffSrcCur , *pBuffDestCur ;
-		if( channel_buffer_state[ idChannel ] )
+		if( d->channel_buffer_state[ idChannel ] )
 		{	/* mix this channel if non empty */
-			pBuffSrcCur = channel_buffer[ idChannel ] ;
-			pBuffDestCur = buffer_pointer ;
+			pBuffSrcCur = d->channel_buffer[ idChannel ] ;
+			pBuffDestCur = d->buffer_pointer ;
 			for( ; pBuffDestCur != pBuffDestEnd ; ++ pBuffDestCur , ++ pBuffSrcCur )
 				*pBuffDestCur += *pBuffSrcCur ;
 		}
@@ -289,45 +290,45 @@ void do_compute_data_effect(uint32 count)
 /* clear channel buffer */
 	for( idChannel = 0 ; idChannel < MAXCHAN ; ++ idChannel )
 	{
-		if( channel_buffer_state[ idChannel ] )
+		if( d->channel_buffer_state[ idChannel ] )
 		{
-			memset( channel_buffer[ idChannel ] , 0, byteCount ) ;
-			channel_buffer_state[ idChannel ] = 0 ;
+			memset( d->channel_buffer[ idChannel ] , 0, byteCount ) ;
+			d->channel_buffer_state[ idChannel ] = 0 ;
 		}
 	}
 
-	current_sample += count;
+	d->current_sample += count;
 }
 
 /** cut and paste from playmidi*/
 
-static void do_compute_data_default(uint32 count)
+static void do_compute_data_default(uint32 count, struct md *d)
 {
   int i;
   if (!count) return; /* (gl) */
-  memset(buffer_pointer, 0, 
+  memset(d->buffer_pointer, 0, 
 	 (play_mode->encoding & PE_MONO) ? (count * 4) : (count * 8));
-  for (i=0; i<voices; i++)
+  for (i=0; i<d->voices; i++)
     {
-      if(voice[i].status != VOICE_FREE)
+      if(d->voice[i].status != VOICE_FREE)
 	{
-	  if (!voice[i].sample_offset && voice[i].echo_delay_count)
+	  if (!d->voice[i].sample_offset && d->voice[i].echo_delay_count)
 	    {
-		if (voice[i].echo_delay_count >= count) voice[i].echo_delay_count -= count;
+		if (d->voice[i].echo_delay_count >= count) d->voice[i].echo_delay_count -= count;
 		else
 		  {
-	            mix_voice(buffer_pointer+voice[i].echo_delay_count, i, count - voice[i].echo_delay_count);
-		    voice[i].echo_delay_count = 0;
+	            mix_voice(d->buffer_pointer+d->voice[i].echo_delay_count, i, count - d->voice[i].echo_delay_count, d);
+		    d->voice[i].echo_delay_count = 0;
 		  }
 	    }
-	  else mix_voice(buffer_pointer, i, count);
+	  else mix_voice(d->buffer_pointer, i, count, d);
 	}
     }
-  current_sample += count;
+  d->current_sample += count;
 }
 /**************************************************************************/
 /**	switch beetween effect / no_effect mixing mode */
-void (*do_compute_data)(uint32) = &do_compute_data_default ;
+void (*do_compute_data)(uint32, struct md *) = &do_compute_data_default ;
 
 
 /**************************************************************************/
@@ -352,23 +353,23 @@ void effect_activate( int iSwitch )
  *	switches , to be called prior any other processing
  *	return 1 if success 
  */
-int init_effect()
+int init_effect(struct md *d)
 {
 	int idChannel ;
 	for( idChannel = 0 ; idChannel < MAXCHAN ; ++ idChannel )
 	{
 		int idEffect ;
-		memset( channel_buffer[ idChannel ] , 0, AUDIO_BUFFER_SIZE*8 ) ;
-		channel_buffer_state[ idChannel ] = 0 ;
+		memset( d->channel_buffer[ idChannel ] , 0, AUDIO_BUFFER_SIZE*8 ) ;
+		d->channel_buffer_state[ idChannel ] = 0 ;
 		for( idEffect = 0 ; idEffect < NUM_EFFECTS ; ++ idEffect ) 
 		{
-			effect_list[ idEffect ][ idChannel ] = effect_type_list[idEffect]() ;
-			if( effect_list[ idEffect ][ idChannel ] == 0 )
+			d->effect_list[ idEffect ][ idChannel ] = effect_type_list[idEffect]() ;
+			if( d->effect_list[ idEffect ][ idChannel ] == 0 )
 				return 0 ;			
 			if( idChannel == 0 )
-				((effect_list[ idEffect ][ idChannel ])->m_pfnName)( effect_name[idEffect] );
+				((d->effect_list[ idEffect ][ idChannel ])->m_pfnName)( effect_name[idEffect] );
 		}
-		effect_list[ idEffect ][ idChannel ] = 0 ;
+		d->effect_list[ idEffect ][ idChannel ] = 0 ;
 	}
 	return 1 ;
 }
@@ -377,29 +378,29 @@ int init_effect()
 /**************************************************************************/
 /**	fct : effect_ctrl_change
  */
-void effect_ctrl_change( MidiEvent* pCurrentEvent )
+void effect_ctrl_change( MidiEvent* pCurrentEvent, struct md *d )
 {
 	int idEffect ;
 	for( idEffect = 0 ; idEffect < NUM_EFFECTS ; ++ idEffect )
 	{
-		if( effect_list[idEffect][pCurrentEvent->channel] != 0 )
-			( (effect_list[idEffect][pCurrentEvent->channel])->m_pfnCtrlChange )
-				( effect_list[idEffect][pCurrentEvent->channel] , pCurrentEvent ) ;
+		if( d->effect_list[idEffect][pCurrentEvent->channel] != 0 )
+			( (d->effect_list[idEffect][pCurrentEvent->channel])->m_pfnCtrlChange )
+				( d->effect_list[idEffect][pCurrentEvent->channel] , pCurrentEvent ) ;
 	}
 }
 
 /**************************************************************************/
 /**	get info about XG effects
  */
-static void reset_XG_effect_info() {
+static void reset_XG_effect_info(struct md *d) {
 
 	XG_effect_chorus_is_celeste_flag =
 	 XG_effect_chorus_is_flanger_flag =
 	 XG_effect_chorus_is_phaser_flag = 0;
 
-	if (XG_System_chorus_type >= 0) {
-	    /* int subtype = XG_System_chorus_type & 0x07; */
-	    int chtype = 0x0f & (XG_System_chorus_type >> 3);
+	if (d->XG_System_chorus_type >= 0) {
+	    /* int subtype = d->XG_System_chorus_type & 0x07; */
+	    int chtype = 0x0f & (d->XG_System_chorus_type >> 3);
 	    switch (chtype) {
 		case 0: /* no effect */
 		  break;
@@ -420,9 +421,9 @@ static void reset_XG_effect_info() {
 		  break;
 	    }
 	}
-	if (XG_System_reverb_type >= 0) {
-	    /* int subtype = XG_System_reverb_type & 0x07; */
-	    int rtype = XG_System_reverb_type >>3;
+	if (d->XG_System_reverb_type >= 0) {
+	    /* int subtype = d->XG_System_reverb_type & 0x07; */
+	    int rtype = d->XG_System_reverb_type >>3;
 	    switch (rtype) {
 		case 0: /* no effect */
 		  break;
@@ -450,16 +451,16 @@ static void reset_XG_effect_info() {
 /**************************************************************************/
 /**	fct : effect_ctrl_reset
  */
-void effect_ctrl_reset( int idChannel )
+void effect_ctrl_reset( int idChannel, struct md *d )
 {
 	int idEffect ; 
 
-	if (!idChannel) reset_XG_effect_info();
+	if (!idChannel) reset_XG_effect_info(d);
 
 	for( idEffect = 0 ; idEffect < NUM_EFFECTS ; ++ idEffect )
 	{
-		if( effect_list[idEffect][idChannel] != 0 )
-			( (effect_list[idEffect][idChannel])->m_pfnCtrlReset )( effect_list[idEffect][idChannel] ) ;
+		if( d->effect_list[idEffect][idChannel] != 0 )
+			( (d->effect_list[idEffect][idChannel])->m_pfnCtrlReset )( d->effect_list[idEffect][idChannel] ) ;
 	}
 }
 

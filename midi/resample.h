@@ -20,14 +20,14 @@
     resample.h
 */
 
-extern sample_t *resample_voice(int v, uint32 *countptr);
-extern sample_t *resample_voice_lagrange(int v, uint32 *countptr);
-extern sample_t *resample_voice_filter(int v, uint32 *countptr);
+extern sample_t *resample_voice(int v, uint32 *countptr, struct md *d);
+extern sample_t *resample_voice_lagrange(int v, uint32 *countptr, struct md *d);
+extern sample_t *resample_voice_filter(int v, uint32 *countptr, struct md *d);
 extern void pre_resample(Sample *sp);
 extern void do_lowpass(Sample *sample, uint32 srate, sample_t *buf, uint32 count, uint32 freq, FLOAT_T resonance);
-extern int recompute_modulation(int v);
-extern sample_t resample_buffer[AUDIO_BUFFER_SIZE+100];
-extern uint32 resample_buffer_offset;
-extern int update_modulation(int v);
-extern int update_modulation_signal(int v);
-extern int32 calc_mod_freq(int v, int32 incr);
+extern int recompute_modulation(int v, struct md *d);
+/*extern sample_t resample_buffer[AUDIO_BUFFER_SIZE+100];*/
+/*extern uint32 resample_buffer_offset;*/
+extern int update_modulation(int v, struct md *d);
+extern int update_modulation_signal(int v, struct md *d);
+extern int32 calc_mod_freq(int v, int32 incr, struct md *d);

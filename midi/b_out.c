@@ -26,20 +26,19 @@
 #include "common.h"
 #include "instrum.h"
 #include "playmidi.h"
+#include "effects.h"
+#include "md.h"
 #include "output.h"
 #include "controls.h"
 
 #define PRESUMED_FULLNESS 20
 
-/* #define BB_SIZE (AUDIO_BUFFER_SIZE*128) */
-/* #define BB_SIZE (AUDIO_BUFFER_SIZE*256) */
-static unsigned char *bbuf = 0;
-static int bboffset = 0;
-int bbcount = 0;
-static int outchunk = 0;
-static int starting_up = 1, flushing = 0;
-static int out_count = 0;
-static int total_bytes = 0;
+/*static int bboffset = 0;*/
+/*int bbcount = 0;*/
+/*static int outchunk = 0;*/
+/*static int starting_up = 1, flushing = 0;*/
+/*static int out_count = 0;*/
+/*static int total_bytes = 0;*/
 
 /*
 #if defined(AU_OSS) || defined(AU_SUN) || defined(AU_BSDI) || defined(AU_ESD)
@@ -52,14 +51,14 @@ static int total_bytes = 0;
 */
 
 
-int plug_output(unsigned char *buf) {
+int plug_output(unsigned char *buf, struct md *d) {
 	int ret = output_fragsize;
 
-	if (buf && bbuf && bbcount >= ret) {
-		memcpy(buf, bbuf + bboffset, ret);
-		out_count += ret;
-		bboffset += ret;
-		bbcount -= ret;
+	if (buf && d->bbuf && d->bbcount >= ret) {
+		memcpy(buf, d->bbuf + d->bboffset, ret);
+		d->out_count += ret;
+		d->bboffset += ret;
+		d->bbcount -= ret;
 	}
 	else ret = 0;
 if (!ret) fprintf(stderr,"something's wrong\n");
@@ -68,48 +67,47 @@ if (!ret) fprintf(stderr,"something's wrong\n");
 }
 
 
-int b_out_count()
+int b_out_count(struct md *d)
 {
-  return out_count;
+  return d->out_count;
 }
 
-void b_out(char id, int fd, int *buf, int ocount)
+void b_out(char id, int fd, int *buf, int ocount, struct md *d)
 {
   int ret;
   uint32 ucount;
 
   if (ocount < 0) {
-	out_count = bboffset = bbcount = outchunk = 0;
-	starting_up = 1;
-	flushing = 0;
+	d->out_count = d->bboffset = d->bbcount = d->outchunk = 0;
+	d->starting_up = 1;
+	d->flushing = 0;
 	output_buffer_full = PRESUMED_FULLNESS;
-	total_bytes = 0;
+	d->total_bytes = 0;
 	return;
   }
 
   ucount = (uint32)ocount;
 
-  if (!bbuf) {
-    bbcount = bboffset = 0;
-    bbuf = (unsigned char *)malloc(BB_SIZE);
-    if (!bbuf) {
+  if (!d->bbuf) {
+    d->bbcount = d->bboffset = 0;
+    d->bbuf = (unsigned char *)malloc(BB_SIZE);
+    if (!d->bbuf) {
 	    fprintf(stderr, "malloc output error");
-	    exit(1);
     }
   }
 
-  if (!total_bytes) {
-    if (output_fragsize > 0) outchunk = output_fragsize;
-    if (output_frags > 0) total_bytes = output_frags * outchunk;
-    if (!total_bytes) total_bytes = AUDIO_BUFFER_SIZE*2;
+  if (!d->total_bytes) {
+    if (output_fragsize > 0) d->outchunk = output_fragsize;
+    if (output_frags > 0) d->total_bytes = output_frags * d->outchunk;
+    if (!d->total_bytes) d->total_bytes = AUDIO_BUFFER_SIZE*2;
   }
 
-  if (ucount && !outchunk) outchunk = ucount;
-  if (starting_up && ucount + bboffset + bbcount >= BB_SIZE) starting_up = 0;
-  if (!ucount) { starting_up = 0; flushing = 1; }
-  else flushing = 0;
+  if (ucount && !d->outchunk) d->outchunk = ucount;
+  if (d->starting_up && ucount + d->bboffset + d->bbcount >= BB_SIZE) d->starting_up = 0;
+  if (!ucount) { d->starting_up = 0; d->flushing = 1; }
+  else d->flushing = 0;
 
-  if (starting_up || flushing) output_buffer_full = PRESUMED_FULLNESS;
+  if (d->starting_up || d->flushing) output_buffer_full = PRESUMED_FULLNESS;
   else {
 	int samples_queued;
 #ifdef AU_OSS
@@ -121,27 +119,27 @@ void b_out(char id, int fd, int *buf, int ocount)
 	    samples_queued = 0;
 
 	if (!samples_queued) output_buffer_full = PRESUMED_FULLNESS;
-	else output_buffer_full = ((bbcount+samples_queued) * 100) / (BB_SIZE + total_bytes);
+	else output_buffer_full = ((d->bbcount+samples_queued) * 100) / (BB_SIZE + d->total_bytes);
 /* fprintf(stderr," %d",output_buffer_full); */
   }
 
   ret = 0;
 
-  if (bboffset) {
-	memcpy(bbuf, bbuf + bboffset, bbcount);
-	bboffset = 0;
+  if (d->bboffset) {
+	memcpy(d->bbuf, d->bbuf + d->bboffset, d->bbcount);
+	d->bboffset = 0;
   }
 
-  if (!ucount) { flushing = 0; starting_up = 1; out_count = bbcount = bboffset = 0; return; }
+  if (!ucount) { d->flushing = 0; d->starting_up = 1; d->out_count = d->bbcount = d->bboffset = 0; return; }
 
-  if (bboffset + bbcount + ucount >= BB_SIZE) {
+  if (d->bboffset + d->bbcount + ucount >= BB_SIZE) {
 	fprintf(stderr,"buffer overflow\n");
-	bboffset = bbcount = 0;
+	d->bboffset = d->bbcount = 0;
 	return;
   }
 
-  memcpy(bbuf + bboffset + bbcount, buf, ucount);
-  bbcount += ucount;
+  memcpy(d->bbuf + d->bboffset + d->bbcount, buf, ucount);
+  d->bbcount += ucount;
 
 }
 /* #endif */

@@ -21,9 +21,11 @@
 
 */
 
+#ifndef OUTPUT_H
+#define OUTPUT_H
+
+
 /* Data format encoding bits */
-#ifndef KMIDI_OUTPUT
-#define KMIDI_OUTPUT
 
 #define PE_MONO 	0x01  /* versus stereo */
 #define PE_SIGNED	0x02  /* versus unsigned */
@@ -39,13 +41,13 @@ typedef struct {
   char id_character;
   const char *name; /* default device or file name */
 
-  int (*open_output)(void); /* 0=success, 1=warning, -1=fatal error */
-  void (*close_output)(void);
-  void (*output_data)(int32 *buf, uint32 count);
-  int (*driver_output_data)(unsigned char *buf, uint32 count);
-  void (*flush_output)(void);
-  void (*purge_output)(void);
-  int (*output_count)(uint32 ct);
+  int (*open_output)(struct md *d); /* 0=success, 1=warning, -1=fatal error */
+  void (*close_output)(struct md *d);
+  void (*output_data)(int32 *buf, uint32 count, struct md *d);
+  int (*driver_output_data)(unsigned char *buf, uint32 count, struct md *d);
+  void (*flush_output)(struct md *d);
+  void (*purge_output)(struct md *d);
+  int (*output_count)(uint32 ct, struct md *d);
 } PlayMode;
 
 extern PlayMode *play_mode_list[], *play_mode;
@@ -55,18 +57,17 @@ extern int got_a_configuration;
 extern int output_buffer_full;
 extern int output_device_open;
 extern int flushing_output_device;
-extern int plug_output(unsigned char *buf);
+extern int plug_output(unsigned char *buf, struct md *d);
 /* extern int current_sample_count(uint32 ct); */
 /* extern int driver_output_data(char *buf, uint32 count); */
-extern int b_out_count(void);
-extern void b_out(char id, int fd, int *buf, int ocount);
+extern int b_out_count(struct md *d);
+extern void b_out(char id, int fd, int *buf, int ocount, struct md *d);
 /* Conversion functions -- These overwrite the int32 data in *lp with
    data in another format */
 
 extern int output_clips;
 extern int output_frags;
 extern int output_fragsize;
-extern int bbcount;
 
 /* 8-bit signed and unsigned*/
 extern void s32tos8(int32 *lp, uint32 c);
@@ -96,4 +97,4 @@ extern void s32toulaw(int32 *lp, uint32 c);
 #define s32tos16b s32tos16
 #endif
 
-#endif /*KMIDI_OUTPUT*/
+#endif /*OUTPUT_H*/

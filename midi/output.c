@@ -21,8 +21,13 @@
     
     Audio output (to file / device) functions.
 */
-
 #include "gtim.h"
+#include "common.h"
+#include "instrum.h"
+#include "playmidi.h"
+#include "effects.h"
+#include "md.h"
+#include "readmidi.h"
 #include "output.h"
 #include "tables.h"
 

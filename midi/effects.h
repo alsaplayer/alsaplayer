@@ -34,9 +34,9 @@ extern int XG_effect_chorus_is_phaser_flag;
 /**************************************************************************/
 /**	 exported from playmidi.c
  */
-extern MidiEvent *event_list, *current_event;
-extern uint32 sample_count, current_sample;
-extern int32 *buffer_pointer;
+/*extern MidiEvent *event_list, *current_event;*/
+/*extern uint32 sample_count, current_sample;*/
+/*extern int32 *buffer_pointer;*/
 
 /**************************************************************************/
 /**	helpers functions : circular buffer impl */
@@ -149,14 +149,17 @@ typedef Effect* (*EFFECT_CTOR)(void) ;
 /**************************************************************************/
 /**	null terminated list effects types contructors
  */
-extern EFFECT_CTOR effect_type_list[] ;
+extern EFFECT_CTOR effect_type_list[5] ;
+
+
+#define NUM_EFFECTS (int)(( sizeof(effect_type_list) / sizeof(EFFECT_CTOR) ) - 1)
 
 /* effect_list[effect type][channel] , list of 
  * active effects for each channel in the same order than former list
  * RQ1 : may contains 0 if not activated 
  * RQ2 : placed in the same than for the effect_type_list array
  */
-extern Effect* effect_list[][MAXCHAN] ; 
+/*extern Effect* effect_list[][MAXCHAN] ; */
 
 /** effect name list 
  */
@@ -168,7 +171,7 @@ extern char effect_name[][MAXCHAN] ;
  *	object to update their parameters
  *	PARAM pCurrentEvent : midi event reflecting changes 
  */
-void effect_ctrl_change( MidiEvent* pCurrentEvent );
+/*void effect_ctrl_change( MidiEvent* pCurrentEvent, struct md *d );*/
 
 /**************************************************************************/
 /**	effect_ctrl_reset
@@ -176,7 +179,7 @@ void effect_ctrl_change( MidiEvent* pCurrentEvent );
  *	object to update their parameters
  *	PARAM idChannel : midi channel number
  */
-void effect_ctrl_reset( int idChannel );
+/*void effect_ctrl_reset( int idChannel, struct md *d );*/
 
 /**************************************************************************/
 /**	effect_activate
@@ -191,4 +194,4 @@ extern Effect* ChorusCtor(void) ;
 extern Effect* PhaserCtor(void) ;
 extern Effect* CelesteCtor(void) ;
 extern Effect* ReverbCtor(void) ;
-extern int init_effect(void) ;
+/*extern int init_effect(struct md *d) ;*/

@@ -214,21 +214,24 @@ typedef struct {
 #define MAXCHAN 64
 #define MAXNOTE 128
 
-#ifndef ADAGIO
-extern Channel channel[MAXCHAN];
-extern signed char drumvolume[MAXCHAN][MAXNOTE];
-extern signed char drumpanpot[MAXCHAN][MAXNOTE];
-extern signed char drumreverberation[MAXCHAN][MAXNOTE];
-extern signed char drumchorusdepth[MAXCHAN][MAXNOTE];
-#else /* ADAGIO */
-extern Channel channel[MAX_TONE_VOICES];
-#endif /* ADAGIO */
-extern Voice voice[MAX_VOICES];
 
-extern int32 control_ratio, amp_with_poly, amplification;
-extern int32 drumchannels;
-extern int adjust_panning_immediately;
-extern int voices;
+typedef struct {
+  MidiEvent event;
+  void *next;
+} MidiEventList;
+
+/*extern Channel channel[MAXCHAN];*/
+/*extern signed char drumvolume[MAXCHAN][MAXNOTE];*/
+/*extern signed char drumpanpot[MAXCHAN][MAXNOTE];*/
+/*extern signed char drumreverberation[MAXCHAN][MAXNOTE];*/
+/*extern signed char drumchorusdepth[MAXCHAN][MAXNOTE];*/
+/*extern Voice voice[MAX_VOICES];*/
+
+extern int32 control_ratio;
+/*extern int32 amplification;*/
+/*extern int32 drumchannels;*/
+/*extern int adjust_panning_immediately;*/
+/*extern int voices;*/
 
 #ifdef tplus
 extern int note_key_offset;
@@ -240,7 +243,7 @@ extern int opt_reverb_control;
 extern int opt_chorus_control;
 extern int opt_channel_pressure;
 extern int opt_overlap_voice_allow;
-extern void recompute_freq(int v);
+/*extern void recompute_freq(int v, struct md *d);*/
 extern int dont_cspline;
 #endif
 extern int opt_dry;
@@ -263,12 +266,13 @@ extern int XG_System_reverb_type;
 extern int XG_System_chorus_type;
 extern int XG_System_variation_type;
 
-#define ISDRUMCHANNEL(c) ((drumchannels & (1<<(c%16))))
+#define ISDRUMCHANNEL(c) ((d->drumchannels & (1<<(c%16))))
 
-extern int play_midi(MidiEvent *el, uint32 events, uint32 samples);
-extern int play_midi_file(const char *fn);
-extern int play_some_midi_file();
-extern void dumb_pass_playing_list(int number_of_files, const char *list_of_files[]);
+#if 0
+extern int play_midi_file(struct md *d);
+extern int play_some_midi_file(struct md *d);
+extern int skip_to(uint32 until_time, struct md *d);
+#endif
 extern int read_config_file(const char *name, int prescanning);
 extern char *current_config_file;
 extern int reverb_options;
@@ -280,4 +284,3 @@ extern int cfg_select;
 extern void clear_config(void);
 extern void effect_activate( int iSwitch );
 extern int have_commandline_midis;
-extern int skip_to(uint32 until_time);
