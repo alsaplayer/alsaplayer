@@ -245,23 +245,41 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 	struct vorbis_local_data *data;	
 	vorbis_comment *comment;
 	vorbis_info *vi;
-	char *t, *a;
+	char *t, *a, *l, *g, *y, *n, *c;
+
 	if (!obj || !info)
 		return 0;
+
 	data = (struct vorbis_local_data *)obj->local_data;
+
 	if (data) {
-		vi = ov_info(&data->vf, -1);
-		/* UTF translation needed */
 		if ((comment = ov_comment(&data->vf, -1)) != NULL) {
 			t = vorbis_comment_query(comment, "title", 0);
 			a = vorbis_comment_query(comment, "artist", 0);
-			sprintf(info->title, "%s",
-					t ? t : "Unkown song", a ? a : "Unknown artist");
-			sprintf(info->artist, "%s", a ? a : "Unkown artist");	
+			l = vorbis_comment_query(comment, "album", 0);
+			g = vorbis_comment_query(comment, "genre", 0);
+			y = vorbis_comment_query(comment, "date", 0);
+			n = vorbis_comment_query(comment, "tracknumber", 0);
+			c = vorbis_comment_query(comment, "description", 0);
+
+			sprintf(info->title, "%s", t ? t : "");
+			sprintf(info->artist, "%s", a ? a : "");
+			sprintf(info->album, "%s", l ? l : "");
+			sprintf(info->genre, "%s", g ? g : "");
+			sprintf(info->year, "%s", y ? y : "");
+			sprintf(info->track, "%s", n ? n : "");
+			sprintf(info->comment, "%s", c ? c : "");
 		} else {
-			strcpy(info->title, data->path);
-			info->artist[0] = 0;
+			strcpy (info->title, data->path);
+			info->artist [0] = '\0';
+			info->album [0] = '\0';
+			info->genre [0] = '\0';
+			info->year [0] = '\0';
+			info->track [0] = '\0';
+			info->comment [0] = '\0';
 		}
+
+		vi = ov_info(&data->vf, -1);
 		if (vi) {
 			long br = ov_bitrate_instant(&data->vf);
 			if (br > 0) 
