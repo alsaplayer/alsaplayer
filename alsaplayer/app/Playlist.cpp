@@ -824,6 +824,11 @@ Playlist::Load(std::string const &uri, unsigned position, bool force)
 			p = strstr(s, "=");
 			if (p) {
 				p++;
+				// Make sure there are no trailing EOL's
+				if ((s = strstr(p, "\r")))
+					*s = '\0';
+				if ((s = strstr(p, "\n")))
+					*s = '\0';
 				//alsaplayer_error("URI: %s", p);
 				newfile = std::string(p);
 			} else {
@@ -1015,7 +1020,7 @@ bool Playlist::Eof()
 	if (LoopingPlaylist())
 		return false;
 	if (curritem == queue.size() &&
-			!GetCorePlayer()->IsPlaying())
+			!GetCorePlayer()->IsActive())
 		return true;
 	return false;
 }
