@@ -30,7 +30,7 @@
  * More optimisations.
  */
 
-#include "../include/fft.h"
+#include "../include/alsaplayer_fft.h"
 
 #include <stdlib.h>
 #include <math.h>

@@ -19,10 +19,10 @@ endif
 
 lib_LTLIBRARIES = $(gtkltlibs)
 
-CXXFLAGS = @GLIB_CFLAGS@ @GTK_CFLAGS@ @DFLAGS@ $(COMMON_FLAGS) \
+CXXFLAGS = -I$(top_builddir) -I$(top_srcdir)/include \
+		@GLIB_CFLAGS@ @GTK_CFLAGS@ @DFLAGS@ $(COMMON_FLAGS) \
 		$(EXTRA_CFLAGS) \
-		-D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
-		-DADDON_DIR=\"$(ADDON_DIR)\"
+		-D_REENTRANT -DADDON_DIR=\"$(ADDON_DIR)\"
 
 CFLAGS = $(CXXFLAGS)
 

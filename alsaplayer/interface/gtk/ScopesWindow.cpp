@@ -26,7 +26,7 @@
 #include "gtk_interface.h"
 #include "pixmaps/note.xpm"
 #include "alsaplayer_error.h"
-#include "fft.h"
+#include "alsaplayer_fft.h"
 #include <pthread.h>
 #include <dlfcn.h>
 #include <math.h>

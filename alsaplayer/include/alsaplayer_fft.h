@@ -1,4 +1,4 @@
-/* fft.h: Header for iterative implementation of a FFT
+/* alsaplayer_fft.h: Header for iterative implementation of a FFT
  * Copyright (C) 1999 Richard Boulton <richard@tartarus.org>
  *
  *  This program is free software; you can redistribute it and/or modify

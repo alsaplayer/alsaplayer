@@ -29,23 +29,13 @@
 #include <string.h>
 #include <assert.h>
 #include "scope_config.h"
-#if 0
-#include "fft.h"
-#endif
 
 #define BARS 16 
 
 static GtkWidget *area = NULL;
 static GdkRgbCmap *color_map = NULL;
 static int fft_buf[512];
-//static sound_sample actEq[FFT_BUFFER_SIZE];
-//static sound_sample oldEq[FFT_BUFFER_SIZE];
 static int maxbar[BARS];
-#if 0
-static double fftout[FFT_BUFFER_SIZE / 2 + 1];
-static double fftmult;
-static fft_state *fftstate;
-#endif
 static GdkImage *image = NULL;
 static GtkWidget *scope_win = NULL;
 static int ready_state = 0;
@@ -58,7 +48,9 @@ static int running = 0;
 static int xranges[] = {1, 2, 3, 4, 6, 8, 11, 15, 21,
 			29, 40, 54, 74, 101, 137, 187, 255};
 #endif
-//static int xranges[] = {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 15, 17, 19, 21, 23, 25, 29, 33, 37, 40, 44, 48, 54, 61, 67, 74, 90, 101, 137, 158, 187, 255};
+#if 0
+static int xranges[] = {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 15, 17, 19, 21, 23, 25, 29, 33, 37, 40, 44, 48, 54, 61, 67, 74, 90, 101, 137, 158, 187, 255};
+#endif
 static int xranges[] = {0, 1, 2, 3, 5, 7, 10, 14, 20, 28, 40, 54, 74, 101, 137, 187, 255};
 
 
@@ -96,10 +88,7 @@ static void the_fftscope()
 		gint w;
    
 		memset(bits, 0, 256 * 128);
-#if 0 
-		memcpy(&oldEq, &actEq, sizeof(actEq));
-    fft_perform(oldEq, fftout, fftstate);
-#endif    
+		
 		for (i=0; i < BARS; i++) { 
 				val = 0;
 				for (j = xranges[i]; j < xranges[i + 1]; j++) {
@@ -215,7 +204,7 @@ static void stop_fftscope()
 
 static void run_fftscope(void *data)
 {
-	nice(SCOPE_NICE); // Be nice to most processes
+	nice(SCOPE_NICE); /* Be nice to most processes */
 
 	the_fftscope();
 
@@ -226,11 +215,6 @@ static void run_fftscope(void *data)
 
 static void start_fftscope(void *data)
 {
-#if 0	
-	fftstate = fft_init();
-	if (!fftstate)
-		return;
-#endif
 	if (!is_init) {
 		is_init = 1;
 		scope_win = init_fftscope_window();
@@ -247,17 +231,7 @@ static void start_fftscope(void *data)
 static int init_fftscope()
 {
 	int i;
-#if 0
-  fft_init();
 	
-	fftmult = (double)128 / ((FFT_BUFFER_SIZE * 16384) ^ 2);
-	// Result now guaranteed (well, almost) to be in range 0..128
-
-	// Low values represent more frequencies, and thus get more
-	// intensity - this helps correct for that.
-
-	fftmult *= 3; // Adhoc parameter, looks about right for me.
-#endif
 	for (i = 0; i < BARS; i++) {
 		maxbar[ i ] = 0;
 	}	
