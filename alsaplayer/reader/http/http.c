@@ -375,6 +375,7 @@ static int reconnect (http_desc_t *desc)
 	    desc->size = atol (s+18);
     } else {
 	alsaplayer_error ("HTTP: Content-Length header is absent!\n");
+	return 0;
     }
 
     /* Attach thread to fill a buffer */
@@ -406,6 +407,7 @@ static void http_close(void *d)
     if (desc->host)  free (desc->host);
     if (desc->path)  free (desc->path);
     if (desc->sock)  close (desc->sock);
+    if (desc->buffer)  free (desc->buffer);
     
     free (desc);
 } /* end of http_close */
@@ -456,7 +458,7 @@ static float http_can_handle(const char *uri)
 static int http_init()
 {
     http_buffer_size = prefs_get_int (ap_prefs, "http", "buffer_size", DEFAULT_HTTP_BUFFER_SIZE);
-    printf ("buffer size = %d\n", http_buffer_size);
+
     return 1;
 }
 
@@ -500,7 +502,7 @@ static size_t http_read (void *ptr, size_t size, void *d)
 	readed = desc->begin + desc->len - desc->pos;
 	
 	/* done? */
-	if (readed >= size) {
+	if (readed > 0 && readed >= size) {
 	    tocopy = size;
 	    break;
 	}
