@@ -1,0 +1,13 @@
+
+The midi subdirectory has revised plugin code; I have in the alsaplayer
+source tree as a daughter of /input.   I haven't included the timidity/
+patch directory.  The Makefile.am points to the timidity/ directory as
+a sister of the installation input/ directory.
+
+There is a separate read-midi routine now which just gets info.  It's
+possible to bomb out by adding to the playlist too quickly.  When a
+file is added to the playlist, timidity immediately starts playing it.
+The song time is not right yet.  Seek-to-frame still doesn't work.
+
+The sample-midis directory has some midis, in case you're short of test
+files.  The larger ones strain timidity's capacity.
