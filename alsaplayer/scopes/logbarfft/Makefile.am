@@ -6,7 +6,7 @@ logbarfftsources = logbarfft.c
 
 lib_LTLIBRARIES = $(logbarfftltlibs)
 
-CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
+CFLAGS += -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
 			-I$(top_srcdir)/app/scopes \
 			@ARCH_CFLAGS@ @GTK_CFLAGS@ @DFLAGS@
 

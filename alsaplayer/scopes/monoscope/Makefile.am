@@ -6,7 +6,7 @@ monoscopesources = monoscope.c
 
 lib_LTLIBRARIES = $(monoscopeltlibs)
 
-CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
+CFLAGS += -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
 			@ARCH_CFLAGS@ @GTK_CFLAGS@ @DFLAGS@
 
 else
