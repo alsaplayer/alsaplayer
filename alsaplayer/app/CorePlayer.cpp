@@ -156,7 +156,7 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	last_read = -1;
 	SetSpeedMulti(1.0);
 	SetSpeed(1.0);
-	SetMasterVolume(100);
+	SetVolume(100);
 	SetPan(0);
 	buffer = NULL;
 	the_object = NULL;
@@ -873,7 +873,7 @@ bool CorePlayer::streamer_func(void *arg, void *data, int size)
 		//}
 		int v, p, left, right;
 		p = obj->GetPan();
-		v = obj->GetMasterVolume();
+		v = obj->GetVolume();
 		if (v != 100 || p != 0) {
 			if (p == 0) {
 				left = right = 100;

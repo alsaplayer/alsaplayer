@@ -242,7 +242,7 @@ void draw_volume()
 	else {
 		count = UPDATE_COUNT;
 		old_vol = val;
-		p->SetMasterVolume(val);
+		p->SetVolume(val);
 	}	
 
 	val ? sprintf(str, "Volume: %d%%  ", val) : sprintf(str, "Volume: mute");
@@ -516,7 +516,7 @@ void volume_cb(GtkWidget *widget, gpointer data)
 	CorePlayer *p = (CorePlayer *)data;
 
 	if (p) {
-		p->SetMasterVolume((int)adj->value);
+		p->SetVolume((int)adj->value);
 	}
 }
 
@@ -1013,7 +1013,7 @@ void init_main_window(CorePlayer *p, Playlist *pl)
 #else
 		adj = GTK_RANGE(working)->adjustment;
 #endif	
-		gtk_adjustment_set_value(adj, (float)p->GetMasterVolume());
+		gtk_adjustment_set_value(adj, (float)p->GetVolume());
 		gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
 							GTK_SIGNAL_FUNC(volume_cb), p);
 	}
