@@ -341,6 +341,7 @@ static void help()
 		"Available options:\n"
 		"\n"
 		"  -b,--background         fork to background (useful for daemon interfaces)\n"
+		"  -c,--config file	   use given config file for this session\n"
 		"  -d,--device string      select card and device [default=\"default\"]\n"
 		"  -e,--enqueue file(s)    queue files in running alsaplayer\n"
 		"  -E,--replace file(s)    clears and queues files in running alsaplayer\n"
@@ -412,8 +413,8 @@ int main(int argc, char **argv)
 	char *homedir;
 	char prefs_path[1024];
 	char str[1024];
-	int use_fragsize; // Initialized
-	int use_fragcount; // later
+	int use_fragsize = -1; // Initialized
+	int use_fragcount = -1; // later
 	int do_reverb = 0;
 	int do_loopsong = 0;
 	int do_looplist = 0;
@@ -427,12 +428,14 @@ int main(int argc, char **argv)
 	int was_playing = 0;
 	char *use_output = NULL;
 	char *use_interface = NULL;
-
+	char *use_config = NULL;
+	
 	int opt;
 	int option_index;
-	const char *options = "bd:eEf:F:g:hi:I:l:n:p:qrs:vRSPVxo:";
+	const char *options = "bc:d:eEf:F:g:hi:I:l:n:p:qrs:vRSPVxo:";
 	struct option long_options[] = {
 		{ "background", 0, 0, 'b' },
+		{ "config", 1, 0, 'c' },
 		{ "device", 1, 0, 'd' },
 		{ "enqueue", 0, 0, 'e' },
 		{ "replace", 0, 0, 'E' },
@@ -479,20 +482,6 @@ int main(int argc, char **argv)
 #if !defined(EMBEDDED)
 	init_effects();
 #endif
-
-	homedir = get_homedir();
-
-	snprintf(prefs_path, sizeof(prefs_path)-1,"%s/.alsaplayer/", homedir);
-	mkdir(prefs_path, 0700);	/* XXX We don't do any error checking here */
-	snprintf(prefs_path, sizeof(prefs_path)-1, "%s/.alsaplayer/config", homedir);
-
-	ap_prefs = prefs_load(prefs_path);
-
-	/* Initialize some settings (and populate the prefs system if needed */
-
-	use_fragsize = prefs_get_int(ap_prefs, "main", "period_size", 4096);
-	use_fragcount = prefs_get_int(ap_prefs, "main", "period_count", 8);
-
 	while ((opt = getopt_long(argc, argv, options, long_options, &option_index)) != EOF) {
 		switch(opt) {
 			case 'b': switch(fork()) {
@@ -505,7 +494,15 @@ int main(int argc, char **argv)
 						// Parent, exit
 						exit(0);
 				}		
-				break;		
+				break;
+			case 'c':
+				if (strlen(optarg) < 1023) {
+					use_config = optarg;
+				} else {
+					alsaplayer_error("config file path too long");
+					return 1;
+				}
+				break;
 			case 'd':
 				device_param = optarg;
 				break;
@@ -520,6 +517,10 @@ int main(int argc, char **argv)
 					alsaplayer_error("invalid fragment size, must be multiple of 32");
 					return 1;
 				}
+				if (use_fragsize > 16384) {
+					alsaplayer_error("fragment sizes larger than 16384 bytes are not supported");
+					return 1;
+				}	
 				break;
 			case 'F':
 				use_freq = atoi(optarg);
@@ -599,6 +600,27 @@ int main(int argc, char **argv)
 		}	
 	}
 	
+	homedir = get_homedir();
+
+	snprintf(prefs_path, sizeof(prefs_path)-1,"%s/.alsaplayer/", homedir);
+	mkdir(prefs_path, 0700);	/* XXX We don't do any error checking here */
+	snprintf(prefs_path, sizeof(prefs_path)-1, "%s/.alsaplayer/config", homedir);
+	if (use_config) 
+		ap_prefs = prefs_load(use_config);
+	else
+		ap_prefs = prefs_load(prefs_path);
+	if (!ap_prefs) {
+		alsaplayer_error("Invalid config file %s\n", use_config ? use_config : prefs_path);
+		return 1;
+	}	
+	/* Initialize some settings (and populate the prefs system if needed */
+
+	if (use_fragsize < 0)
+		use_fragsize = prefs_get_int(ap_prefs, "main", "period_size", 4096);
+	if (use_fragcount < 0)
+		use_fragcount = prefs_get_int(ap_prefs, "main", "period_count", 8);
+
+
 	if (global_verbose)
 		fprintf(stdout, "%s\n", copyright_string);
 
