@@ -79,19 +79,6 @@ void control_socket_stop();
 
 static char *default_pcm_device = "default";
 
-/*
-static const char *default_output_addons[] = {
-	{"alsa"},
-	{"jack"},
-	{"oss"},
-	{"nas"},
-	{"sparc"},
-	{"sgi"},
-	{"esound"},
-	{"null"},
-	NULL
-};
-*/
 
 extern "C" {
 
