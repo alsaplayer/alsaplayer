@@ -22,6 +22,8 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <signal.h>
+#include <string.h>
+#include <stdlib.h>
 #include "AlsaNode.h"
 #include "AlsaPlayer.h"
 #include "output_plugin.h"
@@ -37,6 +39,7 @@ static jack_nframes_t buffer_size;
 static jack_nframes_t sample_rate;
 static jack_nframes_t nr_fragments;
 static jack_nframes_t latency = 0;
+static int jack_reconnect = 1;
 
 static char dest_port1[32];
 static char dest_port2[32];
@@ -79,11 +82,14 @@ void jack_restarter(void *arg)
 
 void jack_shutdown (void *arg)
 {
-	pthread_t restarter;
-
-	alsaplayer_error("trying to reconnect to jack (spawning thread)");
-	pthread_create(&restarter, (pthread_attr_t *)NULL, (void * (*)(void *))jack_restarter, arg);
-	pthread_detach(restarter);
+	if (jack_reconnect) {
+		pthread_t restarter;
+		alsaplayer_error("trying to reconnect to jack (spawning thread)");
+		pthread_create(&restarter, (pthread_attr_t *)NULL, (void * (*)(void *))jack_restarter, arg);
+		pthread_detach(restarter);
+	} else {
+		alsaplayer_error("not retrying jack connect, as requested");
+	}	
 }
 
 
@@ -97,10 +103,12 @@ int jack_prepare(void *arg)
 	char str[32];
 
 	if (strlen(dest_port1) && strlen(dest_port2)) {
-		if (global_session_name)
-			sprintf(str, "%s", global_session_name);
-		else	
+		if (global_session_name) {
+			snprintf(str, sizeof(str)-1,"%s", global_session_name);
+			str[sizeof(str)-1]=0;
+		} else {
 			sprintf(str, "alsaplayer-%d", getpid());
+		}	
 		if ((client = jack_client_new(str)) == 0) {
 			alsaplayer_error("jack server not running?");
 			return -1;
@@ -164,16 +172,52 @@ static int jack_init()
 
 static int jack_open(char *name)
 {
-	int err;
-	char *s;
-	if ((s=strchr(name, ','))) {
-		*s++ = 0;
-		strncpy(dest_port1, name, 31);
-		strncpy(dest_port2, s, 31);
-		dest_port1[31] = dest_port2[31] = 0;
-		alsaplayer_error("Using: %s & %s",
-				dest_port1, dest_port2);
+	int err, len, done = 0;
+	char *c, *n, *t, *s;
+	char *token = NULL;
+
+	// Jack specific functions
+	jack_reconnect = 1;
+
+	if (name && (len=strlen(name))) {
+		token = (char *)malloc(len+1);
+	} else {
+		return 1;
 	}	
+	strcpy(token, name);
+	c = token;
+
+	//alsaplayer_error("c = %s", c);
+	while (!done) {
+		if ((n=strchr(c, ':'))) {
+			*n = 0;
+			n++; // Points to next token
+		} else {
+			done = 1; // Do not iterate the next time
+		}
+		t = c; // t is current token
+		c = n; // c points to remainder now
+		
+		//alsaplayer_error("current = \"%s\", left = \"%s\"", t, c);
+		// Check if the token is comma delimited, meaning port names
+		if ((s=strchr(t, ','))) {
+			*s++ = 0;
+			strncpy(dest_port1, name, 31);
+			strncpy(dest_port2, s, 31);
+			dest_port1[31] = dest_port2[31] = 0;
+			alsaplayer_error("Using: %s & %s",
+					dest_port1, dest_port2);
+		}
+		if (strcmp(t, "noreconnect") == 0) {
+			alsaplayer_error("jack driver will not try to reconnect");
+			jack_reconnect = 0;
+		} else {
+			alsaplayer_error("Unkown jack parameter: %s", t);
+		}	
+	}
+
+	if (token)
+		free(token);
 	return 1;
 }
 
@@ -224,7 +268,7 @@ int process(jack_nframes_t nframes, void *arg)
 		//alsaplayer_error("THREAD-%d=soundcard thread\n", getpid());
 
 		if (sched_setscheduler(0, SCHED_FIFO, &sp) != 0) {
-			alsaplayer_error("failed to setup realtime scheduling!");
+			alsaplayer_error("failed to setup realtime scheduling! reliability might suffer.");
 		} else {
 			mlockall(MCL_CURRENT);
 			printf("realtime scheduling active\n");
