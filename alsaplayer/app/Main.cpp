@@ -111,10 +111,10 @@ void exit_sighandler(int x)
 	static int sigcount = 0;
 
 	++sigcount;
-	if (sigcount == 1)
+	if (sigcount == 1) {
 		alsaplayer_error("AlsaPlayer interrupted by signal %d", x);
-	if (sigcount == 1)
 		exit(1);
+	}	
 	if (sigcount > 5) {
 		kill(getpid(), SIGKILL);
 	}
@@ -262,6 +262,66 @@ static char *copyright_string =
     "AlsaPlayer " VERSION
     "\n(C) 1999-2002 Andy Lo A Foe <andy@alsaplayer.org> and others.";
 
+static void list_available_plugins(char *plugindir)
+{
+	char path[1024];
+	struct stat buf;
+	bool first = true;
+
+	if (!plugindir)
+		return;
+
+	sprintf(path, "%s/%s", addon_dir, plugindir);
+
+	DIR *dir = opendir(path);
+	dirent *entry;
+
+	if (dir) {
+		while ((entry = readdir(dir)) != NULL) {
+			if (strcmp(entry->d_name, ".") == 0 ||
+					strcmp(entry->d_name, "..") == 0) {
+				continue;
+			}
+			sprintf(path, "%s/%s/%s", addon_dir, plugindir, entry->d_name);
+			if (stat(path, &buf)) {
+				continue;
+			}	
+			if (S_ISREG(buf.st_mode)) {
+				void *handle;
+				
+				char *ext = strrchr(path, '.');
+				if (!ext)
+					continue;
+				ext++;
+				if (strcasecmp(ext, "so")) {
+					continue;
+				}
+				sprintf(path, "%s", entry->d_name);
+				ext = strrchr(path, '.');
+				if (ext)
+					*ext = '\0';
+				if (strncmp(path, "lib", 3)) {
+					continue;
+				}	
+				char *name = path + 3;
+				if (strcmp(plugindir, "output") == 0) { // Remove trailing _out
+					ext = strrchr(name, '_');
+					if (ext)
+						*ext = '\0';
+				}
+				if (first) { // don't print comma
+					first = false;
+				} else {
+					fprintf(stdout, " | ");
+				}
+				fprintf(stdout, "%s", name);
+			}
+		}
+	}	
+}
+
+
+
 static void help()
 {
 	fprintf(stdout,
@@ -272,28 +332,37 @@ static void help()
 		"\n"
 		"  -d,--device string      select card and device [default=\"default\"]\n"
 		"  -e,--enqueue file(s)    queue files in running alsaplayer\n"
-		"  -f,--fragsize #         fragment size in bytes [default=4096]\n"
-		"  -F,--frequency #        output frequency [default=%d]\n"
-		"  -g,--fragcount #        fragment count [default=8]\n"
+		"  -f,--fragsize n         fragment size in bytes [default=4096]\n"
+		"  -F,--frequency n        output frequency [default=%d]\n"
+		"  -g,--fragcount n        fragment count [default=8]\n"
 		"  -h,--help               print this help message\n"
-		"  -i,--interface iface    load in the iface interface [default=gtk]\n"
-		"  -l,--volume #           set software volume [0-100]\n"
-		"  -n,--session #          select session # [default=0]\n"
+		"  -i,--interface <iface>  use specific interface [default=gtk]. choices:\n", OUTPUT_RATE);
+	fprintf(stdout,
+		"                          [ ");
+			list_available_plugins("interface");
+	fprintf(stdout,
+		" ]\n"
+		"  -l,--volume n           set software volume [0-100]\n"
+		"  -n,--session n          use this session id [default=0]\n"
+		"  -o,--output <output>    use specific output driver [default=alsa]. choices:\n");
+	fprintf(stdout,
+		"                          [ ");
+			list_available_plugins("output");
+	fprintf(stdout,
+		" ]\n"
 		"  -p,--path path          set the path alsaplayer looks for add-ons\n"
 		"  -q,--quiet              quiet operation. no output\n"
-		"  -r,--realtime           enable realtime scheduling (must be SUID root)\n"
+		"  -r,--realtime           enable realtime scheduling (with proper rights)\n"
 		"  -s,--session-name name  name this session \"name\"\n"
 		"  -v,--version            print version of this program\n"
 		"  --verbose               be verbose about the output\n"
 		"\n"
 		"Testing options:\n"
 		"\n"
-		"  --reverb                use reverb function (CPU intensive!)\n"
 		"  -S,--loopsong           loop file\n"
-		"  -P,--looplist           loop Playlist\n"
+		"  -P,--looplist           loop playlist\n"
 		"  -x,--crossfade          crossfade between playlist entries (experimental)\n"
-		"  -o,--output [alsa|oss|nas|sgi|...]  Use ALSA, OSS, NAS, SGI, etc. driver for output\n"
-		"\n", OUTPUT_RATE);
+		"\n");
 }
 
 static void version()

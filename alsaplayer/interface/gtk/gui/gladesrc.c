@@ -305,18 +305,19 @@ create_playlist_window (void)
   GtkWidget *label100;
   GtkWidget *vbox6;
   GtkWidget *add_button;
-  GtkWidget *load_button;
-  GtkWidget *save_button;
+  GtkWidget *del_button;
   GtkWidget *close_button;
   GtkWidget *shuffle_button;
   GtkWidget *vbox24;
-  GtkWidget *del_button;
+  GtkWidget *label101;
+  GtkWidget *load_button;
+  GtkWidget *save_button;
   GtkWidget *clear_button;
   GtkWidget *playlist_status;
 
   playlist_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_object_set_data (GTK_OBJECT (playlist_window), "playlist_window", playlist_window);
-  gtk_widget_set_usize (playlist_window, 480, 270);
+  gtk_widget_set_usize (playlist_window, 480, 300);
   gtk_window_set_title (GTK_WINDOW (playlist_window), "Queue");
 
   vbox5 = gtk_vbox_new (FALSE, 0);
@@ -398,21 +399,13 @@ create_playlist_window (void)
   gtk_box_pack_start (GTK_BOX (vbox6), add_button, FALSE, TRUE, 0);
   gtk_widget_set_usize (add_button, 70, 22);
 
-  load_button = gtk_button_new_with_label ("Load...");
-  gtk_widget_ref (load_button);
-  gtk_object_set_data_full (GTK_OBJECT (playlist_window), "load_button", load_button,
+  del_button = gtk_button_new_with_label ("Remove");
+  gtk_widget_ref (del_button);
+  gtk_object_set_data_full (GTK_OBJECT (playlist_window), "del_button", del_button,
                             (GtkDestroyNotify) gtk_widget_unref);
-  gtk_widget_show (load_button);
-  gtk_box_pack_start (GTK_BOX (vbox6), load_button, FALSE, TRUE, 0);
-  gtk_widget_set_usize (load_button, 70, -2);
-
-  save_button = gtk_button_new_with_label ("Save...");
-  gtk_widget_ref (save_button);
-  gtk_object_set_data_full (GTK_OBJECT (playlist_window), "save_button", save_button,
-                            (GtkDestroyNotify) gtk_widget_unref);
-  gtk_widget_show (save_button);
-  gtk_box_pack_start (GTK_BOX (vbox6), save_button, FALSE, TRUE, 0);
-  gtk_widget_set_usize (save_button, 70, -2);
+  gtk_widget_show (del_button);
+  gtk_box_pack_start (GTK_BOX (vbox6), del_button, FALSE, TRUE, 0);
+  gtk_widget_set_usize (del_button, 70, -2);
 
   close_button = gtk_button_new_with_label ("Close");
   gtk_widget_ref (close_button);
@@ -435,19 +428,34 @@ create_playlist_window (void)
   gtk_widget_show (vbox24);
   gtk_box_pack_start (GTK_BOX (vbox6), vbox24, FALSE, TRUE, 18);
 
-  del_button = gtk_button_new_with_label ("Remove");
-  gtk_widget_ref (del_button);
-  gtk_object_set_data_full (GTK_OBJECT (playlist_window), "del_button", del_button,
+  label101 = gtk_label_new ("playlist");
+  gtk_widget_ref (label101);
+  gtk_object_set_data_full (GTK_OBJECT (playlist_window), "label101", label101,
                             (GtkDestroyNotify) gtk_widget_unref);
-  gtk_widget_show (del_button);
-  gtk_box_pack_start (GTK_BOX (vbox24), del_button, FALSE, FALSE, 0);
+  gtk_widget_show (label101);
+  gtk_box_pack_start (GTK_BOX (vbox24), label101, FALSE, FALSE, 4);
+
+  load_button = gtk_button_new_with_label ("Load...");
+  gtk_widget_ref (load_button);
+  gtk_object_set_data_full (GTK_OBJECT (playlist_window), "load_button", load_button,
+                            (GtkDestroyNotify) gtk_widget_unref);
+  gtk_widget_show (load_button);
+  gtk_box_pack_start (GTK_BOX (vbox24), load_button, FALSE, FALSE, 0);
+
+  save_button = gtk_button_new_with_label ("Save...");
+  gtk_widget_ref (save_button);
+  gtk_object_set_data_full (GTK_OBJECT (playlist_window), "save_button", save_button,
+                            (GtkDestroyNotify) gtk_widget_unref);
+  gtk_widget_show (save_button);
+  gtk_box_pack_start (GTK_BOX (vbox24), save_button, FALSE, FALSE, 6);
 
   clear_button = gtk_button_new_with_label ("Clear");
   gtk_widget_ref (clear_button);
   gtk_object_set_data_full (GTK_OBJECT (playlist_window), "clear_button", clear_button,
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (clear_button);
-  gtk_box_pack_start (GTK_BOX (vbox24), clear_button, FALSE, FALSE, 6);
+  gtk_box_pack_start (GTK_BOX (vbox24), clear_button, FALSE, FALSE, 0);
+  gtk_widget_set_usize (clear_button, 70, -2);
 
   playlist_status = gtk_vbox_new (FALSE, 0);
   gtk_widget_ref (playlist_status);

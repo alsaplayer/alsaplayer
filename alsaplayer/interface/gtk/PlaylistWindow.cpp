@@ -590,6 +590,11 @@ void dialog_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 }
 
 
+void playlist_window_keypress(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+	alsaplayer_error("Key pressed!");
+}
+
 
 void dialog_popup(GtkWidget *widget, gpointer data)
 {
@@ -691,7 +696,11 @@ playlist_window_gtk->load_list = gtk_file_selection_new("Load Playlist");
 		"clicked", GTK_SIGNAL_FUNC(dialog_cancel), (gpointer)playlist_window_gtk->add_file);
  	gtk_signal_connect(GTK_OBJECT(playlist_window_gtk->add_file), "delete_event",
                 GTK_SIGNAL_FUNC(dialog_delete), NULL);
-	
+
+	// Shortcut keys
+	gtk_signal_connect(GTK_OBJECT(playlist_window), "key-press-event",
+		GTK_SIGNAL_FUNC(playlist_window_keypress), NULL);	
+
 	// Modify button text of add_file dialog
 	gtk_object_set(GTK_OBJECT(
 		GTK_FILE_SELECTION(playlist_window_gtk->add_file)->ok_button),

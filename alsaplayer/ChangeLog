@@ -1,3 +1,4 @@
+* List interface and output plugins when "list" is given as the name
 * Rewrote locking code for callback interface. Much simpler.
 * New callback API for CorePlayer so interfaces get notified when
   something happens.  
