@@ -304,7 +304,7 @@ static void help()
 		"    for the ALSA plugin: [default=\"default\"]\n"
 		"    for the JACK plugin: [default=\"alsa_pcm:playback_1,alsa_pcm:playback_2\"]\n"
 		"  -f,--fragsize n       fragment size in bytes [default=4096]\n"
-		"  -F,--frequency n      output frequency [default=%d]\n"
+		"  -F,--frequency n      output frequency in Hz [default=%d]\n"
 		"  -g,--fragcount n      fragment count [default=8]\n"
 		"  -r,--realtime         enable realtime scheduling (with proper  rights)\n"
 		"  -o,--output output    use specific output driver [default=alsa]. choices:\n", OUTPUT_RATE);
@@ -428,11 +428,10 @@ int main(int argc, char **argv)
 	signal(SIGQUIT, exit_sighandler);	// Quit from keyboard
 	// fatal errors
 	signal(SIGBUS, exit_sighandler);	// bus error
-	signal(SIGSEGV, exit_sighandler);	// segfault
+	//signal(SIGSEGV, exit_sighandler);	// segfault
 	signal(SIGILL, exit_sighandler);	// illegal instruction
 	signal(SIGFPE, exit_sighandler);	// floating point exc.
 	signal(SIGABRT, exit_sighandler);	// abort()
-
 	// Enable locale support
 	setlocale (LC_ALL, "");
 	
