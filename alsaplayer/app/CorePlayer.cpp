@@ -962,7 +962,7 @@ int CorePlayer::Read32(void *data, int samples)
 		if (write_buf->next->start == -2 || !producing) {
 			return -2;
 		}
-		//alsaplayer_error("Nothing to play (spitting out silence)");
+		alsaplayer_error("Nothing to play (spitting out silence)");
 		memset(data, 0, samples * 4);
 		return samples;
 	}
@@ -1176,7 +1176,7 @@ bool CorePlayer::streamer_func(void *arg, void *data, int size)
 {
 	CorePlayer *obj = (CorePlayer *)arg;
 	int count;
-	char input_buffer[16384]; // Should be big enough
+	char *input_buffer = (char *)data;
 
 	if ((count = obj->Read32(input_buffer, size / sizeof(short))) >= 0) {
 		int v, p, left, right;
