@@ -50,7 +50,9 @@ static gint16 audio_data[2][256];
 
 static guchar rgb_buf[(WIDTH + 2) * (HEIGHT + 2)];
 static GdkRgbCmap *cmap = NULL; 
-	
+
+static int bscope_running();
+
 static void inline draw_pixel_8(guchar *buffer,gint x, gint y, guchar c)
 {
 	buffer[((y + 1) * BPL) + (x + 1)] = c;
@@ -126,7 +128,7 @@ static void bscope_init(void)
 	pthread_mutex_init(&bscope_mutex, NULL);
 	pthread_mutex_init(&edit_mutex, NULL);
 	
-	window = gtk_window_new(GTK_WINDOW_DIALOG);
+	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(window),"Blurscope");
 	gtk_window_set_policy(GTK_WINDOW(window), FALSE, FALSE, FALSE);
 	gtk_widget_realize(window);
