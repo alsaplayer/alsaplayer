@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 SUBDIRS = interface output input scopes app alsaplayer extra docs \
 	libalsaplayer examples m4 reader
 
-EXTRA_DIST = bootstrap
+EXTRA_DIST = bootstrap alsaplayer.spec
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = alsaplayer.pc

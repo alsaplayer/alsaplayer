@@ -695,6 +695,7 @@ AC_OUTPUT([
 Makefile
 alsaplayer.1
 alsaplayer.pc
+alsaplayer.spec
 app/Makefile
 interface/Makefile
 interface/gtk/Makefile
