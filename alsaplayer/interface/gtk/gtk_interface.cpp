@@ -924,9 +924,11 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	main_window = create_main_window();
 	gtk_window_set_policy(GTK_WINDOW(main_window), false, false, false);
 	gtk_window_set_title(GTK_WINDOW(main_window), "AlsaPlayer "VERSION);
-	gtk_widget_show(main_window); // Hmmm
+	gtk_window_set_wmclass(GTK_WINDOW(main_window), "AlsaPlayer", "alsaplayer");
+	gtk_widget_realize(main_window);
 
 	static PlaylistWindowGTK *playlist_window_gtk = new PlaylistWindowGTK(playlist);
+
 	effects_window = init_effects_window();	
 	scopes_window = init_scopes_window();
 	play_dialog = gtk_file_selection_new("Play file");
@@ -1187,38 +1189,15 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	gtk_signal_connect(GTK_OBJECT(menu_item), "activate",
 					   GTK_SIGNAL_FUNC(exit_cb), (void *)f);
 	gtk_widget_show(menu_item);
-#if 0	
-	// Connect popup menu
-	working = get_widget(main_window, "scope_button");
-	if (working) {
-		gtk_signal_connect_object (GTK_OBJECT (working), "event",
-								   GTK_SIGNAL_FUNC(alsaplayer_button_press), GTK_OBJECT(root_menu));
-	}
-	// Create CD button menu
-	GtkWidget *cd_menu = gtk_menu_new();	
-	menu_item = gtk_menu_item_new_with_label("Play CD (using CDDA)");
-	gtk_widget_show(menu_item);
-	gtk_menu_append(GTK_MENU(cd_menu), menu_item);
-	gtk_signal_connect(GTK_OBJECT(menu_item), "activate",
-					   GTK_SIGNAL_FUNC(cd_cb), p);
-#ifdef HAVE_SOCKMON
-	menu_item = gtk_menu_item_new_with_label("Monitor TCP socket (experimental)");
-	gtk_widget_show(menu_item);
-	gtk_menu_append(GTK_MENU(cd_menu), menu_item);
-	gtk_signal_connect(GTK_OBJECT(menu_item), "activate",
-					   GTK_SIGNAL_FUNC(sock_cb1), p);
-	menu_item = gtk_menu_item_new_with_label("Monitor ESD (experimental)");
-	gtk_widget_show(menu_item);
-	gtk_menu_append(GTK_MENU(cd_menu), menu_item);
-	gtk_signal_connect(GTK_OBJECT(menu_item), "activate",
-					   GTK_SIGNAL_FUNC(sock_cb2), p);
-#endif
-#endif
+	
 	working = get_widget(main_window, "cd_button");
 	gtk_signal_connect_object (GTK_OBJECT (working), "event",
 							   GTK_SIGNAL_FUNC(alsaplayer_button_press), GTK_OBJECT(root_menu)); // cd
 
 	gdk_flush();
+
+	//gdk_window_set_decorations(GTK_WIDGET(main_window)->window, (GdkWMDecoration)0);
+	gtk_widget_show(GTK_WIDGET(main_window));
 
 	// start indicator thread
 	pthread_create(&indicator_thread, NULL,

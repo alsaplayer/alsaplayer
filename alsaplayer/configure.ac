@@ -4,7 +4,7 @@ AC_INIT(app/CorePlayer.cpp)
 
 ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
-ALSAPLAYER_MICRO_VERSION=53
+ALSAPLAYER_MICRO_VERSION=54
 
 BETA=
 
@@ -561,6 +561,7 @@ input/audiofile/Makefile
 include/Makefile
 docs/Makefile
 extra/Makefile
+libalsaplayer/Makefile
 ])
 echo "
 Configuration:
