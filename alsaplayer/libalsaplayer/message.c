@@ -299,10 +299,7 @@ int ap_message_add_string(ap_message_t *msg, char *key_id, const char *val)
 	
 	new_key = ap_key_new(key_id);
 	new_key->key_type = KTYPE_STRING;
-	new_key->data = (void *)malloc(strlen(val)+1);
-	str = (char *)new_key->data;
-	strcpy(str, val);
-	str[strlen(val)] = 0; // Null terminate!
+	new_key->data = str = strdup(val);
 	new_key->length = strlen(val)+1; // Also copy Null pointer!
 
 	ap_message_add_key(msg, new_key);
