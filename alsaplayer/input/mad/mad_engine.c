@@ -474,7 +474,7 @@ static void parse_id3 (const char *path, stream_info *info)
 	unsigned char g;
 
 	/* Open stream */
-	fd = reader_open (path);
+	fd = reader_open (path, NULL, NULL);
 	if (!fd)  return;
 
 	/* --------------------------------------------------- */
@@ -851,6 +851,21 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 }
 
 
+static void reader_status(void *ptr, const char *str)
+{
+	input_object *obj = (input_object *)ptr;
+	struct mad_local_data *data;
+	
+	if (!obj)
+		return;
+	data = (struct mad_local_data *)obj->local_data;
+
+	if (data) {
+		alsaplayer_error("reader_status: %s", str);
+		//strcpy(data->sinfo.status, str);
+	}	
+}
+
 
 static int mad_open(input_object *obj, const char *path)
 {
@@ -869,7 +884,7 @@ static int mad_open(input_object *obj, const char *path)
 	data = (struct mad_local_data *)obj->local_data;
 	memset(data, 0, sizeof(struct mad_local_data));
 
-	if ((data->mad_fd = reader_open(path)) == NULL) {
+	if ((data->mad_fd = reader_open(path, &reader_status, obj)) == NULL) {
 		fprintf(stderr, "mad_open() failed\n");
 		free(obj->local_data);
 		obj->local_data = NULL;
@@ -955,11 +970,15 @@ first_frame:
 		}
 	}
 	
+	
 	if (data->stream.error != MAD_ERROR_LOSTSYNC) {
 		if (xing_parse(&data->xing, data->stream.anc_ptr, data->stream.anc_bitlen) == 0) {
 			// We use the xing data later on
 		}	
 	}
+	// XXX experimental. Decode an extra header...
+	if ((mad_header_decode(&data->frame.header, &data->stream) == -1)) 
+		goto first_frame;
 	
 	mode = (data->frame.header.mode == MAD_MODE_SINGLE_CHANNEL) ?
 		1 : 2;
@@ -972,6 +991,7 @@ first_frame:
 		obj->nr_channels = pcm->channels;
 		//alsaplayer_error("nr_channels = %d", obj->nr_channels);
 	}
+	//alsaplayer_error("Initial: %d, %d, %d", data->samplerate, data->bitrate, obj->nr_channels);
 	/* Calculate some values */
 	data->bytes_avail = data->stream.bufend - data->stream.next_frame;
 	{
