@@ -204,6 +204,12 @@ void CorePlayer::load_input_addons()
 CorePlayer::CorePlayer(AlsaNode *the_node)
 {
 	int i;
+
+	/* Init mutexes */
+	pthread_mutex_init(&counter_mutex, NULL); 
+	pthread_mutex_init(&player_mutex, NULL);
+	pthread_mutex_init(&notifier_mutex, NULL);
+	
 	file_path[0] = 0;
 	producer_thread = 0; 
 	total_frames = 0;
@@ -248,8 +254,6 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	//memset(plugins, 0, sizeof(plugins));
 
 	read_buf = write_buf = buffer;
-	pthread_mutex_init(&counter_mutex, NULL); 
-	pthread_mutex_init(&player_mutex, NULL);
 
 	the_object = new input_object;
 	the_object->ready = 0;
