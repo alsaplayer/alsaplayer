@@ -4,7 +4,7 @@ AC_INIT(app/CorePlayer.cpp)
 
 ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
-ALSAPLAYER_MICRO_VERSION=72
+ALSAPLAYER_MICRO_VERSION=74
 
 BETA=
 
@@ -19,6 +19,7 @@ dnl this config procedure shamelessly stolen from libmikmod
 dnl =======================================================
 
 have_gtk=no
+have_gtk2=no
 have_glib=no
 dnl have_qt=no
 have_audiofile=no
@@ -267,6 +268,21 @@ dnl =================
 
 AM_CONDITIONAL(HAVE_AUDIOFILE,test "x$have_audiofile" = xyes)
 
+dnl ==========
+dnl JACK stuff
+dnl ==========
+PKG_CHECK_MODULES(JACK, jack >= 0.40.0, have_jack=yes, have_jack=no)
+AC_SUBST(JACK_LIBS)
+AC_SUBST(JACK_CFLAGS)
+
+dnl ==========
+dnl GTK2 stuff
+dnl ==========
+
+dnl PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.3 gthread-2.0 >= 2.0.3, have_gtk2=yes, have_gtk2=no)
+dnl AC_SUBST(GTK2_LIBS)
+dnl AC_SUBST(GTK2_CFLAGS)
+dnl AM_CONDITIONAL(HAVE_GTK2, test "x$have_gtk2" = xyes)
 
 dnl ==================
 dnl libsndfile library
@@ -274,7 +290,7 @@ dnl ==================
 
 have_sndfile=no
 
-PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.0, have_sndfile=yes, have_sndfile=no)
+PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.2, have_sndfile=yes, have_sndfile=no)
 AC_SUBST(SNDFILE_LIBS)
 AC_SUBST(SNDFILE_CFLAGS)
 AM_CONDITIONAL(HAVE_SNDFILE, test "x$have_sndfile" = xyes)
@@ -391,60 +407,14 @@ CFLAGS=$oldcflags
 AC_SUBST(NAS_LIB)
 
 
-dnl ==========
-dnl JACK stuff
-dnl ==========
-use_jack=yes
+dnl ======================
+dnl JACK conditional stuff
+dnl ======================
 
 AC_ARG_ENABLE(jack,[  --enable-jack           Enable jack support (default=yes)],[if test "$enableval" = "no"
 then
-use_jack=no
+have_jack=no
 fi])
-
-AC_ARG_WITH(jack,[  --with-jack=PFX        Prefix where jack is installed (optional)],
- jack_prefix="$withval", jack_prefix="/usr/local") 
-
-if test "$use_jack" = "yes"
-then
-
-JACK_CFLAGS="-I$jack_prefix/include"
-
-CFLAGS="$CFLAGS $JACK_CFLAGS"
-CPPFLAGS="$CPPFLAGS $JACK_CFLAGS"
-AS="$CC"
-
-AC_CHECK_HEADERS(jack/jack.h)
-
-if test "$have_glib" = "yes"
-then
-oldcflags=$CFLAGS
-CFLAGS="$CFLAGS -ldl -L$jack_prefix/lib"
-AC_CHECK_LIB(jack,jack_activate,
-[
-have_jack=yes
-JACK_LIB="-L$jack_prefix/lib -ljack -ldl"
-],
-[
-have_jack=no
-])
-CFLAGS=$oldcflags
-
-else
-
-have_jack=no
-JACK_LIB=""
-
-fi
-
-else
-
-have_jack=no
-JACK_LIB=""
-
-fi
-
-AC_SUBST(JACK_LIB)
-
 
 
 dnl =====================================================
@@ -490,6 +460,13 @@ AC_ARG_ENABLE(sgi,
 then
 have_sgi=no
 fi])
+
+dnl AC_ARG_ENABLE(gtk2,
+dnl [ --enable-gtk2           Enable GTK2 graphical interface (default=yes)],
+dnl [if test "$enableval" = "no"
+dnl then
+dnl have_gtk2=no
+dnl fi])
 
 AC_ARG_ENABLE(gtk,
 [  --enable-gtk            Enable GTK graphical interface (default=yes)],
@@ -619,6 +596,11 @@ then
 		AC_DEFINE(HAVE_GTK, 1, [Define if we have gtk+])
 fi		
 
+if test "$have_gtk2" = "yes"
+then
+		AC_DEFINE(HAVE_GTK2, 1, [Define if we have gtk2])
+fi
+
 dnl if test "$have_qt" = "yes"
 dnl then
 dnl		AC_DEFINE(HAVE_QT, 1, [Define if we have Qt])
@@ -681,6 +663,8 @@ AC_SUBST(ALSAPLAYER_MINOR_VERSION)
 AC_SUBST(ALSAPLAYER_MICRO_VERSION)
 AC_SUBST(ALSAPLAYER_VERSION)
 
+dnl interface/gtk2/Makefile
+
 AC_OUTPUT([
 Makefile
 alsaplayer.1
@@ -731,6 +715,8 @@ m4/Makefile
 docs/Makefile
 docs/reference.doxygen
 ])
+
+dnl Build GTK2 interface:               ${have_gtk2
 
 echo "
 Configuration:

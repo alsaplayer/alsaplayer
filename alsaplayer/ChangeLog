@@ -1,7 +1,12 @@
+* OGG plugin also supports HTTP streaming!
 * Add initial support for Icecast/Shoutcast streaming!
-* Support basic dirty .pls file loading
+* Support pls playlist loading (no metadata loading)
 * Add preliminary HTTP 302 redirect handling in http reader plugin
 * MAD plugin works correctly with non-seekable sources now
+* Text interface works much better now
+* New -E option, which replaces the queue in a running alsaplayer
+* New ap_jump_to() libalsaplayer function which allows jumping to specific
+  playlist tracks.
 * Fix playlist loading
 * Fix FLAC playback support
 * Fix crashing bug when fragment size was bigger than 16K
