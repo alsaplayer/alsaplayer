@@ -23,7 +23,6 @@
 #include <string.h>
 #include "output_plugin.h"
 
-#define LOW_FRAGS	1	
 //#define QUEUE_COUNT
 
 static snd_pcm_t *sound_handle;

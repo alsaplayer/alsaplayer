@@ -30,8 +30,6 @@
 #include "output_plugin.h"
 #include "alsaplayer_error.h"
 
-#define LOW_FRAGS	1	
-
 static int oss_fd;
 static int oss_card;
 static int oss_device;
