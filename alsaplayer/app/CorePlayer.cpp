@@ -1000,8 +1000,25 @@ int CorePlayer::Read32(void *data, int samples)
 		write_buf_changed = 1;
 		pthread_mutex_unlock(&counter_mutex);
 	}
-	
-	if (use_read_direction == DIR_FORWARD) {
+
+	// provide a fast path implementation for the common case (no pitch)
+	if (use_read_direction == DIR_FORWARD && use_pitch == 0.0) {
+		// do we remain in the current PCM read buffer partition?
+		// (switch to the next buffer if neccessary)
+		if ((check_index + samples) > read_buf->buf->write_index) {
+			read_buf = read_buf->next;
+			pthread_mutex_unlock(&counter_mutex);
+			read_buf->buf->SetReadDirection(DIR_FORWARD);
+			read_buf->buf->ResetRead();
+			in_buf = (int *)read_buf->buf->buffer_data;
+			check_index = 0;
+		}
+
+		// and copy the whole block (usually 4KB) at once
+		memcpy(out_buf, in_buf, samples * 4);
+		tmp_index = samples - 1;
+	}
+	else if (use_read_direction == DIR_FORWARD) {
 		while (buf_index < samples) {
 			tmp_index = (int) ((float)use_pitch*(float)(buf_index-base_corr));
 			if ((check_index + tmp_index) > (read_buf->buf->write_index)-1) {
@@ -1030,7 +1047,8 @@ int CorePlayer::Read32(void *data, int samples)
 				in_buf = (int *)read_buf->buf->buffer_data;
 				base_corr = buf_index;
 				check_index = 0;
-				tmp_index = (int)((float)use_pitch*(float)(buf_index-base_corr)); // Recalc
+				// Recalc
+				tmp_index = (int)((float)use_pitch*(float)(buf_index-base_corr));
 			}
 			out_buf[buf_index++] =  *(in_buf + tmp_index);
 		}
@@ -1058,14 +1076,17 @@ int CorePlayer::Read32(void *data, int samples)
 				in_buf += (buf_size + (check_index - tmp_index));
 				base_corr = buf_index;
 				check_index = buf_size-1;
-				tmp_index = (int)((float)use_pitch*(float)(buf_index-base_corr)); // Recalc
+				// Recalc
+				tmp_index = (int)((float)use_pitch*(float)(buf_index-base_corr));
 			}
 			out_buf[buf_index++] = *(in_buf - tmp_index);
 		}
 	}
+
 	read_buf->buf->Seek(check_index + ((use_read_direction == DIR_FORWARD) ?
 		 tmp_index+1 : -((tmp_index+1) > check_index ? check_index : tmp_index+1)));
 	if (!samples) alsaplayer_error("Humm, I copied nothing?");
+
 	return samples;
 }
 
@@ -1180,6 +1201,22 @@ extern int global_reverb_on;
 extern int global_reverb_delay;
 extern int global_reverb_feedback;
 
+#ifdef EMBEDDED
+// the simple streamer only handles a single stream with no software
+// volume/pan calculation; intended for slow systems/embedded system use
+bool CorePlayer::streamer_func(void *arg, void *data, int size)
+{
+	CorePlayer *obj = (CorePlayer *)arg;
+
+	if (obj->Read32(data, size / sizeof(short)) >= 0)
+		return true;
+
+	obj->streaming = false;
+	return false;
+}
+
+#else
+
 bool CorePlayer::streamer_func(void *arg, void *data, int size)
 {
 	CorePlayer *obj = (CorePlayer *)arg;
@@ -1228,6 +1265,7 @@ bool CorePlayer::streamer_func(void *arg, void *data, int size)
 		return false;
 	}	
 }
+#endif
 
 
 bool CorePlayer::IsPaused()
