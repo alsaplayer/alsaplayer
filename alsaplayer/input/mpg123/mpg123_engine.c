@@ -427,6 +427,11 @@ int mpeg_stream_info(input_object *obj, stream_info *info)
 }
 
 
+static void mpeg_shutdown()
+{
+}
+
+
 input_plugin mpg123_plugin = {
 		INPUT_PLUGIN_VERSION,
 		0,
@@ -434,7 +439,7 @@ input_plugin mpg123_plugin = {
 		{ "Andy Lo A Foe <andy@alsa-project.org>" },
 		NULL,
 		mpeg_init,
-		NULL,
+		mpeg_shutdown,
 		NULL,	
 		mpeg_can_handle,
 		mpeg_open,

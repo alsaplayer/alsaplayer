@@ -403,6 +403,13 @@ static void vorbis_close(input_object *obj)
 }
 
 
+static void vorbis_shutdown()
+{
+	return;
+}
+
+
+
 input_plugin vorbis_plugin =
 {
 	INPUT_PLUGIN_VERSION,
@@ -411,7 +418,7 @@ input_plugin vorbis_plugin =
 	{ "Andy Lo A Foe" },
 	NULL,
 	vorbis_init,
-	NULL,
+	vorbis_shutdown,
 	NULL,
 	vorbis_can_handle,
 	vorbis_open,

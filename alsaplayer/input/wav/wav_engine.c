@@ -395,6 +395,11 @@ static int wav_init()
 	return 1;
 }
 
+static void wav_shutdown()
+{
+	return;
+}
+
 
 input_plugin wav_plugin = {
 	INPUT_PLUGIN_VERSION,
@@ -403,7 +408,7 @@ input_plugin wav_plugin = {
 	{ "Andy Lo A Foe" },
 	NULL,
 	wav_init,
-	NULL,
+	wav_shutdown,
 	NULL,
 	wav_can_handle,
 	wav_open,

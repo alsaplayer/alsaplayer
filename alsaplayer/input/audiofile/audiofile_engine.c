@@ -339,6 +339,12 @@ static int audiofile_init ()
 	return 1;
 }
 
+static void audiofile_shutdown()
+{
+	return;
+}
+
+
 input_plugin audiofile_plugin =
 {
 	INPUT_PLUGIN_VERSION,
@@ -347,7 +353,7 @@ input_plugin audiofile_plugin =
 	{ "Michael Pruett" },
 	NULL,
 	audiofile_init,
-	NULL,
+	audiofile_shutdown,
 	NULL,
 	audiofile_can_handle,
 	audiofile_open,

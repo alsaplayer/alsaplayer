@@ -466,6 +466,11 @@ static int cdda_nr_tracks(input_object *obj)
 	return 0;
 }
 
+static void cdda_shutdown()
+{
+	return;
+}
+
 
 static int cdda_track_seek(input_object *obj, int track)
 {
@@ -480,7 +485,7 @@ input_plugin cdda_plugin = {
 		{ "Andy Lo A Foe <andy@alsaplayer.org>" },
 		NULL,
 		cdda_init,
-		NULL,
+		cdda_shutdown,
 		NULL,
 		cdda_can_handle,
 		cdda_open,

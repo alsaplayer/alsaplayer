@@ -58,6 +58,12 @@ mikmod_init ()
 }
 
 
+static void mikmod_shutdown()
+{
+	return;
+}
+
+
 static float 
 mikmod_can_handle (const char *name)
 {
@@ -233,7 +239,7 @@ input_plugin mikmod_plugin = {
   { "Paul Fisher <rao@gnu.org>" },
 	NULL,
   mikmod_init,
-  NULL,
+  mikmod_shutdown,
   NULL,
   mikmod_can_handle,
   mikmod_open,

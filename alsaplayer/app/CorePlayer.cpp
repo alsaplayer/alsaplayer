@@ -250,6 +250,7 @@ void CorePlayer::UnregisterPlugins()
 		tmp = &plugins[i];
 		//alsaplayer_error("Unloading Input plugin: %s", tmp->name); 
 		if (tmp->handle) {
+			tmp->shutdown(); // Shutdown plugin
 			dlclose(tmp->handle);
 			tmp->handle = NULL;
 			tmp = NULL;
@@ -289,7 +290,7 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	tmp->sample_rate = the_plugin->sample_rate;
 	tmp->channels = the_plugin->channels;
 	tmp->stream_info = the_plugin->stream_info;
-	tmp->cleanup = the_plugin->cleanup;
+	tmp->shutdown = the_plugin->shutdown;
 	tmp->nr_tracks = the_plugin->nr_tracks;
 	tmp->track_seek = the_plugin->track_seek;
 	plugin_count++;

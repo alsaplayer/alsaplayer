@@ -41,7 +41,7 @@
  */
 
 #define INPUT_PLUGIN_BASE_VERSION	0x1000
-#define INPUT_PLUGIN_VERSION	(INPUT_PLUGIN_BASE_VERSION + 9)
+#define INPUT_PLUGIN_VERSION	(INPUT_PLUGIN_BASE_VERSION + 10)
 
 typedef struct _input_object
 {
@@ -70,7 +70,7 @@ typedef struct _stream_info
 typedef int input_version_type;		/* plugin binary version */
 typedef int input_flags_type;		/* capability flags for this plugin */
 typedef int(*input_init_type)();	/* Init plugin */
-typedef void(*input_cleanup_type)(); /* Prepare the plugin for removal */
+typedef void(*input_shutdown_type)(); /* Prepare the plugin for removal */
 typedef void* input_plugin_handle_type; 
 									/* Handle for plugin. Filled in by AP */
 typedef float(*input_can_handle_type)(const char *);
@@ -109,7 +109,7 @@ typedef struct _input_plugin
 	char author[256];
 	void *handle;
 	input_init_type init;
-	input_cleanup_type cleanup;
+	input_shutdown_type shutdown;
 	input_plugin_handle_type plugin_handle;
 	input_can_handle_type can_handle;
 	input_open_type open;
