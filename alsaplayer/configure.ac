@@ -279,10 +279,12 @@ AC_SUBST(JACK_CFLAGS)
 
 dnl ==========
 dnl XOSD stuff
+dnl nb.: by checking for "xosd_create" instead of "xosd_init", we
+dnl      implicitely require xosd 2.x instead of 1.x
+dnl      (which is exactly what we want)
 dnl ==========
-PKG_CHECK_MODULES(XOSD, xosd >= 2.0.1, have_xosd=yes, have_xosd=no)
-AC_SUBST(XOSD_LIBS)
-AC_SUBST(XOSD_CFLAGS)
+AC_CHECK_LIB(xosd, xosd_create,
+     XOSD_LDADD=-lxosd; have_xosd=yes; AC_DEFINE(HAVE_LIBXOSD, 1, [Define if you have XOSD library (-lxosd)]), have_xosd=no; XOSD_LDADD=, -lxosd)
 AM_CONDITIONAL(HAVE_XOSD, test "x$have_xosd" = xyes)
 
 dnl ==========

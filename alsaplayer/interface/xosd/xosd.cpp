@@ -121,12 +121,12 @@ int daemon_start(Playlist *playlist, int argc, char **argv)
 	while (global_session_id < 0) {
 		dosleep(10000);
 	}
-	//fprintf(stdout, "Session %d is starting.\n", global_session_id);
+	//printf("Session %d is starting.\n", global_session_id);
 	while (!ap_ping(global_session_id)) {
 		dosleep(100000);
 	}
 	if (ap_get_session_name(global_session_id, session_name)) {
-		fprintf(stdout, "Session \"%s\" is ready.\n", session_name);
+		printf("Session \"%s\" is ready.\n", session_name);
 	}
 
 	// playlist/wait loop
@@ -151,7 +151,9 @@ int daemon_start(Playlist *playlist, int argc, char **argv)
 				// reason: we might not be running under X11 yet
 				if (!osd)
 				{
-					if ((osd = xosd_create(2)) != NULL)
+					if ((osd = xosd_create(2)) == NULL)
+						printf("osd creation failed: %s\n", xosd_error);
+					else
 					{
 						xosd_set_pos(osd, XOSD_top);
 						xosd_set_align(osd, XOSD_left);
