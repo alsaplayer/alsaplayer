@@ -27,6 +27,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/un.h>
+#include <sys/socket.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -47,8 +49,9 @@
 #include "interface_plugin.h"
 #include "utilities.h"
 #include "error.h"
+#include "SocketControl.h"
 
-Playlist * playlist = NULL;
+Playlist *playlist = NULL;
 
 int global_reverb_on = 0;
 int global_reverb_delay = 2;
@@ -59,6 +62,8 @@ int global_verbose = 0;
 static char addon_dir[1024];
 
 static char *default_pcm_device = "default";
+static pthread_t socket_thread;
+static int socket_fd = 0;
 
 const char *default_output_addons[] = {
 	{ "libalsa.so" },
@@ -85,6 +90,98 @@ static void default_alsaplayer_error (const char *fmt, ...)
 
 void (*alsaplayer_error)(const char *fmt, ...) = &default_alsaplayer_error;
 
+
+void socket_looper(void *arg)
+{
+		// not to confuse with global playlist
+		Playlist *playlist = (Playlist *)arg;
+		CorePlayer *player;
+		fd_set set;
+		struct timeval tv;
+		struct sockaddr_un saddr;
+		char *data[16384];
+		float *float_val;
+		socklen_t len;
+		int fd;
+		ap_msg_t msg;
+		int running = 1;
+	
+		if (!playlist) {
+			alsaplayer_error("No playlist for control socket\n");
+			return;
+		}
+		unlink("/tmp/alsaplayer_0");
+		if ((socket_fd = socket(AF_UNIX, SOCK_STREAM, 0)) != -1) {
+			saddr.sun_family = AF_UNIX;
+			sprintf(saddr.sun_path, "/tmp/alsaplayer_%d", 0);
+			if (bind(socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
+				listen(socket_fd, 100);
+			} else {
+				alsaplayer_error("Error listening on socket\n");
+				return;
+			}
+		} else {
+			alsaplayer_error("Error setting up socket\n");
+			return;
+		}	
+		printf("Waiting for messages...\n");
+		while (running) {
+			FD_ZERO(&set);
+			FD_SET(socket_fd, &set);
+			tv.tv_sec = 0;
+			tv.tv_usec = 500000;
+			len = sizeof (saddr);
+
+			if ((select(socket_fd + 1, &set, NULL, NULL, &tv) <= 0) ||
+					((fd = accept(socket_fd, (struct sockaddr *) &saddr, &len)) == -1))
+					continue;
+			// So we have a connection
+			read(fd, &msg, sizeof(ap_msg_t));
+			if (msg.length > 0 && msg.length < sizeof(data)) {
+				read(fd, data, msg.length);
+			}	
+			switch(msg.cmd_type) {
+				case CMD_PLAY: alsaplayer_error("PLAY...\n");
+					break;
+				case CMD_NEXT: 
+					playlist->Next(1);
+					break;
+				case CMD_PREV:
+					playlist->Prev(1);
+					break;
+				case CMD_STOP:
+					player = playlist->GetCorePlayer();
+					if (player)
+						player->Stop();
+					break;
+				case CMD_PAUSE:
+					player = playlist->GetCorePlayer();
+					if (player)
+						player->SetSpeed(0.0);
+					break;
+				case CMD_SET_SPEED:
+					float_val = (float *)data;
+					printf("Setting speed to %.2f\n", *float_val);
+					player = playlist->GetCorePlayer();
+					if (player)
+						player->SetSpeed(*float_val);
+					break;
+				case CMD_SET_VOLUME:
+					float_val = (float *)data;
+					printf("Setting volume to %.2f\n", *float_val);
+					player = playlist->GetCorePlayer();
+					if (player)
+						player->SetVolume((int)*float_val);
+					break;
+				case CMD_PING: 
+					alsaplayer_error("PING...\n");
+					break;
+				default: alsaplayer_error("CMD = %x\n", msg.cmd_type);
+					break;
+			}
+			close(fd);	
+		}
+}
 
 void exit_sighandler(int x)
 {
@@ -563,6 +660,9 @@ int main(int argc, char **argv)
 	}	
 	if (interface_plugin_info) {
 		ui = interface_plugin_info();
+		// Load socket interface first
+		pthread_create(&socket_thread, NULL, (void * (*)(void *))socket_looper,
+				playlist);
 		printf("Loading Interface plugin: %s\n", ui->name); 
 		if (!ui->init()) {
 			printf("Failed to load gtk+ interface. Should fall back to cli\n");
