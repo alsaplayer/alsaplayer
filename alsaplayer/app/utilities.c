@@ -22,6 +22,7 @@
 
 #include <ctype.h>
 #include "utilities.h"
+#include "alsaplayer_error.h"
 
 /* Threads and usleep does not work, select is very portable */
 #include <sys/time.h>
@@ -35,3 +36,64 @@ void dosleep(unsigned int msec)
 
 	select(0, NULL, NULL, NULL, &time);
 }
+
+void parse_file_uri_free(char *p)
+{
+	if (p)
+		free(p);
+}
+
+char *parse_file_uri(const char *furi)
+{
+	char *res;
+	char escape[4];
+	int r,w, t, percent, e;
+	if (!furi)
+		return NULL;
+	if ((strncmp(furi, "file:", 5) != 0)) {
+		return NULL;
+	}
+	t=strlen(furi);
+	res = (char *)malloc(t+1);
+	r=5;
+	w=0;
+	e=0;
+	percent = 0;
+	while (r < t) {
+		switch(furi[r]) {
+			case '%':
+				if (percent) {
+					res[w++] = '%';
+					percent = 0;
+				} else {
+					percent = 1;
+					e = 0;
+				}	
+				break;
+			default:
+				if (percent) {
+					if (isdigit(furi[r])) {
+						escape[e++] = furi[r];
+						escape[e]=0;
+					}
+					if (e == 2) {
+						if (atoi(escape) == 20) {
+							res[w++] = ' ';
+						} else {
+							alsaplayer_error("unandled percent escape (%d,%c)", atoi(escape), atoi(escape));
+						}
+						percent = 0;
+					}
+				} else {
+					res[w++] = furi[r];
+				}
+				break;
+		}
+		r++;
+		res[w] = 0;
+	}
+	return res;
+		
+}
+
+

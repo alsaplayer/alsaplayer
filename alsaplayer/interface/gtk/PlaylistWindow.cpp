@@ -719,8 +719,7 @@ gint dnd_drop_event(GtkWidget *widget,
 {
 	char *uri = NULL;
 	char *filename = NULL;
-	char *p, *s;
-	int res;
+	char *p, *s, *res;
 
 	if (!selection_data)
 		return 0;
@@ -738,9 +737,13 @@ gint dnd_drop_event(GtkWidget *widget,
 				}	
 				if (strlen(filename)) {
 					//alsaplayer_error("Adding: %s", filename);
-					GDK_THREADS_LEAVE();
-					ap_add_path(global_session_id, filename);
-					GDK_THREADS_ENTER();
+					res = parse_file_uri(filename);
+					if (res) {
+						GDK_THREADS_LEAVE();
+						ap_add_path(global_session_id, res);
+						GDK_THREADS_ENTER();
+						parse_file_uri_free(res);
+					}	
 				}
 				filename = p;
 			}

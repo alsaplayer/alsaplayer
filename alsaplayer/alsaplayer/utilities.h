@@ -35,6 +35,8 @@ extern "C" {
 // Sleep for specified number of micro-seconds
 // Used by scopes and things, so use C-style linkage
 void dosleep(unsigned int);
+void parse_file_uri_free(char *);
+char *parse_file_uri(const char *);
 
 #ifdef __cplusplus
 }

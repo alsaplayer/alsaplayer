@@ -559,6 +559,7 @@ void Playlist::Unlock()
 }
 
 
+
 // Request to put a new item at end of playlist
 void Playlist::Insert(std::vector<std::string> const & paths, unsigned position, bool wait_for_insert) {
 	// Prepare to do insert
@@ -568,7 +569,6 @@ void Playlist::Insert(std::vector<std::string> const & paths, unsigned position,
 	// Copy list
 	std::vector<std::string>::const_iterator i = paths.begin();
 	while(i != paths.end()) {
-		//alsaplayer_error("===== %s", i->c_str());
 		items->items.push_back(*i++);
 	}
 
