@@ -643,7 +643,8 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 {
 	struct mad_local_data *data;	
 	unsigned len;
-	char *s;
+	char metadata[4096];
+	char *s, *p;
 	
 	if (!obj || !info)
 		return 0;
@@ -668,7 +669,18 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 		    strncpy (data->sinfo.path, data->path, sizeof(data->sinfo.path));
 		    data->parsed_id3 = 1;
 		}
-		
+		if ((len = reader_metadata(data->mad_fd, 4096, metadata))) {
+			metadata[4095] = '\0';
+			if (s = strstr(metadata, "StreamTitle='")) {
+				s += 13;
+				if ((p = strstr(s, "'"))) {
+					*p = '\0';
+					snprintf(data->sinfo.title, 128, "%s", s);
+				} else {
+					alsaplayer_error("Malformed metadata: \"%s\"", metadata);
+				}
+			}
+		}	
 		/* Restore permanently filled info */
 		memcpy (info, &data->sinfo, sizeof (data->sinfo));
 		
@@ -895,7 +907,11 @@ static int mad_open(input_object *obj, const char *path)
 			case 0x235:
 				break;
 			default:
-				printf("No valid frame found at start (pos: %d, error: 0x%x) (%s)\n", data->offset, data->stream.error, path);
+				printf("No valid frame found at start (pos: %d, error: 0x%x --> %x %x %x %x) (%s)\n", data->offset, data->stream.error, 
+						data->stream.this_frame[0],
+						data->stream.this_frame[1],
+						data->stream.this_frame[2],
+						data->stream.this_frame[3],path);
 				return 0;
 		}
 	}
