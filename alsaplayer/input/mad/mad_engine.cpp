@@ -69,6 +69,7 @@ struct mad_local_data {
 				int samplerate;
 				int bitrate;
 				int seekable;
+				int seeking;
 				int eof;
 				char str[17];
 };		
@@ -154,7 +155,7 @@ static int mad_frame_seek(input_object *obj, int frame)
 							
 								if (!data->seekable)
 												return 0;
-
+					
 								mad_header_init(&header);
 
 								if (frame <= data->highest_frame) {
@@ -175,8 +176,12 @@ static int mad_frame_seek(input_object *obj, int frame)
 																	mad_synth_frame (&data->synth, &data->frame);
 												}				
 												data->current_frame = frame;
+												data->seeking = 0;
 												return data->current_frame;
 								}
+
+								data->seeking = 1;
+
 								mad_stream_buffer(&data->stream, data->mad_map +
 																data->frames[data->highest_frame],
 																data->stat.st_size - data->offset -
@@ -191,6 +196,7 @@ static int mad_frame_seek(input_object *obj, int frame)
 																					data->frames[data->highest_frame],
 																					data->stat.st_size - data->offset -
 																					data->frames[data->highest_frame]);
+																				data->seeking = 0;	
 																				return 0;
 																}				
 												}
@@ -210,7 +216,8 @@ static int mad_frame_seek(input_object *obj, int frame)
 													if (skip == 0) 
 														mad_synth_frame (&data->synth, &data->frame);
 											}
-								}			
+								}
+								data->seeking = 0;
 								return data->current_frame;
 				}
 				return 0;
@@ -287,9 +294,12 @@ static unsigned long mad_frame_to_sec(input_object *obj, int frame)
 				if (!obj)
 								return 0;
 				data = (struct mad_local_data *)obj->local_data;
-				if (data)
+				if (data) {
+								if (data->seeking)
+									return -1;
 								sec = data->samplerate ? frame * (obj->frame_size >> 2) /
 												(data->samplerate / 100) : 0;
+				}			
 				return sec;
 }
 
@@ -448,7 +458,11 @@ static int mad_open(input_object *obj, char *path)
 				if (data->mad_map == MAP_FAILED) {
 								perror("mmap");
 								return 0;
-				}				
+				}
+				/* Use madvise to tell kernel we will do mostly sequential reading */
+				if (madvise(data->mad_map, data->stat.st_size, MADV_SEQUENTIAL) < 0)
+					printf("MAD warning: madvise() call failed\n");
+				
 				mad_synth_init  (&data->synth);
 				mad_stream_init (&data->stream);
 				mad_frame_init  (&data->frame);
