@@ -561,6 +561,8 @@ create_scopes_window (void)
 {
   GtkWidget *scopes_window;
   GtkWidget *vbox22;
+  GtkWidget *hbox38;
+  GtkWidget *label18;
   GtkWidget *scopes_list_box;
   GtkWidget *scopes_list;
   GtkWidget *label14;
@@ -579,6 +581,20 @@ create_scopes_window (void)
   gtk_widget_show (vbox22);
   gtk_container_add (GTK_CONTAINER (scopes_window), vbox22);
 
+  hbox38 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_ref (hbox38);
+  gtk_object_set_data_full (GTK_OBJECT (scopes_window), "hbox38", hbox38,
+                            (GtkDestroyNotify) gtk_widget_unref);
+  gtk_widget_show (hbox38);
+  gtk_box_pack_start (GTK_BOX (vbox22), hbox38, FALSE, TRUE, 5);
+
+  label18 = gtk_label_new ("Double click to activate");
+  gtk_widget_ref (label18);
+  gtk_object_set_data_full (GTK_OBJECT (scopes_window), "label18", label18,
+                            (GtkDestroyNotify) gtk_widget_unref);
+  gtk_widget_show (label18);
+  gtk_box_pack_start (GTK_BOX (hbox38), label18, FALSE, FALSE, 10);
+
   scopes_list_box = gtk_hbox_new (FALSE, 0);
   gtk_widget_ref (scopes_list_box);
   gtk_object_set_data_full (GTK_OBJECT (scopes_window), "scopes_list_box", scopes_list_box,
@@ -592,7 +608,7 @@ create_scopes_window (void)
   gtk_object_set_data_full (GTK_OBJECT (scopes_window), "scopes_list", scopes_list,
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (scopes_list);
-  gtk_box_pack_start (GTK_BOX (scopes_list_box), scopes_list, FALSE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (scopes_list_box), scopes_list, TRUE, TRUE, 0);
   gtk_widget_set_usize (scopes_list, 150, 180);
   gtk_clist_set_column_width (GTK_CLIST (scopes_list), 0, 49);
   gtk_clist_set_column_width (GTK_CLIST (scopes_list), 1, 80);
@@ -620,7 +636,7 @@ create_scopes_window (void)
   gtk_box_pack_start (GTK_BOX (vbox22), hbox32, FALSE, TRUE, 0);
   gtk_container_set_border_width (GTK_CONTAINER (hbox32), 8);
 
-  ok_button = gtk_button_new_with_label ("OK");
+  ok_button = gtk_button_new_with_label ("Close");
   gtk_widget_ref (ok_button);
   gtk_object_set_data_full (GTK_OBJECT (scopes_window), "ok_button", ok_button,
                             (GtkDestroyNotify) gtk_widget_unref);

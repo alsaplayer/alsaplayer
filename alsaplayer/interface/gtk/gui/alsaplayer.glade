@@ -871,6 +871,35 @@
 
     <widget>
       <class>GtkHBox</class>
+      <name>hbox38</name>
+      <homogeneous>False</homogeneous>
+      <spacing>0</spacing>
+      <child>
+	<padding>5</padding>
+	<expand>False</expand>
+	<fill>True</fill>
+      </child>
+
+      <widget>
+	<class>GtkLabel</class>
+	<name>label18</name>
+	<label>Double click to activate</label>
+	<justify>GTK_JUSTIFY_CENTER</justify>
+	<wrap>False</wrap>
+	<xalign>0.5</xalign>
+	<yalign>0.5</yalign>
+	<xpad>0</xpad>
+	<ypad>0</ypad>
+	<child>
+	  <padding>10</padding>
+	  <expand>False</expand>
+	  <fill>False</fill>
+	</child>
+      </widget>
+    </widget>
+
+    <widget>
+      <class>GtkHBox</class>
       <name>scopes_list_box</name>
       <border_width>8</border_width>
       <homogeneous>False</homogeneous>
@@ -894,7 +923,7 @@
 	<shadow_type>GTK_SHADOW_IN</shadow_type>
 	<child>
 	  <padding>0</padding>
-	  <expand>False</expand>
+	  <expand>True</expand>
 	  <fill>True</fill>
 	</child>
 
@@ -943,7 +972,7 @@
 	<name>ok_button</name>
 	<width>80</width>
 	<can_focus>True</can_focus>
-	<label>OK</label>
+	<label>Close</label>
 	<relief>GTK_RELIEF_NORMAL</relief>
 	<child>
 	  <padding>0</padding>
