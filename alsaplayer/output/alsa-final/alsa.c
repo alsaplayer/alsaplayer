@@ -51,7 +51,7 @@ static int alsa_open(char *name)
 {
 	int err;
 
-	if ((err = snd_pcm_open(&sound_handle, name, stream, 0)) < 0) {
+	if ((err = snd_pcm_open(&sound_handle, name, stream, SND_PCM_NONBLOCK)) < 0) {
 
 		alsaplayer_error("snd_pcm_open: %s (%s)", snd_strerror(err),
 										name);
