@@ -22,6 +22,7 @@
 
 #include <ctype.h>
 #include "utilities.h"
+#include <string>
 
 // Case insensitive string comparison - this should surely be in the standard
 // library, but doesn't seem to be.
