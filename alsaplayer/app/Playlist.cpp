@@ -56,6 +56,9 @@ extern void playlist_looper(void *data)
 				return;
 			if (!coreplayer->IsActive()) {
 				if (pl->Length()) {
+					// Unpause the player 
+					if (coreplayer->GetSpeed() == 0.0) 
+						coreplayer->SetSpeed(1.0);
 					pl->Next(1);
 				}	
 			}

@@ -17,6 +17,8 @@
  *
  *  Inspired by xine's prefs 
  *
+ *  $Id$
+ *
 */ 
 #include "prefs.h"
 #include <stdio.h>
@@ -279,12 +281,13 @@ int prefs_save(prefs_handle_t *prefs)
 		return -1;
 	}	
 	entry = prefs->keys;
-	fprintf(fd, "#\n"
-							"# config file\n"
-							"#\n"
-							"# Only edit this file if the application is not active.\n"
-							"# Any modifications might be lost otherwise.\n"
-							"#\n");
+	fprintf(fd,
+		"#\n"
+		"# alsaplayer config file\n"
+		"#\n"
+		"# Only edit this file if the application is not active.\n"
+		"# Any modifications might (will!) be lost otherwise.\n"
+		"#\n");
 			
 	while (entry) {
 		fprintf(fd, "%s.%s=%s\n", entry->section, entry->key, entry->value);
