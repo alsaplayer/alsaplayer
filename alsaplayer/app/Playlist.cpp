@@ -260,18 +260,6 @@ void Playlist::UnlockInterfaces()
 
 // Playlist class
 
-Playlist::Playlist(CorePlayer *p_new) {
-	coreplayer = p_new;
-	curritem = 0;
-	total_time = total_size = 0;
-
-	active = true;
-	pthread_mutex_init(&playlist_mutex, NULL);
-	pthread_mutex_init(&interfaces_mutex, NULL);
-	pthread_create(&playlist_thread, NULL, (void * (*)(void *))playlist_looper, this);
-}
-
-
 Playlist::Playlist(AlsaNode *the_node) {
 	player1 = new CorePlayer(the_node);
 	player2 = new CorePlayer(the_node);

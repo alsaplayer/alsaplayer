@@ -338,7 +338,7 @@ int main(int argc, char **argv)
 
 	int opt;
 	int option_index;
-	const char *options = "d:ef:F:g:hi:I:l:n:p:qrs:vRSPxo:";
+	const char *options = "d:ef:F:g:hi:I:l:n:p:qrs:vRSPVxo:";
 	struct option long_options[] = {
 		{ "device", 1, 0, 'd' },
 		{ "enqueue", 0, 0, 'e' },

@@ -27,6 +27,7 @@
 
 */
 
+#include "AlsaPlayer.h"
 #include "CorePlayer.h"
 #include <stdio.h>
 #include <string.h>
@@ -124,9 +125,9 @@ void CorePlayer::load_input_addons()
 						dlsym(handle, "input_plugin_info");
 
 					if (input_plugin_info) {
-#ifdef DEBUG
-						alsaplayer_error("Loading input plugin: %s", path);
-#endif
+#ifdef DEBUG					
+							alsaplayer_error("Loading input plugin: %s", path);
+#endif							
 						input_plugin *the_plugin = input_plugin_info();
 						if (the_plugin) {
 							the_plugin->handle = handle;
@@ -353,8 +354,9 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	if (plugin_count == 1) { // First so assign plugin
 		plugin = tmp;
 	}
+	if (global_verbose)
+		alsaplayer_error("Loading Input plugin: %s", tmp->name);
 
-	//alsaplayer_error("Loading Input plugin: %s", tmp->name);
 	Unlock();
 	return 1;
 }

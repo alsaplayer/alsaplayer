@@ -157,6 +157,10 @@ void socket_looper(void *arg)
 			case AP_DO_CLEAR_PLAYLIST:
 				playlist->Clear(1);
 				break;
+			case AP_DO_QUIT:
+				// Woah, this is very dirty! XXX FIXME XXX
+				exit(0); 
+				break;
 			case AP_GET_FLOAT_PING:
 				// Perhaps return the running time here
 				float_val = 1.0;
