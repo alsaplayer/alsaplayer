@@ -688,7 +688,14 @@ int main(int argc, char **argv)
 	if (optind < argc) {
 		std::vector < std::string > newitems;
 		while (optind < argc) {
-			newitems.push_back(std::string(argv[optind++]));
+			char *ext;
+			ext = strrchr(argv[optind], '.');
+			if (ext && strncasecmp(++ext, "m3u", 3) == 0) {
+				alsaplayer_error("Loading playlist");
+				playlist->Load(std::string(argv[optind++]), 0, false);
+			} else {	
+				newitems.push_back(std::string(argv[optind++]));
+			}	
 		}
 		playlist->Insert(newitems, playlist->Length());
 		playlist->UnPause();
