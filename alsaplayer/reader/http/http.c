@@ -49,21 +49,22 @@ typedef struct http_desc_t_ {
     int going;		    /* true if buffer is filling */
     pthread_t thread;	    /* thread which fill the buffer */
     pthread_mutex_t buffer_lock;
-    pthread_mutex_t operation_lock;
     pthread_cond_t read_condition;
     int error;		    /* error status (0 - none) */
+    int fastmode;	    /* no delay while reading from socket */
 } http_desc_t;
 
 /* How much data we should read at once? (bytes)*/
 #define  HTTP_BLOCK_SIZE  (32*1024)
 
-/* How much long should be buffer? (bytes) */
+/* How long should be buffer? (bytes) */
 #define  HTTP_BUFFER_SIZE  (20000*1024)
 
 /* --------------------------------------------------------------- */
 /* ---------------------- NETWORK RELATED FUNCTIONS -------------- */
 
-/* Parse URI */
+/* ******************************************************************* */
+/* Parse URI                                                           */
 static int parse_uri (const char *uri, char **host, int *port, char **path) 
 {
     char *slash, *colon;
@@ -71,7 +72,7 @@ static int parse_uri (const char *uri, char **host, int *port, char **path)
 
     *port = 80;
     
-     /* Trying to find the end of a host part */
+     /* Trying to find end of a host part */
     slash = strchr (uri+7, '/');
     colon = strchr (uri+7, ':');
     
@@ -113,8 +114,8 @@ static int parse_uri (const char *uri, char **host, int *port, char **path)
     return 0;
 } /* end of: parse_uri */
 
-
-/* sleep for data */
+/* ******************************************************************* */
+/* sleep for data                                                      */
 static int sleep_for_data (int sock)
 {
     fd_set set;
@@ -162,8 +163,8 @@ static int get_response_head (int sock, char *response, int max)
     return 0;
 } /* end of: get_response_head */
 
-
-/* read data from stream */
+/* ******************************************************************* */
+/* read data from stream                                               */
 /* returns amount of data readed */
 static int read_data (int sock, void *ptr, size_t size)
 {
@@ -181,13 +182,18 @@ static int read_data (int sock, void *ptr, size_t size)
 } /* end of: read_data */
 
 
-/* buffer filling thread */
+/* ******************************************************************* */
+/* buffer filling thread                                               */
 static void buffer_thread (http_desc_t *desc)
 {
+    int going = desc->going;	    /* we should be careful */
+    
     /* Internal thread buffer */
     void *ibuffer = malloc (HTTP_BUFFER_SIZE);
     
-    while (desc->going) {
+    printf ("STARTing thread for %p\n", desc);
+    
+    while (going) {
 	void *newbuf;
 	int readed;
 	
@@ -202,11 +208,17 @@ static void buffer_thread (http_desc_t *desc)
 	/* read to internal buffer */
         readed = read_data (desc->sock, ibuffer, HTTP_BLOCK_SIZE);
 	
-	if (readed == 0)
+	/* reasons to stop */
+	going = desc->going;
+	if (readed == 0) {
+	    printf ("set going to 0! for %p\n", desc);
 	    desc->going = 0;
-	else if (readed <0) {
+	    going = 0;
+	} else if (readed <0) {
+	    printf ("set going to 0! for errored %p\n", desc);
 	    desc->error = 1;
 	    desc->going = 0;
+	    going = 0;
 	}
 
 	printf ("%p]] readed = %u, error = %u, going = %u\n", desc, readed, desc->error, desc->going);
@@ -231,19 +243,27 @@ static void buffer_thread (http_desc_t *desc)
 	}
 	
 	printf ("%p]] len1 = %u\n", desc, desc->len);
-	pthread_cond_broadcast (&desc->read_condition);
+	pthread_cond_signal (&desc->read_condition);
 	printf ("%p]] len2 = %u\n", desc, desc->len);
 	
-	dosleep (250000);
+	printf ("%p]] fast mode = %d\n", desc, desc->fastmode);
+	if (going && !desc->fastmode)  dosleep (250000);
+
+	/* Decrement fast mode TTL ;) */
+	if (desc->fastmode)
+	    desc->fastmode--;
+	
 	printf ("%p]] len3 = %u\n", desc, desc->len);
     }
+    
+    printf ("STOPing thread for %p\n", desc);
     
     free (ibuffer);
     pthread_exit (NULL);
 } /* end of: buffer_thread */
 
-
-/* close exist connection, and open new one */
+/* ******************************************************************* */
+/* close exist connection, and open new one                            */
 static int reconnect (http_desc_t *desc)
 {
     char request [2048];
@@ -260,6 +280,7 @@ static int reconnect (http_desc_t *desc)
     desc->error = 0;
     
     /* Stop filling thread */
+    printf ("reconnect: %p -- going=%d\n", desc, desc->going);
     if (desc->going) {
 	desc->going = 0;
 	pthread_join (desc->thread, NULL);
@@ -355,6 +376,7 @@ static int reconnect (http_desc_t *desc)
 
     /* Attach thread to fill a buffer */
     desc->going = 1;
+    desc->fastmode = 0;
     pthread_create (&desc->thread, NULL, (void* (*)(void *)) buffer_thread, desc);
     
     return 0;
@@ -363,10 +385,13 @@ static int reconnect (http_desc_t *desc)
 /* --------------------------------------------------------------- */
 /* ------------------------------------ PLUGIN FUNCTIONS --------- */
 
-/* close stream */
+/* ******************************************************************* */
+/* close stream                                                        */
 static void http_close(void *d)
 {
     http_desc_t *desc = (http_desc_t*)d;
+    
+    printf ("Close %p\n", desc);
     
     /* stop buffering thread */
     if (desc->going) {
@@ -382,8 +407,8 @@ static void http_close(void *d)
     free (desc);
 } /* end of http_close */
 
-
-/* open stream */
+/* ******************************************************************* */
+/* open stream                                                         */
 static void *http_open(const char *uri)
 {
     http_desc_t *desc;
@@ -398,7 +423,6 @@ static void *http_open(const char *uri)
     desc->len = 0;
     desc->direction = 0;  
     pthread_mutex_init (&desc->buffer_lock, NULL);
-    pthread_mutex_init (&desc->operation_lock, NULL);
     pthread_cond_init (&desc->read_condition, NULL);
  
     /* Parse URI */
@@ -414,8 +438,8 @@ static void *http_open(const char *uri)
     return desc;
 }
 
-
-/* test function */
+/* ******************************************************************* */
+/* test function                                                       */
 static float http_can_handle(const char *uri)
 {
     /* Check for prefix */
@@ -424,104 +448,96 @@ static float http_can_handle(const char *uri)
     return 1.0;
 }
 
-
-/* init plugin */
+/* ******************************************************************* */
+/* init plugin                                                         */
 static int http_init()
 {
     return 1;
 }
 
-
-/* shutdown plugin */
+/* ******************************************************************* */
+/* shutdown plugin                                                     */
 static void http_shutdown()
 {
     return;
 }
 
-
-/* read from stream */
+/* ***************************************************************** */
+/* read from stream                                                  */
 static size_t http_read (void *ptr, size_t size, void *d)
 {
     http_desc_t *desc = (http_desc_t*)d;
-    pthread_mutex_t mut;
+    pthread_mutex_t mut;    /* temporary mutex. What is for? ;) */
+    int tocopy;		    /* how much bytes we got? */
 
     printf ("%p]] HTTP: Read ptr=%p, size=%d from pos=%ld\n", desc, ptr, size, desc->pos);
  
-    pthread_mutex_init (&mut, NULL);
-    
-    pthread_mutex_lock (&desc->operation_lock);
+    /* Init temp mutex */
+    pthread_mutex_init (&mut, NULL);   
 
     /* check for reopen */
-    if (desc->begin > desc->pos || desc->begin + desc->len + HTTP_BLOCK_SIZE < desc->pos) {
-        printf ("%p]] HTTP: We should do reseek!!!!\n", desc);
+    if (desc->begin > desc->pos || desc->begin + desc->len + 3*HTTP_BLOCK_SIZE < desc->pos)
 	reconnect (desc);
-    }	
  
-    /* wait while the buffer will has entirly needed block */
+    /* wait while the buffer will has entire block */
     while (1) {
 	int readed;
 	
 	/* check for error */
 	if (desc->error) {
 	    printf ("error in readdddd\n");
-	
-	    pthread_mutex_unlock (&desc->operation_lock);
-
-	   return 0;
+	    return 0;
 	}
 
+	/* We will work with buffer... we have to lock it! */
 	pthread_mutex_lock (&desc->buffer_lock);
-	
 	readed = desc->begin + desc->len - desc->pos;
 	
 	/* done? */
 	if (readed >= size) {
-	    printf ("%p]] dooone\n", desc);
-	    
-	    memcpy (ptr, desc->buffer + desc->pos - desc->begin, size);
-	    pthread_mutex_unlock (&desc->buffer_lock);
-	    pthread_mutex_unlock (&desc->operation_lock);
-
-	    desc->pos += size;
-	    return size;
+	    tocopy = size;
+	    break;
 	}
 
 	/* EOF reached and there is some data */
 	if (!desc->going && readed > 0) {
-	    printf ("%p]] eof reached with data\n", desc);
-	    
-	    memcpy (ptr, desc->buffer + desc->pos - desc->begin, readed);
-	    pthread_mutex_unlock (&desc->buffer_lock);
-	    pthread_mutex_unlock (&desc->operation_lock);
-
-	    desc->pos += readed;
-	    return size;
+	    tocopy = readed;
+	    break;
 	}
 
 	/* EOF reached and there is no data readed*/
 	if (!desc->going) {
-	    printf ("%p]] eof reached\n", desc);
-	    
-	    pthread_mutex_unlock (&desc->buffer_lock);
-	    pthread_mutex_unlock (&desc->operation_lock);
-
-	    return 0;
+	    tocopy = 0;
+	    break;
 	}
 	
+	/* turn on fast mode */
+	desc->fastmode = 2;
+	
+	/* Allow buffer_thread to use buffer */
         pthread_mutex_unlock (&desc->buffer_lock);
 	
+	/* Wait for next portion of data */
 	pthread_mutex_lock (&mut);
 	pthread_cond_wait (&desc->read_condition, &mut);
 	pthread_mutex_unlock (&mut);
     }
 
-    pthread_mutex_unlock (&desc->operation_lock);
+    /* If there are data to copy */
+    if (tocopy) {
+	memcpy (ptr, desc->buffer + desc->pos - desc->begin, tocopy);
+	desc->pos += tocopy;
+    }
+    
+    /* Allow buffer_thread to use buffer. */
+    pthread_mutex_unlock (&desc->buffer_lock);
 
-    return 0;
+    return tocopy;
 } /* http_read */
 
 
-/* seek in stream */
+/* ******************************************************************* */
+/* seek in stream                                                      */
 static int http_seek (void *d, long offset, int whence)
 {
     http_desc_t *desc = (http_desc_t*)d;
@@ -534,14 +550,13 @@ static int http_seek (void *d, long offset, int whence)
 	desc->pos += offset;
     else
 	desc->pos = desc->size - offset;
-    
+ 
     return 0;
 }
 
 
-/*
- * Return current position in stream.
-*/
+/* ******************************************************************* */
+/* Return current position in stream.                                  */
 static long http_tell (void *d)
 {
     http_desc_t *desc = (http_desc_t*)d;
@@ -549,15 +564,15 @@ static long http_tell (void *d)
     return desc->pos;
 }
 
-
-/* directory test */
+/* ******************************************************************* */
+/* directory test                                                      */
 static float http_can_expand (const char *uri)
 {
     return 0.0;
 }
 
-
-/* expand directory */
+/* ******************************************************************* */
+/* expand directory                                                    */
 static char **http_expand (const char *uri)
 {
     return NULL;
@@ -582,8 +597,8 @@ reader_plugin http_plugin = {
 	http_expand
 };
 
-
-/* return info about this plugin */
+/* ******************************************************************* */
+/* return info about this plugin                                       */
 reader_plugin *reader_plugin_info(void)
 {
 	return &http_plugin;
