@@ -76,7 +76,7 @@ bool surround_func(void *arg, void *data, int size)
 int CorePlayer::plugin_count = 0;
 int CorePlayer::plugins_loaded = 0;
 pthread_mutex_t CorePlayer::plugins_mutex = PTHREAD_MUTEX_INITIALIZER;
-input_plugin CorePlayer::plugins[MAX_PLUGINS];
+input_plugin CorePlayer::plugins[MAX_INPUT_PLUGINS];
 
 void CorePlayer::Lock()
 {

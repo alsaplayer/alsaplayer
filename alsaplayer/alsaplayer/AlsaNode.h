@@ -38,7 +38,7 @@
 
 #include "output_plugin.h"
 
-#define MAX_PLUGIN	32
+#define MAX_OUTPUT_PLUGINS	32
 #define MAX_SUB	32
 
 #define POS_BEGIN		0x0
@@ -58,7 +58,7 @@ typedef struct _subscriber
 class AlsaNode
 {
  private:
-	output_plugin plugins[MAX_PLUGIN];
+	output_plugin plugins[MAX_OUTPUT_PLUGINS];
 	output_plugin *plugin;
 	int plugin_count;
 	subscriber subs[MAX_SUB]; 
