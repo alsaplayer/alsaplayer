@@ -57,6 +57,7 @@ extern void exit_sighandler(int);
 static char addon_dir[1024];
 
 
+#if 0	// unused; Frank
 bool surround_func(void *arg, void *data, int size)
 {
 	int amount = 50;
@@ -69,6 +70,7 @@ bool surround_func(void *arg, void *data, int size)
 	}
 	return true;
 }
+#endif
 
 
 int CorePlayer::plugin_count = 0;
@@ -147,57 +149,57 @@ void CorePlayer::load_input_addons()
 
 	sprintf(path, "%s/input", addon_dir);
 
-	dir = opendir(path);
-
 	memset(plugins, 0, sizeof(plugins));
 
-	if (dir) {
-		while ((entry = readdir(dir)) != NULL) {
-			if (strcmp(entry->d_name, ".") == 0 ||
-			    strcmp(entry->d_name, "..") == 0) {
-					continue;
-			}
-			sprintf(path, "%s/input/%s", addon_dir, entry->d_name);
-			if (stat(path, &buf)) continue;
-			if (S_ISREG(buf.st_mode)) {
-				void *handle;
+	if ((dir = opendir(path)) == NULL)
+		return;
 
-				char *ext = strrchr(path, '.');
-
-				if (!ext)
-					continue;
-				
-				ext++;
-
-				if (strcasecmp(ext, "so"))
-					continue;
-
-				if ((handle = dlopen(path, RTLD_NOW |RTLD_GLOBAL))) {
-					input_plugin_info = (input_plugin_info_type)
-						dlsym(handle, "input_plugin_info");
-
-					if (input_plugin_info) {
-						//alsaplayer_error("Loading input plugin: %s", path);
-						input_plugin *the_plugin = input_plugin_info();
-						if (the_plugin) {
-							the_plugin->handle = handle;
-						}
-						if (!RegisterPlugin(the_plugin)) {
-							alsaplayer_error("Error loading %s", path);
-							dlclose(handle);
-							continue;
-						}
-					} else {
-						alsaplayer_error("Could not find input_plugin_info symbol in shared object `%s'", path);
-						dlclose(handle);
-					}	
-				} else {
-					alsaplayer_error("%s", dlerror());
-				}
-			}	
+	while ((entry = readdir(dir)) != NULL) {
+		if (strcmp(entry->d_name, ".") == 0 ||
+		    strcmp(entry->d_name, "..") == 0) {
+				continue;
 		}
-		closedir(dir);
+		sprintf(path, "%s/input/%s", addon_dir, entry->d_name);
+		if (stat(path, &buf)) continue;
+		if (!S_ISREG(buf.st_mode)) continue;
+
+		void *handle;
+
+		char *ext = strrchr(path, '.');
+		if (!ext)
+			continue;
+				
+		ext++;
+
+		if (strcasecmp(ext, "so"))
+			continue;
+
+		if ((handle = dlopen(path, RTLD_NOW |RTLD_GLOBAL)) == NULL) {
+			alsaplayer_error("%s", dlerror());
+			continue;
+		}
+
+		input_plugin_info = (input_plugin_info_type)
+				dlsym(handle, "input_plugin_info");
+
+		if (!input_plugin_info) {
+			alsaplayer_error("Could not find input_plugin_info symbol in shared object `%s'", path);
+			dlclose(handle);
+			continue;
+		}
+
+		//alsaplayer_error("Loading input plugin: %s", path);
+		input_plugin *the_plugin = input_plugin_info();
+		if (the_plugin) {
+			the_plugin->handle = handle;
+		}
+		if (!RegisterPlugin(the_plugin)) {
+			alsaplayer_error("Error loading %s", path);
+			dlclose(handle);
+			continue;
+		}
 	}
+	closedir(dir);
 }
 
 
@@ -232,7 +234,8 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	the_object = NULL;
 
 	save_speed = 0.0;
-	
+
+	// allocate ringbuffer partition pointer table
 	if ((buffer = new sample_buf[NR_BUF]) == NULL) {
 		alsaplayer_error("Out of memory in CorePlayer::CorePlayer");
 		exit(1);
@@ -240,6 +243,10 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 
 	for (i=0; i < NR_BUF; i++) {
 		buffer[i].buf = new SampleBuffer(SAMPLE_STEREO, BUF_SIZE);
+		if (buffer[i].buf == NULL) {
+			alsaplayer_error("Out of memory in CorePlayer::CorePlayer");
+			exit(1);
+		}
 		// Set up next/prev pointers
 		if (i > 0) {
 			buffer[i].prev = &buffer[i-1];
