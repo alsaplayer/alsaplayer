@@ -15,6 +15,8 @@
 #undef USE_ALSA_VOID
 /* Define if the ESD output driver is used */
 #undef USE_ESD
+/* Define if you prefer MAD of mpg123 */
+#undef PREFER_MAD
 /* Define if the OSS output driver is used */
 #undef USE_OSS
 /* Define if on a x86 platform */

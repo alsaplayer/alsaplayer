@@ -35,8 +35,8 @@
 static char actEq[257];
 static char oldEq[257];       
 
-static char scX[256];
-static char scY[256];     
+static char scX[257];
+static char scY[257];     
 
 static GtkWidget *area = NULL;
 static GtkWidget *scope_win = NULL;

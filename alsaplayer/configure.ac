@@ -4,9 +4,9 @@ AC_INIT(app/CorePlayer.cpp)
 
 ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
-ALSAPLAYER_MICRO_VERSION=51
+ALSAPLAYER_MICRO_VERSION=52
 
-BETA=-alpha2
+BETA=
 
 ALSAPLAYER_VERSION=$ALSAPLAYER_MAJOR_VERSION.$ALSAPLAYER_MINOR_VERSION.${ALSAPLAYER_MICRO_VERSION}${BETA}
 
@@ -33,6 +33,7 @@ have_nas=no
 have_mikmod=no
 dynload=no
 use_3dnow_asm=no
+prefer_mad=no
 
 if test "x$x_includes" = "xNONE"
 then
@@ -78,6 +79,13 @@ AC_ARG_ENABLE(top-fooling,
 if test "$enable_top_fooling" = yes; then
 DFLAGS="$DFLAGS -DTOP_FOOLING"
 fi
+
+AC_ARG_ENABLE(prefer-mad,
+[ --enable-prefer-mad            prefer MAD plugin over mpg123 ], prefer_mad=yes, prefer_mad=no)
+
+if test "$prefer_mad" = yes; then
+	AC_DEFINE(PREFER_MAD)
+fi	
 
 dnl ===============
 dnl Debugging stuff
@@ -352,6 +360,7 @@ AM_CONDITIONAL(HAVE_LINUX_CDROM,test "x$ac_cv_header_linux_cdrom_h" = xyes)
 AM_CONDITIONAL(HAVE_GTK, test "x$have_gtk" = xyes)
 AM_CONDITIONAL(HAVE_QT, test "x$have_qt" = xyes)
 AM_CONDITIONAL(HAVE_MIKMOD,test "x$have_mikmod" = xyes)
+AM_CONDITIONAL(PREFER_MAD, test "x$prefer_mad" = "xyes")
 
 dnl ============
 dnl Machine type
@@ -519,6 +528,7 @@ echo "
 Configuration:
   
   Install path:                       ${prefix}
+  Prefer MAD over mpg123 plugin:      ${prefer_mad}
   Build gtk interface:                ${have_gtk}
   Build qt interface:                 ${have_qt}
   Build alsa 0.5.x output plugin:     ${have_alsa_05x}
