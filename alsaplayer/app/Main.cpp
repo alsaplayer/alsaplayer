@@ -366,9 +366,7 @@ static void help()
 	fprintf(stdout,
 		" ]\n"
 		"  -p,--path path          set the path alsaplayer looks for add-ons\n"
-#if 0
-		"  -q,--quiet              quiet operation. no output\n"
-#endif
+		"  -q,--quiet              quiet operation. less output\n"
 		"  -r,--realtime           enable realtime scheduling (with proper rights)\n"
 		"  -s,--session-name name  name this session \"name\"\n"
 		"  -v,--version            print version of this program\n"

@@ -43,6 +43,8 @@
 
 #define NR_BLOCKS	30
 
+extern int global_quiet;
+
 static char addon_dir[1024];
 static bool going = false;
 static pthread_mutex_t finish_mutex;
@@ -138,11 +140,16 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 	// Fall through console player
 	pthread_mutex_lock(&finish_mutex);
 
+	// playlist loop
+	//
 	while(going && (coreplayer = playlist->GetCorePlayer()) &&
 			(coreplayer->IsActive() || coreplayer->IsPlaying() ||
 			 playlist->GetCurrent() != playlist->Length())) {
 		unsigned long secs, t_min, t_sec, c_min, c_sec;
 		t_min = t_sec = c_min = c_sec = 0;
+
+		// single title loop
+		//
 		while (going && (coreplayer->IsActive() || coreplayer->IsPlaying())) {
 			int cur_val, block_val, i;
 			coreplayer->GetStreamInfo(&info);
@@ -155,6 +162,12 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 					fprintf(stdout, "\nPlaying: (no information available)\n");
 				memcpy(&old_info, &info, sizeof(stream_info));
 			}
+
+			if (global_quiet) {
+				dosleep(1000000);
+				continue;
+			}
+
 			block_val = secs = coreplayer->GetCurrentTime(coreplayer->GetFrames());
 
 			if (secs == 0) {
@@ -182,7 +195,7 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 			//printf("%d - %d\n", block_val, cur_val);
 			fprintf(stdout, "[");
 			for (i = 0; i < NR_BLOCKS; i++) {
-				fprintf(stdout, "%c", cur_val >= i ? '*':' ');
+				fputc(cur_val >= i ? '*':' ', stdout);
 			}
 			fprintf(stdout,"] (%03d/%03d)  ",
 				playlist->GetCurrent(), playlist->Length());
