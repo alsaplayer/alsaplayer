@@ -712,6 +712,7 @@ interface/gtk/pixmaps/Makefile
 interface/gtk/gui/Makefile
 interface/gtk2/Makefile
 interface/gtk2/pixmaps/Makefile
+interface/gtk2/glade/Makefile
 interface/text/Makefile
 interface/daemon/Makefile
 interface/xosd/Makefile
