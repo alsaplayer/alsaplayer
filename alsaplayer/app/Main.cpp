@@ -341,7 +341,7 @@ static void help()
 		"Available options:\n"
 		"\n"
 		"  -b,--background         fork to background (useful for daemon interfaces)\n"
-		"  -c,--config file	   use given config file for this session\n"
+		"  -c,--config file        use given config file for this session\n"
 		"  -d,--device string      select card and device [default=\"default\"]\n"
 		"  -e,--enqueue file(s)    queue files in running alsaplayer\n"
 		"  -E,--replace file(s)    clears and queues files in running alsaplayer\n"
@@ -854,8 +854,11 @@ int main(int argc, char **argv)
 	playlist->Save(prefs_path, PL_FORMAT_M3U);
 
 	// Save preferences
-	if (ap_prefs)
-		prefs_save(ap_prefs);
+	if (ap_prefs) {
+		if (prefs_save(ap_prefs) < 0) {
+			alsaplayer_error("failed to save preferences.");
+		}
+	}	
 
 _fatal_err:
 	delete playlist;
