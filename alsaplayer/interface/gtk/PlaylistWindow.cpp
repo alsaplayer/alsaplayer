@@ -253,6 +253,15 @@ void playlist_remove(GtkWidget *widget, gpointer data)
 	}
 }
 
+
+// Called when shuffle button clicked
+void shuffle_cb(GtkWidget *widget, gpointer data)
+{
+	Playlist *playlist = (Playlist *)data;
+	if (playlist)
+		playlist->Shuffle();
+}
+
 // Called when clear button clicked
 void clear_cb(GtkWidget *widget, gpointer data)
 {
@@ -519,6 +528,9 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 	gtk_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(playlist_window_gtk->save_list)->ok_button),
 		"clicked", GTK_SIGNAL_FUNC(save_list_ok), (gpointer)playlist_window_gtk);
 
+	working = get_widget(playlist_window, "shuffle_button");
+	gtk_signal_connect(GTK_OBJECT(working), "clicked",
+		GTK_SIGNAL_FUNC(shuffle_cb), playlist);
 	working = get_widget(playlist_window, "add_button");
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
 		GTK_SIGNAL_FUNC(dialog_popup), (gpointer)playlist_window_gtk->add_file);

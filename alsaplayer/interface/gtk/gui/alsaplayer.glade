@@ -446,7 +446,7 @@
   <class>GtkWindow</class>
   <name>playlist_window</name>
   <width>480</width>
-  <height>250</height>
+  <height>270</height>
   <title>Queue</title>
   <type>GTK_WINDOW_TOPLEVEL</type>
   <position>GTK_WIN_POS_NONE</position>
@@ -586,40 +586,6 @@
 
 	<widget>
 	  <class>GtkButton</class>
-	  <name>del_button</name>
-	  <can_focus>True</can_focus>
-	  <label>remove</label>
-	  <relief>GTK_RELIEF_NORMAL</relief>
-	  <child>
-	    <padding>0</padding>
-	    <expand>False</expand>
-	    <fill>True</fill>
-	  </child>
-	</widget>
-
-	<widget>
-	  <class>GtkButton</class>
-	  <name>clear_button</name>
-	  <can_focus>True</can_focus>
-	  <label>clear</label>
-	  <relief>GTK_RELIEF_NORMAL</relief>
-	  <child>
-	    <padding>0</padding>
-	    <expand>False</expand>
-	    <fill>True</fill>
-	  </child>
-	</widget>
-
-	<widget>
-	  <class>Placeholder</class>
-	</widget>
-
-	<widget>
-	  <class>Placeholder</class>
-	</widget>
-
-	<widget>
-	  <class>GtkButton</class>
 	  <name>close_button</name>
 	  <can_focus>True</can_focus>
 	  <label>close</label>
@@ -628,7 +594,59 @@
 	    <padding>0</padding>
 	    <expand>False</expand>
 	    <fill>True</fill>
+	    <pack>GTK_PACK_END</pack>
 	  </child>
+	</widget>
+
+	<widget>
+	  <class>GtkButton</class>
+	  <name>shuffle_button</name>
+	  <can_focus>True</can_focus>
+	  <label>shuffle</label>
+	  <relief>GTK_RELIEF_NORMAL</relief>
+	  <child>
+	    <padding>0</padding>
+	    <expand>False</expand>
+	    <fill>False</fill>
+	  </child>
+	</widget>
+
+	<widget>
+	  <class>GtkVBox</class>
+	  <name>vbox24</name>
+	  <homogeneous>False</homogeneous>
+	  <spacing>0</spacing>
+	  <child>
+	    <padding>18</padding>
+	    <expand>False</expand>
+	    <fill>True</fill>
+	  </child>
+
+	  <widget>
+	    <class>GtkButton</class>
+	    <name>del_button</name>
+	    <can_focus>True</can_focus>
+	    <label>remove</label>
+	    <relief>GTK_RELIEF_NORMAL</relief>
+	    <child>
+	      <padding>0</padding>
+	      <expand>False</expand>
+	      <fill>False</fill>
+	    </child>
+	  </widget>
+
+	  <widget>
+	    <class>GtkButton</class>
+	    <name>clear_button</name>
+	    <can_focus>True</can_focus>
+	    <label>clear</label>
+	    <relief>GTK_RELIEF_NORMAL</relief>
+	    <child>
+	      <padding>6</padding>
+	      <expand>False</expand>
+	      <fill>False</fill>
+	    </child>
+	  </widget>
 	</widget>
       </widget>
     </widget>
