@@ -212,7 +212,7 @@ static int jack_open(char *name)
 			alsaplayer_error("jack driver will not try to reconnect");
 			jack_reconnect = 0;
 		} else {
-			alsaplayer_error("Unkown jack parameter: %s", t);
+			/* alsaplayer_error("Unkown jack parameter: %s", t); */
 		}	
 	}
 
@@ -234,6 +234,9 @@ static int jack_start_callbacks(void *data)
 static void jack_close()
 {
 	if (client) {
+		alsaplayer_error("Deactivating client");
+		jack_deactivate(client);
+		alsaplayer_error("Closing client");
 		jack_client_close (client);
 		client = (jack_client_t *)NULL;
 	}	
