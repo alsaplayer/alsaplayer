@@ -133,7 +133,7 @@ int jack_prepare(void *arg)
 			alsaplayer_error("zero buffer size");
 			return -1;
 		}
-		if ((mix_buffer = (char *)malloc(bufsize*4)) == NULL) {
+		if ((mix_buffer = (char *)malloc(bufsize*8)) == NULL) {
 			alsaplayer_error("cannot allocate mix buffer memory");
 			return 1;
 		}	
