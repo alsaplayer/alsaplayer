@@ -56,7 +56,7 @@ static int alsa_open(char *name)
 	}
 	err = snd_output_stdio_attach(&errlog, stderr, 0);
 	if (err < 0) {
-		alsaplayer_errro("snd_output_stdio_attach: %s", snd_strerror(err));
+		alsaplayer_error("snd_output_stdio_attach: %s", snd_strerror(err));
 		return 0;
 	}
 	return 1;
