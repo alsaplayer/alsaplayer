@@ -15,47 +15,47 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */ 
+#ifndef __CONTROL_SOCKET_H__
+#define __CONTROL_SOCKET_H__
 
-#define SOCKET_CONTROL_BASE_VERSION		0x1000
-#define SOCKET_CONTROL_VERSION				(SOCKET_CONTROL_BASE_VERSION + 1)
-
-typedef enum {
-	TYPE_INT8 = 0x1,
-	TYPE_INT16,
-	TYPE_INT32,
-	TYPE_FLOAT,
-	TYPE_STRING,
-	TYPE_NONE
-} PayloadType;
+#define AP_CONTROL_BASE_VERSION		0x1000
+#define AP_CONTROL_VERSION				(AP_CONTROL_BASE_VERSION + 1)
 
 typedef enum  {
-	CMD_PLAY = 0x1,
-	CMD_STOP,
-	CMD_NEXT,
-	CMD_PREV,
-	CMD_PAUSE,
-	CMD_PING,
-	CMD_GET_NAME,
-	CMD_GET_SONGNAME,
-	CMD_GET_SONGLENGTH,
-	CMD_GET_CURRENTTIME,
-	CMD_SET_VOLUME,
-	CMD_SET_POS,
-	CMD_SET_SPEED,
-	CMD_GET_VOLUME,
-	CMD_GET_POS,
-	CMD_GET_SPEED
-} CommandType;	
+	AP_DO_PLAY = 0x1,
+	AP_DO_STOP,
+	AP_DO_NEXT,
+	AP_DO_PREV,
+	AP_DO_PAUSE,
+	AP_GET_FLOAT_PING,
+	AP_SET_FLOAT_VOLUME,
+	AP_GET_FLOAT_VOLUME,
+	AP_SET_FLOAT_SPEED,
+	AP_GET_FLOAT_SPEED,
+	AP_GET_STRING_SESSION_NAME,
+	AP_GET_STRING_SONG_NAME,
+	AP_GET_INT_SONG_LENGTH,
+	AP_GET_INT_CURRENT_TIME,
+	AP_SET_INT_POS,
+	AP_GET_INT_POS
+} ap_cmd_t;	
 
-struct _ap_msg {
+struct _ap_pkt {
 	int version;			
-	CommandType cmd_type;
-	PayloadType pld_type;
-	int length;
+	ap_cmd_t cmd;
+	int pld_length;
+	void *payload;
 };	
 	
-typedef struct _ap_msg ap_msg_t;
+typedef struct _ap_pkt ap_pkt_t;
 
-int  AP_Connect(int session);
-int  AP_SendMessage(int session_id, ap_msg_t *msg, ap_msg_t *reply);
+int ap_connect_session(int session);
+int ap_do(int session, ap_cmd_t cmd);
+int ap_get_int(int session, ap_cmd_t cmd);
+int ap_set_int(int session ,ap_cmd_t cmd, int val);
+float ap_get_float(int session, ap_cmd_t cmd);
+int ap_set_float(int session, ap_cmd_t cmd, float val);
+int ap_get_string(int session, ap_cmd_t cmd, char *str);
+int ap_set_string(int session, ap_cmd_t cmd, char *str);
 
+#endif
