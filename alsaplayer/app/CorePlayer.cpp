@@ -1106,13 +1106,12 @@ void CorePlayer::producer_func(void *data)
 				break;
 			}
 		} else {
-#if 0
-			alsaplayer_error("producer: going to wait for a free buffer");
-#endif
+			//alsaplayer_error("producer: waiting for free buffer");
 			pthread_mutex_lock(&obj->counter_mutex);
-#if 0
-			alsaplayer_error("producer: unblocked");
-#endif
+			//alsaplayer_error("producer: unblocked");
+#ifdef TOP_HACK			
+			usleep(1000);
+#endif			
 		}	
 	}
 	//alsaplayer_error("Exitting producer_func (producing = %d)", obj->producing);

@@ -48,6 +48,7 @@ static GdkColor *select_color = NULL;
 static GdkColor *default_color = NULL;
 static int current_entry = -1;
 void playlist_play_current(Playlist *playlist, GtkWidget *gtklist);
+void dialog_popup(GtkWidget *widget, gpointer data);
 
 // Member functions
 
@@ -608,6 +609,10 @@ void playlist_window_keypress(GtkWidget *widget, GdkEventKey *event, gpointer da
 
 	//alsaplayer_error("Key pressed!");
 	switch(event->keyval) {
+		case GDK_Insert:
+			dialog_popup(widget, (gpointer)
+				playlist_window_gtk->add_file);
+			break;	
 		case GDK_Delete:
 			playlist_remove(widget, data);
 			break;

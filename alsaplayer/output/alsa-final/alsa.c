@@ -29,7 +29,7 @@
 #include "alsaplayer_error.h"
 
 #define LOW_FRAGS	1	
-//#define QUEUE_COUNT
+#define QUEUE_COUNT
 
 static snd_pcm_t *sound_handle;
 static snd_output_t *errlog;
@@ -211,12 +211,21 @@ static int alsa_set_sample_rate(int rate)
 	return output_rate;
 }
 
-#ifdef QUEUE_COUNT
 static int alsa_get_queue_count()
 {
-	return 0;
+	snd_pcm_status_t *status;
+	snd_pcm_uframes_t avail;
+	int err;
+
+	snd_pcm_status_alloca(&status);
+	if ((err = snd_pcm_status(sound_handle, status))<0) {
+		alsaplayer_error("can't determine statis");
+		return 0;
+	}	
+	avail = snd_pcm_status_get_avail(status);				
+	//printf("available = %d\n", avail);
+	return ((int)avail);
 }
-#endif
 
 static int alsa_get_latency()
 {
