@@ -160,7 +160,6 @@ static void socket_looper(void *arg)
 				break;
 			case AP_ADD_PLAYLIST:
 				if ((path = ap_message_find_string(msg, "path1"))) {
-					alsaplayer_error("adding playlist: %s\n", path);
 					playlist->Load(path, playlist->Length(), 0);
 				}	
 				ap_message_add_int32(reply, "ack", 1);
