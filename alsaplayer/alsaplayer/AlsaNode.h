@@ -64,6 +64,7 @@ class AlsaNode
 	subscriber subs[MAX_SUB]; 
 	pthread_mutex_t queue_mutex; 
 	pthread_mutex_t thread_mutex;
+	void *handle;
 	int count;
 	int follow_id; 
 	int fragment_size;
@@ -85,6 +86,7 @@ class AlsaNode
 	int SamplingRate() { return sample_freq; }
 	int SetStreamBuffers(int frag_size, int count, int channels);
 	int RegisterPlugin(output_plugin *the_plugin);
+	int RegisterPlugin(const char *plugin = NULL);
 	int GetLatency();
 	int GetFragmentSize() { return fragment_size; }
 	void StartStreaming();

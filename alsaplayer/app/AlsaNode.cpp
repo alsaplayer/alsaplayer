@@ -25,6 +25,7 @@
 #include "prefs.h"
 #include <sys/mman.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #ifdef USE_REALTIME
 #include <sched.h>
 #endif
@@ -33,9 +34,24 @@
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "AlsaNode.h"
 #include "utilities.h"
 #include "alsaplayer_error.h"
+
+static const char *default_output_addons[] = {
+	{"alsa"},
+	{"jack"},
+	{"oss"},
+	{"nas"},
+	{"sparc"},
+	{"sgi"},
+	{"esound"},
+	{"null"},
+	NULL
+};
+
+
 
 extern void exit_sighandler(int);
 
@@ -94,6 +110,84 @@ AlsaNode::~AlsaNode()
 		delete driver_args;
 		driver_args = NULL;
 	}	
+}
+
+
+int AlsaNode::RegisterPlugin(const char *module)
+{
+	char path[1024], *pluginroot;
+	void *our_handle;
+	struct stat statbuf;
+	output_plugin_info_type output_plugin_info;
+	
+	if (!global_pluginroot)
+		 pluginroot = ADDON_DIR;
+	else
+		pluginroot = global_pluginroot;
+	
+	if (module) {
+		snprintf(path, sizeof(path), "%s/output/lib%s_out.so", pluginroot, module);
+		if (stat(path, &statbuf) != 0) {
+			return false;
+		}
+		if ((our_handle = dlopen(path, RTLD_NOW | RTLD_GLOBAL))) {
+			output_plugin_info =
+				(output_plugin_info_type) dlsym(our_handle,
+								"output_plugin_info");
+			if (output_plugin_info) {
+				if (RegisterPlugin(output_plugin_info())) {
+					return true;
+				}
+				dlclose(our_handle);
+				alsaplayer_error("Failed to register plugin: %s", path);
+				return false;
+			} else {
+				alsaplayer_error("Symbol error in shared object: %s", path);
+				dlclose(our_handle);
+				return false;
+			}
+		} else {
+			alsaplayer_error("%s\n", dlerror());
+		}
+	} else {
+		for (int i = 0; default_output_addons[i]; i++) {
+			snprintf(path, sizeof(path)-1, "%s/output/lib%s_out.so", pluginroot,
+					default_output_addons[i]);
+			if (stat(path, &statbuf) != 0)
+				continue;
+			if ((our_handle = dlopen(path, RTLD_NOW | RTLD_GLOBAL))) {
+				output_plugin_info =
+					(output_plugin_info_type) dlsym(our_handle, "output_plugin_info");
+				if (output_plugin_info) {
+#ifdef DEBUG
+					alsaplayer_error("Loading output plugin: %s", path);
+#endif
+					if (RegisterPlugin(output_plugin_info())) {
+						if (!ReadyToRun()) {
+							alsaplayer_error("%s failed to init", path);
+							continue;       // This is not clean
+						}
+						return true;    // Return as soon as we load one successfully!
+					} else {
+						alsaplayer_error("%s failed to load", path);
+					}
+				} else {
+					alsaplayer_error("could not find symbol in shared object");
+				}
+				dlclose(our_handle);
+			} else {
+				alsaplayer_error("%s\n", dlerror());
+			}
+		}
+	}
+	// If we arrive here it means we haven't found any suitable output-addons
+	alsaplayer_error
+		("\nI could not find a suitable output module on your\n"
+		 "system. Make sure they're in \"%s/output/\".\n"
+		 "Use the -o parameter to select one.\n", pluginroot);
+	return false;
+
+
 }
 
 
