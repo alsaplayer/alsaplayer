@@ -109,8 +109,6 @@ gboolean	    ap_playlist_is_looping_playlist	(ApPlaylist	*playlist);
 
 void		    ap_playlist_update_playitem		(ApPlaylist	*playlist,
 							 ApPlayItem	*playitem);
-void		    ap_playlist_playitem_updated	(ApPlaylist	*playlist,
-							 ApPlayItem	*playitem);
 
 #ifdef __cplusplus
 }

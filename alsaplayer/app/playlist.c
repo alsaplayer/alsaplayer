@@ -57,33 +57,6 @@ static gpointer ap_playlist_info_thread	    (gpointer		data);
 static gpointer		parent_class = NULL;
 
 /* --- functions --- */
-GType
-ap_playlist_get_type (void)
-{
-    static GType type = 0;
-    static const GTypeInfo playlist_info = {
-	sizeof (ApPlaylistClass),
-	NULL,
-        NULL,
-        (GClassInitFunc) ap_playlist_class_init,
-        NULL,
-        NULL,
-        sizeof (ApPlaylist),
-        0,
-        (GInstanceInitFunc) ap_playlist_init,
-        NULL
-    };
-
-    if (!type) {
-	/* First time create */
-	type = g_type_register_static (G_TYPE_OBJECT,	/* Parent Type */
-				       "ApPlaylist",	/* Name */
-				       &playlist_info,	/* Type Info */
-				       0);		/* Flags */
-    }
-
-    return type;
-}; /* ap_playlist_object_get_type */
 
 static void
 ap_playlist_class_init (ApPlaylistClass *class)
@@ -271,6 +244,94 @@ ap_playlist_get_property (GObject	*object,
     }
 } /* ap_playlist_set_property */
 
+gpointer
+ap_playlist_info_thread (gpointer data)
+{
+    /* We don't need to ref playlist, since this thread exists
+     * while playlist life only. */
+    ApPlaylist	*playlist = AP_PLAYLIST (data);
+
+    /* Ref queue. Just for fun. */
+    g_async_queue_ref (playlist->info_queue);
+
+    /* infty loop */
+    while (1) {
+	ApPlayItem *playitem = g_async_queue_pop (playlist->info_queue);
+
+	if (ap_playitem_get_filename (playitem) == NULL) {
+	    /* This is the last item.
+	     * It signals us to exit thread.
+	     */
+	    g_object_unref (playitem);
+	    break;
+	}
+
+	if (!playlist->info_thread_active) {
+	    /* Thread is going to shutdown.
+	     * So skip real updating.
+	     */
+	    g_object_unref (playitem);
+	    continue;
+	}
+	
+	/* TODO: Make the real info filling.
+	 * But now, we just emulate it ;)
+	 */
+	g_print ("info thread fills %p\n", playitem);
+	ap_playitem_set_title (playitem, "Updated");
+	g_usleep (500000);
+
+	/* Emit "playitem-updated" signal */
+	g_signal_emit_by_name (playlist, "playitem-updated", playitem);
+
+	/* it was refed in ap_playlist_update_playitem */
+	g_object_unref (playitem);
+    }
+
+    /* Unref queue before exit. */
+    g_async_queue_unref (playlist->info_queue);
+    
+    return NULL;
+}
+
+/* Public functions. */
+
+/**
+ * ap_playlist_get_type:
+ *
+ * Register the &ApPlaylistClass if necessary,
+ * and returns the type ID associated to it.
+ *
+ * Return value: The type ID of the &ApPlaylistClass.
+ **/
+GType
+ap_playlist_get_type (void)
+{
+    static GType type = 0;
+    static const GTypeInfo playlist_info = {
+	sizeof (ApPlaylistClass),
+	NULL,
+        NULL,
+        (GClassInitFunc) ap_playlist_class_init,
+        NULL,
+        NULL,
+        sizeof (ApPlaylist),
+        0,
+        (GInstanceInitFunc) ap_playlist_init,
+        NULL
+    };
+
+    if (!type) {
+	/* First time create */
+	type = g_type_register_static (G_TYPE_OBJECT,	/* Parent Type */
+				       "ApPlaylist",	/* Name */
+				       &playlist_info,	/* Type Info */
+				       0);		/* Flags */
+    }
+
+    return type;
+}; /* ap_playlist_object_get_type */
+
 void
 ap_playlist_pause (ApPlaylist *playlist)
 {
@@ -373,56 +434,15 @@ ap_playlist_is_looping_playlist (ApPlaylist *playlist)
     return playlist->looping_playlist;
 } /* ap_playitem_set_playtime */
 
-gpointer
-ap_playlist_info_thread (gpointer data)
-{
-    /* We don't need to ref playlist, since this thread exists
-     * while playlist life only. */
-    ApPlaylist	*playlist = AP_PLAYLIST (data);
-
-    /* Ref queue. Just for fun. */
-    g_async_queue_ref (playlist->info_queue);
-
-    /* infty loop */
-    while (1) {
-	ApPlayItem *playitem = g_async_queue_pop (playlist->info_queue);
-
-	if (ap_playitem_get_filename (playitem) == NULL) {
-	    /* This is the last item.
-	     * It signals us to exit thread.
-	     */
-	    g_object_unref (playitem);
-	    break;
-	}
-
-	if (!playlist->info_thread_active) {
-	    /* Thread is going to shutdown.
-	     * So skip real updating.
-	     */
-	    g_object_unref (playitem);
-	    continue;
-	}
-	
-	/* TODO: Make the real info filling.
-	 * But now, we just emulate it ;)
-	 */
-	g_print ("info thread fills %p\n", playitem);
-	ap_playitem_set_title (playitem, "Updated");
-	g_usleep (500000);
-
-	/* Emit "playitem-updated" signal */
-	ap_playlist_playitem_updated (playlist, playitem);
-
-	/* it was refed in ap_playlist_update_playitem */
-	g_object_unref (playitem);
-    }
-
-    /* Unref queue before exit. */
-    g_async_queue_unref (playlist->info_queue);
-    
-    return NULL;
-}
-
+/**
+ * ap_playlist_update_playitem:
+ * @playlist: a PyPlaylist
+ * @playitem: playitem to update
+ *
+ * Queue @playitem for update. You can track end of the
+ * updating proecess via the "playitem-updated" signal.
+ *
+ **/
 void
 ap_playlist_update_playitem (ApPlaylist	    *playlist,
 			     ApPlayItem	    *playitem)
@@ -433,14 +453,4 @@ ap_playlist_update_playitem (ApPlaylist	    *playlist,
 
     g_object_ref (playitem);
     g_async_queue_push (playlist->info_queue, playitem);
-}
-
-void
-ap_playlist_playitem_updated (ApPlaylist	*playlist,
-			      ApPlayItem	*playitem)
-{
-    g_return_if_fail (AP_IS_PLAYLIST (playlist));
-    g_return_if_fail (AP_IS_PLAYITEM (playitem));
-
-    g_signal_emit_by_name (playlist, "playitem-updated", playitem);
 }
