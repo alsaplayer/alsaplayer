@@ -496,22 +496,25 @@ static void parse_id3 (const char *path, stream_info *info)
 	    int name_size = buf [3] == 2 ? 3 : 4;
 
 	    if (f_extended_header) {
-		alsaplayer_error ("FIXME: Extended header founded in mp3."
-				  "Please contact alsaplayer team.\n");
+		alsaplayer_error ("FIXME: Extended header found in mp3."
+				  "Please contact alsaplayer team.\n"
+				  "Filename: %s", path);
 		reader_close (fd);
 		return;
 	    }
 
 	    if (f_unsynchronization) {
 		alsaplayer_error ("FIXME: f_unsynchronization is set."
-				  "Please contact alsaplayer team.\n");
+				  "Please contact alsaplayer team.\n"
+				  "Filename: %s", path);
 		reader_close (fd);
 		return;
 	    }
 
 	    if (f_experimental) {
 		alsaplayer_error ("FIXME: f_experimental is set."
-				  "Please contact alsaplayer team.\n");
+				  "Please contact alsaplayer team.\n"
+				  "Filename: %s", path);
 		reader_close (fd);
 		return;
 	    }
@@ -706,6 +709,7 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 		}
 		memset(metadata, 0, sizeof(metadata));
 		if ((len = reader_metadata(data->mad_fd, sizeof(metadata), metadata))) {
+			//alsaplayer_error("Metadata: %s", metadata);
 			if ((s = strstr(metadata, "StreamTitle='"))) {
 				s += 13;
 				if ((p = strstr(s, "'"))) {
@@ -842,8 +846,9 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 			pos++;
 		}				
 	}
-	printf("MAD debug: potential problem file or unhandled info block,"
-			" next 4 bytes =  %x %x %x %x (index = %d, size = %d)\n",
+	alsaplayer_error(
+		"MAD debug: potential problem file or unhandled info block\n"
+		"next 4 bytes =  %x %x %x %x (index = %d, size = %d)\n",
 			data[header_size], data[header_size+1],
 			data[header_size+2], data[header_size+3],
 			(int)header_size, size);
