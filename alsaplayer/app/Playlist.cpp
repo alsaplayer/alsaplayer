@@ -94,6 +94,7 @@ class PlInsertItems {
 
 // Thread which performs an insert to playlist
 void insert_thread(void *data) {
+	std::set<PlaylistInterface *>::const_iterator i;
 #ifdef DEBUG
 	printf("THREAD-%d=insert thread\n", getpid());
 #endif /* DEBUG */
@@ -102,13 +103,17 @@ void insert_thread(void *data) {
 	Playlist *playlist = items->playlist;
 
 	// Stop the list being changed while we add these items
+	for(i = playlist->interfaces.begin();
+			i != playlist->interfaces.end(); i++) {
+			(*i)->CbLock();
+		}	
 	playlist->Lock();
 
   // First vetting of the list, and recurse through directories
 	std::vector<std::string> vetted_items;
-	std::vector<std::string>::const_iterator i = items->items.begin();
-	while(i != items->items.end()) {
-		additems(&(vetted_items), *i++, MAXRECURSEDEPTH);
+	std::vector<std::string>::const_iterator j = items->items.begin();
+	while(j != items->items.end()) {
+		additems(&(vetted_items), *j++, MAXRECURSEDEPTH);
 	}
 	std::vector<PlayItem> newitems;
 	if(vetted_items.size() > 0) {
@@ -156,16 +161,18 @@ void insert_thread(void *data) {
 		std::set<PlaylistInterface *>::const_iterator i;
 		for(i = playlist->interfaces.begin();
 			i != playlist->interfaces.end(); i++) {
-			(*i)->CbLock();
 			(*i)->CbInsert(newitems, items->position);
 			(*i)->CbSetCurrent(playlist->curritem);
-			(*i)->CbUnlock();
 		}	
 	}
 
 	// Free the list again
 #endif	
 	playlist->Unlock();
+	for(i = playlist->interfaces.begin();
+			i != playlist->interfaces.end(); i++) {
+			(*i)->CbUnlock();
+	}	
 	delete items;
 	pthread_exit(NULL);
 }
@@ -179,8 +186,7 @@ Playlist::Playlist(CorePlayer *p_new) {
 	
 	active = true;
 	pthread_mutex_init(&playlist_mutex, NULL);
-	pthread_create(&playlist_thread, NULL,
-				   (void * (*)(void *))playlist_looper, this);
+	pthread_create(&playlist_thread, NULL, (void * (*)(void *))playlist_looper, this);
 }
 
 
@@ -201,14 +207,11 @@ Playlist::Playlist(AlsaNode *the_node) {
 	UnCrossfade();		// and crossfading
 
 	pthread_mutex_init(&playlist_mutex, NULL);
-	pthread_create(&playlist_thread, NULL,
-				   (void * (*)(void *))playlist_looper, this);
+	pthread_create(&playlist_thread, NULL, (void * (*)(void *))playlist_looper, this);
 }	
 
 
 Playlist::~Playlist() {
-	// Nasty hack to stop other thread (should use pthread_cancel)
-	// but we're going to replace this anyway
 	active = false;
 	pthread_cancel(playlist_thread);
 	pthread_join(playlist_thread, NULL);
@@ -225,9 +228,8 @@ Playlist::~Playlist() {
 		delete player1;
 	if (player2)
 		delete player2;
-	
-	pthread_mutex_lock(&playlist_mutex); // Acquire the playlist lock
-																			 // Before destroying it
+
+	Lock();
 	pthread_mutex_destroy(&playlist_mutex);
 }
 
@@ -237,8 +239,16 @@ unsigned Playlist::Length() {
 }
 
 // Request to move to specified item
-void Playlist::Play(unsigned item) {
-	pthread_mutex_lock(&playlist_mutex);
+void Playlist::Play(unsigned item, int locking) {
+	std::set<PlaylistInterface *>::const_iterator i;
+	
+	if (locking) {
+		for(i = interfaces.begin(); i != interfaces.end(); i++) {
+			(*i)->CbLock();
+		}
+	}	
+	Lock();
+
 	if(item < 1) item = 1;
 	if(item <= queue.size()) {
 		curritem = item;
@@ -253,17 +263,31 @@ void Playlist::Play(unsigned item) {
 
 	// Tell the subscribing interfaces about the change
 	if(interfaces.size() > 0) {
-		std::set<PlaylistInterface *>::const_iterator i;
+		//std::set<PlaylistInterface *>::const_iterator i;
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
 			(*i)->CbSetCurrent(curritem);
 		}
 	}
-	pthread_mutex_unlock(&playlist_mutex);
+	
+	Unlock();
+	if (locking) {
+		for(i = interfaces.begin(); i != interfaces.end(); i++) {
+			(*i)->CbUnlock();
+		}
+	}	
 }
 
 // Request to move to next item
 void Playlist::Next(int locking) {
-	pthread_mutex_lock(&playlist_mutex);
+	//alsaplayer_error("In Next...%d", locking);
+	std::set<PlaylistInterface *>::const_iterator i;
+	
+	if (locking) {
+		for(i = interfaces.begin(); i != interfaces.end(); i++) {
+			(*i)->CbLock();
+		}
+	}	
+	Lock();	
 	unsigned olditem = curritem;
 	if(queue.size() > 0) {
 	  if(curritem < queue.size()) {
@@ -291,22 +315,31 @@ void Playlist::Next(int locking) {
 		printf("Curritem = %d, Size = %d\n", curritem, queue.size());
 #endif /* DEBUG */
 		if(interfaces.size() > 0) {
-			std::set<PlaylistInterface *>::const_iterator i;
 			for(i = interfaces.begin(); i != interfaces.end(); i++) {
-				if (locking)
-					(*i)->CbLock();
 				(*i)->CbSetCurrent(curritem);
-				if (locking)
-					(*i)->CbUnlock();
 			}
 		}
 	}
-	pthread_mutex_unlock(&playlist_mutex);
+	Unlock();
+	if (locking) {
+		for(i = interfaces.begin(); i != interfaces.end(); i++) {
+			(*i)->CbUnlock();
+		}
+	}	
 }
 
 // Request to move to previous item
 void Playlist::Prev(int locking) {
-	pthread_mutex_lock(&playlist_mutex);
+	//alsaplayer_error("In Prev...%d", locking);
+	std::set<PlaylistInterface *>::const_iterator i;
+	
+	if (locking) {
+		for(i = interfaces.begin(); i != interfaces.end(); i++) {
+			(*i)->CbLock();
+		}
+	}	
+	Lock();
+
 	unsigned olditem = curritem;
 	if(curritem > queue.size()) {
 		curritem = queue.size();
@@ -326,27 +359,32 @@ void Playlist::Prev(int locking) {
 		if(interfaces.size() > 0) {
 			std::set<PlaylistInterface *>::const_iterator i;
 			for(i = interfaces.begin(); i != interfaces.end(); i++) {
-				if (locking)
-					(*i)->CbLock();
 				(*i)->CbSetCurrent(curritem);
-				if (locking)
-					(*i)->CbUnlock();
 			}
 		}
 	}
-	pthread_mutex_unlock(&playlist_mutex);
+
+	Unlock();
+	if (locking) {
+		for(i = interfaces.begin(); i != interfaces.end(); i++) {
+			(*i)->CbUnlock();
+		}
+	}	
 }
 
 
 void Playlist::Lock()
 {
+	//alsaplayer_error("Getting playlist lock");
 	pthread_mutex_lock(&playlist_mutex);
+	//alsaplayer_error("Got playlist lock....");
 }
 
 
 void Playlist::Unlock()
 {
 	pthread_mutex_unlock(&playlist_mutex);
+	//alsaplayer_error("Released playlist lock...");
 }
 
 
@@ -371,6 +409,7 @@ void Playlist::Insert(std::vector<std::string> const & paths, unsigned position)
 	//    inform it of the change
 	pthread_create(&adder, NULL,
 				   (void * (*)(void *))insert_thread, (void *)items);
+	pthread_detach(adder);
 
 	//insert_thread(items);
 }
@@ -403,7 +442,7 @@ void Playlist::Remove(unsigned start, unsigned end) {
 	if(end < 1) end = 1;
 	if(end > queue.size()) end = queue.size();
 
-	pthread_mutex_lock(&playlist_mutex);
+	Lock();
 
 	queue.erase(queue.begin() + start - 1, queue.begin() + end);
 
@@ -427,38 +466,52 @@ void Playlist::Remove(unsigned start, unsigned end) {
 			(*i)->CbSetCurrent(curritem);
 		}
 	}
-	pthread_mutex_unlock(&playlist_mutex);
+	Unlock();
 }
 
 
 // Randomize playlist
 void Playlist::Shuffle(int locking) {
-	pthread_mutex_lock(&playlist_mutex);
+	std::set<PlaylistInterface *>::const_iterator i;
+	if (locking) {
+		for(i = interfaces.begin(); i != interfaces.end(); i++) {
+			(*i)->CbLock();
+		}
+	}	
+	Lock();
 
 	random_shuffle(queue.begin(), queue.end());
 	
 	// Tell the subscribing interfaces about the change
 	if(interfaces.size() > 0) {
-		std::set<PlaylistInterface *>::const_iterator i;
 		// Clear and repopulate
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			if (locking)
-				(*i)->CbLock();
 			(*i)->CbClear();
 			(*i)->CbInsert(queue, 0);
 			curritem = 0;
 			(*i)->CbSetCurrent(curritem);
-			if (locking)
-				(*i)->CbUnlock();
 		}
 	}
 
-	pthread_mutex_unlock(&playlist_mutex);
+	Unlock();
+	if (locking) {
+		for(i = interfaces.begin(); i != interfaces.end(); i++) {
+			(*i)->CbLock();
+		}
+	}	
 }	
 
 // Empty playlist
 void Playlist::Clear(int locking) {
-	pthread_mutex_lock(&playlist_mutex);
+	std::set<PlaylistInterface *>::const_iterator i;
+	
+	if (locking) {
+		for(i = interfaces.begin(); i != interfaces.end(); i++) {
+			(*i)->CbLock();
+		}
+	}	
+	Lock();
+	
 	queue.clear();
 	curritem = 0;
 #ifdef DEBUG
@@ -467,16 +520,17 @@ void Playlist::Clear(int locking) {
 
 	// Tell the subscribing interfaces about the change
 	if(interfaces.size() > 0) {
-		std::set<PlaylistInterface *>::const_iterator i;
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
-			if (locking)
-				(*i)->CbLock();
 			(*i)->CbClear();
-			if (locking)
-				(*i)->CbUnlock();
 		}
 	}
-	pthread_mutex_unlock(&playlist_mutex);
+
+	Unlock();
+	if (locking) {
+		for(i = interfaces.begin(); i != interfaces.end(); i++) {
+			(*i)->CbUnlock();
+		}
+	}	
 }
 
 enum plist_result
@@ -608,7 +662,7 @@ Playlist::Load(std::string const &file, unsigned position, bool force)
 }
 
 void Playlist::Register(PlaylistInterface * pl_if) {
-	pthread_mutex_lock(&playlist_mutex);
+	Lock();
 
 	interfaces.insert(pl_if);
 
@@ -619,16 +673,16 @@ void Playlist::Register(PlaylistInterface * pl_if) {
 	}
 	pl_if->CbSetCurrent(curritem);
 
-	pthread_mutex_unlock(&playlist_mutex);
+	Unlock();
 #ifdef DEBUG
 	printf("Registered new interface\n");
 #endif /* DEBUG */
 }
 
 void Playlist::UnRegister(PlaylistInterface * pl_if) {
-	pthread_mutex_lock(&playlist_mutex);
+	Lock();
 	interfaces.erase(interfaces.find(pl_if));
-	pthread_mutex_unlock(&playlist_mutex);
+	Unlock();
 #ifdef DEBUG
 	printf("Unregistered playlist interface\n");
 #endif /* DEBUG */

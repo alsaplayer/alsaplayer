@@ -69,6 +69,22 @@ bool surround_func(void *arg, void *data, int size)
 	return true;
 }
 
+
+void CorePlayer::Lock()
+{
+	//alsaplayer_error("Getting player lock...");
+	pthread_mutex_lock(&player_mutex);
+	//alsaplayer_error("Got player lock...");
+}
+
+
+void CorePlayer::Unlock()
+{
+	pthread_mutex_unlock(&player_mutex);
+	//alsaplayer_error("Released player lock...");
+}
+
+
 void CorePlayer::load_input_addons()
 {
 	char path[1024];
@@ -228,7 +244,7 @@ void CorePlayer::UnregisterPlugins()
 	
 	Stop();
 
-	pthread_mutex_lock(&player_mutex);
+	Lock();
 	for (int i = 0; i < plugin_count; i++) {
 		tmp = &plugins[i];
 		//alsaplayer_error("Unloading Input plugin: %s", tmp->name); 
@@ -238,7 +254,7 @@ void CorePlayer::UnregisterPlugins()
 			tmp = NULL;
 		}	
 	}		
-	pthread_mutex_unlock(&player_mutex);
+	Unlock();
 }
 
 int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
@@ -246,7 +262,7 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	int version;
 	input_plugin *tmp;
 	
-	pthread_mutex_lock(&player_mutex);	
+	Lock();
 	tmp = &plugins[plugin_count];
 	tmp->version = the_plugin->version;
 	if (tmp->version) {
@@ -254,7 +270,7 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 			alsaplayer_error("Wrong version number on plugin v%d, wanted v%d",
 					version - INPUT_PLUGIN_BASE_VERSION,
 					INPUT_PLUGIN_VERSION - INPUT_PLUGIN_BASE_VERSION);      
-			pthread_mutex_unlock(&player_mutex);
+			Unlock();
 			return 0;
 		}
 	}
@@ -280,7 +296,7 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 		plugin = tmp;
 	}
 	//alsaplayer_error("Loading Input plugin: %s", tmp->name);
-	pthread_mutex_unlock(&player_mutex);
+	Unlock();
 	return 1;
 }
 
@@ -289,12 +305,12 @@ unsigned long CorePlayer::GetCurrentTime(int frame)
 {
 	unsigned long result = 0;
 
-	pthread_mutex_lock(&player_mutex);
+	Lock();
 	if (plugin && the_object && the_object->ready) {
 		result = plugin->frame_to_sec(the_object, frame < 0 ? GetPosition()
 			: frame);
 	}
-	pthread_mutex_unlock(&player_mutex);
+	Unlock();
 
 	return result;
 }
@@ -310,7 +326,7 @@ int CorePlayer::GetPosition()
 
 		int frame_size = plugin->frame_size(the_object);
 		if (frame_size) 
-			return (read_buf->start + (read_buf->buf->GetReadIndex() * 4) / frame_size);
+			return (read_buf->start + (read_buf->buf->read_index * 4) / frame_size);
 		else
 			return 0;
 	} else {
@@ -323,10 +339,10 @@ int CorePlayer::GetFrames()
 {
 	int result = 0;
 
-	pthread_mutex_lock(&player_mutex);
+	Lock();
 	if (plugin && the_object && the_object->ready)
 		result = plugin->nr_frames(the_object);
-	pthread_mutex_unlock(&player_mutex);
+	Unlock();
 
 	return result;
 }
@@ -341,10 +357,10 @@ int CorePlayer::GetFrameSize()
 {
 	int result = 0;
 
-	pthread_mutex_lock(&player_mutex);
+	Lock();
 	if (plugin && the_object && the_object->ready)
 		result = plugin->frame_size(the_object);
-	pthread_mutex_unlock(&player_mutex);
+	Unlock();
 
 	return result;
 }
@@ -354,10 +370,10 @@ int CorePlayer::GetSampleRate()
 {
 	int result = 0;
 
-	pthread_mutex_lock(&player_mutex);
+	Lock();
 	if (plugin && the_object && the_object->ready)
 		result = plugin->sample_rate(the_object);
-	pthread_mutex_unlock(&player_mutex);
+	Unlock();
 
 	return result;
 }	
@@ -367,11 +383,11 @@ int CorePlayer::GetStreamInfo(stream_info *info)
 {
 	int result = 0;
 
-	pthread_mutex_lock(&player_mutex);
+	Lock();
 	if (plugin && plugin->stream_info && info && the_object) {
 		result = plugin->stream_info(the_object, info);
 	}
-	pthread_mutex_unlock(&player_mutex);
+	Unlock();
 
 	return result;		
 }
@@ -387,13 +403,12 @@ bool CorePlayer::Start(int reset)
 	int output_rate;
 	int tries;
 
-	pthread_mutex_lock(&player_mutex);
-
+	Lock();
 	Close();
 	
 	// First check if we have a filename to play
 	if (!Open()) {
-		pthread_mutex_unlock(&player_mutex);
+		Unlock();
 		return false;
 	}
 	producing = true; // So Read32() doesn't generate an error
@@ -430,7 +445,7 @@ bool CorePlayer::Start(int reset)
 	//alsaplayer_error("Prebuffering...");
 	// Wait for up to 5 seconds
 	tries = 500;
-	while (--tries && !AvailableBuffers() && IsPlaying()) { 
+	while (--tries && !AvailableBuffers() && producing) { 
 		//alsaplayer_error("Waiting for buffers...");
 		dosleep(10000);
 	}
@@ -443,14 +458,15 @@ bool CorePlayer::Start(int reset)
 	sub->Subscribe(node);
 	//alsaplayer_error("Starting streamer thread...");
 	sub->EnterStream(streamer_func, this);
-	pthread_mutex_unlock(&player_mutex);
+	Unlock();
+
 	return true;
 }  
 
 
 void CorePlayer::Stop(int streamer)
 {
-	pthread_mutex_lock(&player_mutex);
+	Lock();
 	if (sub) {
         	delete sub;
         	sub = NULL;
@@ -461,17 +477,17 @@ void CorePlayer::Stop(int streamer)
 #ifdef DEBUG	
 	alsaplayer_error("Waiting for producer_thread to finish...");
 #endif
-	pthread_cancel(producer_thread);
+	//pthread_cancel(producer_thread);
 	pthread_join(producer_thread, NULL); 
 	pthread_mutex_destroy(&counter_mutex);
 	pthread_mutex_init(&counter_mutex, NULL);
 	producer_thread = 0;
-#ifdef DEBUG	
-	alsaplayer_error("producer_func is gone now...");
-#endif
+	
+	//alsaplayer_error("producer_func is gone now...");
+	
 	ResetBuffer();
 	Close();
-	pthread_mutex_unlock(&player_mutex);
+	Unlock();
 }
 
 
@@ -575,6 +591,7 @@ bool CorePlayer::Open(const char *path = NULL)
 
 	plugin = best_plugin;
 
+	memset(the_object, 0, sizeof(the_object));
 	if (plugin->open(the_object, file_path)) {
 		result = true;
 		frames_in_buffer = read_buf->buf->GetBufferSizeBytes(plugin->frame_size(the_object)) / plugin->frame_size(the_object);
@@ -688,11 +705,11 @@ int CorePlayer::Read32(void *data, int size)
 	}
 	int use_read_direction = read_direction;	
 	int *out_buf = (int *)data;
-	int *in_buf = (int *)read_buf->buf->GetSamples();
-	in_buf += read_buf->buf->GetReadIndex();
+	int *in_buf = (int *)read_buf->buf->buffer_data;
+	in_buf += read_buf->buf->read_index;
 	int buf_index = 0;
 	int tmp_index = 0;
-	int check_index = read_buf->buf->GetReadIndex();
+	int check_index = read_buf->buf->read_index;
 	int base_corr = 0;
 	float use_pitch = pitch;
 	
@@ -716,7 +733,7 @@ int CorePlayer::Read32(void *data, int size)
 	if (use_read_direction == DIR_FORWARD) {
 		while (buf_index < size) {
 			tmp_index = (int) ((float)use_pitch*(float)(buf_index-base_corr));
-			if ((check_index + tmp_index) > (read_buf->buf->GetSamplesInBuffer())-1) {
+			if ((check_index + tmp_index) > (read_buf->buf->write_index)-1) {
 				if (read_buf->next->start < 0 ||
 					read_buf->next == write_buf) {
 					if (read_buf->next->start == -2) {
@@ -724,7 +741,7 @@ int CorePlayer::Read32(void *data, int size)
 						return -2;
 					}	
 					memset(data, 0, size * 4);
-					if (!IsPlaying()) {
+					if (!producing) {
 						//alsaplayer_error("blah 1");
 						return -1;
 					}
@@ -739,7 +756,7 @@ int CorePlayer::Read32(void *data, int size)
 				pthread_mutex_unlock(&counter_mutex);
 				read_buf->buf->SetReadDirection(DIR_FORWARD);
 				read_buf->buf->ResetRead();
-				in_buf = (int *)read_buf->buf->GetSamples();
+				in_buf = (int *)read_buf->buf->buffer_data;
 				base_corr = buf_index;
 				check_index = 0;
 				tmp_index = (int)((float)use_pitch*(float)(buf_index-base_corr)); // Recalc
@@ -754,7 +771,7 @@ int CorePlayer::Read32(void *data, int size)
 					read_buf->prev == write_buf) {
 				//	printf("Back (%d %d) ", AvailableBuffers(), read_buf->prev->start);
 				//	print_buf(read_buf->prev);
-					if (!IsPlaying()) {
+					if (!producing) {
 						//printf("blah 2\n");
 						return -1;
 					}
@@ -765,8 +782,8 @@ int CorePlayer::Read32(void *data, int size)
 				pthread_mutex_unlock(&counter_mutex);
 				read_buf->buf->SetReadDirection(DIR_BACK);
 				read_buf->buf->ResetRead();
-				int buf_size = read_buf->buf->GetSamplesInBuffer();
-				in_buf = (int *)read_buf->buf->GetSamples();
+				int buf_size = read_buf->buf->write_index;
+				in_buf = (int *)read_buf->buf->buffer_data;
 				in_buf += (buf_size + (check_index - tmp_index));
 				base_corr = buf_index;
 				check_index = buf_size-1;
@@ -802,8 +819,8 @@ int CorePlayer::pcm_worker(sample_buf *dest, int start, int len)
 #ifndef NEW_PLAY		
 		the_object->write_buffer = dest->buf;
 #endif		
-		sample_buffer = (char *)dest->buf->GetSamples();
-		while (count > 0 && IsPlaying()) {
+		sample_buffer = (char *)dest->buf->buffer_data;
+		while (count > 0 && producing) {
 			if (!plugin->play_frame(the_object, sample_buffer + bytes_written)) {
 				dest->start = start;
 #ifdef DEBUG
@@ -879,9 +896,8 @@ void CorePlayer::producer_func(void *data)
 #endif
 		}	
 	}
-#ifdef DEBUG	
-	alsaplayer_error("Exited producer_func (producing = %d)", obj->producing);
-#endif
+	//alsaplayer_error("Exitting producer_func (producing = %d)", obj->producing);
+	pthread_exit(NULL);
 	return;
 }
 extern int global_bal;
@@ -901,8 +917,8 @@ bool CorePlayer::streamer_func(void *arg, void *data, int size)
 
 	if ((count = obj->Read32(input_buffer, size / sizeof(short))) >= 0) {
 		int v, p, left, right;
-		p = obj->GetPan();
-		v = obj->GetVolume();
+		p = obj->pan;
+		v = obj->volume;
 		if (v != 100 || p != 0) {
 			if (p == 0) {
 				left = right = 100;
