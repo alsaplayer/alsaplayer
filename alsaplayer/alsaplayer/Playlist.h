@@ -159,7 +159,6 @@ public:
 	bool PlayFile(PlayItem const &);
 	bool CanPlay(std::string const &);
 
-	Playlist(CorePlayer *);
 	Playlist(AlsaNode *);
 	~Playlist();
 

@@ -19,7 +19,7 @@
 alsaplayer \- plays various sound files
 .SH SYNOPSIS
 .B alsaplayer
-.RI [ options ] " " [ \-\-nogui " filename ..." ]
+.RI [ options ] " " [ " filename ..." ]
 .SH DESCRIPTION
 This manual page documents briefly the
 .B alsaplayer

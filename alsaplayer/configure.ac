@@ -6,7 +6,7 @@ ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
 ALSAPLAYER_MICRO_VERSION=60
 
-BETA=-pre3
+BETA=
 
 ALSAPLAYER_VERSION=$ALSAPLAYER_MAJOR_VERSION.$ALSAPLAYER_MINOR_VERSION.${ALSAPLAYER_MICRO_VERSION}${BETA}
 
@@ -694,6 +694,7 @@ input/audiofile/Makefile
 alsaplayer/Makefile
 libalsaplayer/Makefile
 extra/Makefile
+examples/Makefile
 m4/Makefile
 docs/Makefile
 docs/reference.doxygen
