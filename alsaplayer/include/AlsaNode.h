@@ -70,6 +70,7 @@ class AlsaNode
 	int sample_freq;
 	int external_latency;
 	char *use_pcm;
+	char client_name[32];
 #ifdef USE_JACK	
 	bool use_jack;	/* This changes the internal workings of the class */
 	jack_port_t *my_output_port1;
@@ -80,6 +81,11 @@ class AlsaNode
 	static int bufsize(nframes_t nframes, void *arg);
 	static int srate(nframes_t nframes, void *arg);
 	static int process (nframes_t nframes, void *arg);
+	static int jack_prepare(void *arg);
+	static void jack_shutdown(void *arg);
+	static void jack_restarter(void *arg);
+	char dest_port1[32];
+	char dest_port2[32];
 #endif	
 	bool realtime_sched;
 	bool init;

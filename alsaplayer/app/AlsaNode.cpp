@@ -44,14 +44,86 @@
 
 extern void exit_sighandler(int);
 
-void jack_shutdown (void *arg)
+void AlsaNode::jack_restarter(void *arg)
 {
-	char *name = (char *)arg;
-	if (name)
-		fprintf(stderr, "%s exitting...check jackd for details\n", name);
-	kill(0, SIGTERM);
+	alsaplayer_error("sleeping 1 seconds");
+	sleep (1);
+	if (jack_prepare(arg) < 0) {
+		alsaplayer_error("Failed reconnecting to jack...exitting");
+		kill(0, SIGTERM);
+	}	
 }
 
+
+void AlsaNode::jack_shutdown (void *arg)
+{
+	AlsaNode *node = (AlsaNode *)arg;
+	pthread_t restarter;
+
+	if (node) {
+		alsaplayer_error("trying to reconnect to jack (spawning thread)");
+		pthread_create(&restarter, NULL, (void * (*)(void *))jack_restarter, arg);
+		//if (node->client) {
+		//	 jack_client_close (node->client);
+		//	 node->client = NULL;
+		//}	 
+	}	
+}
+
+
+int AlsaNode::jack_prepare(void *arg)
+{
+	AlsaNode *node = (AlsaNode *)arg;
+	static jack_client_t *zomaar = NULL;
+	static int tel=0;
+	char str[32];
+
+	if (node && strlen(node->dest_port1) && strlen(node->dest_port2)) {
+		sprintf(str, "zomaar-%d", tel++);
+		if (zomaar)
+			jack_client_close(zomaar);
+		if ((zomaar = jack_client_new(str)) == 0) {
+			alsaplayer_error("zomaar failed........");
+		}
+		
+		if ((node->client = jack_client_new(node->client_name)) == 0) {
+			alsaplayer_error("jack server not running?");
+			return -1;
+		}
+		jack_set_process_callback (node->client, (JackProcessCallback)process, arg);
+		jack_set_buffer_size_callback (node->client, (JackProcessCallback)bufsize, arg);
+		jack_set_sample_rate_callback (node->client, (JackProcessCallback)srate, arg);
+		jack_on_shutdown (node->client, jack_shutdown, arg);
+
+		node->my_output_port1 = jack_port_register (node->client, "out_1",
+				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);		
+		node->my_output_port2 = jack_port_register (node->client, "out_2",
+				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);		
+
+		if (jack_activate (node->client)) {
+			alsaplayer_error("cannot activate client");
+			return -1;
+		}	
+
+		alsaplayer_error("connecting to jack ports: %s & %s", node->dest_port1, node->dest_port2);
+
+		if (jack_connect (node->client, jack_port_name(node->my_output_port1), node->dest_port1)) {
+				alsaplayer_error("cannot connect output port 1");
+				return -1;
+		}		
+		if (jack_connect (node->client, jack_port_name(node->my_output_port2), node->dest_port2)) {
+				alsaplayer_error("cannot connect output port 2");
+				return -1;
+		}		
+	
+		node->use_jack = 1;
+		
+		node->init = 1;
+
+		return 0;
+	}
+	return -1;
+}
 
 
 AlsaNode::AlsaNode(char *name, int realtime)
@@ -65,8 +137,6 @@ AlsaNode::AlsaNode(char *name, int realtime)
 	sock = -1;
 	use_pcm = name;
 #ifdef USE_JACK	
-	char client_name[32];
-	char dest_port1[32], dest_port2[32];
 	use_jack = 0;
 #endif
 	realtime_sched = realtime;
@@ -74,56 +144,23 @@ AlsaNode::AlsaNode(char *name, int realtime)
 
 	for (int i = 0; i < MAX_SUB; i++) {
 		memset(&subs[i], 0, sizeof(subscriber));
-	}	
-#ifdef USE_JACK
+	}
 	if (global_session_name)
 		sprintf(client_name, "%s", global_session_name);
 	else	
 		sprintf(client_name, "alsaplayer-%d", getpid());
+#ifdef USE_JACK		
 	if (strncmp(name, "jack", 4) == 0) { // Use JACK
-		if ((client = jack_client_new(client_name)) == 0) {
-			alsaplayer_error("jack server not running?");
-			return;
-		}
-		jack_set_process_callback (client, 
-			(JackProcessCallback)process, this);
-		jack_set_buffer_size_callback (client, 
-			(JackProcessCallback)bufsize, this);
-		jack_set_sample_rate_callback (client, 
-			(JackProcessCallback)srate, this);
-		//printf("engine sample rate: %lu\n", jack_get_sample_rate (client));
-		jack_on_shutdown (client, jack_shutdown, strdup(client_name));
-
-		my_output_port1 = jack_port_register (client, "out_1",
-				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);		
-		my_output_port2 = jack_port_register (client, "out_2",
-				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);		
-
-		if (jack_activate (client)) {
-			alsaplayer_error("cannot activate client");
-		}	
-		//printf("client activated\n");
-	
-		strcpy(dest_port1, "alsa_pcm:out_1");
+				strcpy(dest_port1, "alsa_pcm:out_1");
 		strcpy(dest_port2, "alsa_pcm:out_2");
 		if (sscanf(name, "jack %31s %31s", dest_port1, dest_port2) == 1) {
 		  strcpy(dest_port2, dest_port1);
 		}
-
-		printf("connecting to jack ports: %s & %s\n", dest_port1, dest_port2);
-
-		if (jack_connect (client, jack_port_name(my_output_port1),
-				dest_port1)) {
-				alsaplayer_error("cannot connect output port 1");
-		}		
-		if (jack_connect (client, jack_port_name(my_output_port2),
-				dest_port2)) {
-				alsaplayer_error("cannot connect output port 2");
-		}		
-	
-		use_jack = 1;
-		init = 1;
-	}
+		if (jack_prepare(this) < 0) {
+			alsaplayer_error("Failed initial connect attempt to jack\n");
+			kill(0, SIGTERM);
+		}	
+	}	
 #endif
 	pthread_mutex_init(&thread_mutex, NULL);
 	pthread_mutex_init(&queue_mutex, NULL);
