@@ -34,6 +34,7 @@ have_sgi=no
 have_nas=no
 have_mikmod=no
 have_jack=no
+have_xosd=no
 dynload=no
 use_3dnow_asm=no
 use_libmad=no
@@ -275,6 +276,14 @@ dnl ==========
 PKG_CHECK_MODULES(JACK, jack >= 0.40.0, have_jack=yes, have_jack=no)
 AC_SUBST(JACK_LIBS)
 AC_SUBST(JACK_CFLAGS)
+
+dnl ==========
+dnl XOSD stuff
+dnl ==========
+PKG_CHECK_MODULES(XOSD, xosd >= 2.0.1, have_xosd=yes, have_xosd=no)
+AC_SUBST(XOSD_LIBS)
+AC_SUBST(XOSD_CFLAGS)
+AM_CONDITIONAL(HAVE_XOSD, test "x$have_xosd" = xyes)
 
 dnl ==========
 dnl GTK2 stuff
@@ -726,6 +735,7 @@ Configuration:
   Use libmad shared library:          ${use_libmad}
   Enable libid3tag support:           ${use_libid3tag}
   Build GTK interface:                ${have_gtk}
+  Build XOSD interface:               ${have_xosd}
   Build OpenGL based visual plugins:  ${have_opengl}
   Build alsa 0.5.x output plugin:     ${have_alsa_05x}
   Build alsa 0.9.x output plugin:     ${have_alsa_final}

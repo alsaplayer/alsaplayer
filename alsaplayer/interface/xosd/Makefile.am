@@ -1,6 +1,16 @@
+if HAVE_XOSD
+
 xosdltlibs = libxosd.la
 xosdldflags = -export-dynamic -avoid-version
 xosdsources = xosd.cpp
+
+else
+
+xosdltlibs =
+xosdldflags =
+xosdsources =
+
+endif
 
 lib_LTLIBRARIES = $(xosdltlibs)
 
