@@ -162,8 +162,8 @@ static inline signed int my_scale(mad_fixed_t sample)
 static void fill_buffer(struct mad_local_data *data, long offset)
 {
 	size_t bytes_read;
-	
-	reader_seek(data->mad_fd, data->offset + offset, SEEK_SET);
+	if (offset >= 0)	
+		reader_seek(data->mad_fd, data->offset + offset, SEEK_SET);
 	bytes_read = reader_read(data->mad_map, MAD_BUFSIZE, data->mad_fd);
 	data->bytes_avail = bytes_read;
 	data->map_offset = offset;
@@ -227,7 +227,7 @@ static int mad_frame_seek(input_object *obj, int frame)
 		mad_stream_buffer(&data->stream, data->mad_map,
 				data->bytes_avail);
 		while (data->highest_frame < frame) {
-			if (data->bytes_avail < 2048) {
+			if (data->bytes_avail < 3072) {
 				fill_buffer(data, data->map_offset + MAD_BUFSIZE - data->bytes_avail);
 				mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
 			}	
@@ -298,7 +298,7 @@ static int mad_play_frame(input_object *obj, char *buf)
 	data = (struct mad_local_data *)obj->local_data;
 	if (!data)
 		return 0;
-	if (data->bytes_avail < 2048) {
+	if (data->bytes_avail < 3072) {
 		//alsaplayer_error("Filling buffer = %d,%d",
 		//		data->bytes_avail,
 		//		data->map_offset + MAD_BUFSIZE - data->bytes_avail);
@@ -306,12 +306,12 @@ static int mad_play_frame(input_object *obj, char *buf)
 		mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
 	} else {
 		//alsaplayer_error("bytes_avail = %d", data->bytes_avail);
-	}	
+	}
 	if (mad_frame_decode(&data->frame, &data->stream) == -1) {
 		if (!MAD_RECOVERABLE(data->stream.error)) {
-			alsaplayer_error("MAD error: %s (%d)", 
-				error_str(data->stream.error, data->str),
-				data->bytes_avail);
+			//alsaplayer_error("MAD error: %s (%d)", 
+			//	error_str(data->stream.error, data->str),
+			//	data->bytes_avail);
 			mad_frame_mute(&data->frame);
 			return 0;
 		}	else {
@@ -611,6 +611,8 @@ static float mad_can_handle(const char *path)
 	char *ext;      
 	ext = strrchr(path, '.');
 
+	if (strncmp(path, "http://", 7) == 0)
+		return 0.5;
 	if (!ext)
 		return 0.0;
 	ext++;
@@ -630,6 +632,11 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 	int pos = 0;
 	ssize_t header_size = 0;
 	while (pos < (size - 10)) {
+		if (data[pos] == 0x0d && data[pos+1] == 0x0a) {
+			alsaplayer_error("Skipping <cr><lf>");
+			pos+=2;
+			continue;
+		}	
 		if (pos == 0 && (data[pos] == 'I' && data[pos+1] == 'D' && data[pos+2] == '3')) {
 			header_size = (data[pos + 6] << 21) + 
 				(data[pos + 7] << 14) +
@@ -660,6 +667,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 		} else if (data[pos] == 'R' && data[pos+1] == 'I' &&
 				data[pos+2] == 'F' && data[pos+3] == 'F') {
 			pos+=4;
+			alsaplayer_error("Found a RIFF header");
 			while (pos < size) {
 				if (data[pos] == 'd' && data[pos+1] == 'a' &&
 						data[pos+2] == 't' && data[pos+3] == 'a') {
@@ -680,7 +688,9 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 	if (data[0] != 0xff) {
 		header_size = 0;
 		while (header_size < size) {
-			if (data[++header_size] == 0xff && data[header_size+1] == 0xfb) {
+			if (data[++header_size] == 0xff && 
+					(data[header_size+1] == 0xfb ||
+					 data[header_size+1] == 0xf3)) {
 				//printf("Found ff fb at %d\n", header_size);
 				return header_size;
 			}

@@ -1,3 +1,5 @@
+* New reader plugin system by Evgeny. This brings in URI support i.e.
+  you can now play directly from ftp and http sources (needs libcurl)
 * --enable-tophack switch to configure. This enables some code that fools
   (simple) CPU measuring tools like top into thinking AlsaPlayer is infinitely
   fast i.e. top will show that we use 0% CPU even with lots of scopes open!

@@ -60,10 +60,10 @@ void info_looper(void *data)
 	if (!myplayer) return;
 
 
-	playlist->Lock();
+	//playlist->Lock();
 	std::vector<PlayItem>::iterator p = playlist->queue.begin();
 	count = 0;
-	while (p != playlist->queue.end()) {
+	while (p != playlist->queue.end() && playlist->active) {
 		if (!(*p).Parsed()) {
 			
 			if (myplayer->Load((*p).filename.c_str())) { // Examine file
@@ -87,6 +87,7 @@ void info_looper(void *data)
 			}
 			(*p).SetParsed();
 			// Notify interface of update
+			playlist->LockInterfaces();
 			if (playlist->interfaces.size() > 0) {
 				for(i = playlist->interfaces.begin();
 						i != playlist->interfaces.end(); i++) {
@@ -98,14 +99,15 @@ void info_looper(void *data)
 						j != playlist->cinterfaces.end(); j++) {
 					(*j)->cbupdated((*j)->data, (*p), count);
 				}
-			}	
+			}
+			playlist->UnlockInterfaces();
 
 		}	
 		p++;
 		count++;
 	}	
 
-	playlist->Unlock();
+	//playlist->Unlock();
 
 	delete myplayer;
 	//alsaplayer_error("exit info_looper()");
@@ -179,7 +181,7 @@ void insert_looper(void *data) {
 	// First vetting of the list, and recurse through directories
 	std::vector<std::string> vetted_items;
 	std::vector<std::string>::const_iterator k = items->items.begin();
-	while(k != items->items.end()) {
+	while(k != items->items.end() && playlist->active) {
 		additems(&(vetted_items), *k++, MAXRECURSEDEPTH);
 	}
 	std::vector<PlayItem> newitems;
@@ -192,7 +194,7 @@ void insert_looper(void *data) {
 			cwd[0] = 0;
 		}	
 		// Check items for adding to list
-		for(path = vetted_items.begin(); path != vetted_items.end(); path++) {
+		for(path = vetted_items.begin(); path != vetted_items.end() && playlist->active; path++) {
 			// Check that item is valid
 			if(!playlist->CanPlay(*path)) {
 				//alsaplayer_error("Can't find a player for `%s'\n", path->c_str());
@@ -213,6 +215,7 @@ void insert_looper(void *data) {
 		playlist->curritem += newitems.size();
 	
 	// Tell the subscribing interfaces about the changes
+	playlist->LockInterfaces();
 	if(playlist->interfaces.size() > 0) {
 		for(i = playlist->interfaces.begin();
 			i != playlist->interfaces.end(); i++) {
@@ -227,13 +230,14 @@ void insert_looper(void *data) {
 			(*j)->cbsetcurrent((*j)->data, playlist->curritem);
 		}	
 	}
-
+	playlist->UnlockInterfaces();
 	// Free the list again
 	playlist->Unlock();
 	delete items;
 
 	// TEST
-	info_looper(playlist);
+	if (playlist->active)
+		info_looper(playlist);
 	
 	pthread_exit(NULL);
 }
@@ -279,17 +283,14 @@ Playlist::Playlist(AlsaNode *the_node) {
 
 Playlist::~Playlist() {
 	active = false;
-	//pthread_cancel(playlist_thread);
 	pthread_join(playlist_thread, NULL);
 	interfaces.clear();	// Unregister all interfaces
 	
 	// FIXME - need to do something to kill off an insert thread, if one is
 	// running - otherwise it might have its playlist torn from underneath it
 	// We currently just wait for the thread to finish
-	if (adder) {
-			//printf("Waiting for insert thread to finish\n");
-	    pthread_join(adder, NULL);
-	}
+	pthread_join(adder, NULL);
+	
 	if (player1)
 		delete player1;
 	if (player2)
@@ -434,6 +435,7 @@ void Playlist::Insert(std::vector<std::string> const & paths, unsigned position,
 	PlInsertItems * items = new PlInsertItems(this);
 	items->position = position;
 
+	pthread_join(adder, NULL);
 
 	// Copy list
 	std::vector<std::string>::const_iterator i = paths.begin();
@@ -450,8 +452,6 @@ void Playlist::Insert(std::vector<std::string> const & paths, unsigned position,
 				   (void * (*)(void *))insert_looper, (void *)items);
 	if (wait_for_insert)
 		pthread_join(adder, NULL);
-	else	
-		pthread_detach(adder);
 }
 
 // Add some items start them playing
