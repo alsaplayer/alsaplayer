@@ -251,20 +251,30 @@ static int cdda_open(input_object *obj, char *name)
 
 	if (!obj)
 			return 0;
-	if(cd_getinfo(&cdrom_fd, DEFAULT_DEVICE,&tl)) {
+
+	
+	// if(!name)
+		// name = DEFAULT_DEVICE;
+	fname = strrchr(name, '/');
+	if (fname) {
+		*fname = '\0';
+		do {
+			fname++;
+		} while (*fname == '/');
+	} else {
+		name = DEFAULT_DEVICE;
+		fname = "Track 01.cdda";
+	}
+	
+	if(cd_getinfo(&cdrom_fd, name, &tl)) {
 		return 0;
 	}
+
 #ifdef DEBUG	
 	cd_disp_TOC(&tl);	
 #endif
 	//printf("IFRAMESIZE = %d\n", IFRAMESIZE);
-	fname = strrchr(name, '/');
-	if (fname)
-			do {
-				fname++;
-			} while (*fname == '/');
-	else
-		fname = name;
+
 	obj->local_data = malloc(sizeof(struct cdda_local_data));
 	if (!obj->local_data) {
 			return 0;
