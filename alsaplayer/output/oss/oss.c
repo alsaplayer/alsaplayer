@@ -93,7 +93,10 @@ static int oss_set_buffer(int fragment_size, int fragment_count, int channels)
 
 static int oss_set_sample_rate(int rate)
 {
-	ioctl(oss_fd,SNDCTL_DSP_SPEED,&rate);
+	if (ioctl(oss_fd,SNDCTL_DSP_SPEED,&rate) < 0) {
+					fprintf(stderr, "OSS: error setting sample_rate\n");
+					return 0;
+	}				
 	return 1;
 }
 
