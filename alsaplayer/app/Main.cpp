@@ -47,6 +47,7 @@
 #include "output_plugin.h"
 #include "interface_plugin.h"
 #include "utilities.h"
+#include "prefs.h"
 #include "error.h"
 #include "external.cpp" /* This is a dirty hack */
 
@@ -59,6 +60,8 @@ int global_reverb_feedback = 0;
 int global_verbose = 1;
 
 char *global_session_name = NULL;
+
+prefs_handle_t *ap_prefs = NULL;
 
 void control_socket_start(Playlist *);
 void control_socket_stop();
@@ -133,7 +136,7 @@ void load_output_addons(AlsaNode *node, char *module = NULL)
 												"specific output module (alsa, oss, esd, etc.)", path);
 				dlclose(handle);
 				return;
-			}
+		}
 		} else {
 			alsaplayer_error("%s\n", dlerror());
 		}
@@ -257,9 +260,23 @@ static void version()
 }
 
 
+static char *get_homedir()
+{
+	char *homedir = NULL;
+
+	if ((homedir = getenv("HOME")) == NULL) {
+		homedir = strdup("/tmp");
+	}
+
+	return homedir;
+}
+
+
 int main(int argc, char **argv)
 {
 	char *use_pcm = default_pcm_device;
+	char *homedir;
+	char prefs_path[1024];
 	int use_fragsize = 4096;
 	int use_fragcount = 8;
 	int use_reverb = 0; // TEMP!
@@ -286,6 +303,7 @@ int main(int argc, char **argv)
 	int tmp;
 	char use_output[256];
 	char use_interface[256];
+	prefs_handle_t *prefs;
 
 	// First setup signal handler
 	signal(SIGTERM,exit_sighandler); // kill
@@ -302,6 +320,14 @@ int main(int argc, char **argv)
 	strcpy(addon_dir, ADDON_DIR);
 
 	init_effects();
+
+	homedir = get_homedir();
+
+	sprintf(prefs_path, "%s/.alsaplayer/", homedir);
+	mkdir(prefs_path, 0700); /* XXX We don't do any error checking here */
+	sprintf(prefs_path, "%s/.alsaplayer/config");
+
+	ap_prefs = prefs_load(prefs_path);
 
 	memset(use_interface, 0, sizeof(use_interface));
 
@@ -626,5 +652,10 @@ _fatal_err:
 	delete node;
 	if (global_session_name)
 		free(global_session_name);
+
+	// Save preferences
+	if (ap_prefs)
+		prefs_save(ap_prefs);
+		
 	return 0;	
 }

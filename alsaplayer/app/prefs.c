@@ -42,9 +42,7 @@ prefs_handle_t *prefs_load(char *filename)
 	memset(prefs, 0, sizeof(prefs_handle_t));
 	
 	if ((fd = fopen(filename, "r")) == NULL) {
-		printf("new config file: %s\n", filename);
 		if ((fd = fopen(filename, "w")) == NULL) {	
-			printf("failed to create: %s\n", filename);
 			free(prefs);
 			return NULL;
 		}	
@@ -109,7 +107,6 @@ void prefs_set_string(prefs_handle_t *prefs, char *key, char *val)
 		if (entry->value)
 			strncpy(entry->value, val, len+1);
 	} else { /* New entry */
-		printf("inserting %s = %s\n", key, val);
 		len = strlen(key);
 		entry = (prefs_key_t *)malloc(sizeof(prefs_key_t));
 		if (!entry)
@@ -156,49 +153,50 @@ void prefs_set_float(prefs_handle_t *prefs, char *key, float val)
 }
 
 
-int prefs_get_int(prefs_handle_t *prefs, char *key, int *res)
+int prefs_get_int(prefs_handle_t *prefs, char *key, int default_val)
 {
 	char str[1024];
+	char *res;
 	int val;
 	
 	if (!prefs || !key)
 		return -1;
-	if (prefs_get_string(prefs, key, str) == -1)
-		return -1;
+	sprintf(str, "%d", default_val);
+	res = prefs_get_string(prefs, key, str);
 	if (sscanf(str, "%d", &val) != 1)
-		return -1;
-	*res = val;
-	return 0;
+		return default_val;
+	return val;
 }
 
-int prefs_get_string(prefs_handle_t *prefs, char *key, char *res)
+char *prefs_get_string(prefs_handle_t *prefs, char *key, char *default_val)
 {
 	prefs_key_t *entry;
 
-	if (!prefs || !key || !res)
-		return -1;
+	if (!prefs || !key)
+		return default_val;
 
 	if ((entry = prefs_find_key(prefs, key))) {
-		strcpy(res, entry->value);
-		return 0;
-	}
-	return -1;
+		return entry->value;
+	} else {
+		prefs_set_string(prefs, key, default_val);
+	}	
+	return default_val;
 }
 
 
-int prefs_get_float(prefs_handle_t *prefs, char *key, float *res)
+float prefs_get_float(prefs_handle_t *prefs, char *key, float default_val)
 {
 	char str[1024];
+	char *res;
 	float val;
 	
 	if (!prefs || !key)
-		return -1;
-	if (prefs_get_string(prefs, key, str) == -1)
-		return -1;
+		return default_val;
+	sprintf(str, "%.6f", default_val);
+	res = prefs_get_string(prefs, key, str);
 	if (sscanf(str, "%f", &val) != 1)
-		return -1;
-	*res = val;
-	return 0;
+		return default_val;
+	return val;
 
 }
 
@@ -208,14 +206,19 @@ int prefs_save(prefs_handle_t *prefs)
 	prefs_key_t *entry;
 	
 	if (!prefs || !prefs->filename || !strlen(prefs->filename)) {
-		printf("not saving any prefs!!!!\n");
 		return -1;
 	}	
 	if ((fd = fopen(prefs->filename, "w")) == NULL) {
-		printf("failed to open %s for writing\n", prefs->filename);
 		return -1;
 	}	
 	entry = prefs->keys;
+	fprintf(fd, "#\n"
+							"# config file\n"
+							"#\n"
+							"# Only edit this file if the application is not active.\n"
+							"# Any modifications might be lost otherwise.\n"
+							"#\n");
+			
 	while (entry) {
 		fprintf(fd, "%s=%s\n", entry->key, entry->value);
 		entry = entry->next;
