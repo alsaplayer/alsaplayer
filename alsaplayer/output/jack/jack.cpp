@@ -23,6 +23,7 @@
 #include <sys/mman.h>
 #include <signal.h>
 #include "AlsaNode.h"
+#include "AlsaPlayer.h"
 #include "output_plugin.h"
 #include "alsaplayer_error.h"
 #include "prefs.h"
@@ -96,7 +97,10 @@ int jack_prepare(void *arg)
 	char str[32];
 
 	if (strlen(dest_port1) && strlen(dest_port2)) {
-		sprintf(str, "alsaplayer-%d", getpid());
+		if (global_session_name)
+			sprintf(str, "%s", global_session_name);
+		else	
+			sprintf(str, "alsaplayer-%d", getpid());
 		if ((client = jack_client_new(str)) == 0) {
 			alsaplayer_error("jack server not running?");
 			return -1;

@@ -1,6 +1,17 @@
-
+Wed Sep 18 11:52:43 CEST 2002
+-----------------------------
+* Code cleanups
+* JACK related updates
+* commandline buffer overflow fixes.
+* libcurl dependancy remove, rewritten http/ftp reader. 
+* New sndfile input plugin, not ready for production use, and does not use
+  the reader API for now.
 * extended API; complete playlists may be loaded now
 * removed --enable-tophack. It just hid internal problems from the developers.
+
+
+Mon Jun 24 18:34:04 CEST 2002
+-----------------------------
 * MAD plugin converted to new reader plugin API. This also means we don't use
   mmap() any longer. Now also handles files with large ID3 tags better.
 * New reader plugin system by Evgeny. This brings in URI support i.e.
