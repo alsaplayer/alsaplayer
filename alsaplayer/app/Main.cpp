@@ -104,7 +104,12 @@ static void default_alsaplayer_error(const char *fmt, ...) {
 
 void (*alsaplayer_error) (const char *fmt, ...) = &default_alsaplayer_error;
 
-};
+void alsaplayer_set_error_function(void (*func)(const char *, ...))
+{
+	alsaplayer_error = func;
+}
+
+}; /* extern "C" { */
 
 
 void exit_sighandler(int x)
@@ -194,6 +199,7 @@ bool load_output_addons(AlsaNode * node, char *module = NULL)
 	    ("\nI could not find a suitable output module on your\n"
 	     "system. Make sure they're in \"%s/output/\".\n"
 	     "Use the -o parameter to select one.\n", pluginroot);
+	return false;
 }
 
 
@@ -671,7 +677,8 @@ int main(int argc, char **argv)
 	node = new AlsaNode(use_output, device_param, do_realtime);
 
 	if (!load_output_addons(node, use_output)) { // Fallback
-		load_output_addons(node);
+		if (!load_output_addons(node))
+			return 1;
 	}	
 
 	int output_is_ok = 0;
