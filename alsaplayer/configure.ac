@@ -81,7 +81,14 @@ DFLAGS="$DFLAGS -DTOP_FOOLING"
 fi
 
 AC_ARG_ENABLE(prefer-mad,
-[  --enable-prefer-mad     prefer MAD plugin over mpg123 (default=yes)], prefer_mad=yes, prefer_mad=no)
+[  --enable-prefer-mad     prefer MAD plugin over mpg123 (default=yes)],
+[if test "$enableval" = "no"
+then
+	if test "$prefer_mad" = "yes"
+	then
+		prefer_mad=no
+	fi
+fi])
 
 if test "$prefer_mad" = yes; then
 	AC_DEFINE(PREFER_MAD)
