@@ -44,7 +44,7 @@
 #define NR_BLOCKS	30
 
 static char addon_dir[1024];
-static int going = 0;
+static bool going = false;
 static pthread_mutex_t finish_mutex;
 static coreplayer_notifier notifier;
 
@@ -96,7 +96,7 @@ int interface_text_running()
 
 int interface_text_stop()
 {
-	going = 0;
+	going = false;
 	pthread_mutex_lock(&finish_mutex);
 	pthread_mutex_unlock(&finish_mutex);
 	return 1;
@@ -122,9 +122,9 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 
 	playlist->UnPause();
 
-	sleep(2);
+	going = true;
 
-	going = 1;
+	sleep(2);
 
 	memset(&notifier, 0, sizeof(notifier));
 	notifier.speed_changed = speed_changed;
@@ -138,14 +138,12 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 	// Fall through console player
 	pthread_mutex_lock(&finish_mutex);
 
-	
-#if 1
 	while(going && (coreplayer = playlist->GetCorePlayer()) &&
 			(coreplayer->IsActive() || coreplayer->IsPlaying() ||
 			 playlist->GetCurrent() != playlist->Length())) {
 		unsigned long secs, t_min, t_sec, c_min, c_sec;
 		t_min = t_sec = c_min = c_sec = 0;
-		while (coreplayer->IsActive() || coreplayer->IsPlaying()) {
+		while (going && (coreplayer->IsActive() || coreplayer->IsPlaying())) {
 			int cur_val, block_val, i;
 			coreplayer->GetStreamInfo(&info);
 			if (strlen(info.title) && strcmp(info.title, old_info.title) != 0) {
@@ -189,12 +187,10 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 		dosleep(1000000);
 		fprintf(stdout, "\n\n");
 	}
-#endif	
 	fprintf(stdout, "...done playing\n");
 	pthread_mutex_unlock(&finish_mutex);
-
-	playlist->UnRegisterNotifier(&notifier);
 	
+	//playlist->UnRegisterNotifier(&notifier);
 	return 0;
 }
 

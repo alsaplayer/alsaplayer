@@ -364,9 +364,9 @@ int AlsaNode::GetLatency()
 	int count = 0;
 	
 	assert(plugin);
-	if (plugin->start_callbacks) {
-		return (fragment_size * nr_fragments);
-	}	
+	//if (plugin->start_callbacks) {
+	//	return (fragment_size * nr_fragments);
+	//}	
 	
 	if (plugin->get_queue_count && (count = plugin->get_queue_count()) >= 0) {
 		return count;

@@ -35,6 +35,7 @@ static jack_client_t *client = NULL;
 static jack_nframes_t buffer_size;
 static jack_nframes_t sample_rate;
 static jack_nframes_t nr_fragments;
+static jack_nframes_t latency = 0;
 
 static char dest_port1[32];
 static char dest_port2[32];
@@ -85,6 +86,10 @@ void jack_shutdown (void *arg)
 }
 
 
+int jack_get_latency()
+{
+	return latency;
+}
 
 int jack_prepare(void *arg)
 {
@@ -230,7 +235,9 @@ int process(jack_nframes_t nframes, void *arg)
 		sample_t *out1 = (sample_t *) jack_port_get_buffer(my_output_port1, nframes);
 		sample_t *out2 = (sample_t *) jack_port_get_buffer(my_output_port2, nframes);
 
-		memset(bufsize, 0, sizeof(bufsize));    
+		memset(bufsize, 0, sizeof(bufsize));
+
+		latency = jack_port_get_total_latency(client, my_output_port1);
 
 		for (c = 0; c < MAX_SUB; c++) {
 			i = subs + c;
@@ -265,6 +272,7 @@ output_plugin *output_plugin_info(void)
 	jack_output.start_callbacks = jack_start_callbacks;
 	jack_output.set_buffer = jack_set_buffer;
 	jack_output.set_sample_rate = jack_set_sample_rate;
+	jack_output.get_latency = jack_get_latency;
 	return &jack_output;
 }
 

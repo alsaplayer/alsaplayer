@@ -1,1 +1,1 @@
-SUBDIRS = gtk text
+SUBDIRS = gtk text daemon

@@ -54,7 +54,7 @@ void scope_entry_destroy_notify(gpointer data)
 {
 }
 
-#define SCOPE_BUFFER	2048
+#define SCOPE_BUFFER 2048
 
 bool  scope_feeder_func(void *arg, void *data, int size) 
 {
@@ -104,11 +104,6 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 		left = SCOPE_BUFFER - fill;
 		memcpy(buf + fill, data, left);
 
-		// Don't use locking for now, quite dangerous!!! XXX
-		//if (pthread_mutex_trylock(&sl_mutex) != 0) {
-		//	return true;	// List is being manipulated
-		//}
-#if 1	
 		// Do global FFT
 		left_newset = left_actEq;
 		right_newset = right_actEq;
@@ -128,7 +123,6 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 			left_pos[i] = (int)(sqrt(left_fftout[i + 1])) >> 8; //* fftmult[i]);
 			right_pos[i] = (int)(sqrt(right_fftout[i + 1])) >> 8; //* fftmult[i]);
 		}	
-#endif
 		while (se && se->sp && se->active) {
 			if (se->sp->running()) {
 				if (se->sp->set_data)
@@ -144,8 +138,6 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 		// Copy the remainder
 		fill = 0;
 		memcpy(buf + fill, ((char *)data) + left, size - left);
-		// XXX fixme
-		//pthread_mutex_unlock(&sl_mutex);
 	} else {
 		memcpy(buf + fill, data, size);
 		fill += size;

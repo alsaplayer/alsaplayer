@@ -29,6 +29,7 @@
 #include "control.h"
 #include "message.h"
 #include "Playlist.h"
+#include "interface_plugin.h"
 #include "alsaplayer_error.h"
 
 #define MAX_AP_SESSIONS 1024
@@ -36,11 +37,19 @@
 static pthread_t socket_thread;
 static int socket_thread_running = 0;
 
+
+struct socket_params
+{
+	Playlist *playlist;
+	interface_plugin *ui;
+};
+
 void socket_looper(void *arg)
 {
 	int socket_fd = 0;
-
-	Playlist *playlist = (Playlist *)arg;
+	struct socket_params *sp = (struct socket_params *)arg;
+	Playlist *playlist = sp->playlist;
+	interface_plugin *ui = sp->ui;
 	CorePlayer *player;
 	fd_set set;
 	struct timeval tv;
@@ -202,7 +211,8 @@ void socket_looper(void *arg)
 				break;
 			case AP_QUIT:
 				// Woah, this is very dirty! XXX FIXME XXX
-				kill(0, 1);
+				if (ui)
+					ui->stop();
 				break;
 			case AP_SET_SPEED:
 				if ((float_val=ap_message_find_float(msg, "speed"))) {
@@ -400,9 +410,13 @@ void socket_looper(void *arg)
 }
 
 
-void control_socket_start(Playlist *playlist)
+void control_socket_start(Playlist *playlist, interface_plugin *ui)
 {
-	pthread_create(&socket_thread, NULL, (void * (*)(void *))socket_looper, playlist);
+	static struct socket_params sp;
+
+	sp.playlist = playlist;
+	sp.ui = ui;
+	pthread_create(&socket_thread, NULL, (void * (*)(void *))socket_looper, &sp);
 }
 
 

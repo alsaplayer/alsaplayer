@@ -69,7 +69,7 @@ char *global_interface_script = NULL;
 
 prefs_handle_t *ap_prefs = NULL;
 
-void control_socket_start(Playlist *);
+void control_socket_start(Playlist *, interface_plugin *ui);
 void control_socket_stop();
 
 static char addon_dir[1024];
@@ -653,8 +653,8 @@ int main(int argc, char **argv)
 	}
 	if (interface_plugin_info) {
 		ui = interface_plugin_info();
-		// Load socket interface first
-		control_socket_start(playlist);
+		
+		
 		if (global_verbose)
 			fprintf(stdout, "Interface plugin: %s\n",
 					ui->name);
@@ -662,6 +662,7 @@ int main(int argc, char **argv)
 			alsaplayer_error
 				("Failed to load interface plugin. Should fall back to text\n");
 		} else {
+			control_socket_start(playlist, ui);
 			ui->start(playlist, argc, argv);
 			ui->close();
 			// Unfortunately gtk+ is a pig when it comes to
@@ -669,8 +670,8 @@ int main(int argc, char **argv)
 			// so we can never safely dlclose gtk+ based 
 			// user interfaces, bah!
 			//dlclose(ui->handle);
-		}
-		control_socket_stop();
+			control_socket_stop();
+		}	
 	}
 	// Save playlist before exit
 	homedir = get_homedir();

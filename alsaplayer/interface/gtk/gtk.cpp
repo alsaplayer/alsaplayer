@@ -130,10 +130,9 @@ int interface_gtk_stop()
 	global_update = -1;
 	
 	GDK_THREADS_ENTER();
+
 	gdk_flush();
-	unload_scope_addons();
-	gtk_main_quit();
-	gdk_flush();
+	gtk_exit(0); // This is *NOT* clean :-(
 	GDK_THREADS_LEAVE();
 	return 1;
 }
@@ -186,9 +185,10 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 
 	// Scope addons
 	GDK_THREADS_ENTER();
-	init_main_window(playlist, (GtkFunction)unload_scope_addons);
+	init_main_window(playlist);
 	load_scope_addons();
 	gtk_main();
+	unload_scope_addons();
 	gdk_flush();
 	GDK_THREADS_LEAVE();
 

@@ -180,18 +180,12 @@ void start_notify(void *data)
 
 gboolean main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-	GtkFunction f = (GtkFunction)data;
 	global_update = -1;
 
 	// Remove notifier
 	
 	gdk_flush();
-	if (f) { // Oh my, a very ugly HACK indeed! But it works
-		gdk_flush();
-		GDK_THREADS_LEAVE();
-		f(NULL);
-		GDK_THREADS_ENTER();
-	}
+	
 	if (playlist_window_gtk) {
 		Playlist *playlist = playlist_window_gtk->GetPlaylist();
 		GDK_THREADS_LEAVE();
@@ -200,7 +194,7 @@ gboolean main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 		delete playlist_window_gtk;
 	}	
 	gtk_main_quit();
-	
+	gdk_flush();	
 	// Never reached
 	return FALSE;
 }
@@ -304,11 +298,8 @@ void draw_volume(int vol)
 
 	if (!ustr->vol_scale)
 		return;
-#ifdef NEW_SCALE	
-	adj = GTK_BSCALE(ustr->vol_scale)->adjustment;
-#else	
 	adj = GTK_RANGE(ustr->vol_scale)->adjustment;
-#endif
+	
 	int val = vol; //(int)GTK_ADJUSTMENT(adj)->value;
 
 	val ? sprintf(str, "Volume: %d%%  ", val) : sprintf(str, "Volume: mute");
@@ -392,11 +383,8 @@ void draw_speed(float speed)
 	GdkRectangle update_rect;
 	char str[60];
 	int speed_val;
-#if 1
+	
 	adj = GTK_RANGE(ustr->speed_scale)->adjustment;
-#else
-	adj = GTK_BSCALE(ustr->speed_scale)->adjustment;
-#endif	
 
 	//speed_val = (int)GTK_ADJUSTMENT(adj)->value;
 	speed_val = (int)(speed * 100.0); // We need percentages
@@ -1062,7 +1050,7 @@ gint val_area_configure(GtkWidget *widget, GdkEventConfigure *event, gpointer da
 	return true;
 }
 
-void init_main_window(Playlist *pl, GtkFunction f)
+void init_main_window(Playlist *pl)
 {
 	GtkWidget *root_menu;
 	GtkWidget *menu_item;
@@ -1189,11 +1177,8 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	}
 	working = get_widget(main_window, "vol_scale");
 	if (working) {
-#ifdef NEW_SCALE	
-		adj = GTK_BSCALE(working)->adjustment;
-#else
+		
 		adj = GTK_RANGE(working)->adjustment;
-#endif	
 		gtk_adjustment_set_value(adj, (float)(pl->GetCorePlayer())->GetVolume());
 		gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
 							GTK_SIGNAL_FUNC(volume_cb), playlist);
@@ -1286,7 +1271,7 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
 						GTK_SIGNAL_FUNC(speed_cb), playlist);
 	#endif
-	gtk_signal_connect(GTK_OBJECT(main_window), "delete_event", GTK_SIGNAL_FUNC(main_window_delete), (void *)f);
+	gtk_signal_connect(GTK_OBJECT(main_window), "delete_event", GTK_SIGNAL_FUNC(main_window_delete), NULL);
 
 	// Create root menu
 	root_menu = gtk_menu_new();
@@ -1340,7 +1325,7 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	menu_item = gtk_menu_item_new_with_label("Exit");
 	gtk_menu_append(GTK_MENU(root_menu), menu_item);
 	gtk_signal_connect(GTK_OBJECT(menu_item), "activate",
-					   GTK_SIGNAL_FUNC(exit_cb), (void *)f);
+					   GTK_SIGNAL_FUNC(exit_cb), NULL);
 	gtk_widget_show(menu_item);
 	
 	working = get_widget(main_window, "cd_button");

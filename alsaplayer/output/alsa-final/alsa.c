@@ -34,8 +34,8 @@
 static snd_pcm_t *sound_handle;
 static snd_output_t *errlog;
 static snd_pcm_stream_t stream = SND_PCM_STREAM_PLAYBACK;
-static int frag_size = 4096;
-static int frag_count = 8;
+static int frag_size = 2048;
+static int frag_count = 16;
 static int nr_channels = 2;
 static int output_rate = 44100;
 

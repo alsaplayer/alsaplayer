@@ -24,8 +24,8 @@
 #ifndef __Effects_h__
 #define __Effects_h__
 
-#define DELAY_BUF_SIZE        ((44100 * 2 * 2) * 1)
-#define MAX_CHUNK      32768
+#define DELAY_BUF_SIZE        ((44100 * 2 * 2) * 2)
+#define MAX_CHUNK      (32768 * 2)
 
 extern "C" {
 
