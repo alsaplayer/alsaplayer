@@ -63,7 +63,7 @@ AlsaNode::AlsaNode(char *name, int realtime)
 		memset(&subs[i], 0, sizeof(subscriber));
 	}	
 #ifdef USE_JACK
-	sprintf(client_name, "player-%d", getpid());
+	sprintf(client_name, "alsaplayer-%d", getpid());
 
 	if (strcmp(name, "jack") == 0) { // Use JACK
 		if ((client = jack_client_new(client_name)) == 0) {
@@ -78,9 +78,9 @@ AlsaNode::AlsaNode(char *name, int realtime)
 			(JackProcessCallback)srate, this);
 		printf("engine sample rate: %lu\n", jack_get_sample_rate (client));
 
-		my_output_port1 = jack_port_register (client, "output1",
+		my_output_port1 = jack_port_register (client, "out_1",
 				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);		
-		my_output_port2 = jack_port_register (client, "output2",
+		my_output_port2 = jack_port_register (client, "out_2",
 				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);		
 
 		if (jack_activate (client)) {
