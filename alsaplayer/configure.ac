@@ -6,7 +6,7 @@ ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
 ALSAPLAYER_MICRO_VERSION=52
 
-BETA=
+BETA=-cvs20011126-jack
 
 ALSAPLAYER_VERSION=$ALSAPLAYER_MAJOR_VERSION.$ALSAPLAYER_MINOR_VERSION.${ALSAPLAYER_MICRO_VERSION}${BETA}
 
@@ -31,6 +31,7 @@ have_sparc=no
 have_sgi=no
 have_nas=no
 have_mikmod=no
+have_jack=no
 dynload=no
 use_3dnow_asm=no
 prefer_mad=yes
@@ -185,7 +186,7 @@ dnl Check for header files
 dnl ======================
 
 CFLAGS="$CFLAGS -I$x_includes -L$x_libraries"
-CPPFLAGS="$CPPFLAGS -I$x_includes"
+CPPFLAGS="$CPPFLAGS -I$x_includes -I/usr/include/glib-1.2 -I/usr/lib/glib/include -I/usr/local/jack/include"
 AS="$CC"
 
 AC_HEADER_STDC
@@ -199,6 +200,7 @@ AC_CHECK_HEADERS(linux/cdrom.h)
 AC_CHECK_HEADERS(sys/soundcard.h)
 AC_CHECK_HEADERS(sys/audioio.h)
 AC_CHECK_HEADERS(audio/audiolib.h)
+AC_CHECK_HEADERS(jack/jack.h)
 
 dnl ==========
 dnl ALSA stuff
@@ -284,6 +286,34 @@ CFLAGS=$oldcflags
 AC_SUBST(NAS_LIB)
 
 
+dnl ==========
+dnl JACK stuff
+dnl ==========
+if test "$have_glib" = "yes"
+then
+oldcflags=$CFLAGS
+CFLAGS="$CFLAGS -L/usr/local/jack/lib -ldl"
+AC_CHECK_LIB(jack,jack_activate,
+[
+have_jack=yes
+JACK_LIB="-L/usr/local/jack/lib -ljack"
+],
+[
+have_jack=no
+])
+CFLAGS=$oldcflags
+
+else
+
+have_jack=no
+JACK_LIB=""
+
+fi
+
+AC_SUBST(JACK_LIB)
+
+
+
 dnl =====================================================
 dnl Sound output stuff. This will go away once everything
 dnl is really modular
@@ -355,7 +385,7 @@ AC_ARG_ENABLE(qt,
 )
 
 
-
+AM_CONDITIONAL(HAVE_JACK,	test "x$have_jack" = xyes)
 AM_CONDITIONAL(HAVE_ALSA_05X, test "x$have_alsa_05x" = xyes)
 AM_CONDITIONAL(HAVE_ALSA_FINAL, test "x$have_alsa_final" = xyes)
 AM_CONDITIONAL(HAVE_OSS, test "x$have_oss" = xyes)
@@ -539,6 +569,7 @@ Configuration:
   Prefer MAD over mpg123 plugin:      ${prefer_mad}
   Build gtk interface:                ${have_gtk}
   Build qt interface:                 ${have_qt}
+  Build with JACK support:            ${have_jack}
   Build alsa 0.5.x output plugin:     ${have_alsa_05x}
   Build alsa LATEST output plugin:    ${have_alsa_final}
   Build oss output plugin:            ${have_oss}

@@ -1,3 +1,19 @@
+Mon Nov 26 22:57:36 CET 2001
+----------------------------
+
+- Modified AlsaNode to output through JACK (jackit.sf.net). After successfull
+  compile just start alsaplayer with -o jack, or make a symbolic link from
+	"jackplayer" to the alsaplayer binary. For more information on JACK visit
+	the website at http://jackit.sf.net
+- Added -x option to crossfade between songs. Note that fading is not done
+  yet and that the cross time is not configurable. This feature is still in
+	the "proof of concept" stage.
+- The scopes in the gtk interface plugin are now fed a fixed block of audio
+  data instead of a single fragment. This greatly increases the quality of
+	the scope display and the scopes will now work even if you have a fragment
+	size of less than 1024 bytes. They also work fine when jack output is used.	
+
+
 Thu Nov  1 14:53:23 CET 2001
 ----------------------------
 
