@@ -71,6 +71,8 @@ const char *default_output_addons[] = {
 	NULL };
 
 
+/* This code was swiped from Paul Davis' JACK */
+
 static void default_alsaplayer_error (const char *fmt, ...)
 {
         va_list ap;
