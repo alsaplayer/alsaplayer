@@ -363,9 +363,9 @@ static int cdda_play_frame(input_object *obj, char *buf)
 	}		
 	if (!data->track_length || 
 			(data->rel_pos > data->track_length)) {
-		printf("rel_pos = %d, start = %d, end = %d\n",
-				data->rel_pos, data->track_start, 
-				data->track_start + data->track_length);
+		//printf("rel_pos = %d, start = %d, end = %d\n",
+		//		data->rel_pos, data->track_start, 
+		//		data->track_start + data->track_length);
 		return 0;
 	}
 	memset(bla, 0, sizeof(bla));

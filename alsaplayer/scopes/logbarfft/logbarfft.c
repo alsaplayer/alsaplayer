@@ -54,7 +54,6 @@ static int xranges[] = {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 15, 17, 19, 21, 23, 
 #endif
 static int xranges[] = {0, 1, 2, 3, 5, 7, 10, 14, 20, 28, 40, 54, 74, 101, 137, 187, 255};
 
-
 static void fftscope_hide();
 static int fftscope_running();
 
@@ -95,7 +94,7 @@ static void the_fftscope()
 				val = 0;
 				for (j = xranges[i]; j < xranges[i + 1]; j++) {
 					/* k = (guint)(sqrt(fftout[j]) * fftmult); */
-					k = (fft_buf[j] + fft_buf[256+j]) / 128;
+					k = (fft_buf[j] + fft_buf[256+j]) / 256;
 					val += k;
 				}
 				if(val > 127) val = 127;

@@ -66,7 +66,7 @@
  *  whenever structural changes are made to the API. This value should
  *  only be changed by the maintainers.
  */
-#define INPUT_PLUGIN_VERSION	(INPUT_PLUGIN_BASE_VERSION + 12)
+#define INPUT_PLUGIN_VERSION	(INPUT_PLUGIN_BASE_VERSION + 14)
 
 /**
  * This is a structure that keeps frequently used parameters of an
@@ -162,6 +162,10 @@ typedef struct _stream_info
 	 * doing.
 	 */
 	char	status[32];
+	/**
+	 * The path of the stream
+	 */
+	char	path[1024];
 } stream_info;
 
 /** 

@@ -66,7 +66,7 @@ extern "C" { 	/* Make sure MAD symbols are not mangled
 
 #define BLOCK_SIZE 4096
 #define MAX_NUM_SAMPLES 8192
-#define STREAM_BUFFER_SIZE	16384
+#define STREAM_BUFFER_SIZE	(32 * 1024)
 #define FRAME_RESERVE	2000
 
 # if !defined(O_BINARY)
@@ -326,7 +326,7 @@ static int mad_play_frame(input_object *obj, char *buf)
 		if (data->current_frame > 3 && 
 				(data->frames[data->current_frame] -
 				 data->frames[data->current_frame-3]) < 6) {
-			alsaplayer_error("EOF reached");
+			//alsaplayer_error("EOF reached");
 			return 0;
 		}		
 		if (data->highest_frame < data->current_frame)
@@ -560,9 +560,8 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 			snprintf(info->year, sizeof(info->year), "%s", data->sinfo.year);
 		if (strlen(data->sinfo.comment))
 			snprintf(info->comment, sizeof(info->comment), "%s", data->sinfo.comment);
-#else										
-		sprintf(info->title, "Unparsed: %s", data->filename);				
 #endif
+		snprintf(info->path, sizeof(info->path), "%s", data->path);
 		sprintf(info->stream_type, "%dKHz %-3d kbit %s audio mpeg",
 				data->frame.header.samplerate / 1000,
 				data->frame.header.bitrate / 1000,
@@ -633,7 +632,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 	ssize_t header_size = 0;
 	while (pos < (size - 10)) {
 		if (data[pos] == 0x0d && data[pos+1] == 0x0a) {
-			alsaplayer_error("Skipping <cr><lf>");
+			//alsaplayer_error("Skipping <cr><lf>");
 			pos+=2;
 			continue;
 		}	
@@ -651,6 +650,11 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 				//printf("Extended header detected\n");
 			}
 			header_size += 10;
+
+			if (header_size > STREAM_BUFFER_SIZE) {
+				//alsaplayer_error("Header larger than 32K (%d)", header_size);
+				return header_size;
+			}	
 			//printf("MP3 should start at %d\n", header_size);
 			if (data[header_size] != 0xff) {
 				//alsaplayer_error("broken MP3 or unkown TAG! Searching for next 0xFF");
@@ -661,13 +665,13 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 						return header_size;
 					}
 				}
-				alsaplayer_error("Not found in first 16K, bad :(");
+				alsaplayer_error("Not found in first 32K, bad :(");
 			}	
 			return header_size;
 		} else if (data[pos] == 'R' && data[pos+1] == 'I' &&
 				data[pos+2] == 'F' && data[pos+3] == 'F') {
 			pos+=4;
-			alsaplayer_error("Found a RIFF header");
+			//alsaplayer_error("Found a RIFF header");
 			while (pos < size) {
 				if (data[pos] == 'd' && data[pos+1] == 'a' &&
 						data[pos+2] == 't' && data[pos+3] == 'a') {
@@ -738,15 +742,18 @@ static int mad_open(input_object *obj, char *path)
 			data->bytes_avail < STREAM_BUFFER_SIZE ? data->bytes_avail :
 			STREAM_BUFFER_SIZE);
 	data->highest_frame = 0;
-	//alsaplayer_error("mp3 offset = %d", data->offset);
-	//fill_buffer(data, 0);
 	if (data->offset < 0) {
 		fprintf(stderr, "mad_open() couldn't find valid MPEG header\n");
 		return 0;
 	}
-	mad_stream_buffer(&data->stream, data->mad_map + data->offset,
-			data->bytes_avail - data->offset);
-	data->bytes_avail -= data->offset;
+	if (data->offset > data->bytes_avail) {
+		fill_buffer(data, 0);
+		mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
+	} else {
+		mad_stream_buffer(&data->stream, data->mad_map + data->offset,
+				data->bytes_avail - data->offset);
+		data->bytes_avail -= data->offset;
+	}	
 	
 	if ((mad_frame_decode(&data->frame, &data->stream) != 0)) {
 		alsaplayer_error("MAD error: %s", error_str(data->stream.error, data->str));
