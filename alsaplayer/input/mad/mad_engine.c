@@ -35,6 +35,9 @@
 #include <sys/mman.h>
 #include "input_plugin.h"
 #include "alsaplayer_error.h"
+#include "reader.h"
+
+#define MAD_BUFSIZE (32 * 1024)
 
 #ifdef __cplusplus
 extern "C" { 	/* Make sure MAD symbols are not mangled
@@ -51,19 +54,11 @@ extern "C" { 	/* Make sure MAD symbols are not mangled
 }
 #endif
 
-#ifdef HAVE_ID3TAG_H
-#ifndef HAVE_LIBID3TAG
-#error "id3tag.h was present but libid3tag.so is apparantly missing :-("
-#endif
-#include "id3tag.h"
-#include <assert.h>
-#endif
-
 #include "xing.h"
 
 #define BLOCK_SIZE 4096
 #define MAX_NUM_SAMPLES 8192
-#define STREAM_BUFFER_SIZE	16384
+#define STREAM_BUFFER_SIZE	(32 * 1024)
 #define FRAME_RESERVE	2000
 
 # if !defined(O_BINARY)
@@ -71,8 +66,10 @@ extern "C" { 	/* Make sure MAD symbols are not mangled
 # endif
 
 struct mad_local_data {
-	int mad_fd;
-	uint8_t *mad_map;
+	void *mad_fd;
+	uint8_t mad_map[MAD_BUFSIZE];
+	long map_offset;
+	int bytes_avail;
 	struct stat stat;
 	ssize_t	*frames;
 	int highest_frame;
@@ -129,6 +126,7 @@ char const *error_str(enum mad_error error, char *str)
 		case MAD_ERROR_BADHUFFTABLE:	 return ("bad Huffman table select");
 		case MAD_ERROR_BADHUFFDATA:	 return ("Huffman data overrun");
 		case MAD_ERROR_BADSTEREO:	 return ("incompatible block_type for JS");
+		default:;
 	}
 
 	sprintf(str, "error 0x%04x", error);
@@ -154,15 +152,21 @@ static inline signed int my_scale(mad_fixed_t sample)
 }
 
 
+static void fill_buffer(struct mad_local_data *data, long offset)
+{
+	size_t bytes_read;
+	if (offset >= 0)	
+		reader_seek(data->mad_fd, data->offset + offset, SEEK_SET);
+	bytes_read = reader_read(data->mad_map, MAD_BUFSIZE, data->mad_fd);
+	data->bytes_avail = bytes_read;
+	data->map_offset = offset;
+}
+
 
 static int mad_frame_seek(input_object *obj, int frame)
 {
 	struct mad_local_data *data;
 	struct mad_header header;
-	int64_t pos;
-	int bytes_read;
-	int advance;
-	int num_bytes;
 	int skip;
 	ssize_t byte_offset;
 
@@ -170,24 +174,27 @@ static int mad_frame_seek(input_object *obj, int frame)
 		return 0;
 	data = (struct mad_local_data *)obj->local_data;
 
-
+	//alsaplayer_error("Frame seek to %d (highest = %d)", frame, data->highest_frame);
+	
 	if (data) {
-		ssize_t current_pos;
-
 		if (!data->seekable)
 			return 0;
 
 		mad_header_init(&header);
 
+		data->bytes_avail = 0;
 		if (frame <= data->highest_frame) {
 			skip = 0;
+			
 			if (frame > 4) {
 				skip = 3;
 			}
 			byte_offset = data->frames[frame-skip];
-			mad_stream_buffer(&data->stream, data->mad_map + 
-					byte_offset,
-					data->stat.st_size - byte_offset);
+			// Prepare the buffer for a read
+			//alsaplayer_error("Filling buffer offset = %d (%d)", byte_offset, frame-skip);
+			fill_buffer(data, byte_offset);
+			mad_stream_buffer(&data->stream, data->mad_map,
+					data->bytes_avail);
 			skip++;
 			while (skip != 0) {
 				skip--;
@@ -195,46 +202,52 @@ static int mad_frame_seek(input_object *obj, int frame)
 				mad_frame_decode(&data->frame, &data->stream);
 				if (skip == 0)
 					mad_synth_frame (&data->synth, &data->frame);
-			}				
+			}
+			data->bytes_avail = data->stream.bufend - 
+					data->stream.next_frame;
 			data->current_frame = frame;
 			data->seeking = 0;
 			return data->current_frame;
 		}
 		data->seeking = 1;
-
-		mad_stream_buffer(&data->stream, data->mad_map +
-				data->frames[data->highest_frame],
-				data->stat.st_size - data->offset -
-				data->frames[data->highest_frame]);
+		fill_buffer(data, data->frames[data->highest_frame]);
+		mad_stream_buffer(&data->stream, data->mad_map,
+				data->bytes_avail);
 		while (data->highest_frame < frame) {
+			if (data->bytes_avail < 3072) {
+				fill_buffer(data, data->map_offset + MAD_BUFSIZE - data->bytes_avail);
+				mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
+			}	
 			if (mad_header_decode(&header, &data->stream) == -1) {
 				if (!MAD_RECOVERABLE(data->stream.error)) {
-					//printf("MAD debug: error seeking to %d, going to %d\n",
-					//		data->current_frame, data->highest_frame);
+					fill_buffer(data, 0);
 					mad_stream_buffer(&data->stream,
-							data->mad_map + data->offset +
-							data->frames[data->highest_frame],
-							data->stat.st_size - data->offset -
-							data->frames[data->highest_frame]);
-					data->seeking = 0;	
+							data->mad_map,
+							data->bytes_avail);
+					data->seeking = 0;
+					//alsaplayer_error("Error while seeking (%d, %d)", data->highest_frame,
+					//		data->bytes_avail);
 					return 0;
 				}				
 			}
 			data->frames[++data->highest_frame] =
-				data->stream.this_frame - data->mad_map;
+				data->map_offset + data->stream.this_frame - data->mad_map;
+			data->bytes_avail = data->stream.bufend - data->stream.next_frame;
 		}
 		data->current_frame = data->highest_frame;
 		if (data->current_frame > 4) {
 			skip = 3;
-			byte_offset = data->frames[data->current_frame-skip];
-			mad_stream_buffer(&data->stream, data->mad_map +
-					byte_offset, data->stat.st_size - byte_offset);
+			fill_buffer(data, data->frames[data->current_frame-skip]);
+			mad_stream_buffer(&data->stream, data->mad_map,
+					data->bytes_avail);
 			skip++;
 			while (skip != 0) { 
 				skip--;
 				mad_frame_decode(&data->frame, &data->stream);
 				if (skip == 0) 
 					mad_synth_frame (&data->synth, &data->frame);
+				data->bytes_avail = data->stream.bufend -
+					data->stream.next_frame;
 			}
 		}
 		data->seeking = 0;
@@ -257,8 +270,6 @@ static int mad_frame_size(input_object *obj)
 
 static int mad_play_frame(input_object *obj, char *buf)
 {
-	int ret;
-	int bytes_read;
 	struct mad_local_data *data;
 	struct mad_pcm *pcm;
 	mad_fixed_t const *left_ch;
@@ -272,9 +283,20 @@ static int mad_play_frame(input_object *obj, char *buf)
 	data = (struct mad_local_data *)obj->local_data;
 	if (!data)
 		return 0;
+	if (data->bytes_avail < 3072) {
+		//alsaplayer_error("Filling buffer = %d,%d",
+		//		data->bytes_avail,
+		//		data->map_offset + MAD_BUFSIZE - data->bytes_avail);
+		fill_buffer(data, data->map_offset + MAD_BUFSIZE - data->bytes_avail);
+		mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
+	} else {
+		//alsaplayer_error("bytes_avail = %d", data->bytes_avail);
+	}
 	if (mad_frame_decode(&data->frame, &data->stream) == -1) {
 		if (!MAD_RECOVERABLE(data->stream.error)) {
-			/* alsaplayer_error("MAD error: %s", error_str(data->stream.error, data->str)); */
+			//alsaplayer_error("MAD error: %s (%d)", 
+			//	error_str(data->stream.error, data->str),
+			//	data->bytes_avail);
 			mad_frame_mute(&data->frame);
 			return 0;
 		}	else {
@@ -285,11 +307,11 @@ static int mad_play_frame(input_object *obj, char *buf)
 	if (data->current_frame < (obj->nr_frames + FRAME_RESERVE)
 			&& data->seekable) {
 		data->frames[data->current_frame] = 
-			data->stream.this_frame - data->mad_map;
+			data->map_offset + data->stream.this_frame - data->mad_map;
 		if (data->current_frame > 3 && 
 				(data->frames[data->current_frame] -
 				 data->frames[data->current_frame-3]) < 6) {
-			/* alsaplayer_error("EOF reached"); */
+			//alsaplayer_error("EOF reached");
 			return 0;
 		}		
 		if (data->highest_frame < data->current_frame)
@@ -313,7 +335,8 @@ static int mad_play_frame(input_object *obj, char *buf)
 
 		}
 	}
-
+	data->bytes_avail = data->stream.bufend - data->stream.next_frame;
+	
 	return 1;
 }
 
@@ -321,7 +344,6 @@ static int mad_play_frame(input_object *obj, char *buf)
 static  long mad_frame_to_sec(input_object *obj, int frame)
 {
 	struct mad_local_data *data;
-	int64_t l = 0;
 	unsigned long sec = 0;
 
 	if (!obj)
@@ -337,202 +359,293 @@ static  long mad_frame_to_sec(input_object *obj, int frame)
 
 static int mad_nr_frames(input_object *obj)
 {
-	struct mad_local_data *data;
 	if (!obj)
 		return 0;
 	return obj->nr_frames;
 }
 
-#ifdef HAVE_LIBID3TAG
+/* Strip spaces from right to left */
+static void rstrip (char *s) {
+	int len = strlen (s);
 
-#define _(text) text
-#define N_(text) text
-#define gettext(text) text
-/*
- * NAME:	show_id3()
- * DESCRIPTION:	display an ID3 tag
- * This code was lifted from the player.c file in the libmad distribution
- */
-	static
-void parse_id3(struct id3_tag const *tag, stream_info *sinfo)
-{
-	unsigned int i;
-	struct id3_frame const *frame;
-	id3_ucs4_t const *ucs4;
-	id3_latin1_t *latin1;
-	char const spaces[] = "          ";
-
-	struct {
-		char const *id;
-		char const *name;
-	} const info[] = {
-		{ ID3_FRAME_TITLE,  N_("Title")     },
-		{ "TIT3",           0               },  /* Subtitle */
-		{ "TCOP",           0,              },  /* Copyright */
-		{ "TPRO",           0,              },  /* Produced */
-		{ "TCOM",           N_("Composer")  },
-		{ ID3_FRAME_ARTIST, N_("Artist")    },
-		{ "TPE2",           N_("Orchestra") },
-		{ "TPE3",           N_("Conductor") },
-		{ "TEXT",           N_("Lyricist")  },
-		{ ID3_FRAME_ALBUM,  N_("Album")     },
-		{ ID3_FRAME_YEAR,   N_("Year")      },
-		{ ID3_FRAME_TRACK,  N_("Track")     },
-		{ "TPUB",           N_("Publisher") },
-		{ ID3_FRAME_GENRE,  N_("Genre")     },
-		{ "TRSN",           N_("Station")   },
-		{ "TENC",           N_("Encoder")   }
-	};
-
-	/* text information */
-
-	for (i = 0; i < sizeof(info) / sizeof(info[0]); ++i) {
-		union id3_field const *field;
-		unsigned int nstrings, namelen, j;
-		char const *name;
-
-		frame = id3_tag_findframe(tag, info[i].id, 0);
-		if (frame == 0)
-			continue;
-
-		field    = &frame->fields[1];
-		nstrings = id3_field_getnstrings(field);
-
-		name = info[i].name;
-		if (name)
-			name = gettext(name);
-
-		namelen = name ? strlen(name) : 0;
-		assert(namelen < sizeof(spaces));
-
-		for (j = 0; j < nstrings; ++j) {
-			ucs4 = id3_field_getstrings(field, j);
-			assert(ucs4);
-
-			if (strcmp(info[i].id, ID3_FRAME_GENRE) == 0)
-				ucs4 = id3_genre_name(ucs4);
-
-			latin1 = id3_ucs4_latin1duplicate(ucs4);
-			if (latin1 == 0)
-				goto fail;
-
-			if (j == 0 && name) {
-				if (strcmp(name, "Title") == 0) {
-					snprintf(sinfo->title, sizeof(sinfo->title), "%s", latin1);
-				} else if (strcmp(name, "Artist") == 0) {
-					snprintf(sinfo->artist, sizeof(sinfo->artist), "%s", latin1);
-				} else if (strcmp(name, "Album") == 0) {
-					snprintf(sinfo->album, sizeof(sinfo->album), "%s", latin1);
-				} else if (strcmp(name, "Genre") == 0) {
-					snprintf(sinfo->genre, sizeof(sinfo->genre), "%s", latin1);
-				} else if (strcmp(name, "Track") == 0) {
-					snprintf(sinfo->track, sizeof(sinfo->track), "%s", latin1);
-				} else if (strcmp(name, "Year") == 0) {
-					snprintf(sinfo->year, sizeof(sinfo->year), "%s", latin1);
-				} else {
-					//alsaplayer_error("%s%s: %s", &spaces[namelen], name, latin1);
-				}
-			} else {
-				if (strcmp(info[i].id, "TCOP") == 0 ||
-						strcmp(info[i].id, "TPRO") == 0) {
-					//alsaplayer_error("%s  %s %s\n", spaces, (info[i].id[1] == 'C') ?
-					//		_("Copyright (C)") : _("Produced (P)"), latin1);
-				}
-				else
-					;//alsaplayer_error("%s  %s\n", spaces, latin1);
-			}
-
-			free(latin1);
-		}
-	}
-
-	/* comments */
-
-	i = 0;
-	while ((frame = id3_tag_findframe(tag, ID3_FRAME_COMMENT, i++))) {
-		id3_latin1_t *ptr, *newline;
-		int first = 1;
-
-		ucs4 = id3_field_getstring(&frame->fields[2]);
-		assert(ucs4);
-
-		if (*ucs4)
-			continue;
-
-		ucs4 = id3_field_getfullstring(&frame->fields[3]);
-		assert(ucs4);
-
-		latin1 = id3_ucs4_latin1duplicate(ucs4);
-		if (latin1 == 0)
-			goto fail;
-
-		snprintf (sinfo->comment, sizeof(sinfo->comment), "%s", latin1);
-		
-		free(latin1);
-		break;
-	}
-
-	if (0) {
-fail:
-		alsaplayer_error(_("not enough memory to display tag"));
+	while (len && s[len-1] == ' ') {
+	    len --;
+	    s[len] = '\0';
 	}
 }
-#endif
+
+/* Convert from synchsafe integer */
+static unsigned int from_synchsafe4 (unsigned char *buf)
+{
+    return (buf [3]) + (buf [2] << 7) + (buf [1] << 14) + (buf [0] << 21);
+}
+
+static unsigned int from_synchsafe3 (unsigned char *buf)
+{
+    return (buf [3]) + (buf [2] << 7) + (buf [1] << 14);
+}
+
+/* Fill filed */
+static void fill_from_id3v2 (char *dst, char *src, int max, int size)
+{
+    /* FIXME: UTF8 internal support */
+    
+    int min = size-1 > max ? max : size-1;
+    
+    if (*src == 0) {
+	/* ISO-8859-1 */
+	strncpy (dst, src+1, min);
+    }
+}
+
+static char *genres[] = {
+    "Blues", "Classic Rock", "Country", "Dance", "Disco", "Funk", "Grunge",
+    "Hip-Hop", "Jazz", "Metal", "New Age", "Oldies", "Other", "Pop", "R&B",
+    "Rap", "Reggae", "Rock", "Techno", "Industrial", "Alternative", "Ska",
+    "Death Metal", "Pranks", "Soundtrack", "Euro-Techno", "Ambient", "Trip-Hop",
+    "Vocal", "Jazz+Funk", "Fusion", "Trance", "Classical", "Instrumental",
+    "Acid", "House", "Game", "Sound Clip", "Gospel", "Noise", "AlternRock",
+    "Bass", "Soul", "Punk", "Space", "Meditative", "Instrumental Pop",
+    "Instrumental Rock", "Ethnic", "Gothic", "Darkwave", "Techno-industrial",
+    "Electronic", "Pop-Folk", "Eurodance", "Dream", "Southern Rock", "Comedy",
+    "Cult", "Gangsta", "Top 40", "Christian Rap", "Pop/Funk", "Jungle",
+    "Native American", "Cabaret", "New Wave", "Psychadelic", "Rave",
+    "Showtunes", "Trailer", "Lo-Fi", "Tribal", "Acid Punk", "Acid Jazz",
+    "Polka", "Retro", "Musical", "Rock & Roll", "Hard Rock", "Folk",
+    "Folk/Rock", "National Folk", "Swing", "Fast-Fusion", "Bebob", "Latin",
+    "Revival", "Celtic", "Bluegrass", "Avantegarde", "Gothic Rock",
+    "Progressive Rock", "Psychedelic Rock", "Symphonic Rock", "Slow Rock",
+    "Big Band", "Chorus", "Easy Listening", "Acoustic", "Humour", "Speech",
+    "Chanson", "Opera", "Chamber Music", "Sonata", "Symphony", "Booty Bass",
+    "Primus", "Porn Groove", "Satire", "Slow Jam", "Club", "Tango", "Samba",
+    "Folklore", "Ballad", "Power Ballad", "Rythmic Soul", "Freestyle", "Duet",
+    "Punk Rock", "Drum Solo", "A capella", "Euro-House", "Dance Hall", "Goa",
+    "Drum & Bass", "Club House", "Hardcore", "Terror", "Indie", "BritPop",
+    "NegerPunk", "Polsk Punk", "Beat", "Christian Gangsta", "Heavy Metal",
+    "Black Metal", "Crossover", "Contemporary C", "Christian Rock", "Merengue",
+    "Salsa", "Thrash Metal", "Anime", "JPop", "SynthPop", ""};
+
+/* Trying to fill info from id3 tagged file */
+static void parse_id3 (const char *path, stream_info *info)
+{
+	void *fd;
+	unsigned char buf [2024];
+	unsigned char g;
+
+	/* Open stream */
+	fd = reader_open (path);
+	if (!fd)  return;
+
+	/* --------------------------------------------------- */
+	/* Trying to load id3v2 tags                           */
+	if (reader_read (buf, 10, fd) != 10) {
+	    reader_close (fd);
+	    return;
+	}
+
+	if (memcmp(buf, "ID3", 3) == 0) {
+	    /* Parse id3v2 tags */
+
+	    /* Header */
+	    unsigned char major_version = buf [3];
+	    int f_unsynchronization = buf [5] & (1<<7);
+	    int f_extended_header = buf [5] & (1<<6);
+	    int f_experimental = buf [5] & (1<<5);
+	    unsigned int header_size = from_synchsafe4 (buf + 6);
+	    int name_size = buf [3] == 2 ? 3 : 4;
+
+	    if (f_extended_header) {
+		alsaplayer_error ("FIXME: Extended header founded in mp3."
+				  "Please contact alsaplayer team.\n");
+		return;
+	    }
+
+	    if (f_unsynchronization) {
+		alsaplayer_error ("FIXME: f_unsynchronization is set."
+				  "Please contact alsaplayer team.\n");
+		return;
+	    }
+
+	    if (f_experimental) {
+		alsaplayer_error ("FIXME: f_experimental is set."
+				  "Please contact alsaplayer team.\n");
+		return;
+	    }
+
+	    /* -- -- read frames -- -- */
+	    while (reader_tell (fd) <= header_size + 10) {
+		unsigned int size;
+		
+		/* Get name of this frame */
+		if (reader_read (buf, name_size, fd) != name_size) {
+		    reader_close (fd);
+		    return;
+		}
+
+		if (buf [0] == '\0')  break;
+		if (buf [0] < 'A')  break;
+		if (buf [0] > 'Z')  break;
+
+		/* Get size */
+		if (major_version == 2) {
+		    char sb [3];
+		    
+		    if (reader_read (sb, 3, fd) != 3) {
+			reader_close (fd);
+			return;
+		    }
+
+		    size = from_synchsafe3 (sb);
+		} else {
+		    char sb [4];
+		    
+		    if (reader_read (sb, 4, fd) != 4) {
+			reader_close (fd);
+			return;
+		    }
+
+		    size = from_synchsafe4 (sb);
+		}
+
+		/* skip frame flags */
+		if (reader_seek (fd, 2, SEEK_CUR) == -1) {
+		    reader_close (fd);
+		    return;
+		}
+		
+		if (size>=1024) {
+		    /* I will not support such long tags...
+		     * Only if someone ask for it...
+		     * not now... */
+		    
+		    if (reader_seek (fd, size, SEEK_CUR) == -1) {
+			reader_close (fd);
+			return;
+		    }
+
+		    continue;
+		}
+		
+		/* read info */
+		if (reader_read (buf + name_size, size, fd) != size) {
+		    reader_close (fd);
+		    return;
+		}
+		
+		/* !!! Ok. There we have frame name and data. */
+		/* Lets use it. */
+		if (name_size == 4) {
+		    if (memcmp (buf, "TIT2", 4)==0)
+			fill_from_id3v2 (info->title, buf + name_size,
+					 sizeof (info->title), size);
+		    else if (memcmp (buf, "TPE1", 4)==0)
+			fill_from_id3v2 (info->artist, buf + name_size,
+					 sizeof (info->artist), size);
+		    else if (memcmp (buf, "TALB", 4)==0)
+			fill_from_id3v2 (info->album, buf + name_size,
+					 sizeof (info->album), size);
+		    else if (memcmp (buf, "TYER", 4)==0)
+			fill_from_id3v2 (info->year, buf + name_size,
+					 sizeof (info->year), size);
+		    else if (memcmp (buf, "COMM", 4)==0)
+			fill_from_id3v2 (info->comment, buf + name_size,
+					 sizeof (info->comment), size);
+		    else if (memcmp (buf, "TRCK", 4)==0)
+			fill_from_id3v2 (info->track, buf + name_size,
+					 sizeof (info->track), size);
+		    else if (memcmp (buf, "TCON", 4)==0)
+			fill_from_id3v2 (info->genre, buf + name_size,
+					 sizeof (info->genre), size);
+
+		} /* end of 'if name_size == 4' */
+		
+	    } /* end of frames read */
+	    
+	    /* end parsing */
+	    return;
+	} /* end of id3v2 parsing */
+	
+	/* --------------------------------------------------- */
+	/* Trying to load id3v1 tags                           */
+	if (reader_seek (fd, -128, SEEK_END) == -1) {
+	    reader_close (fd);
+	    return;
+	}
+
+	if (reader_read (buf, 128, fd) != 128) {
+	    reader_close (fd);
+	    return;
+	}
+
+	if (memcmp(buf, "TAG", 3) == 0) {
+	    /* ID3v1 frame found */
+
+	    /* title */
+	    strncpy (info->title, buf + 3, 30);
+	    rstrip (info->title);
+
+	    /* artist */
+	    strncpy (info->artist, buf + 33, 30);
+	    rstrip (info->artist);
+
+	    /* album */
+	    strncpy (info->album, buf + 63, 30);
+	    rstrip (info->album);
+
+	    /* year */
+	    strncpy (info->year, buf + 93, 4);
+	    rstrip (info->year);
+
+	    /* comment */
+	    strncpy (info->comment, buf + 97, 28);
+	    rstrip (info->comment);
+
+	    /* track number */
+	    if (buf [125] == '\0')
+		snprintf (info->track, sizeof (info->track), "%u", buf [126]);
+
+	    /* genre */
+	    g = buf [127];
+	    if (sizeof (genres) <= g)
+		snprintf (info->genre, sizeof (info->genre), "(%u)", g);
+	    else
+		snprintf (info->genre, sizeof (info->genre), "%s", genres[g]);
+	} /* end of id3v1 parsing */
+	
+	reader_close (fd);
+}
 
 static int mad_stream_info(input_object *obj, stream_info *info)
 {
 	struct mad_local_data *data;	
-#ifdef HAVE_LIBID3TAG
-	struct id3_file *id3;
-	struct id3_tag *tag;
-	struct id3_frame *frame;
-	union id3_field const *field;
-	id3_ucs4_t const *ucs4;
-	id3_latin1_t *latin1;
-#endif				
 
 	if (!obj || !info)
 		return 0;
+
 	data = (struct mad_local_data *)obj->local_data;
 
 	if (data) {
-#ifdef HAVE_LIBID3TAG								
-		if (!data->parsed_id3) { /* Parse only one time */
-			id3 = id3_file_open(data->path, ID3_FILE_MODE_READONLY);
-			if (id3) {
-				tag = id3_file_tag(id3);
-				if (tag) {
-					parse_id3(tag, &data->sinfo);
-				}
-				id3_file_close(id3);
-			}
-			data->parsed_id3 = 1;
+		if (!data->parsed_id3) {
+		    // Some data we parse only once
+		    parse_id3 (data->path, &data->sinfo);
+		     
+		    strncpy (data->sinfo.path, data->path, sizeof(data->sinfo.path));
+		    data->parsed_id3 = 1;
 		}
-		if (strlen(data->sinfo.title))
-			snprintf(info->title, sizeof(info->title), "%s", data->sinfo.title);
-		if (strlen(data->sinfo.artist))
-			snprintf(info->artist, sizeof(info->artist), "%s", data->sinfo.artist);
-		if (strlen(data->sinfo.album))
-			snprintf(info->album, sizeof(info->album), "%s", data->sinfo.album);
-		if (strlen(data->sinfo.genre))
-			snprintf(info->genre, sizeof(info->genre), "%s", data->sinfo.genre);
-		if (strlen(data->sinfo.track))
-			snprintf(info->track, sizeof(info->track), "%s", data->sinfo.track);
-		if (strlen(data->sinfo.year))
-			snprintf(info->year, sizeof(info->year), "%s", data->sinfo.year);
-		if (strlen(data->sinfo.comment))
-			snprintf(info->comment, sizeof(info->comment), "%s", data->sinfo.comment);
-#else										
-		sprintf(info->title, "Unparsed: %s", data->filename);				
-#endif
-		sprintf(info->stream_type, "%dKHz %-3d kbit %s audio mpeg",
+		
+		/* Restore permanently filled info */
+		memcpy (info, &data->sinfo, sizeof (data->sinfo));
+		
+		/* Compose path, stream_type and status fields */
+		sprintf(info->stream_type, "%dKHz %-3ld kbit %s audio mpeg",
 				data->frame.header.samplerate / 1000,
 				data->frame.header.bitrate / 1000,
 				obj->nr_channels == 2 ? "stereo" : "mono");
+
 		if (data->seeking)
 			sprintf(info->status, "Seeking...");
 		else
-			sprintf(info->status, "");
+			*info->status = '\0';
 	}				
 	return 1;
 }
@@ -573,6 +686,8 @@ static float mad_can_handle(const char *path)
 	char *ext;      
 	ext = strrchr(path, '.');
 
+	if (strncmp(path, "http://", 7) == 0)
+		return 0.5;
 	if (!ext)
 		return 0.0;
 	ext++;
@@ -592,6 +707,11 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 	int pos = 0;
 	ssize_t header_size = 0;
 	while (pos < (size - 10)) {
+		if (data[pos] == 0x0d && data[pos+1] == 0x0a) {
+			//alsaplayer_error("Skipping <cr><lf>");
+			pos+=2;
+			continue;
+		}	
 		if (pos == 0 && (data[pos] == 'I' && data[pos+1] == 'D' && data[pos+2] == '3')) {
 			header_size = (data[pos + 6] << 21) + 
 				(data[pos + 7] << 14) +
@@ -606,6 +726,11 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 				//printf("Extended header detected\n");
 			}
 			header_size += 10;
+
+			if (header_size > STREAM_BUFFER_SIZE) {
+				//alsaplayer_error("Header larger than 32K (%d)", header_size);
+				return header_size;
+			}	
 			//printf("MP3 should start at %d\n", header_size);
 			if (data[header_size] != 0xff) {
 				//alsaplayer_error("broken MP3 or unkown TAG! Searching for next 0xFF");
@@ -616,12 +741,13 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 						return header_size;
 					}
 				}
-				alsaplayer_error("Not found in first 16K, bad :(");
+				alsaplayer_error("Not found in first 32K, bad :(");
 			}	
 			return header_size;
 		} else if (data[pos] == 'R' && data[pos+1] == 'I' &&
 				data[pos+2] == 'F' && data[pos+3] == 'F') {
 			pos+=4;
+			//alsaplayer_error("Found a RIFF header");
 			while (pos < size) {
 				if (data[pos] == 'd' && data[pos+1] == 'a' &&
 						data[pos+2] == 't' && data[pos+3] == 'a') {
@@ -642,7 +768,9 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 	if (data[0] != 0xff) {
 		header_size = 0;
 		while (header_size < size) {
-			if (data[++header_size] == 0xff && data[header_size+1] == 0xfb) {
+			if (data[++header_size] == 0xff && 
+					(data[header_size+1] == 0xfb ||
+					 data[header_size+1] == 0xf3)) {
 				//printf("Found ff fb at %d\n", header_size);
 				return header_size;
 			}
@@ -659,7 +787,6 @@ static int mad_open(input_object *obj, char *path)
 {
 	struct mad_local_data *data;
 	char *p;
-	char fake_read[4];
 	int mode;
 
 	if (!obj)
@@ -673,66 +800,36 @@ static int mad_open(input_object *obj, char *path)
 	data = (struct mad_local_data *)obj->local_data;
 	memset(data, 0, sizeof(struct mad_local_data));
 
-	if ((data->mad_fd = open(path, O_RDONLY | O_BINARY)) < 0) {
+	if ((data->mad_fd = reader_open(path)) == NULL) {
 		fprintf(stderr, "mad_open() failed\n");
 		free(obj->local_data);
 		obj->local_data = NULL;
 		return 0;
 	}
-	if (fstat(data->mad_fd, &data->stat) == -1) {
-		perror("fstat");
-		free(obj->local_data);
-		obj->local_data = NULL;
-		return 0;
-	}
-	if (!data->stat.st_size) {
-		fprintf(stderr, "empty file\n");
-		free(obj->local_data);
-		obj->local_data = NULL;
-		return 0;
-	}	
-	if (!S_ISREG(data->stat.st_mode)) {
-		fprintf(stderr, "%s: Not a regular file\n", path);
-		free(obj->local_data);
-		obj->local_data = NULL;
-		return 0;
-	}
-	/* Check if we can actually read the file (NFS) */
-	if (read(data->mad_fd, fake_read, 1) != 1) {
-		fprintf(stderr, "%s: cannot read this file (NFS trouble?)\n",
-				path);
-		free(obj->local_data);
-		obj->local_data = NULL;
-		return 0;
-	}	
-	data->mad_map = (uint8_t *)mmap(0, data->stat.st_size, PROT_READ, MAP_SHARED, data->mad_fd, 0);
-
-	if (data->mad_map == MAP_FAILED) {
-		perror("mmap");
-		return 0;
-	}
-	/* Use madvise to tell kernel we will do mostly sequential reading */
-#ifdef HAVE_MADVISE				
-	if (madvise(data->mad_map, data->stat.st_size, MADV_SEQUENTIAL) < 0)
-		printf("MAD warning: madvise() call failed\n");
-#endif				
 	mad_synth_init  (&data->synth);
 	mad_stream_init (&data->stream);
 	mad_frame_init  (&data->frame);
 	memset(&data->xing, 0, sizeof(struct xing));
 	xing_init (&data->xing);
 	data->mad_init = 1;
+	fill_buffer(data, 0);
 	data->offset = find_initial_frame(data->mad_map, 
-			data->stat.st_size < STREAM_BUFFER_SIZE ? data->stat.st_size :
+			data->bytes_avail < STREAM_BUFFER_SIZE ? data->bytes_avail :
 			STREAM_BUFFER_SIZE);
 	data->highest_frame = 0;
 	if (data->offset < 0) {
 		fprintf(stderr, "mad_open() couldn't find valid MPEG header\n");
 		return 0;
 	}
-	mad_stream_buffer(&data->stream, data->mad_map + data->offset,
-			data->stat.st_size - data->offset);
-
+	if (data->offset > data->bytes_avail) {
+		fill_buffer(data, 0);
+		mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
+	} else {
+		mad_stream_buffer(&data->stream, data->mad_map + data->offset,
+				data->bytes_avail - data->offset);
+		data->bytes_avail -= data->offset;
+	}	
+	
 	if ((mad_frame_decode(&data->frame, &data->stream) != 0)) {
 		alsaplayer_error("MAD error: %s", error_str(data->stream.error, data->str));
 		switch (data->stream.error) {
@@ -765,22 +862,26 @@ static int mad_open(input_object *obj, char *path)
 		obj->nr_channels = pcm->channels;
 	}
 	/* Calculate some values */
-
+	data->bytes_avail = data->stream.bufend - data->stream.next_frame;
 	{
 		int64_t time;
 		int64_t samples;
 		int64_t frames;
-
-		data->filesize = data->stat.st_size;
+	
+		long oldpos = reader_tell(data->mad_fd);
+		reader_seek(data->mad_fd, 0, SEEK_END);
+		
+		data->filesize = reader_tell(data->mad_fd);
 		data->filesize -= data->offset;
 
+		reader_seek(data->mad_fd, oldpos, SEEK_SET);
+	
 		time = (data->filesize * 8) / (data->bitrate);
 
 		samples = 32 * MAD_NSBSAMPLES(&data->frame.header);
 
 		obj->frame_size = (int) samples << 2; /* Assume 16-bit stereo */
 		frames = data->samplerate * (time+1) / samples;
-
 		obj->nr_frames = data->xing.frames ? data->xing.frames : (int) frames;
 		obj->nr_tracks = 1;
 	}
@@ -791,8 +892,8 @@ static int mad_open(input_object *obj, char *path)
 	}	else {
 		data->seekable = 1;
 	}				
-	data->frames[0] = data->offset;
-
+	data->frames[0] = 0;
+#if 0
 	/* Reset decoder */
 	data->mad_init = 0;
 	mad_synth_finish (&data->synth);
@@ -802,9 +903,11 @@ static int mad_open(input_object *obj, char *path)
 	mad_synth_init  (&data->synth);
 	mad_stream_init (&data->stream);
 	mad_frame_init  (&data->frame);
+#endif	
 	data->mad_init = 1;
-
-	mad_stream_buffer (&data->stream, data->mad_map + data->offset, data->stat.st_size - data->offset);
+	//alsaplayer_error("mp3 offset = %d", data->offset);
+	//fill_buffer(data, 0);
+	//mad_stream_buffer (&data->stream, data->mad_map, data->bytes_avail);
 
 	p = strrchr(path, '/');
 	if (p) {
@@ -814,7 +917,14 @@ static int mad_open(input_object *obj, char *path)
 	}
 	strcpy(data->path, path);
 
-	obj->flags = P_SEEK;
+/*	if (strncmp(path, "http", 4) == 0) {
+			alsaplayer_error("No seeking allowed");
+			obj->flags = 0;
+			data->seekable = 0;
+	} else {	*/
+		obj->flags = P_SEEK;
+		data->seekable = 1;
+/*	}*/
 
 	return 1;
 }
@@ -829,11 +939,7 @@ static void mad_close(input_object *obj)
 
 	if (data) {
 		if (data->mad_fd)
-			close(data->mad_fd);
-		if (data->mad_map) {
-			if (munmap(data->mad_map, data->stat.st_size) == -1)
-				alsaplayer_error("failed to unmap memory...");
-		}				
+			reader_close(data->mad_fd);
 		if (data->mad_init) {
 			mad_synth_finish (&data->synth);
 			mad_frame_finish (&data->frame);
@@ -865,7 +971,7 @@ input_plugin *input_plugin_info (void)
 {
 	memset(&mad_plugin, 0, sizeof(input_plugin));
 	mad_plugin.version = INPUT_PLUGIN_VERSION;
-	mad_plugin.name = "MAD MPEG audio plugin v0.91";
+	mad_plugin.name = "MAD MPEG audio plugin v0.99";
 	mad_plugin.author = "Andy Lo A Foe";
 	mad_plugin.init = mad_init;
 	mad_plugin.shutdown = mad_shutdown;
