@@ -88,10 +88,8 @@ prefs_handle_t *prefs_load(char *filename)
 					filename);
 		return NULL;
 	}	
-	prefs->filename = (char *)malloc(strlen(filename)+1);
-	if (prefs->filename)
-		strcpy(prefs->filename, filename);
-	
+	prefs->filename = strdup(filename);
+
 	return prefs;
 }
 
