@@ -24,6 +24,8 @@
 #include <sys/stat.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
+#include <gtk/gtkdnd.h>
+#include <glib.h>
 
 #include <vector>
 #include <algorithm>
@@ -49,6 +51,17 @@ static GdkColor *default_color = NULL;
 static int current_entry = -1;
 void playlist_play_current(Playlist *playlist, GtkWidget *gtklist);
 void dialog_popup(GtkWidget *widget, gpointer data);
+
+
+// Drag & Drop stuff
+#define TARGET_URI_LIST 0x0001
+
+static GtkTargetEntry drag_types[] = {
+	        {"text/uri-list", 0, TARGET_URI_LIST}
+};
+static int n_drag_types = sizeof(drag_types)/sizeof(drag_types[0]);
+
+
 
 // Member functions
 
@@ -376,6 +389,11 @@ void playlist_remove(GtkWidget *widget, gpointer data)
 			if (playlist->GetCurrent() == selected+1) {
 				playlist->Stop();
 				playlist->Next();
+			}
+			if (playlist->Length() == selected+1) {
+				gtk_clist_unselect_row(GTK_CLIST(list), 
+						selected, 0);
+				//alsaplayer_error("Early trigger");
 			}	
 			playlist->Remove(selected+1, selected+1);
 			GDK_THREADS_ENTER();
@@ -491,6 +509,8 @@ static void new_list_item(const PlayItem *item, gchar **list_item)
 	list_item[1] = (gchar *)g_strdup(pt);
 	list_item[3] = new_path;
 }
+
+
 
 
 // Called when files have been selected for adding to playlist
@@ -688,6 +708,52 @@ void button_press_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 }
 
 
+gint dnd_drop_event(GtkWidget *widget,
+		GdkDragContext   * context,
+		gint              x,
+		gint              y,
+		GtkSelectionData *selection_data,
+		guint             info,
+		guint             *time,
+		void *data)
+{
+	char *uri = NULL;
+	char *filename = NULL;
+	char *p, *s;
+	int res;
+
+	if (!selection_data)
+		return 0;
+	
+	switch(info) {
+		case TARGET_URI_LIST:
+			//alsaplayer_error("TARGET_URI_LIST drop (%d,%d)", x, y);
+			uri = (char *)malloc(strlen((const char *)selection_data->data)+1);
+			strcpy(uri, (const char *)selection_data->data);
+			filename = uri;
+			while (filename) {
+				if ((p=s=strstr(filename, "\r\n"))) {
+					*s = '\0';
+					p = s+2;
+				}	
+				if (strlen(filename)) {
+					//alsaplayer_error("Adding: %s", filename);
+					GDK_THREADS_LEAVE();
+					ap_add_path(global_session_id, filename);
+					GDK_THREADS_ENTER();
+				}
+				filename = p;
+			}
+			free(uri);
+			break;
+		default:
+			alsaplayer_error("Unkown drop!");
+			break;
+	}               
+}
+
+
+
 
 
 static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, Playlist *playlist)
@@ -697,6 +763,7 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 	GtkWidget *list;
 	GtkWidget *list_status;
 	GtkWidget *status;
+	GtkWidget *toplevel;
 	GtkStyle *style;
 	GdkFont *bold_font;
 
@@ -705,6 +772,7 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 		assert ((bold_font = gdk_fontset_load("fixed")) != NULL);
 
 	playlist_window = create_playlist_window();
+	toplevel = gtk_widget_get_toplevel(playlist_window);
 	list = get_widget(playlist_window, "playlist");
 	gtk_object_set_data(GTK_OBJECT(list), "window", playlist_window);
 	gtk_object_set_data(GTK_OBJECT(playlist_window), "list", list);
@@ -837,6 +905,16 @@ playlist_window_gtk->load_list = gtk_file_selection_new("Load Playlist");
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
 			GTK_SIGNAL_FUNC(dialog_popup), (gpointer)playlist_window_gtk->load_list);
 
+	// Setup drag & drop
+	gtk_drag_dest_set(toplevel,
+			GTK_DEST_DEFAULT_ALL,
+			drag_types,
+			n_drag_types,
+			GDK_ACTION_COPY);
+	gtk_signal_connect(GTK_OBJECT(toplevel), "drag_data_received",
+			GTK_SIGNAL_FUNC(dnd_drop_event), NULL);
+
+	
 	gtk_widget_grab_focus(GTK_WIDGET(list));
 
 	return playlist_window;
