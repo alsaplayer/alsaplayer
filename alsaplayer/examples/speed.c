@@ -10,7 +10,7 @@ int main (int argc, char *argv[])
 	char str[1024];
 	float val = 0.0;
 
-	if (ap_get_string(0, AP_GET_STRING_SONG_NAME, str) != -1) {
+	if (ap_get_string(0, AP_GET_STRING_ARTIST, str)) {
 		printf("File playing: %s\n", str);
 	}
 	if (argc == 2) {
@@ -25,7 +25,7 @@ int main (int argc, char *argv[])
 			}
 		}
 	}
-	if (ap_get_float(0, AP_GET_FLOAT_SPEED, &val) != -1) {
+	if (ap_get_float(0, AP_GET_FLOAT_SPEED, &val)) {
 		printf ("Current speed = %.2f\n", val);
 	}	
 	return 0;

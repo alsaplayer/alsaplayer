@@ -21,7 +21,8 @@
 struct _ap_pkt {
 	int version;			
 	ap_cmd_t cmd;
-	int pld_length;
+	int result;
+	int payload_length;
 	void *payload;
 };	
 	

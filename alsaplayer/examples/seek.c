@@ -6,7 +6,7 @@ int main (int argc, char *argv[])
 	if (argc == 2) {
 		pos = atoi(argv[1]);
 
-		if (ap_set_int (0, AP_SET_INT_POS_SECOND, pos) != -1) {
+		if (ap_set_int (0, AP_SET_INT_POS_SECOND, pos)) {
 			printf("Seeked to second %d\n", pos);
 		}
 	}	

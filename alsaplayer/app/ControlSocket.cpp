@@ -55,6 +55,7 @@ void socket_looper(void *arg)
 	int fd;
 	int session_id = 0;
 	int session_ok = 0;
+	int return_value;
 	ap_pkt_t pkt;
 	struct passwd *pwd;
 
@@ -71,8 +72,7 @@ void socket_looper(void *arg)
 		saddr.sun_family = AF_UNIX;
 		while (session_id < MAX_AP_SESSIONS && !session_ok) {
 			float_val = 0.0;
-			if ((int_val = ap_get_float(session_id, AP_GET_FLOAT_PING, &float_val)) == -1) {
-				//alsaplayer_error("found stale session %d", session_id);
+			if (!ap_get_float(session_id, AP_GET_FLOAT_PING, &float_val)) {
 				sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
 						"anonymous" : pwd->pw_name, session_id);
 				unlink(saddr.sun_path); // Clean up a bit
@@ -123,133 +123,213 @@ void socket_looper(void *arg)
 			continue;
 		}	
 		// Read the data blurb 
-		if (pkt.pld_length && ((data = malloc(pkt.pld_length+1)) != NULL)) {
-			read(fd, data, pkt.pld_length);
+		if (pkt.payload_length && ((data = malloc(pkt.payload_length+1)) != NULL)) {
+			read(fd, data, pkt.payload_length);
 		} else {
 			data = NULL;
 		}
+
+		// Prepare the reply packet
+		pkt.result = 1;
+		pkt.payload_length = 0;
+
 		switch(pkt.cmd) {
 			case AP_DO_PLAY: 
 				player = playlist->GetCorePlayer();
 				if (player && !player->IsPlaying()) {
-					player->Start();
-				}	
+					if (!player->Start())
+						pkt.result = 0;
+				} else
+					pkt.result = 0;
+				write (fd, &pkt, sizeof(ap_pkt_t));
 				break;
 			case AP_DO_NEXT: 
 				playlist->Next(1);
+				write (fd, &pkt, sizeof(ap_pkt_t));
 				break;
 			case AP_DO_PREV:
 				playlist->Prev(1);
+				write (fd, &pkt, sizeof(ap_pkt_t));
 				break;
 			case AP_DO_STOP:
 				player = playlist->GetCorePlayer();
 				if (player)
 					player->Stop();
+				else 
+					pkt.result = 0;
+				write (fd, &pkt, sizeof(ap_pkt_t));	
 				break;
 			case AP_DO_PAUSE:
 				player = playlist->GetCorePlayer();
 				if (player)
 					player->SetSpeed(0.0);
+				else
+					pkt.result = 0;
+				write (fd, &pkt, sizeof(ap_pkt_t));
 				break;
 			case AP_DO_UNPAUSE:
 				player = playlist->GetCorePlayer();
 				if (player)
 					player->SetSpeed(1.0);
+				else
+					pkt.result = 0;
+				write (fd, &pkt, sizeof(ap_pkt_t));	
 				break;	
 			case AP_DO_CLEAR_PLAYLIST:
 				playlist->Clear(1);
+				write (fd, &pkt, sizeof(ap_pkt_t));
 				break;
 			case AP_DO_QUIT:
 				// Woah, this is very dirty! XXX FIXME XXX
-				exit(0); 
+				write (fd, &pkt, sizeof(ap_pkt_t));
+				exit(0);
 				break;
 			case AP_GET_FLOAT_PING:
 				// Perhaps return the running time here
 				float_val = 1.0;
-				pkt.pld_length = sizeof(float);
+				pkt.payload_length = sizeof(float);
 				write (fd, &pkt, sizeof(ap_pkt_t));
-				write(fd, &float_val, pkt.pld_length);
+				write(fd, &float_val, pkt.payload_length);
 				break;
 			case AP_SET_FLOAT_SPEED:
 				player = playlist->GetCorePlayer();
 				if (player)
 					player->SetSpeed(*(float *)data);
+				else
+					pkt.result = 0;
+				write (fd, &pkt, sizeof(ap_pkt_t));	
 				break;
 			case AP_GET_FLOAT_SPEED:
 				player = playlist->GetCorePlayer();
 				if (player) {
 					float_val = player->GetSpeed();
-					pkt.pld_length = sizeof(float);
+					pkt.payload_length = sizeof(float);
 					write (fd, &pkt, sizeof(ap_pkt_t));
-					write(fd, &float_val, pkt.pld_length);
-				}
+					write(fd, &float_val, pkt.payload_length);
+				} else {
+					pkt.result = 0;
+					write (fd, &pkt, sizeof(ap_pkt_t));
+				}	
 				break;
 			case AP_SET_FLOAT_VOLUME:
 				player = playlist->GetCorePlayer();
 				if (player)
 					player->SetVolume((int)(*(float *)data));
+				else
+					pkt.result = 0;
+				write (fd, &pkt, sizeof(ap_pkt_t));	
 				break;
 			case AP_GET_FLOAT_VOLUME:
 				player = playlist->GetCorePlayer();
 				if (player) {
 					float_val = player->GetVolume();
-					pkt.pld_length = sizeof(float);
+					pkt.payload_length = sizeof(float);
 					write (fd, &pkt, sizeof(ap_pkt_t));
-					write(fd, &float_val, pkt.pld_length);
-				}
+					write(fd, &float_val, pkt.payload_length);
+				} else {
+					pkt.result = 0;
+					write (fd, &pkt, sizeof(ap_pkt_t));
+				}	
 				break;
+			case AP_GET_STRING_TITLE:	
 			case AP_GET_STRING_SONG_NAME:
 				player = playlist->GetCorePlayer();
 				if (player) {
 					player->GetStreamInfo(&info);
-					pkt.pld_length = strlen(info.title);
+					pkt.payload_length = strlen(info.title);
 					write (fd, &pkt, sizeof(ap_pkt_t));
 					write(fd, info.title, sizeof(info.title));
+				} else {
+					pkt.result = 0;
+					write (fd, &pkt, sizeof(ap_pkt_t));
+				}	
+				break;
+			case AP_GET_STRING_ARTIST:
+				player = playlist->GetCorePlayer();
+				if (player) {
+					player->GetStreamInfo(&info);
+					pkt.payload_length = strlen(info.artist);
+					write (fd, &pkt, sizeof(ap_pkt_t));
+					write(fd, info.title, sizeof(info.artist));
+				} else {
+					pkt.result = 0;
+					write (fd, &pkt, sizeof(ap_pkt_t));
+				}	 
+				break;
+			case AP_GET_STRING_ALBUM:
+				player = playlist->GetCorePlayer();
+				if (player) {
+					player->GetStreamInfo(&info);
+					pkt.payload_length = strlen(info.album);
+					write (fd, &pkt, sizeof(ap_pkt_t));
+					write(fd, info.title, sizeof(info.album));
+				} else {
+					pkt.result = 0;
+					write (fd, &pkt, sizeof(ap_pkt_t));
+				}	
+				break;
+			case AP_GET_STRING_GENRE:
+				player = playlist->GetCorePlayer();
+				if (player) {
+					player->GetStreamInfo(&info);
+					pkt.payload_length = strlen(info.genre);
+					write (fd, &pkt, sizeof(ap_pkt_t));
+					write(fd, info.title, sizeof(info.genre));
+				} else {
+					pkt.result = 0;
+					write (fd, &pkt, sizeof(ap_pkt_t));
 				}	
 				break;
 			case AP_GET_STRING_SESSION_NAME:
 				if (global_session_name) {
-					pkt.pld_length = strlen(global_session_name);
+					pkt.payload_length = strlen(global_session_name);
 					write (fd, &pkt, sizeof(ap_pkt_t));
-					write (fd, global_session_name, pkt.pld_length);
+					write (fd, global_session_name, pkt.payload_length);
 				} else {
 					sprintf(session_name, "alsaplayer-%d", global_session_id);
-					pkt.pld_length = strlen(session_name);
+					pkt.payload_length = strlen(session_name);
 					write (fd, &pkt, sizeof(ap_pkt_t));
-					write (fd, session_name, pkt.pld_length);
+					write (fd, session_name, pkt.payload_length);
 				}	
 				break;
 			case AP_SET_STRING_ADD_FILE:
-				if (pkt.pld_length && data) {
+				if (pkt.payload_length && data) {
 					char_val = (char *)data;
-					char_val[pkt.pld_length] = 0; // Null terminate string
+					char_val[pkt.payload_length] = 0; // Null terminate string
 					if (strlen(char_val)) {
 						playlist->Insert(char_val, playlist->Length());
 					}
 					playlist->UnPause();
+				} else {
+					pkt.result = 0;
+					write (fd, &pkt, sizeof(ap_pkt_t));
 				}	
 				break;
 			case AP_GET_INT_POS_SECOND:
 				player = playlist->GetCorePlayer();
 				if (player) {
 					int_val = player->GetCurrentTime() / 100;
-					pkt.pld_length = sizeof(int);
+					pkt.payload_length = sizeof(int);
 					write (fd, &pkt, sizeof(ap_pkt_t));
 					write (fd, &int_val, sizeof(int));
-				}
+				} else {
+					pkt.result = 0;
+					write (fd, &pkt, sizeof(ap_pkt_t));
+				}	
 				break;
 			case AP_SET_INT_POS_SECOND:
 				player = playlist->GetCorePlayer();
-				if (player) {
-					if (pkt.pld_length && data) {
-						int_val = *(int *)data;
-						int_val *= player->GetSampleRate();
-						int_val /= player->GetFrameSize();
-						int_val *= player->GetChannels();
-						int_val *= 2; // 16-bit ("2" x 8-bit)
-						player->Seek(int_val);
-					}
-				}
+				if (player && pkt.payload_length && data) {
+					int_val = *(int *)data;
+					int_val *= player->GetSampleRate();
+					int_val /= player->GetFrameSize();
+					int_val *= player->GetChannels();
+					int_val *= 2; // 16-bit ("2" x 8-bit)
+					player->Seek(int_val);
+				} else {
+					pkt.result = 0;
+					write (fd, &pkt, sizeof(ap_pkt_t));
+				}	
 				break;
 			case AP_GET_INT_SONG_LENGTH_SECOND:
 				player = playlist->GetCorePlayer();
@@ -258,43 +338,54 @@ void socket_looper(void *arg)
 							player->GetFrames());
 					// we get centiseconds
 					int_val = (int)(long_val / 100);
-					pkt.pld_length = sizeof(int);
+					pkt.payload_length = sizeof(int);
 					write (fd, &pkt, sizeof(ap_pkt_t));
 					write (fd, &int_val, sizeof(int));
-				}
+				} else {
+					pkt.result = 0;
+					write (fd, &pkt, sizeof(ap_pkt_t));
+				}	
 				break;
 			case AP_GET_INT_SONG_LENGTH_FRAME:
 				player = playlist->GetCorePlayer();
 				if (player) {
 					int_val = player->GetFrames();
-					pkt.pld_length = sizeof(int);
+					pkt.payload_length = sizeof(int);
 					write (fd, &pkt, sizeof(ap_pkt_t));
 					write (fd, &int_val, sizeof(int));
-				}
+				} else {
+					pkt.result = 0;
+					write (fd, &pkt, sizeof(ap_pkt_t));
+				}	
 				break;
 			case AP_GET_INT_POS_FRAME:
 				player = playlist->GetCorePlayer();
 				if (player) {
 					int_val = player->GetPosition();
-					pkt.pld_length = sizeof(int);
+					pkt.payload_length = sizeof(int);
 					write (fd, &pkt, sizeof(ap_pkt_t));
 					write (fd, &int_val, sizeof(int));
-				}
+				} else {
+					pkt.result = 0;
+					write (fd, &pkt, sizeof(ap_pkt_t));
+				}	
 				break;
 			case AP_SET_INT_POS_FRAME:
 				player = playlist->GetCorePlayer();
-				if (player) {
-					if (pkt.pld_length && data) {
-						int_val = *(int *)data;
-						player->Seek(int_val);
-					}
-				}
+				if (player && pkt.payload_length && data) {
+					int_val = *(int *)data;
+					player->Seek(int_val);
+				} else
+					pkt.result = 0;
+				write (fd, &pkt, sizeof(ap_pkt_t));	
 				break;
 			default: alsaplayer_error("CMD unknown or not implemented= %x",
 					pkt.cmd);
+				 pkt.result = 0;
+				 write (fd, &pkt, sizeof(ap_pkt_t));
 				 break;
 		}
-		if (pkt.pld_length)
+		if (pkt.payload_length)
 			free(data);
 		close(fd);	
 	}

@@ -113,7 +113,7 @@ static int mikmod_open (input_object *obj, char *name)
 	mikmod_init();
 
 	if (pthread_mutex_trylock(&mikmod_mutex) != 0)  {
-		printf("mikmod already in use :(\n");
+		/* printf("mikmod already in use :(\n"); */
 		obj->local_data = NULL;
 		return 0;
 	}		

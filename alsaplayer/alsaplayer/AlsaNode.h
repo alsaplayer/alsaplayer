@@ -42,7 +42,7 @@
 #include "output_plugin.h"
 
 #define MAX_PLUGIN	32
-#define MAX_SUB	8
+#define MAX_SUB	32
 
 #define POS_BEGIN		0x0
 #define POS_MIDDLE	0x1
