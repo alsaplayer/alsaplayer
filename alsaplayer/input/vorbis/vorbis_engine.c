@@ -412,8 +412,10 @@ static void vorbis_shutdown()
 
 static input_plugin vorbis_plugin;
 
+#ifdef __cplusplus
 extern "C" {
-
+#endif
+	
 input_plugin *input_plugin_info (void)
 {
 	memset(&vorbis_plugin, 0, sizeof(input_plugin));
@@ -436,4 +438,6 @@ input_plugin *input_plugin_info (void)
 	return &vorbis_plugin;
 }
 
+#ifdef __cplusplus
 }
+#endif

@@ -2,7 +2,7 @@ if HAVE_OGGVORBIS
 
 vorbis_inltlibs = libvorbis_in.la
 vorbis_inldflags = -export-dynamic -avoid-version
-vorbis_insources = vorbis_engine.cpp
+vorbis_insources = vorbis_engine.c
 
 else
 
@@ -12,13 +12,11 @@ vorbis_insources =
 
 endif
 
-EXTRA_DIST = vorbis_engine.cpp
+EXTRA_DIST = vorbis_engine.c
 
 lib_LTLIBRARIES = $(vorbis_inltlibs)
 
 CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer
-
-CXXFLAGS = $(CFLAGS)
 
 libdir = $(ADDON_DIR)/input
 

@@ -2,7 +2,7 @@ if HAVE_LINUX_CDROM
 
 cddaltlibs = libcdda.la
 cddaldflags = -export-dynamic -avoid-version
-cddasources = cdda_engine.cpp cdda.h
+cddasources = cdda_engine.c cdda.h
 
 else
 
@@ -15,8 +15,6 @@ endif
 lib_LTLIBRARIES = $(cddaltlibs)
 
 CFLAGS = -D_REENTRANT @ARCH_CFLAGS@
-
-CXXFLAGS = $(CFLAGS)
 
 INCLUDES = -I$(top_builddir) -I$(top_srcdir)/alsaplayer
 
