@@ -1,42 +1,64 @@
 /* $Id$ */
 
 This is a midi input plugin for alsaplayer.  It is derived from
-Tuukka Toivonen's TiMidity.  Compile and install it
-in alsaplayer's input/ plugin directory, then you can play midi files.
-The patches I've include don't sound like much.  I haven't figured
-out whether I should include a real soundfont with the distribution.
+Tuukka Toivonen's TiMidity and reflects the work of a number
+of other people (see AUTHORS).  Compile and install it
+in alsaplayer's input/ plugin directory, install a soundfont,
+then you can play midi files with alsaplayer.
 
-midi-in needs both patches and a configuration file, "timidity.cfg",
-to tell it what patches are available and where to get them.  If you
-run ./configure with no options, a directory "timidity" will be installed
-in /usr/local/share containing a sample timidity.cfg and a very
-small set of 7 patches.  If you specified a prefix for ./configure,
-the timidity directory will be {prefix}/share/timidity.  There is
-also a configuration option to put it elsewhere:
-	./configure --with-timidity=/home/greg/tconfig
-for instance, will make that the directory for the config file
-timidity.cfg.  If you already have a timidity setup, you can
-use this option to point to it, since a pre-existing file
-timidity.cfg will not be overwritten during installation.
+Compiling:
+	Alsaplayer must previously have been installed.
+	Unless you need special configuration options, type
+		./bootstrap  (if this is the CVS version)
+		./configure
+		make install
+	to compile and install midi-in.  However, if you
+	want to install somewhere other than in the
+	/usr/local/ hierarchy, use the --prefix option
+	to configure (see the INSTALL document).  midi_in
+	will look for soundfonts and patch configuration
+	files in the directory /usr/local/share/timidity,
+	unless you gave the --prefix option to change
+	/usr/local to something else.  There is also a
+	separate configure option to tell midi_in to look
+	elsewhere for patch information:
+		./configure --with-timidity=<directory>
 
-You can put a timidity.cfg in your home directory, inside the
-.alsaplayer config directory, if you like,  The midi plugin will
-look there first, and if it finds timidity.cfg, that will override
-the one in the installation config directory, discussed just above.
+Installing a soundfont:
+	The best and most straightforward way of providing
+	patches for midi-in, IMO, is to download Jim Roe's soundfont
+	PC42b.sf2, which is in a separate file accompanying
+	this distribution.  It's quite large.  Unpack the
+	tar file, and put the file PC42b.sf2 in your home
+	directory in a subdirectory .alsaplayer (where
+	alsaplayer keeps its configuration info).  Or
+	alternatively, you can put it in
+	/usr/local/share/timidity, or wherever you configured
+	midi-in to look for patch info (see above).
+	You can use soft links, also.
 
-You can also put a soundfont in your ~/.alsaplayer/ directory, and
-the midi plugin will automatically construct a timidity.cfg for it.
-The name of the soundfont file (or a soft link) that you put in
-~/.alsaplayer must end in ".sf2" or ".SF2", and of course it must
-actually be a version 2 soundfont.  The timidity.cfg that is
-constructed will overwrite any preexisting file timidity.cfg in
-that directory.  If there is more than one soundfont file there,
-midi-in will choose the first one it happens to notice.
+Installing a soundfont (alternative):
+	If you prefer some other soundfont, you can put that
+	in <home>/.alsaplayer/ instead of PC42b.sf2.  When
+	midi_in sees it there, it will automatically construct
+	a patch configuration file for it called timiditiy.cfg,
+	which, if you like, you can subsequently edit (there
+	is a man page midi_in.1 telling about the format of
+	.cfg files).
 
-The syntax of timidity.cfg is documented in the man page midi-in.1.
-It's possible that a timidity.cfg and patches you're using with
-TiMidity++, if you've installed that variant of TiMidity, would work
-with the midi plugin, too.
+Installing a soundfont (second alternative):
+	Design your own patch configuration file timidity.cfg
+	and put it in <home>/.alsaplayer/ .  midi_in will look
+	first for <home>/.alsaplayer/timidity.cfg and use
+	the information there, in preference to other alternatives.
 
+Installing a soundfont (third alternative):
+	Don't install a soundfont, but use GUS patches, instead.
+	If you happen to have installed TiMidity++ and Eric
+	Welsh's eawpats, or some other set, and your file
+	/usr/local/lib/timidity/timidity.cfg is set up for
+	timidity++ to use them, midi_in can use them, too.
+	(The eawpats set of GUS patches is at
+	http://www.stardate.bc.ca/eawpatches/eawpats12_full.rar)
 
 				--Greg Lee, greg@ling.lll.hawaii.edu
