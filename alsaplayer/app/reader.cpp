@@ -146,43 +146,44 @@ void reader_init (void)
     
     /* for each entry in opened dir */
     while ((entry = readdir(dir)) != NULL) {
-	/* skip .. and . entries */
-	if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
+		/* skip .. and . entries */
+		if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
 	
-	/* compose full plugin path */
-	sprintf(path, "%s/reader/%s", ADDON_DIR, entry->d_name);
-	if (stat(path, &buf)) continue;
+		/* compose full plugin path */
+		sprintf(path, "%s/reader/%s", ADDON_DIR, entry->d_name);
+		if (stat(path, &buf)) continue;
 	
-	/* skip not regular files */
-	if (!S_ISREG(buf.st_mode))  continue;
+		/* skip not regular files */
+		if (!S_ISREG(buf.st_mode))  continue;
 
-	/* handle only .so files */
-	ext = strrchr(path, '.');
-	if (!ext++)  continue; 		
-	if (strcasecmp(ext, "so"))  continue;
+		/* handle only .so files */
+		ext = strrchr(path, '.');
+		if (!ext++)  continue; 		
+		if (strcasecmp(ext, "so"))  continue;
 
-	/* trying to load plugin */
-	if ((handle = dlopen(path, RTLD_NOW |RTLD_GLOBAL))) {
-	    reader_plugin_info = (reader_plugin_info_type) dlsym(handle, "reader_plugin_info");
+		/* trying to load plugin */
+		if ((handle = dlopen(path, RTLD_NOW |RTLD_GLOBAL)) == NULL) {
+	    	alsaplayer_error("%s", dlerror());
+			continue;
+		}
 
-	    if (reader_plugin_info) {
+    	reader_plugin_info = (reader_plugin_info_type) dlsym(handle, "reader_plugin_info");
+    	if (!reader_plugin_info) {
+			alsaplayer_error("Could not find reader_plugin_info symbol in shared object `%s'", path);
+			dlclose(handle);
+			continue;
+		}
+
 		reader_plugin *the_plugin;
-	    	
+
 		the_plugin = reader_plugin_info();
 		if (the_plugin)  the_plugin->handle = handle;
-	    
+
 		if (!register_plugin(the_plugin)) {
-		    alsaplayer_error("Error loading %s", path);
-		    dlclose(handle);
-		    continue;
+	    	alsaplayer_error("Error loading %s", path);
+	    	dlclose(handle);
+	    	continue;
 		}
-	    } else {
-		alsaplayer_error("Could not find reader_plugin_info symbol in shared object `%s'", path);
-		dlclose(handle);
-	    }	
-	} else {
-	    alsaplayer_error("%s", dlerror());
-	}
     } /* end of: while ((entry = readdir(dir)) != NULL) */
 
     closedir(dir);
