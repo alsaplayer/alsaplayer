@@ -534,7 +534,7 @@ AC_SUBST(ALSAPLAYER_VERSION)
 AC_OUTPUT([
 Makefile
 alsaplayer.1
-alsaplayer-config
+alsaplayer.pc
 app/Makefile
 interface/Makefile
 interface/gtk/Makefile
@@ -571,8 +571,7 @@ include/Makefile
 docs/Makefile
 extra/Makefile
 libalsaplayer/Makefile
-],
-[chmod +x alsaplayer-config])
+])
 
 echo "
 Configuration:

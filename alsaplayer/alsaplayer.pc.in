@@ -1,0 +1,17 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+plugindir=@libdir@/@PACKAGE@
+alsaplayer_includedir=@includedir@/@PACKAGE@
+
+inputplugindir=${plugindir}/input
+outputplugindir=${plugindir}/output
+scopeplugindir=${plugindir}/scopes
+interfaceplugindir=${plugindir}/interface
+
+Name: AlsaPlayer
+Description: AlsaPlayer audio player with plugin support
+Version: @ALSAPLAYER_VERSION@
+Libs: -L${libdir} -lalsaplayer -ldl
+Cflags: -I${includedir} -I${alsaplayer_includedir}
