@@ -47,6 +47,8 @@ class PlayItem
 		std::string filename;
 		std::string title;
 		std::string artist;
+		std::string album;
+		std::string genre;
 		int playtime;
 };
 
