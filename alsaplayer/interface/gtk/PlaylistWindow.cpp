@@ -740,7 +740,11 @@ gint dnd_drop_event(GtkWidget *widget,
 					res = parse_file_uri(filename);
 					if (res) {
 						GDK_THREADS_LEAVE();
-						ap_add_path(global_session_id, res);
+						if (is_playlist(res)) {
+							ap_add_playlist(global_session_id, res);
+						} else {
+							ap_add_path(global_session_id, res);
+						}	
 						GDK_THREADS_ENTER();
 						parse_file_uri_free(res);
 					}	

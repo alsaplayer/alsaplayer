@@ -703,19 +703,11 @@ int main(int argc, char **argv)
 		
 		count = optind;
 		while (count < argc && ap_result) {
-			char *ext;
-
-			ext = strrchr(argv[count], '.');
-
-			if (ext) {
-				ext++;
-				if (strncasecmp(ext, "pls", 3) == 0 ||
-					strncasecmp(ext, "m3u", 3) == 0) {
-					ap_add_playlist(use_session, argv[count]);
-					count++;
-					continue;
-				}
-			}	
+			if (is_playlist(argv[count])) {
+				ap_add_playlist(use_session, argv[count]);
+				count++;
+				continue;
+			}
 			if (argv[count][0] != '/' &&
 				strncmp(argv[count], "http://", 7) != 0 &&
 				strncmp(argv[count], "ftp://", 6) != 0) {

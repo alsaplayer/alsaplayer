@@ -37,6 +37,7 @@ extern "C" {
 void dosleep(unsigned int);
 void parse_file_uri_free(char *);
 char *parse_file_uri(const char *);
+int is_playlist(const char *);
 
 #ifdef __cplusplus
 }

@@ -97,3 +97,20 @@ char *parse_file_uri(const char *furi)
 }
 
 
+int is_playlist(const char *path)
+{
+	char *ext;
+
+	if (!path)
+		return 0;
+	ext = strrchr(path, '.');
+	if (!ext)
+		return 0;
+	ext++;
+	if (strncasecmp(ext, "pls", 3) == 0 ||
+		strncasecmp(ext, "m3u", 3) == 0) {
+		return 1;
+	}
+	return 0;
+}
+
