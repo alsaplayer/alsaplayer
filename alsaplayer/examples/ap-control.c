@@ -19,9 +19,10 @@ static void usage(void)
 	"supported commands:\n\n"
 	"play <title> [<title> ...]\n"
 	"playlist <playlistfile>\n"
+	"playlist-clear\n"
 	"save\n"
 	"shuffle\n"
-	"sort direction\n"
+	"sort <direction>\n"
 	"stop\n"
 	"pause\n"
 	"cont\n"
@@ -59,6 +60,9 @@ int main(int argc, char *argv[])
 
 		return ret == 1;
 	}
+
+	if (!strcmp(argv[1], "playlist-clear"))
+		return ap_clear_playlist(0) == 1;
 
 	if (!strcmp(argv[1], "sort") && argc == 3)
 		return ap_sort(0, argv[2]) == 1;
