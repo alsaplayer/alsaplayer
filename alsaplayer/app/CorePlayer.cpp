@@ -1313,15 +1313,15 @@ bool CorePlayer::IsPaused()
 
 void CorePlayer::Pause()
 {
-	save_speed = GetSpeed ();
+	//save_speed = GetSpeed ();
 	SetSpeed (0.0);
 }
 
 
 void CorePlayer::UnPause()
 {
-	if (save_speed)
-	    SetSpeed (save_speed);
-	else
-	    SetSpeed (1.0);
+	//if (save_speed)
+	//    SetSpeed (save_speed);
+	//else
+	SetSpeed (1.0);
 }
