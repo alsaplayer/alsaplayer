@@ -264,6 +264,34 @@ static void socket_looper(void *arg)
 					ap_message_add_int32(reply, "ack", 1);
 				}	
 				break;
+			case AP_IS_LOOPING:
+				ap_message_add_int32(reply, "int", playlist->LoopingSong());
+				ap_message_add_int32(reply, "ack", 1);
+				break;
+			case AP_SET_LOOPING:
+				if ((int_val = ap_message_find_int32(msg, "int"))) {
+					if (*int_val) {
+						playlist->LoopSong();
+					} else {
+						playlist->UnLoopSong();
+					}
+					ap_message_add_int32(reply, "ack", 1);
+				}
+				break;
+			case AP_IS_PLAYLIST_LOOPING:
+				ap_message_add_int32(reply, "int", playlist->LoopingPlaylist());
+				ap_message_add_int32(reply, "ack", 1);
+				break;
+			case AP_SET_PLAYLIST_LOOPING:
+				if ((int_val = ap_message_find_int32(msg, "int"))) {
+					if (*int_val) {
+						playlist->LoopPlaylist();
+					} else {
+						playlist->UnLoopPlaylist();
+					}
+					ap_message_add_int32(reply, "ack", 1);
+				}
+				break;
 			case AP_SET_VOLUME:
 				if (player) {
 					if ((int_val = ap_message_find_int32(msg, "int"))) {

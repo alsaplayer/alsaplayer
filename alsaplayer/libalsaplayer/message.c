@@ -529,6 +529,27 @@ int ap_cmd_get_int(int session, int32_t cmd, int *val)
 	return 0;
 }
 
+
+int ap_set_looping(int session, int looping)
+{
+	return (ap_cmd_set_int(session, AP_SET_LOOPING, looping));
+}
+
+int ap_is_looping(int session, int *looping)
+{
+	return (ap_cmd_get_int(session, AP_IS_LOOPING, looping));
+}
+
+int ap_set_playlist_looping(int session, int looping)
+{
+	return (ap_cmd_set_int(session, AP_SET_PLAYLIST_LOOPING, looping));
+} 
+
+int ap_is_playlist_looping(int session, int *looping)
+{
+	return (ap_cmd_get_int(session, AP_IS_PLAYLIST_LOOPING, looping));
+}
+
 int ap_set_volume(int session, int volume)
 {
 	return (ap_cmd_set_int(session, AP_SET_VOLUME, volume));

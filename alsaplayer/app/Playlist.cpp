@@ -778,11 +778,8 @@ Playlist::Load(std::string const &uri, unsigned position, bool force)
 
 	// Check extension
 	if(!force) {
-		if(uri.length() < 4 ||
-		   (strcasecmp(uri.substr(uri.length() - 4).c_str(), ".m3u") == 0 &&
-		   (pls = strcasecmp(uri.substr(uri.length() - 4).c_str(), ".pls")) == 0)) {
+		if(!is_playlist(uri.c_str())) 
 			return E_PL_DUBIOUS;
-		}
 	}
 	// Open Playlist
 	reader_type *f = reader_open (uri.c_str());

@@ -74,6 +74,10 @@
 #define AP_SAVE_PLAYLIST	0xcc29
 #define AP_GET_PLAYLIST_LENGTH	0xcc2a
 #define AP_GET_TRACKS		0xcc2b
+#define AP_SET_LOOPING		0xcc2c
+#define AP_IS_LOOPING		0xcc2d
+#define AP_SET_PLAYLIST_LOOPING	0xcc2e
+#define AP_IS_PLAYLIST_LOOPING	0xcc2f
 
 /* Add new commands here */
 

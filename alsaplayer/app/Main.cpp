@@ -290,12 +290,14 @@ static void help()
 		"\n"
 		"Sound driver options:\n"
 		"\n"
-		"  -d,--device string    select card and device [default=\"default\"]\n"
+		"  -d,--device string    select specific device in output plugin\n"
+		"    for the ALSA plugin: [default=\"default\"]\n"
+		"    for the JACK plugin: [default=\"alsa_pcm:playback_1,alsa_pcm:playback_2\"]\n"
 		"  -f,--fragsize n       fragment size in bytes [default=4096]\n"
 		"  -F,--frequency n      output frequency [default=%d]\n"
 		"  -g,--fragcount n      fragment count [default=8]\n"
-		"  -o,--output output    use specific output driver [default=alsa]. choices:\n"
-		"  -r,--realtime         enable realtime scheduling (with proper rights)\n", OUTPUT_RATE);
+		"  -r,--realtime         enable realtime scheduling (with proper  rights)\n"
+		"  -o,--output output    use specific output driver [default=alsa]. choices:\n", OUTPUT_RATE);
 	printf(
 		"                        [ ");
 	list_available_plugins("output");
