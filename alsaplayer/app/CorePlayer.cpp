@@ -116,7 +116,7 @@ void CorePlayer::load_input_addons()
 #endif
 						input_plugin *the_plugin = input_plugin_info();
 						if (the_plugin) {
-							// Set handle here
+							the_plugin->handle = handle;
 						}
 						if (!RegisterPlugin(the_plugin)) {
 							fprintf(stderr, "Error loading %s\n", path);
@@ -215,7 +215,7 @@ CorePlayer::~CorePlayer()
 	input_plugin *tmp;
 	int i;
 
-	Stop();
+	UnregisterPlugins();
 
 	for (i=0; i < NR_BUF; i++) {
 		delete buffer[i].buf;
@@ -229,17 +229,36 @@ CorePlayer::~CorePlayer()
 }
 
 
+void CorePlayer::UnregisterPlugins()
+{
+	input_plugin *tmp;
+	
+	Stop();
+
+	pthread_mutex_lock(&player_mutex);
+	for (int i = 0; i < plugin_count; i++) {
+		tmp = &plugins[i];
+		printf("Unregistering %s\n", tmp->name); 
+		if (tmp->handle)
+			dlclose(tmp->handle);
+	}		
+	pthread_mutex_unlock(&player_mutex);
+}
+
 int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 {
 	int version;
-	// Quick and dirty!
-	input_plugin *tmp = &plugins[plugin_count];
+	input_plugin *tmp;
+	
+	pthread_mutex_lock(&player_mutex);	
+	tmp = &plugins[plugin_count];
 	tmp->version = the_plugin->version;
 	if (tmp->version) {
 		if ((version = tmp->version) != INPUT_PLUGIN_VERSION) {
 			fprintf(stderr, "Wrong version number on plugin v%d, wanted v%d\n",
 					version - INPUT_PLUGIN_BASE_VERSION,
 					INPUT_PLUGIN_VERSION - INPUT_PLUGIN_BASE_VERSION);      
+			pthread_mutex_unlock(&player_mutex);
 			return 0;
 		}
 	}
@@ -265,6 +284,7 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 		plugin = tmp;
 	}
 	fprintf(stdout, "Input plugin: %s\n", tmp->name);
+	pthread_mutex_unlock(&player_mutex);
 	return 1;
 }
 
