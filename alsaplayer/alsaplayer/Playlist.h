@@ -144,6 +144,7 @@ private:
 	// Flags used by thread to exit neatly
 	bool active;    // True until set to false by destructor
 	bool paused;	// Playlist is paused
+        bool shuffled;  // Playlis is shuffled
 	bool loopingSong;	//  Loop the current song
 	bool loopingPlaylist;	// Loop the Playlist
 	bool crossfade; // Crossfade the playlist
@@ -210,6 +211,8 @@ public:
 
 	// Shuffle playlist
 	void Shuffle();
+        void UnShuffle() { shuffled = false; }
+        bool Shuffled() { return shuffled; }
 
 	// Sort playlist according to seq
 	void Sort (std::string const &seq);
@@ -218,7 +221,7 @@ public:
 	void Clear();
 
 	// Pause controls
-	bool Paused() { return paused; }
+	bool IsPaused() { return paused; }
 	void Pause() { paused = true; }
 	void UnPause() { paused = false; }
 

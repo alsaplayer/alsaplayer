@@ -255,7 +255,7 @@ void playlist_looper(void *data)
 	if(!pl) return;
 
 	while(pl->active) {
-		if (!pl->Paused()) {
+		if (!pl->IsPaused()) {
 			if (!(coreplayer = (CorePlayer *)(pl->coreplayer)))
 				return;
 			
@@ -277,7 +277,7 @@ void playlist_looper(void *data)
 				int totaltime = coreplayer->GetCurrentTime(nr_frames);
 				
 				float frametime = (float)totaltime  / (float)nr_frames;
-				float xstart = 40; // 0.40 seconds
+				float xstart = 300; // 3.0 seconds
 				float xframe = xstart / frametime;
 				//alsaplayer_error("xframe = %.2f", xframe);
 				if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < (int)xframe) {

@@ -85,6 +85,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	float pitch_point;
 	float pitch;
 	float pitch_multi;
+        float real_pitch;
 	bool jumped;
 	bool producing;
 	float volume;
