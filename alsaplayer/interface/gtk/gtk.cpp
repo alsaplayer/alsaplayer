@@ -170,14 +170,15 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 		gtk_rc_parse(path);
 	}
 
-	init_main_window(playlist, (GtkFunction)unload_scope_addons);
-	
+		
 	if (playlist->Length())
 		playlist->UnPause();
 
 	// Scope addons
 	GDK_THREADS_ENTER();
+	init_main_window(playlist, (GtkFunction)unload_scope_addons);
 	load_scope_addons();
+	//GDK_THREADS_ENTER();
 	gtk_main();
 	gdk_flush();
 	GDK_THREADS_LEAVE();

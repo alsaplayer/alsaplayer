@@ -57,7 +57,7 @@ PlaylistWindowGTK::PlaylistWindowGTK(Playlist * pl) {
 	showing = false;
 
 	pthread_mutex_init(&playlist_list_mutex, NULL);
-
+	//alsaplayer_error("Would Register here");
 	playlist->Register(this);
 }
 
@@ -69,9 +69,12 @@ PlaylistWindowGTK::~PlaylistWindowGTK() {
 	playlist->UnRegister(this);
 }
 
-#include "pixmaps/play_icon.xpm"
-static GdkPixmap *play_pix = (GdkPixmap *)NULL;
-static GdkBitmap *play_mask = (GdkBitmap *)NULL;
+#include "pixmaps/current_play.xpm"
+#include "pixmaps/current_stop.xpm"
+static GdkPixmap *current_play_pix = (GdkPixmap *)NULL;
+static GdkBitmap *current_play_mask = (GdkBitmap *)NULL;
+static GdkPixmap *current_stop_pix = (GdkPixmap *)NULL;
+static GdkBitmap *current_stop_mask = (GdkBitmap *)NULL;
 
 
 // Set item currently playing
@@ -100,16 +103,20 @@ void PlaylistWindowGTK::CbSetCurrent(unsigned current) {
 		
 	gtk_clist_set_foreground(GTK_CLIST(playlist_list), current_entry - 1, default_color);
 #else
-	if (!play_pix) {
+	if (!current_play_pix) {
 		style = gtk_widget_get_style(GTK_WIDGET(playlist_list));
 		if (!GTK_WIDGET(playlist_window)->window) {
 			gtk_widget_realize(playlist_window);
 			gdk_flush();
 		}	
-		play_pix = gdk_pixmap_create_from_xpm_d(
+		current_play_pix = gdk_pixmap_create_from_xpm_d(
 			GTK_WIDGET(playlist_window)->window,
-			&play_mask, &style->bg[GTK_STATE_NORMAL],
-			play_icon_xpm);
+			&current_play_mask, &style->bg[GTK_STATE_NORMAL],
+			current_play_xpm);
+		current_stop_pix = gdk_pixmap_create_from_xpm_d(
+			GTK_WIDGET(playlist_window)->window,
+			&current_stop_mask, &style->bg[GTK_STATE_NORMAL],
+			current_stop_xpm);
 	} else {
 		gtk_clist_set_text(GTK_CLIST(playlist_list), current_entry - 1,
 			0, "");
@@ -122,21 +129,23 @@ void PlaylistWindowGTK::CbSetCurrent(unsigned current) {
 	gtk_clist_set_foreground(GTK_CLIST(playlist_list), current_entry - 1, select_color);	
 #else
 	gtk_clist_set_pixmap(GTK_CLIST(playlist_list), current_entry - 1,
-		0, play_pix, play_mask);
+		0, current_play_pix, current_play_mask);
 #endif
 }
+
 
 void PlaylistWindowGTK::CbLock()
 {
 	GDK_THREADS_ENTER();
-	//printf("GDK_THREADS_ENTER()...\n");
+	//alsaplayer_error("GDK_THREADS_ENTER()...");
 }
 
 void PlaylistWindowGTK::CbUnlock()
 {
-	//printf("GDK_THREADS_LEAVE()...\n");
+	//alsaplayer_error("GDK_THREADS_LEAVE()...");
 	GDK_THREADS_LEAVE();
 }
+
 
 void PlaylistWindowGTK::CbUpdated(PlayItem & item, unsigned position) {
 	char tmp[1024];
@@ -163,9 +172,7 @@ void PlaylistWindowGTK::CbUpdated(PlayItem & item, unsigned position) {
 
 // Insert new items into the displayed list
 void PlaylistWindowGTK::CbInsert(std::vector<PlayItem> & items, unsigned position) {
-#ifdef DEBUG
-	printf("CbInsert(`%d items', %d)\n", items.size(), position);
-#endif /* DEBUG */
+	//alsaplayer_error("CbInsert(`%d items', %d)", items.size(), position);
 
 	pthread_mutex_lock(&playlist_list_mutex);
 

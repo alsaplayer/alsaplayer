@@ -1313,9 +1313,9 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	}	
 
 	// start indicator thread
+	//alsaplayer_error("About to start indicator_looper()");
 	pthread_create(&indicator_thread, NULL,
 				   (void * (*)(void *))indicator_looper, playlist);
-	//gtk_timeout_add(100, (GtkFunction)indicator_callback, playlist);
 #ifdef DEBUG
 	printf("THREAD-%d=main thread\n", getpid());
 #endif
