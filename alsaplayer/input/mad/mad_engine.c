@@ -41,7 +41,7 @@ extern "C" { 	/* Make sure MAD symbols are not mangled
 							 * since we compile them with regular gcc */
 #endif
 
-#ifndef HAVE_LIBMAD
+#ifndef HAVE_LIBMAD /* Needed if we use our own (outdated) copy */
 #include "frame.h"
 #include "synth.h"
 #endif	
@@ -49,6 +49,14 @@ extern "C" { 	/* Make sure MAD symbols are not mangled
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef HAVE_ID3TAG_H
+#ifndef HAVE_LIBID3TAG
+#error "libid3tag.h was present but not libid3tag.so :-("
+#endif
+#include "id3tag.h"
+#include <assert.h>
 #endif
 
 #define BLOCK_SIZE 4096
@@ -72,6 +80,7 @@ struct mad_local_data {
 				struct mad_synth  synth; 
 				struct mad_stream stream;
 				struct mad_frame  frame;
+				stream_info sinfo;
 				int mad_init;
 				ssize_t offset;
 				ssize_t filesize;
@@ -80,6 +89,7 @@ struct mad_local_data {
 				int seekable;
 				int seeking;
 				int eof;
+				int parsed_id3;
 				char str[17];
 };		
 
@@ -334,17 +344,209 @@ static int mad_nr_frames(input_object *obj)
 				return obj->nr_frames;
 }
 
+#ifdef HAVE_LIBID3TAG
+
+#define _(text) text
+#define N_(text) text
+#define gettext(text) text
+/*
+ * NAME:	show_id3()
+ * DESCRIPTION:	display an ID3 tag
+ * This code was lifted from the player.c file in the libmad distribution
+ */
+static
+void parse_id3(struct id3_tag const *tag, stream_info *sinfo)
+{
+	unsigned int i;
+	struct id3_frame const *frame;
+	id3_ucs4_t const *ucs4;
+	id3_latin1_t *latin1;
+	char const spaces[] = "          ";
+
+	struct {
+		char const *id;
+		char const *name;
+	} const info[] = {
+		{ ID3_FRAME_TITLE,  N_("Title")     },
+		{ "TIT3",           0               },  /* Subtitle */
+		{ "TCOP",           0,              },  /* Copyright */
+		{ "TPRO",           0,              },  /* Produced */
+		{ "TCOM",           N_("Composer")  },
+		{ ID3_FRAME_ARTIST, N_("Artist")    },
+		{ "TPE2",           N_("Orchestra") },
+		{ "TPE3",           N_("Conductor") },
+		{ "TEXT",           N_("Lyricist")  },
+		{ ID3_FRAME_ALBUM,  N_("Album")     },
+		{ ID3_FRAME_YEAR,   N_("Year")      },
+		{ ID3_FRAME_TRACK,  N_("Track")     },
+		{ "TPUB",           N_("Publisher") },
+		{ ID3_FRAME_GENRE,  N_("Genre")     },
+		{ "TRSN",           N_("Station")   },
+		{ "TENC",           N_("Encoder")   }
+	};
+
+	/* text information */
+
+	for (i = 0; i < sizeof(info) / sizeof(info[0]); ++i) {
+		union id3_field const *field;
+		unsigned int nstrings, namelen, j;
+		char const *name;
+
+		frame = id3_tag_findframe(tag, info[i].id, 0);
+		if (frame == 0)
+			continue;
+
+		field    = &frame->fields[1];
+		nstrings = id3_field_getnstrings(field);
+
+		name = info[i].name;
+		if (name)
+			name = gettext(name);
+
+		namelen = name ? strlen(name) : 0;
+		assert(namelen < sizeof(spaces));
+
+		for (j = 0; j < nstrings; ++j) {
+			ucs4 = id3_field_getstrings(field, j);
+			assert(ucs4);
+
+			if (strcmp(info[i].id, ID3_FRAME_GENRE) == 0)
+				ucs4 = id3_genre_name(ucs4);
+
+			latin1 = id3_ucs4_latin1duplicate(ucs4);
+			if (latin1 == 0)
+				goto fail;
+
+			if (j == 0 && name) {
+				if (strcmp(name, "Title") == 0) {
+						strcpy(sinfo->title, latin1);
+				} 
+				if (strcmp(name, "Artist") == 0)
+						strcpy(sinfo->author, latin1);
+				//alsaplayer_error("%s%s: %s", &spaces[namelen], name, latin1);
+			} else {
+				if (strcmp(info[i].id, "TCOP") == 0 ||
+						strcmp(info[i].id, "TPRO") == 0) {
+					//alsaplayer_error("%s  %s %s\n", spaces, (info[i].id[1] == 'C') ?
+					//		_("Copyright (C)") : _("Produced (P)"), latin1);
+				}
+				else
+					;//alsaplayer_error("%s  %s\n", spaces, latin1);
+			}
+
+			free(latin1);
+		}
+	}
+
+	/* comments */
+
+	i = 0;
+	while ((frame = id3_tag_findframe(tag, ID3_FRAME_COMMENT, i++))) {
+		id3_latin1_t *ptr, *newline;
+		int first = 1;
+
+		ucs4 = id3_field_getstring(&frame->fields[2]);
+		assert(ucs4);
+
+		if (*ucs4)
+			continue;
+
+		ucs4 = id3_field_getfullstring(&frame->fields[3]);
+		assert(ucs4);
+
+		latin1 = id3_ucs4_latin1duplicate(ucs4);
+		if (latin1 == 0)
+			goto fail;
+
+		ptr = latin1;
+		while (*ptr) {
+			newline = strchr(ptr, '\n');
+			if (newline)
+				*newline = 0;
+
+			if (strlen(ptr) > 66) {
+				id3_latin1_t *linebreak;
+
+				linebreak = ptr + 66;
+
+				while (linebreak > ptr && *linebreak != ' ')
+					--linebreak;
+
+				if (*linebreak == ' ') {
+					if (newline)
+						*newline = '\n';
+
+					newline = linebreak;
+					*newline = 0;
+				}
+			}
+
+			if (first) {
+				char const *name;
+				unsigned int namelen;
+
+				name    = _("Comment");
+				namelen = strlen(name);
+				assert(namelen < sizeof(spaces));
+
+				//alsaplayer_error("%s%s: %s\n", &spaces[namelen], name, ptr);
+				first = 0;
+			}
+			else 
+				;//alsaplayer_error("%s  %s\n", spaces, ptr);
+
+			ptr += strlen(ptr) + (newline ? 1 : 0);
+		}
+
+		free(latin1);
+		break;
+	}
+
+	if (0) {
+fail:
+		alsaplayer_error(_("not enough memory to display tag"));
+	}
+}
+#endif
 
 static int mad_stream_info(input_object *obj, stream_info *info)
 {
 				struct mad_local_data *data;	
-
+#ifdef HAVE_LIBID3TAG
+				struct id3_file *id3;
+				struct id3_tag *tag;
+				struct id3_frame *frame;
+				union id3_field const *field;
+				id3_ucs4_t const *ucs4;
+				id3_latin1_t *latin1;
+#endif				
+				
 				if (!obj || !info)
 								return 0;
 				data = (struct mad_local_data *)obj->local_data;
 
 				if (data) {
+#ifdef HAVE_LIBID3TAG								
+								if (!data->parsed_id3) { /* Parse only one time */
+									id3 = id3_file_open(data->path, ID3_FILE_MODE_READONLY);
+									if (id3) {
+										tag = id3_file_tag(id3);
+										if (tag) {
+											parse_id3(tag, &data->sinfo);
+										}
+										id3_file_close(id3);
+									}
+									data->parsed_id3 = 1;
+								}
+								if (strlen(data->sinfo.title))
+										sprintf(info->title, "%s", data->sinfo.title);
+								else
+										sprintf(info->title, "%s", data->filename);
+								if (strlen(data->sinfo.author))
+										sprintf(info->author, "%s", data->sinfo.author);
+#else										
 								sprintf(info->title, "Unparsed: %s", data->filename);				
+#endif
 								sprintf(info->stream_type, "%dKHz %dkbit %s audio mpeg",
 																data->frame.header.samplerate / 1000,
 																data->frame.header.bitrate / 1000,
@@ -610,7 +812,11 @@ static int mad_open(input_object *obj, char *path)
 						strcpy(data->filename, ++p);
 				} else {
 						strcpy(data->filename, path);
-				}		
+				}
+				strcpy(data->path, path);
+				
+				obj->flags = P_SEEK;
+
 				return 1;
 }
 

@@ -114,7 +114,9 @@ static int audiofile_open (input_object *obj, char *name)
 	printf("nr_channels = %d\n", obj->nr_channels);
 	printf("frame_size = %d\n", obj->frame_size);
 #endif
-
+	
+	obj->flags = P_SEEK;
+	
 	return 1;
 }
 

@@ -477,6 +477,8 @@ void CorePlayer::Stop(int streamer)
 
 int CorePlayer::SetSpeed(float val)
 {
+	if (val < 0.0 && !CanSeek())
+		val = 0.0; // Do not allow reverse play if we can't seek
 	pitch_point = val;
 	repitched = 1;
 
@@ -488,6 +490,15 @@ float CorePlayer::GetSpeed()
 	return (read_direction == DIR_FORWARD ? pitch : -pitch);
 }
 
+
+bool CorePlayer::CanSeek()
+{
+	if (plugin && the_object && the_object->ready) {
+		if (the_object->flags & P_SEEK)
+			return true;
+	}
+	return false;		
+}
 
 int CorePlayer::Seek(int index)
 {

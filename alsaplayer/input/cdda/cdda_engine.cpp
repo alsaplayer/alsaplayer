@@ -316,6 +316,9 @@ static int cdda_open(input_object *obj, char *name)
 		data->track_length = tl.starts[data->track_nr] - tl.starts[data->track_nr-1];
 		data->rel_pos = 0;
 	}
+
+	obj->flags = P_SEEK;
+	
 	return 1;
 }
 

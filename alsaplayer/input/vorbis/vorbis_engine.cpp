@@ -380,6 +380,9 @@ static int vorbis_open(input_object *obj, char *path)
 		data->bigendianp = is_big_endian();
 		memcpy(&data->vf, &vf_temp, sizeof(vf_temp));
 		memcpy(data->path, path, sizeof(data->path)-1);
+
+		obj->flags = P_SEEK;
+
 		return 1;
 }
 

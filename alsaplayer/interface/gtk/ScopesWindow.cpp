@@ -104,9 +104,10 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 		left = SCOPE_BUFFER - fill;
 		memcpy(buf + fill, data, left);
 
-		if (pthread_mutex_trylock(&sl_mutex) != 0) {
-			return true;	// List is being manipulated
-		}
+		// Don't use locking for now, quite dangerous!!! XXX
+		//if (pthread_mutex_trylock(&sl_mutex) != 0) {
+		//	return true;	// List is being manipulated
+		//}
 #if 1	
 		// Do global FFT
 		left_newset = left_actEq;
@@ -143,7 +144,8 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 		// Copy the remainder
 		fill = 0;
 		memcpy(buf + fill, ((char *)data) + left, size - left);
-		pthread_mutex_unlock(&sl_mutex);
+		// XXX fixme
+		//pthread_mutex_unlock(&sl_mutex);
 	} else {
 		memcpy(buf + fill, data, size);
 		fill += size;

@@ -123,6 +123,8 @@ mikmod_open (input_object *obj, char *name)
   data->mf = mf;
   Player_Start (data->mf);
 
+	obj->flags = 0;
+	
   return 1;
 }
 
@@ -217,7 +219,7 @@ mikmod_stream_info (input_object *obj, stream_info *info)
 	   data->mf->numchn, data->mf->modtype);
 
   info->author[0] = 0;
-	info->status[0] = 0;
+	strcpy (info->status, "No time data");
   strcpy (info->title, (data->mf->songname[0]) ? data->mf->songname : data->fname);
   
   return 1;

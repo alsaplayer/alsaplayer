@@ -1,3 +1,5 @@
+- ID3 tag support in mad plugin, using libid3tag!
+- gtk+ playlist marks active entry 
 - Renamed mad input plugin to mad_in
 - Added check for libmad, and use it if present instead of our own copy
 - Renamed 'include' -> 'alsaplayer'

@@ -571,6 +571,7 @@ gint indicator_callback(gpointer data)
 	GdkRectangle  update_rect;
 	GdkColor color;
 	stream_info info;
+	char title_string[256];
 	char str[60];
 	long slider_val, t_min, t_sec;
 	long c_hsec, secs, c_min, c_sec;
@@ -658,7 +659,11 @@ gint indicator_callback(gpointer data)
 		gtk_widget_draw (ustr->drawing_area, &update_rect);
 	}
 	draw_format(info.stream_type);
-	draw_title(info.title);
+	if (strlen(info.author)) {
+		sprintf(title_string, "%s - %s", info.author, info.title);
+		draw_title(title_string);
+	} else	
+		draw_title(info.title);
 	draw_speed();
 	if (global_draw_volume)
 		draw_volume();

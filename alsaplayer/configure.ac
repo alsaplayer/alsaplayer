@@ -35,7 +35,9 @@ have_jack=no
 dynload=no
 use_3dnow_asm=no
 use_libmad=no
+use_libid3tag=no
 prefer_mad=yes
+enable_nls=yes
 
 if test "x$x_includes" = "xNONE"
 then
@@ -107,6 +109,18 @@ if test "$enable_debug" = yes; then
 DFLAGS="$DFLAGS -g"
 fi
 AC_SUBST(DFLAGS)
+
+
+dnl =========
+dnl NLS stuff
+dnl =========
+
+AC_ARG_ENABLE(nls,
+[  --enable-nls           Enabled NLS support (default=yes)],, enable_nls=no)
+
+if test "$enable_nls" = yes; then
+echo No nls support yet
+fi
 
 
 dnl ======
@@ -215,6 +229,14 @@ dnl ===========
 AC_CHECK_LIB(mad, mad_stream_init,
      MAD_LDADD=-lmad; use_libmad=yes; AC_DEFINE(HAVE_LIBMAD, 1, [Define if you have MAD library (-lmad)]), use_libmad=no; MAD_LDADD=, -lmad)
 
+oldcflags=$CFLAGS
+CFLAGS="$CFLAGS -lz"
+
+AC_CHECK_LIB(id3tag, id3_file_open,
+		MAD_LDADD="$MAD_LDADD -lid3tag -lz"; use_libid3tag=yes; AC_DEFINE(HAVE_LIBID3TAG, 1, [Define if you have libid3tag library (-lid3tag)]), use_libid3tag=no; -lmad)
+
+CFLAGS=$oldcflags
+
 AC_SUBST(MAD_LDADD)
 
 
@@ -246,7 +268,10 @@ AC_CHECK_HEADERS(linux/cdrom.h)
 AC_CHECK_HEADERS(sys/soundcard.h)
 AC_CHECK_HEADERS(sys/audioio.h)
 AC_CHECK_HEADERS(audio/audiolib.h)
+AC_CHECK_HEADERS(libintl.h)
 AC_CHECK_HEADERS(mad.h)
+AC_CHECK_HEADERS(id3tag.h)
+
 
 dnl ==========
 dnl ALSA stuff
@@ -465,7 +490,13 @@ then
 	use_libmad=no
 fi	
 
+if test "x$ac_cv_header_id3tag_h" = "xno"
+then
+	use_libid3tag=no
+fi	
+
 AM_CONDITIONAL(USE_LIBMAD,test "x$use_libmad" = xyes)
+AM_CONDITIONAL(USE_LIBID3TAG, test "x$use_libid3tag" = xyes)
 AM_CONDITIONAL(HAVE_JACK,	test "x$have_jack" = xyes)
 AM_CONDITIONAL(HAVE_ALSA_05X, test "x$have_alsa_05x" = xyes)
 AM_CONDITIONAL(HAVE_ALSA_FINAL, test "x$have_alsa_final" = xyes)
@@ -653,6 +684,7 @@ Configuration:
   Install path:                       ${prefix}
   Prefer mad over mpg123 plugin:      ${prefer_mad}
   Use libmad shared library:          ${use_libmad}
+  Enable libid3tag support:           ${use_libid3tag}
   Build gtk interface:                ${have_gtk}
   Build with jack support:            ${have_jack}
   Build OpenGL based visual plugins:  ${have_opengl}

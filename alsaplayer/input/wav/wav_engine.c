@@ -167,6 +167,9 @@ static int wav_open(input_object *obj, char *name)
 		} else 
 			strcpy(data->wav_name, ptr);
 		data->header_size = sizeof(WaveHeader);
+
+		obj->flags = P_SEEK;
+
 		return 1;
 	}
 	if (data->wav_fd != NULL)

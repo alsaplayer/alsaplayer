@@ -129,6 +129,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	virtual bool Start(int reset=1);
 	virtual void Stop(int streamer=1);
 	virtual int Seek(int pos);
+	virtual bool CanSeek();
 	
 	virtual int IsActive() { return streaming; }	
 	virtual int IsPlaying() { return producing; }

@@ -94,7 +94,10 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 					int cur_val, block_val, i;
 					coreplayer->GetStreamInfo(&info);
 					if (strcmp(info.title, old_info.title) != 0) {
-							fprintf(stdout, "\nPlaying: %s\n", info.title);
+							if (strlen(info.author))
+								fprintf(stdout, "\nPlaying: %s - %s\n", info.author, info.title);
+							else	
+								fprintf(stdout, "\nPlaying: %s\n", info.title);
 							memcpy(&old_info, &info, sizeof(stream_info));
 					}
 					if (coreplayer->GetFrames() == 0 || coreplayer->GetCurrentTime() == 0) {
