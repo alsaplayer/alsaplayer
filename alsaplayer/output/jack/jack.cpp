@@ -36,6 +36,7 @@ static jack_port_t *my_output_port2;
 static jack_client_t *client = (jack_client_t *)NULL;
 static jack_nframes_t sample_rate;
 static jack_nframes_t latency = 0;
+static char *mix_buffer = NULL;
 static int jack_reconnect = 1;
 
 static char dest_port1[128];
@@ -97,7 +98,8 @@ int jack_get_latency()
 int jack_prepare(void *arg)
 {
 	char str[32];
-
+	jack_nframes_t bufsize;
+	
 	if (strlen(dest_port1) && strlen(dest_port2)) {
 		if (global_verbose) {
 			alsaplayer_error("jack: using ports %s & %s for output",
@@ -121,9 +123,20 @@ int jack_prepare(void *arg)
 				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput|JackPortIsTerminal, 0);               
 		my_output_port2 = jack_port_register (client, "out_2",
 				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput|JackPortIsTerminal, 0);               
+		bufsize = jack_get_buffer_size(client);
 
+		if (!bufsize) {
+			alsaplayer_error("zero buffer size");
+			return -1;
+		}
+		if ((mix_buffer = (char *)malloc(bufsize*4)) == NULL) {
+			alsaplayer_error("cannot allocate mix buffer memory");
+			return 1;
+		}	
+		
 		if (jack_activate (client)) {
 			alsaplayer_error("cannot activate client");
+			free(mix_buffer);
 			return -1;
 		}       
 		if (global_verbose)
@@ -132,11 +145,13 @@ int jack_prepare(void *arg)
 		if (jack_connect (client, jack_port_name(my_output_port1), dest_port1)) {
 			alsaplayer_error("cannot connect output port 1 (%s)",
 				dest_port1);
+			free(mix_buffer);
 			return -1;
 		}               
 		if (jack_connect (client, jack_port_name(my_output_port2), dest_port2)) {
 			alsaplayer_error("cannot connect output port 2 (%s)",
 				dest_port2);
+			free(mix_buffer);
 			return -1;
 		}               
 		return 0;
@@ -237,6 +252,10 @@ static void jack_close()
 		jack_deactivate(client);
 		jack_client_close (client);
 		client = (jack_client_t *)NULL;
+		if (mix_buffer) {
+			free(mix_buffer);
+			mix_buffer = NULL;
+		}	
 	}	
 	return;
 }
@@ -261,7 +280,6 @@ static unsigned int jack_set_sample_rate(unsigned int rate)
 int process(jack_nframes_t nframes, void *arg)
 {
 	subscriber *subs = (subscriber *)arg;
-	char bufsize[32768];
 	
 	if (subs) {
 		subscriber *i;
@@ -269,7 +287,7 @@ int process(jack_nframes_t nframes, void *arg)
 		sample_t *out1 = (sample_t *) jack_port_get_buffer(my_output_port1, nframes);
 		sample_t *out2 = (sample_t *) jack_port_get_buffer(my_output_port2, nframes);
 
-		memset(bufsize, 0, sizeof(bufsize));
+		memset(mix_buffer, 0, nframes * 4);
 
 		latency = jack_port_get_total_latency(client, my_output_port1);
 
@@ -278,10 +296,10 @@ int process(jack_nframes_t nframes, void *arg)
 			if (!i->active || !i->streamer) { // Skip inactive streamers
 				continue;
 			}       
-			i->active = i->streamer(i->arg, bufsize, nframes * 2);
+			i->active = i->streamer(i->arg, mix_buffer, nframes * 2);
 		}
-		sample_move_dS_s16(out1, bufsize, nframes, sizeof(short) << 1);
-		sample_move_dS_s16(out2, bufsize + sizeof(short), nframes, sizeof(short) << 1); 
+		sample_move_dS_s16(out1, mix_buffer, nframes, sizeof(short) << 1);
+		sample_move_dS_s16(out2, mix_buffer + sizeof(short), nframes, sizeof(short) << 1); 
 	}       
 	return 0;
 }
