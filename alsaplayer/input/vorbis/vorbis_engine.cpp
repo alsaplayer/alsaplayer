@@ -234,8 +234,8 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 					strcpy(info->title, data->path);
 			}
 			if (vi)
-				sprintf(info->stream_type, "%dKHz %d-channel %d Kbit/s OGG VORBIS",
-							vi->rate / 1000, vi->channels, vi->bitrate_nominal / 1000);
+				sprintf(info->stream_type, "%dKHz %dkbit ogg",
+							vi->rate / 1000, vi->bitrate_nominal / 1000);
 			else
 				sprintf(info->stream_type, "Unkown OGG VORBIS");
 			info->author[0] = 0;
