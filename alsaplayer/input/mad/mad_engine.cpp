@@ -33,6 +33,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include <bits/mman.h>
 #include "input_plugin.h"
 
 extern "C" { 	/* Make sure MAD symbols are not mangled
@@ -61,6 +62,7 @@ struct mad_local_data {
 				int highest_frame;
 				int current_frame;
 				char path[FILENAME_MAX+1];
+				char filename[FILENAME_MAX+1];
 				struct mad_synth  synth; 
 				struct mad_stream stream;
 				struct mad_frame  frame;
@@ -285,7 +287,7 @@ static int mad_play_frame(input_object *obj, char *buf)
 }
 
 
-static unsigned long mad_frame_to_sec(input_object *obj, int frame)
+static  long mad_frame_to_sec(input_object *obj, int frame)
 {
 				struct mad_local_data *data;
 				int64_t l = 0;
@@ -322,7 +324,7 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 				data = (struct mad_local_data *)obj->local_data;
 
 				if (data) {
-								strcpy(info->title, "Please note: file info is not yet functional");				
+								sprintf(info->title, "Unparsed: %s", data->filename);				
 								sprintf(info->stream_type, "%d-bit %dKHz %s %d Kbit/s Audio MPEG",
 																16, data->frame.header.samplerate / 1000,
 																obj->nr_channels == 2 ? "stereo" : "mono",
@@ -428,6 +430,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 static int mad_open(input_object *obj, char *path)
 {
 				struct mad_local_data *data;
+				char *p;
 
 				if (!obj)
 								return 0;
@@ -541,6 +544,13 @@ static int mad_open(input_object *obj, char *path)
 				data->mad_init = 1;
 
 				mad_stream_buffer (&data->stream, data->mad_map + data->offset, data->stat.st_size - data->offset);
+
+				p = strrchr(path, '/');
+				if (p) {
+						strcpy(data->filename, ++p);
+				} else {
+						strcpy(data->filename, path);
+				}		
 				return 1;
 }
 

@@ -176,7 +176,7 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 }
 
 
-static unsigned long vorbis_frame_to_sec(input_object *obj, int frame)
+static  long vorbis_frame_to_sec(input_object *obj, int frame)
 {
 	struct vorbis_local_data *data;
 	int64_t l;
