@@ -6,7 +6,7 @@ ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
 ALSAPLAYER_MICRO_VERSION=50
 
-BETA=-alpha4
+BETA=
 
 ALSAPLAYER_VERSION=$ALSAPLAYER_MAJOR_VERSION.$ALSAPLAYER_MINOR_VERSION.${ALSAPLAYER_MICRO_VERSION}${BETA}
 
@@ -428,11 +428,8 @@ dnl ================================================================
 dnl AC_CANONICAL_HOST
 AM_CONFIG_HEADER(config.h)
 
-echo "Going to check hosts...($host)"
-
 case "$host" in
 	i?86-* | k?-* | athlon-*) dnl catch i386,i486,i586,i686,k6,k7
-		echo "defining FPM_NTEL"
 		AC_DEFINE(FPM_INTEL)
 	;;	
 	*-*)
