@@ -52,7 +52,6 @@ void socket_looper(void *arg)
 	interface_plugin *ui = sp->ui;
 	CorePlayer *player;
 	fd_set set;
-	struct timeval tv;
 	struct sockaddr_un saddr;
 	stream_info info;
 	char session_name[32];
@@ -112,12 +111,10 @@ void socket_looper(void *arg)
 	while (socket_thread_running) {
 		FD_ZERO(&set);
 		FD_SET(socket_fd, &set);
-		tv.tv_sec = 0;
-		tv.tv_usec = 100000;
 		len = sizeof (saddr);
 		data = NULL;
 
-		if ((select(socket_fd + 1, &set, NULL, NULL, &tv) <= 0) ||
+		if ((select(socket_fd + 1, &set, NULL, NULL, NULL) <= 0) ||
 				((fd = accept(socket_fd, (struct sockaddr *) &saddr, &len)) == -1))
 			continue;
 		// So we have a connection
@@ -130,9 +127,9 @@ void socket_looper(void *arg)
 			close(fd);
 			continue;
 		}	
-		
+
 		ap_message_t *reply = ap_message_new();
-	
+
 		//alsaplayer_error("server: got something (%x)", msg->header.cmd);
 	
 		player = playlist->GetCorePlayer();
