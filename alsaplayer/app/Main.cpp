@@ -318,17 +318,6 @@ static void version()
 }
 
 
-static char *get_homedir()
-{
-	char *homedir = NULL;
-
-	if ((homedir = getenv("HOME")) == NULL) {
-		homedir = strdup("/tmp");
-	}
-
-	return homedir;
-}
-
 static int get_interface_from_argv0 (char *argv0, char *str)
 {
 	char *bs = strrchr (argv0, '/');
@@ -344,8 +333,8 @@ static int get_interface_from_argv0 (char *argv0, char *str)
 int main(int argc, char **argv)
 {
 	char *device_param = default_pcm_device;
-	char *homedir;
-	char prefs_path[1024];
+	char *prefsdir;
+	char thefile[1024];
 	char str[1024];
 	int start_vol = 100;
 	int ap_result = 0;
@@ -602,17 +591,16 @@ int main(int argc, char **argv)
 		}	
 	}
 	
-	homedir = get_homedir();
-
-	snprintf(prefs_path, sizeof(prefs_path)-1,"%s/.alsaplayer/", homedir);
-	mkdir(prefs_path, 0700);	/* XXX We don't do any error checking here */
-	snprintf(prefs_path, sizeof(prefs_path)-1, "%s/.alsaplayer/config", homedir);
+	prefsdir = get_prefsdir();
+	
+	mkdir(prefsdir, 0700);	/* XXX We don't do any error checking here */
+	snprintf(thefile, sizeof(prefsdir)-21, "%s/config", prefsdir);
 	if (use_config) 
 		ap_prefs = prefs_load(use_config);
 	else
-		ap_prefs = prefs_load(prefs_path);
+		ap_prefs = prefs_load(thefile);
 	if (!ap_prefs) {
-		alsaplayer_error("Invalid config file %s\n", use_config ? use_config : prefs_path);
+		alsaplayer_error("Invalid config file %s\n", use_config ? use_config : thefile);
 		return 1;
 	}	
 	/* Initialize some settings (and populate the prefs system if needed */
@@ -818,9 +806,9 @@ int main(int argc, char **argv)
 		}
 		playlist->Insert(newitems, playlist->Length());
 	} else {
-		homedir = get_homedir();
-		snprintf(prefs_path, sizeof(prefs_path)-1, "%s/.alsaplayer/alsaplayer.m3u", homedir);
-		playlist->Load(prefs_path, playlist->Length(), false);
+		prefsdir = get_prefsdir();
+		snprintf(thefile, sizeof(prefsdir)-28, "%s/alsaplayer.m3u", prefsdir);
+		playlist->Load(prefsdir, playlist->Length(), false);
 	}
 	playlist->UnPause();
 		
@@ -884,9 +872,9 @@ int main(int argc, char **argv)
 		}	
 	}
 	// Save playlist before exit
-	homedir = get_homedir();
-	snprintf(prefs_path, sizeof(prefs_path)-1, "%s/.alsaplayer/alsaplayer", homedir);
-	playlist->Save(prefs_path, PL_FORMAT_M3U);
+	prefsdir = get_prefsdir();
+	snprintf(thefile, sizeof(prefsdir)-25, "%s/alsaplayer", prefsdir);
+	playlist->Save(thefile, PL_FORMAT_M3U);
 
 	// Save preferences
 	if (ap_prefs && do_save) {
