@@ -41,7 +41,6 @@ struct mad_local_data {
  	  struct mad_frame  frame;
 		uint8_t stream_buffer[STREAM_BUFFER_SIZE];
 		int bytes_in_buffer;
-		int16_t samples[MAX_NUM_SAMPLES];
 		ssize_t offset;
 		int sample_rate;
 };		
@@ -89,38 +88,12 @@ static int mad_frame_size(input_object *obj)
 }
 
 
-static
-enum mad_flow error_default(void *data, struct mad_stream *stream,
-								struct mad_frame *frame)
-{
-				int *bad_last_frame = data;
-
-				switch (stream->error) {
-								case MAD_ERROR_BADCRC:
-												if (*bad_last_frame)
-																mad_frame_mute(frame);
-												else
-																*bad_last_frame = 1;
-
-												return MAD_FLOW_IGNORE;
-								default:
-												return MAD_FLOW_CONTINUE;
-				}
-}
-
-
 /* #define MAD_DEBUG */
 
 static int mad_play_frame(input_object *obj, char *buf)
 {
-	char pcmout[BLOCK_SIZE];
-	char pcmout2[BLOCK_SIZE];
-	int pcm_index;
 	int ret;
-	int current_section;
-	int bytes_needed;
 	int bytes_read;
-	int mono2stereo = 0;
 	struct mad_local_data *data;
 	
 	if (!obj)
@@ -128,7 +101,6 @@ static int mad_play_frame(input_object *obj, char *buf)
 	data = (struct mad_local_data *)obj->local_data;
 	if (!data)
 			return 0;
-	memset(pcmout,0,sizeof(pcmout));
 #ifdef MAD_DEBUG
 	printf("in mad_play_frame()...\n");
 #endif
@@ -309,6 +281,20 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 																	data[pos + 6], data[pos + 7], data[pos + 8],
 																	data[pos + 9]);
 									return header_size;
+					} else if (data[pos] == 'R' && data[pos+1] == 'I' &&
+										 data[pos+2] == 'F' && data[pos+3] == 'F') {
+									printf("Skipping RIFF header\n");
+									pos+=4;
+									while (pos < size) {
+												if (data[pos] == 'd' && data[pos+1] == 'a' &&
+														data[pos+2] == 't' && data[pos+3] == 'a') {
+																pos += 8; /* skip 'data' and ignore size */
+																return pos;
+												} else
+																pos++;
+									}
+									printf("Invalid header\n");
+									return -1;
 					} else {
 									pos++;
 					}				
@@ -425,7 +411,6 @@ static void mad_close(input_object *obj)
 	mad_frame_finish (&data->frame);
 	mad_stream_finish(&data->stream);
 
-	memset(obj->local_data, 0, sizeof(struct mad_local_data));
 	free(obj->local_data);
 }
 
