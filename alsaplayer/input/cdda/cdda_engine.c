@@ -28,6 +28,7 @@
 #include "config.h"
 #include "cdda.h"
 #include "prefs.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -1132,11 +1133,10 @@ static int cdda_stream_info(input_object *obj, stream_info *info)
 	struct cdda_local_data *data;	
 	struct cd_trk_list *tl;
 
-	if (!obj)
-		return 0;
+	assert(obj);
+	assert(info);
+
 	data = (struct cdda_local_data *)obj->local_data;
-	if (!data || !info)
-		return 0;
 
 	tl = &data->tl;
 
