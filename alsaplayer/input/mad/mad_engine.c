@@ -943,7 +943,7 @@ first_frame:
 			case MAD_ERROR_BUFLEN:
 				return 0;
 			case MAD_ERROR_LOSTSYNC:
-				alsaplayer_error("Lost synchronisation (frame %d)", data->current_frame);
+				//alsaplayer_error("Lost synchronisation (frame %d)", data->current_frame);
 			case MAD_ERROR_BADEMPHASIS:
 			case MAD_ERROR_BADBITRATE:
 			case MAD_ERROR_BADLAYER:	
@@ -1086,7 +1086,7 @@ input_plugin *input_plugin_info (void)
 {
 	memset(&mad_plugin, 0, sizeof(input_plugin));
 	mad_plugin.version = INPUT_PLUGIN_VERSION;
-	mad_plugin.name = "MAD MPEG audio plugin v0.99";
+	mad_plugin.name = "MAD MPEG audio plugin v1.01";
 	mad_plugin.author = "Andy Lo A Foe";
 	mad_plugin.init = mad_init;
 	mad_plugin.shutdown = mad_shutdown;
