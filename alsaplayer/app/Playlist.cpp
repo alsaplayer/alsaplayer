@@ -367,11 +367,6 @@ void insert_looper(void *data) {
 	// TEST
 	if (playlist->active)
 		info_looper(playlist);
-
-#if 1
-	// do NOT work as a thread anymore due to race conditions
-	pthread_exit(NULL);
-#endif
 }
 
 
@@ -409,6 +404,7 @@ Playlist::Playlist(AlsaNode *the_node) {
 
 	pthread_mutex_init(&playlist_mutex, NULL);
 	pthread_mutex_init(&interfaces_mutex, NULL);
+	pthread_mutex_init(&playlist_load_mutex, NULL);
 
 	pthread_create(&playlist_thread, NULL, (void * (*)(void *))playlist_looper, this);
 }	
@@ -418,11 +414,6 @@ Playlist::~Playlist() {
 	active = false;
 	pthread_join(playlist_thread, NULL);
 	interfaces.clear();	// Unregister all interfaces
-	
-	// FIXME - need to do something to kill off an insert thread, if one is
-	// running - otherwise it might have its playlist torn from underneath it
-	// We currently just wait for the thread to finish
-	//pthread_join(adder, NULL);
 	
 	if (player1)
 		delete player1;
@@ -568,8 +559,6 @@ void Playlist::Insert(std::vector<std::string> const & paths, unsigned position,
 	PlInsertItems * items = new PlInsertItems(this);
 	items->position = position;
 
-	//pthread_join(adder, NULL);
-
 	// Copy list
 	std::vector<std::string>::const_iterator i = paths.begin();
 	while(i != paths.end()) {
@@ -577,26 +566,7 @@ void Playlist::Insert(std::vector<std::string> const & paths, unsigned position,
 		items->items.push_back(*i++);
 	}
 
-	// Perform request in a sub-thread, so that we don't:
-	// a) block the user interface
-	// b) risk getting caught in a deadlock when we call the interface to
-	//    inform it of the change
-// FIXME: race conditions ahead!
-#if 1 
-	pthread_t adder;
-
-	pthread_create(&adder, NULL,
-				   (void * (*)(void *))insert_looper, (void *)items);
-	if (wait_for_insert)
-		pthread_join(adder, NULL);
-	else
-		pthread_detach(adder);
-#else
-	// This will cause a deadlock because we assume that insert
-	// looper is called from another thread. The GTK+ GUI will thus
-	// acquire the GDK lock twice -> deadlock. :-(
 	insert_looper(items);
-#endif
 }
 
 // Add some items start them playing

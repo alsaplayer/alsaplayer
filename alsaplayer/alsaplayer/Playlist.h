@@ -122,6 +122,10 @@ class Playlist
 
 	// Mutex to stop moving onto next song while we're modifying the playlist
 	pthread_mutex_t playlist_mutex;
+
+	// Mutex for loading playlists
+	
+	pthread_mutex_t playlist_load_mutex;
 	
 	// Interfaces mutex
 	pthread_mutex_t interfaces_mutex;
@@ -131,9 +135,6 @@ class Playlist
 	// (perhaps by setting a callback on the player to be called
 	// when the song finishes)
 	pthread_t playlist_thread;
-
-	// Added thread
-	pthread_t adder;
 
 	// Flags used by thread to exit neatly
 	bool active;    // True until set to false by destructor

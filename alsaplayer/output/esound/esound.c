@@ -25,14 +25,18 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include "output_plugin.h"
+#include "AlsaPlayer.h"
 
 static int esound_socket = -1;
 
 static int esound_init()
 {
-	char *host = NULL;
-	char *name = NULL;
+	char *host = (const char *)NULL;
+	char *name = (const char *)NULL;
 
+	if (global_session_name) {
+		name = global_session_name; 
+	}
 	esd_format_t format = ESD_BITS16 | ESD_STEREO | ESD_STREAM | ESD_PLAY;
 	int rate = 44100;
 #if 0            

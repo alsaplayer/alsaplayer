@@ -691,8 +691,8 @@ int main(int argc, char **argv)
 			char *ext;
 			ext = strrchr(argv[optind], '.');
 			if (ext && strncasecmp(++ext, "m3u", 3) == 0) {
-				alsaplayer_error("Loading playlist");
-				playlist->Load(std::string(argv[optind++]), 0, false);
+				playlist->Load(std::string(argv[optind++]),
+					playlist->Length(), false);
 			} else {	
 				newitems.push_back(std::string(argv[optind++]));
 			}	

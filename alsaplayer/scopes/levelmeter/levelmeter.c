@@ -31,6 +31,8 @@
 #include "scope_config.h"
 #include "prefs.h"
 
+#define DECAY	3
+
 static char actlEq[257];
 static char oldlEq[257];       
 static char actrEq[257];
@@ -120,11 +122,11 @@ static void the_levelmeter(GtkWidget *win)
 		levelr >>= 1;
 		levell >>= 1;
 
-		if (oldr > 0 && (oldr-=4) > levelr)
+		if (oldr > 0 && (oldr-=2) > levelr)
 				levelr = oldr;
 		else oldr = levelr;
 
-		if (oldl > 0 && (oldl-=4) > levell)
+		if (oldl > 0 && (oldl-=2) > levell)
 				levell = oldl;
 		else oldl = levell;
 		

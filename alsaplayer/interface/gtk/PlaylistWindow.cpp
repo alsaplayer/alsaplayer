@@ -510,7 +510,9 @@ void add_file_ok(GtkWidget *widget, gpointer data)
 
 	// Insert all the selected paths
 	if (playlist) {
+		GDK_THREADS_LEAVE();
 		playlist->Insert(paths, playlist->Length());
+		GDK_THREADS_ENTER();
 	} else {
 		printf("No Playlist data found\n");
 	}
@@ -535,12 +537,15 @@ void load_list_ok(GtkWidget *widget, gpointer data)
 
 	std::string file(gtk_file_selection_get_filename(
 			GTK_FILE_SELECTION(playlist_window_gtk->load_list)));
+	GDK_THREADS_LEAVE();
 	loaderr = playlist->Load(file, playlist->Length(), false);
+	GDK_THREADS_ENTER();
 	if(loaderr == E_PL_DUBIOUS) {
 		// FIXME - pop up a dialog and check if we really want to load
 		alsaplayer_error("Dubious whether file is a playlist - trying anyway");
-
+		GDK_THREADS_LEAVE();
 		loaderr = playlist->Load(file, playlist->Length(), true);
+		GDK_THREADS_ENTER();
 	}
 	if(loaderr) {
 		// FIXME - pass playlist_window to this routine

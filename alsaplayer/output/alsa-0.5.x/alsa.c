@@ -48,8 +48,15 @@ static int alsa_open(char *name)
 {
 	int err;
 	int card, device;
+	char *device_name;
 
-	if (sscanf(name, "hw:%d,%d", &card, &device)!=2) {
+	if (name && strlen(name)) {
+		device_name = name;
+	} else {
+		device_name = "hw:0,0";
+	}	
+	
+	if (sscanf(device_name, "hw:%d,%d", &card, &device)!=2) {
 		fprintf(stderr, "ALSA->open(): invalid device \"%s\", using 0,0\n",
 				name);
 		card = device = 0;
