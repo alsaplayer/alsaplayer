@@ -387,19 +387,35 @@ static float mad_can_handle(const char *path)
 static ssize_t find_initial_frame(uint8_t *buf, int size)
 {
 				uint8_t *data = buf;			
-
+				int ext_header = 0;
 				int pos = 0;
 				ssize_t header_size = 0;
 				while (pos < (size - 10)) {
-								if ((data[pos] == 0x49 && data[pos+1] == 0x44 && data[pos+2] == 0x33)) {
+								if ((data[pos] == 'I' && data[pos+1] == 'D' && data[pos+2] == '3')) {
 												header_size = (data[pos + 6] << 21) + 
 																(data[pos + 7] << 14) +
 																(data[pos + 8] << 7) +
 																data[pos + 9]; /* syncsafe integer */
 												if (data[pos + 5] & 0x10) {
+																ext_header = 1;
 																header_size += 10; /* 10 byte extended header */
 												}
+												printf("ID3v2.%c detected with header size %d\n",  0x30 + data[pos + 3], header_size);
+												if (ext_header) {
+													printf("Extended header detected\n");
+												}
 												header_size += 10;
+												printf("MP3 should start at %d\n", header_size);
+												if (data[header_size] != 0xff) {
+													printf("You have a broken MP3! Searching for next 0xFF\n");
+													while (header_size < size) {
+														if (data[++header_size] == 0xff &&
+																data[header_size+1] == 0xfb) {
+															printf("Found 0xff 0xfb at %d\n",  header_size);
+															return header_size;
+														}
+													}
+												}	
 												return header_size;
 								} else if (data[pos] == 'R' && data[pos+1] == 'I' &&
 																data[pos+2] == 'F' && data[pos+3] == 'F') {
@@ -422,8 +438,16 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 								}				
 				}
 				if (data[0] != 0xff) {
-								printf("MAD debug: potential problem file or unhandled info block, first 4 bytes =  %x %x %x %x\n",
-																data[0], data[1], data[2], data[3]);
+								header_size = 0;
+								while (header_size < size) {
+									if (data[++header_size] == 0xff && data[header_size+1] == 0xfb) {
+											printf("Found ff fb at %d\n", header_size);
+											return header_size;
+									}
+								}	
+								printf("MAD debug: potential problem file or unhandled info block, next 4 bytes =  %x %x %x %x\n",
+																data[header_size], data[header_size+1],
+																data[header_size+2], data[header_size+3]);
 				}
 				return 0;
 }
@@ -487,24 +511,27 @@ static int mad_open(input_object *obj, char *path)
 								switch (data->stream.error) {
 												case	MAD_ERROR_BUFLEN:
 																printf("MAD_ERROR_BUFLEN...\n");
+																return 0;
+												case MAD_ERROR_LOSTSYNC:
+																printf("MAD_ERROR_LOSTSYNC...\n");
+																return 0;
+												case 0x235:
 																break;
 												default:
-																printf("MAD debug: no valid frame found at start\n");
+																printf("MAD debug: no valid frame found at start (pos: %d, error: 0x%x)\n", data->offset, data->stream.error);
+																return 0;
 								}
-								return 0;
-				} else {
-								int mode = (data->frame.header.mode == MAD_MODE_SINGLE_CHANNEL) ?
-												1 : 2;
-								data->samplerate = data->frame.header.samplerate;
-								data->bitrate	= data->frame.header.bitrate;
+				}
+				int mode = (data->frame.header.mode == MAD_MODE_SINGLE_CHANNEL) ?
+								1 : 2;
+				data->samplerate = data->frame.header.samplerate;
+				data->bitrate	= data->frame.header.bitrate;
 
-								mad_synth_frame (&data->synth, &data->frame);
+				mad_synth_frame (&data->synth, &data->frame);
+				{
+								struct mad_pcm *pcm = &data->synth.pcm;			
 
-								{
-												struct mad_pcm *pcm = &data->synth.pcm;			
-
-												obj->nr_channels = pcm->channels;
-								}
+								obj->nr_channels = pcm->channels;
 				}
 				/* Calculate some values */
 

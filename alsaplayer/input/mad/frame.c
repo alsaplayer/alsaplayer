@@ -439,9 +439,8 @@ int mad_frame_decode(struct mad_frame *frame, struct mad_stream *stream)
   /* error_check() */
 
   if (!(frame->header.flags & MAD_FLAG_INCOMPLETE) &&
-      mad_header_decode(&frame->header, stream) == -1) {
+      mad_header_decode(&frame->header, stream) == -1)
     goto fail;
-  }
 
   /* audio_data() */
 
