@@ -59,6 +59,8 @@
 static pthread_mutex_t finish_mutex;
 static coreplayer_notifier notifier;
 
+static xosd *osd = NULL;
+
 static char *osd_font;
 static char *osd_color;
 static int osd_h_off;
@@ -108,14 +110,49 @@ void daemon_close()
 }
 
 
+static void displayStreamInfo(CorePlayer *coreplayer)
+{
+	stream_info info;
+
+	// create xosd display on demand
+	// reason: we might not be running under X11 yet
+	if (!osd)
+	{
+		if ((osd = xosd_create(2)) == NULL)
+			printf("osd creation failed: %s\n", xosd_error);
+		else
+		{
+			xosd_set_pos(osd, XOSD_top);
+			xosd_set_align(osd, XOSD_left);
+			xosd_set_colour(osd, osd_color);
+			xosd_set_font(osd, osd_font);
+			xosd_set_shadow_offset(osd, 1);
+			xosd_set_horizontal_offset(osd, osd_h_off);
+			xosd_set_vertical_offset(osd, osd_v_off);
+			xosd_set_timeout(osd, osd_timeout);
+		}
+	}
+
+	if (osd)
+	{
+		coreplayer->GetStreamInfo(&info);
+		if (*info.artist)
+			xosd_display(osd, 0, XOSD_string, info.artist);
+		if (*info.title)
+			xosd_display(osd, 1, XOSD_string, info.title);
+		else
+			xosd_display(osd, 1, XOSD_string, "Playing unknown title");
+
+		xosd_wait_until_no_display(osd);
+	}
+}
+
+
 int daemon_start(Playlist *playlist, int argc, char **argv)
 {
 	char session_name[AP_SESSION_MAX];
 	CorePlayer *coreplayer;
-	stream_info info;
-	bool streamInfoRequested = false;
 	int pos = -1, pos_old = -1;
-	xosd *osd = NULL;
 
 	finished = false;
 
@@ -142,12 +179,8 @@ int daemon_start(Playlist *playlist, int argc, char **argv)
 		printf("Session \"%s\" is ready.\n", session_name);
 	}
 
-	// playlist/wait loop
 	while (!finished)
 	{
-		streamInfoRequested = false;
-
-		// single title loop
 		coreplayer = playlist->GetCorePlayer();
 
 		while (coreplayer->IsActive() || coreplayer->IsPlaying())
@@ -156,44 +189,7 @@ int daemon_start(Playlist *playlist, int argc, char **argv)
 			pos = playlist->GetCurrent();
 
 			if (pos != pos_old)
-				streamInfoRequested = false;
-
-			if (!streamInfoRequested)
-			{
-				// create xosd display on demand
-				// reason: we might not be running under X11 yet
-				if (!osd)
-				{
-					if ((osd = xosd_create(2)) == NULL)
-						printf("osd creation failed: %s\n", xosd_error);
-					else
-					{
-						xosd_set_pos(osd, XOSD_top);
-						xosd_set_align(osd, XOSD_left);
-						xosd_set_colour(osd, osd_color);
-						xosd_set_font(osd, osd_font);
-						xosd_set_shadow_offset(osd, 1);
-						xosd_set_horizontal_offset(osd, osd_h_off);
-						xosd_set_vertical_offset(osd, osd_v_off);
-						xosd_set_timeout(osd, osd_timeout);
-					}
-				}
-
-				if (osd)
-				{
-					coreplayer->GetStreamInfo(&info);
-					if (*info.artist)
-						xosd_display(osd, 0, XOSD_string, info.artist);
-					if (*info.title)
-						xosd_display(osd, 1, XOSD_string, info.title);
-					else
-						xosd_display(osd, 1, XOSD_string, "Playing unknown title");
-
-					xosd_wait_until_no_display(osd);
-				}
-
-				streamInfoRequested = true;
-			}
+				displayStreamInfo(coreplayer);
 
 			dosleep(1000000);
 		}
@@ -202,8 +198,12 @@ int daemon_start(Playlist *playlist, int argc, char **argv)
 			dosleep(1000000);
 	}
 
-	xosd_destroy(osd);
-	
+	if (osd)
+	{
+		xosd_destroy(osd);
+		osd = NULL;
+	}
+
 	pthread_mutex_unlock(&finish_mutex);
 
 	playlist->UnRegisterNotifier(&notifier);
