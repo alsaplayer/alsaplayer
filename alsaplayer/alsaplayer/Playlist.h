@@ -113,6 +113,8 @@ class Playlist
 	CorePlayer *player1;
 	CorePlayer *player2;
 
+	int total_time;
+	int total_size;
 
 	// Mutex to stop moving onto next song while we're modifying the playlist
 	pthread_mutex_t playlist_mutex;

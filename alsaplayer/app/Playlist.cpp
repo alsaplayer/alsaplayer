@@ -166,9 +166,6 @@ class PlInsertItems {
 void insert_looper(void *data) {
 	std::set<PlaylistInterface *>::const_iterator i;
 	std::set<playlist_interface *>::const_iterator j;
-#ifdef DEBUG
-	printf("THREAD-%d=insert thread\n", getpid());
-#endif /* DEBUG */
 
 	PlInsertItems * items = (PlInsertItems *)data;
 	Playlist *playlist = items->playlist;
@@ -176,7 +173,7 @@ void insert_looper(void *data) {
 	// Stop the list being changed while we add these items
 	playlist->Lock();
 
-  // First vetting of the list, and recurse through directories
+	// First vetting of the list, and recurse through directories
 	std::vector<std::string> vetted_items;
 	std::vector<std::string>::const_iterator k = items->items.begin();
 	while(k != items->items.end()) {
@@ -218,11 +215,7 @@ void insert_looper(void *data) {
 						   newitems.end());
 	if(playlist->curritem > items->position)
 		playlist->curritem += newitems.size();
-#if 1 
-#ifdef DEBUG
-	printf("Curritem = %d, Size = %d\n", playlist->curritem, playlist->queue.size());
-#endif /* DEBUG */
-
+	
 	// Tell the subscribing interfaces about the changes
 	if(playlist->interfaces.size() > 0) {
 		for(i = playlist->interfaces.begin();
@@ -244,7 +237,6 @@ void insert_looper(void *data) {
 	}
 
 	// Free the list again
-#endif	
 	playlist->Unlock();
 	delete items;
 
@@ -272,7 +264,8 @@ void Playlist::UnlockInterfaces()
 Playlist::Playlist(CorePlayer *p_new) {
 	coreplayer = p_new;
 	curritem = 0;
-	
+	total_time = total_size = 0;
+
 	active = true;
 	pthread_mutex_init(&playlist_mutex, NULL);
 	pthread_mutex_init(&interfaces_mutex, NULL);
@@ -291,8 +284,9 @@ Playlist::Playlist(AlsaNode *the_node) {
 	coreplayer = player1;
 	curritem = 0;
 	active = true;
+	total_time = total_size = 0;
 
-	UnLoopSong();			// Default values
+	UnLoopSong();		// Default values
 	UnLoopPlaylist();	// for looping
 	UnCrossfade();		// and crossfading
 
@@ -361,9 +355,6 @@ void Playlist::Play(unsigned item, int locking) {
 		curritem = queue.size();
 		Stop();
 	}
-#ifdef DEBUG
-	printf("Curritem = %d, Size = %d\n", curritem, queue.size());
-#endif /* DEBUG */
 
 	// Tell the subscribing interfaces about the change
 	if(interfaces.size() > 0) {
@@ -435,9 +426,6 @@ void Playlist::Next(int locking) {
 
 	// Tell the subscribing interfaces about the change
 	if(curritem != olditem) {
-#ifdef DEBUG
-		printf("Curritem = %d, Size = %d\n", curritem, queue.size());
-#endif /* DEBUG */
 		if(interfaces.size() > 0) {
 			for(i = interfaces.begin(); i != interfaces.end(); i++) {
 				(*i)->CbSetCurrent(curritem);
@@ -494,9 +482,6 @@ void Playlist::Prev(int locking) {
 	}
 	if(curritem != 0) {
 		PlayFile(queue[curritem - 1]);
-#ifdef DEBUG
-		printf("Curritem = %d, Size = %d\n", curritem, queue.size());
-#endif /* DEBUG */
 	}
 
 	// Tell the subscribing interfaces about the change
@@ -551,9 +536,7 @@ void Playlist::Insert(std::vector<std::string> const & paths, unsigned position)
 		items->items.push_back(*i++);
 	}
 
-	//printf("Insert([%d items], %d)\n", items->items.size(), items->position);
-
-  // Perform request in a sub-thread, so that we don't:
+	// Perform request in a sub-thread, so that we don't:
 	// a) block the user interface
 	// b) risk getting caught in a deadlock when we call the interface to
 	//    inform it of the change
@@ -624,10 +607,6 @@ void Playlist::Remove(unsigned start, unsigned end, int locking) {
 	} else if (queue.size() == 0) {
 		curritem = 0;
 	}	
-
-#ifdef DEBUG
-	printf("Curritem = %d, Size = %d\n", curritem, queue.size());
-#endif /* DEBUG */
 
 	// Tell the subscribing interfaces about the change
 	if(interfaces.size() > 0) {
@@ -737,9 +716,6 @@ void Playlist::Clear(int locking) {
 
 	queue.clear();
 	curritem = 0;
-#ifdef DEBUG
-	printf("Curritem = %d, Size = %d\n", curritem, queue.size());
-#endif /* DEBUG */
 
 	// Tell the subscribing interfaces about the change
 	if(interfaces.size() > 0) {
