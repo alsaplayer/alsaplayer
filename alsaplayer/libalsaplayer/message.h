@@ -22,7 +22,7 @@
 #include <sys/types.h>
 
 #define AP_CONTROL_BASE_VERSION 0x1000
-#define AP_CONTROL_VERSION      (AP_CONTROL_BASE_VERSION + 4)
+#define AP_CONTROL_VERSION      (AP_CONTROL_BASE_VERSION + 5)
 
 #define KEYID_LEN	32
 
@@ -68,6 +68,7 @@
 #define AP_GET_PAN		0xcc23
 #define AP_SORT			0xcc24
 #define AP_GET_FILE_PATH	0xcc25
+#define AP_ADD_PLAYLIST		0xcc26
 /* Add new commands here */
 
 #ifdef __cplusplus
