@@ -22,12 +22,12 @@
 #include <string.h>
 #include <unistd.h>
 #include "output_plugin.h"
-
+#include "alsaplayer_error.h"
 
 static int null_init()
 {
-	fprintf(stdout, "NOTE: THIS IS THE NULL PLUGIN.\n"
-					"      YOU WILL NOT HEAR SOUND!!\n");
+	alsaplayer_error("NOTE: THIS IS THE NULL PLUGIN."
+					"      YOU WILL NOT HEAR SOUND!!");
 	return 1;
 }
 
@@ -48,7 +48,7 @@ static int null_write(void *data, int count)
 	static int warn = 0;
 
 	if (warn++ > 100) {
-			printf("NULL PLUGIN ACTIVE...NO SOUND\n");
+			alsaplayer_error("null plugin active...no sound output");
 			warn = 0;
 	}		
 	usleep(10000);

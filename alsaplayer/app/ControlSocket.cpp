@@ -267,6 +267,7 @@ void control_socket_start(Playlist *playlist)
 void control_socket_stop()
 {
 	socket_thread_running = 0;
+	pthread_cancel(socket_thread);
 	pthread_join(socket_thread, NULL);
 }
 

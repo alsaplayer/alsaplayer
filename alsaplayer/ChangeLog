@@ -1,3 +1,5 @@
+Tue Mar 19 00:08:04 CET 2002
+----------------------------
 - Scopes will now remember their state
 - Added a section parameter to the prefs system
 - Changed behaviour of PLAY button in gtk interface
@@ -10,6 +12,7 @@
 - Fix crashing bug when loading old scopes
 - Removed scope_open() call since it was never used. Also renamed
   scope_close() to scope_shutdown() to better reflect its intended function.	
+
 
 Tue Mar 12 18:54:48 CET 2002
 ----------------------------

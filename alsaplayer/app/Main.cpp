@@ -236,9 +236,9 @@ static void help()
 "\n"
 "  -d,--device string      select card and device [default=\"default\"]\n"
 "  -e,--enqueue file(s)    queue files in running alsaplayer\n"
-"  -f,--fragsize #         fragment size in bytes [default=2048]\n"
+"  -f,--fragsize #         fragment size in bytes [default=4096]\n"
 "  -F,--frequency #        output frequency [default=%d]\n"
-"  -g,--fragcount #        fragment count [default=12]\n"
+"  -g,--fragcount #        fragment count [default=8]\n"
 "  -h,--help               print this help message\n"
 "  -i,--interface iface    load in the iface interface [default=gtk]\n"
 "  -l,--volume #           set software volume [0-100]\n"
@@ -341,8 +341,8 @@ int main(int argc, char **argv)
 
 	/* Initialize some settings (and populate the prefs system if needed */
 
-	use_fragsize = prefs_get_int(ap_prefs, "main", "period_size", 2048);
-	use_fragcount = prefs_get_int(ap_prefs, "main", "period_count", 12);
+	use_fragsize = prefs_get_int(ap_prefs, "main", "period_size", 4096);
+	use_fragcount = prefs_get_int(ap_prefs, "main", "period_count", 8);
 
 	for (arg_pos=1; arg_pos < argc; arg_pos++) {
 		if (strcmp(argv[arg_pos], "--help") == 0 ||
