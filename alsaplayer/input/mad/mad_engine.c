@@ -861,7 +861,8 @@ static void reader_status(void *ptr, const char *str)
 	data = (struct mad_local_data *)obj->local_data;
 
 	if (data) {
-		alsaplayer_error("reader_status: %s", str);
+		fprintf(stdout, "%s   \r", str);
+		fflush(stdout);
 		//strcpy(data->sinfo.status, str);
 	}	
 }
