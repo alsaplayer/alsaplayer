@@ -881,35 +881,31 @@ static int mad_open(input_object *obj, const char *path)
 				data->bytes_avail - data->offset);
 		data->bytes_avail -= data->offset;
 	}	
+first_frame:
 	
-	if ((mad_frame_decode(&data->frame, &data->stream) != 0)) {
-		//alsaplayer_error("MAD error: %s", error_str(data->stream.error, data->str));
+	if ((mad_header_decode(&data->frame.header, &data->stream) != 0)) {
 		switch (data->stream.error) {
 			case MAD_ERROR_BUFLEN:
 				return 0;
 			case MAD_ERROR_LOSTSYNC:
+			case MAD_ERROR_BADEMPHASIS:
+			case MAD_ERROR_BADSAMPLERATE:	
 				if (mad_header_decode(&data->frame.header, &data->stream) == -1) {
-					alsaplayer_error("Invalid header (%s)", path);
+					alsaplayer_error("Lost synchronisation (%s)", path);
 				}
-				//alsaplayer_error("Calling mad_frame_decode again.. (%d %d %d)", 
-				//		data->stream.this_frame - data->mad_map,
-				//		data->stream.next_frame - data->mad_map,
-				//		data->bytes_avail);
-				mad_stream_buffer(&data->stream, data->stream.this_frame,
-						data->bytes_avail - (data->stream.this_frame - data->mad_map));
-				data->bytes_avail -= (data->stream.this_frame - data->mad_map);
-				//alsaplayer_error("avail = %d", data->bytes_avail);
-				mad_frame_decode(&data->frame, &data->stream);
+				alsaplayer_error("avail = %d", data->bytes_avail);
+				data->bytes_avail-=(data->stream.next_frame - data->stream.this_frame);
+				goto first_frame;
 				break;
 			case MAD_ERROR_BADBITALLOC:
 				return 0;
 			case MAD_ERROR_BADCRC:
-				alsaplayer_error("%s", error_str(data->stream.error, data->str));
-			case 0x232:				
-			case 0x235:
+				alsaplayer_error("MAD_ERROR_BADCRC: %s", error_str(data->stream.error, data->str));
+			case MAD_ERROR_BADBIGVALUES:				
+			case MAD_ERROR_BADDATAPTR:
 				break;
 			default:
-				alsaplayer_error("%s", error_str(data->stream.error, data->str));
+				alsaplayer_error("ERROR: %s", error_str(data->stream.error, data->str));
 				alsaplayer_error("No valid frame found at start (pos: %d, error: 0x%x --> %x %x %x %x) (%s)", data->offset, data->stream.error, 
 						data->stream.this_frame[0],
 						data->stream.this_frame[1],
