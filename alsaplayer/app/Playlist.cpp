@@ -198,7 +198,8 @@ void info_looper(Playlist *playlist)
 		if (!(*p).Parsed()) {
 			path = (*p).filename.c_str();
 
-			if (path && myplayer->Open((*p).filename.c_str())) { // Examine file
+			if (path && !strstr(path, "http://") &&
+					myplayer->Open((*p).filename.c_str())) { // Examine file
 				t_sec = myplayer->GetCurrentTime(myplayer->GetFrames());
 				if (t_sec) {
 					t_sec /= 100;
