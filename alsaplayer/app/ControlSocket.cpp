@@ -261,6 +261,12 @@ static void socket_looper(void *arg)
 					ap_message_add_int32(reply, "ack", 1);
 				}	
 				break;
+			case AP_IS_PAUSED:
+				if (player) {
+					ap_message_add_int32(reply, "int", player->IsPaused());
+					ap_message_add_int32(reply, "ack", 1);
+				}
+				break;
 			case AP_IS_PLAYING:
 				if (player) {
 					ap_message_add_int32(reply, "int", player->IsPlaying());

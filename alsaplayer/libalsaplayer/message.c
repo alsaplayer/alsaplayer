@@ -504,7 +504,14 @@ int ap_cmd_set_int(int session, int32_t cmd, int val)
 
 
 
-/* Convenience function for commands that return a single int */
+/**
+ * Convenience function for commands that return a single int
+ *
+ * @param int session Session to contact
+ * @param int32_t cmd Command to execute
+ * @param int *val Variable where the result will be copied to
+ * @return true if command succeeded, false otherwise
+ */
 int ap_cmd_get_int(int session, int32_t cmd, int *val)
 {
 	int fd;
@@ -552,6 +559,11 @@ int ap_set_playlist_looping(int session, int looping)
 int ap_is_playlist_looping(int session, int *looping)
 {
 	return (ap_cmd_get_int(session, AP_IS_PLAYLIST_LOOPING, looping));
+}
+
+int ap_is_paused(int session , int *paused)
+{
+	 return (ap_cmd_get_int(session, AP_IS_PAUSED, paused));
 }
 
 int ap_set_volume(int session, int volume)

@@ -78,6 +78,7 @@
 #define AP_IS_LOOPING		0xcc2d
 #define AP_SET_PLAYLIST_LOOPING	0xcc2e
 #define AP_IS_PLAYLIST_LOOPING	0xcc2f
+#define AP_IS_PAUSED		0xcc30
 
 /* Add new commands here */
 

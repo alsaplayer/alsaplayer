@@ -823,9 +823,9 @@ CorePlayer::GetPlayer(const char *path)
 
 bool CorePlayer::Open(const char *path)
 {
-	bool result = false;
 	input_plugin *best_plugin;
-
+	int frame_size = 0;
+	
 	Close();
 	
 	if (path == NULL || strlen(path) == 0) {
@@ -839,7 +839,7 @@ bool CorePlayer::Open(const char *path)
 	Lock();	
 	
 	if (best_plugin->open(the_object, path)) {
-		if (best_plugin->frame_size(the_object) > BUF_SIZE) {
+		if ((frame_size = best_plugin->frame_size(the_object)) > BUF_SIZE) {
 			alsaplayer_error("CRITICAL ERROR: this plugin advertised a buffer size\n"
 					 "larger than %d bytes. This is not supported by AlsaPlayer!\n"
 					 "Contact the author to fix this problem.\n"
@@ -848,14 +848,22 @@ bool CorePlayer::Open(const char *path)
 					 "handled relatively easily in the plugin (hopefully).\n\n"
 					 "We will retreat, as chaos and despair await us on\n"
 					 "this chosen path........................................", BUF_SIZE);
-			result = false;
 			best_plugin->close(the_object);
+			Unlock();
+			return false;
 		} else {
-			result = true;
+			if (!frame_size) {
+					alsaplayer_error("No framesize");
+					best_plugin->close(the_object);
+					Unlock();
+					return false;
+			}
+			// result = true
 		}
 	} else {
-		result = false;
 		best_plugin->close(the_object);
+		Unlock();
+		return false;
 	}
 
 	the_object->ready = 1;
@@ -1226,11 +1234,19 @@ bool CorePlayer::streamer_func(void *arg, void *data, int size)
 	}	
 }
 
+
+bool CorePlayer::IsPaused()
+{
+	return ((GetSpeed() == 0.0) ? true : false);
+}
+
+
 void CorePlayer::Pause()
 {
 	save_speed = GetSpeed ();
 	SetSpeed (0.0);
 }
+
 
 void CorePlayer::UnPause()
 {

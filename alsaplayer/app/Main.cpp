@@ -265,7 +265,6 @@ static void help()
 		"\n"
 		"Available options:\n"
 		"\n"
-		"  -b,--background         fork to background (useful for daemon interfaces)\n"
 		"  -c,--config file        use given config file for this session\n"
 		"  -h,--help               print this help message\n"
 		"  -i,--interface iface    use specific interface [default=gtk]. choices:\n");
@@ -291,6 +290,7 @@ static void help()
 		"  --volume vol          set software volume [0-100]\n"
 		"  --start               start playing\n"
 		"  --stop                stop playing\n"
+		"  --pause               pause/unpause playing\n"
 		"  --prev                jump to previous track\n"
 		"  --next                jump to next track\n"
 		"  --seek second         jump to specified second in current track\n"
@@ -361,6 +361,7 @@ int main(int argc, char **argv)
 	int do_stop = 0;
 	int do_prev = 0;
 	int do_next = 0;
+	int do_pause = 0;
 	int do_jump = -1;
 	int do_clear = 0;
 	int do_seek = -1;
@@ -372,6 +373,7 @@ int main(int argc, char **argv)
 	int use_session = 0;
 	int do_crossfade = 0;
 	int do_save = 1;
+	int bool_val = 0;
 	char *use_output = NULL;
 	char *use_interface = NULL;
 	char *use_config = NULL;
@@ -380,7 +382,6 @@ int main(int argc, char **argv)
 	int option_index;
 	const char *options = "bCc:d:eEf:F:g:hi:JI:l:n:NMp:qrs:vRSQTPVxo:Z:";
 	struct option long_options[] = {
-		{ "background", 0, 0, 'b' },
 		{ "config", 1, 0, 'c' },
 		{ "device", 1, 0, 'd' },
 		{ "enqueue", 0, 0, 'e' },
@@ -406,6 +407,7 @@ int main(int argc, char **argv)
 		{ "crossfade", 0, 0, 'x' },
 		{ "output", 1, 0, 'o' },
 		{ "stop", 0, 0, 'U' },
+		{ "pause", 0, 0, 'O' },
 		{ "start", 0, 0, 'T' },
 		{ "prev", 0, 0, 'Q' },
 		{ "next", 0, 0, 'M' },
@@ -441,17 +443,6 @@ int main(int argc, char **argv)
 #endif
 	while ((opt = getopt_long(argc, argv, options, long_options, &option_index)) != EOF) {
 		switch(opt) {
-			case 'b': switch(fork()) {
-					case -1: // Child, but error
-						alsaplayer_error("Could not fork to background");
-						break;
-					case 0: // Child, continue as normal
-						break;
-					default:
-						// Parent, exit
-						exit(0);
-				}		
-				break;
 			case 'c':
 				if (strlen(optarg) < 1023) {
 					use_config = optarg;
@@ -520,6 +511,10 @@ int main(int argc, char **argv)
 				break;
 			case 'N':
 				do_save = 0;
+				break;
+			case 'O':
+				do_remote_control = 1;
+				do_pause = 1;
 				break;
 			case 'p':
 				global_pluginroot = strdup(optarg);
@@ -662,6 +657,14 @@ int main(int argc, char **argv)
 			return 0;
 		} else if (do_stop) {
 			ap_stop(use_session);
+			return 0;
+		} else if (do_pause) {
+			if (ap_is_paused(use_session, &bool_val)) {
+				if (bool_val) 
+					ap_unpause(use_session);
+				else
+					ap_pause(use_session);
+			}
 			return 0;
 		} else if (do_next) {
 			ap_next(use_session);

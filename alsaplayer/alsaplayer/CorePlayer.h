@@ -178,6 +178,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 
 	void Pause ();
 	void UnPause ();
+	bool IsPaused ();
 	
 	int IsActive() { return streaming; }	
 	int IsPlaying() { return producing; }
