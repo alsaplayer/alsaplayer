@@ -833,6 +833,8 @@ bool CorePlayer::Open(const char *path)
 	}
 	Lock();	
 	
+	the_object->local_data = NULL;
+
 	if (best_plugin->open(the_object, path)) {
 		if ((frame_size = best_plugin->frame_size(the_object)) > BUF_SIZE) {
 			alsaplayer_error("CRITICAL ERROR: this plugin advertised a buffer size\n"

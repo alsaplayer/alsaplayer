@@ -296,6 +296,8 @@ static void help()
 		"  --next                jump to next track\n"
 		"  --seek second         jump to specified second in current track\n"
 		"  --relative second     jump second seconds from current position\n"
+		"  --speed speed	 floating point speed paramemeter\n"
+		"    1.0 = normal speed, -1.0 normal speed backwards\n"
 		"  --jump track          jump to specified playlist track\n"
 		"  --clear               clear whole playlist\n"
 		"  --quit                quit session\n"
@@ -371,7 +373,9 @@ int main(int argc, char **argv)
 	int do_setvol = 0;
 	int do_quit = 0;
 	int do_status = 0;
-	
+	int do_speed = 0;
+	float speed_val = 0.0;
+		
 	int use_freq = OUTPUT_RATE;
 	int use_vol = 100;
 	int use_session = 0;
@@ -418,6 +422,7 @@ int main(int argc, char **argv)
 		{ "jump", 1, 0, 'J' },
 		{ "seek", 1, 0, 'X' },
 		{ "relative", 1, 0, 'Z' },
+		{ "speed", 1, 0, 'H' },
 		{ "clear", 0, 0, 'C' },
 		{ "startvolume", 1, 0, 'l' },
 		{ "quit", 0, 0, 'A' },
@@ -500,6 +505,12 @@ int main(int argc, char **argv)
 			case 'h':
 				help();
 				return 0;
+			case 'H':
+				if ((sscanf(optarg, "%f", &speed_val))) {
+					do_remote_control = 1;
+					do_speed = 1;
+				}
+				break;
 			case 'i':
 				use_interface = optarg;
 				break;
@@ -647,7 +658,10 @@ int main(int argc, char **argv)
 		}
 		if (use_session == (MAX_REMOTE_SESSIONS+1)) {
 			//alsaplayer_error("No remote session found");
-			do_remote_control = 0;
+			if (do_remote_control) {
+				alsaplayer_error("No active sessions");
+				return 1;
+			}	
 			do_enqueue = 0;
 		} else {
 			//alsaplayer_error("Found session %d", use_session);
@@ -729,6 +743,13 @@ int main(int argc, char **argv)
 		} else if (do_relative) {
 			if (do_seek != 0)
 				ap_set_position_relative(use_session, do_seek);
+			return 0;
+		} else if (do_speed) {
+			if (speed_val < -10.0 || speed_val > 10.0) {
+				alsaplayer_error("Speed out of range, must be between -10.00 and 10.00");
+				return 1;
+			}
+			ap_set_speed(use_session, speed_val);
 			return 0;
 		} else if (do_seek >= 0) {
 			ap_set_position(use_session, do_seek);

@@ -418,9 +418,9 @@ Playlist::Playlist(AlsaNode *the_node) {
 	coreplayer = player1;
 	curritem = 0;
 	active = true;
-	paused = false;
 	total_time = total_size = 0;
 
+	UnPause();
 	UnLoopSong();		// Default values
 	LoopPlaylist();		// for looping
 	UnCrossfade();		// and crossfading
@@ -500,7 +500,9 @@ void Playlist::Next() {
 	    if (LoopingPlaylist()){
 	      curritem = 1;
 	      PlayFile(queue[curritem -1]); 
-	    }
+	    } else {
+		    Stop(); // Close track
+	    }	    
 	  }
 	}
 	//puts("Notifying playlists...");
