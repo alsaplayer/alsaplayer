@@ -420,7 +420,8 @@ ap_playlist_insert_thread (gpointer data)
 	/* Insert items into the playlist queue. */
 	ap_object_lock (AP_OBJECT (playlist));
 	g_array_insert_vals (playlist->queue, pos,
-			     items_p_array->pdata, items_p_array->len);
+			     items_p_array->pdata,
+			     items_p_array->len);
 	ap_object_unlock (AP_OBJECT (playlist));
 
 	/* Emit "inserted" signal. */
@@ -441,6 +442,11 @@ ap_playlist_insert_thread (gpointer data)
     return NULL;
 } /* ap_playlist_insert_thread */
 
+gint shuffle_comparator (gconstpointer a,
+			  gconstpointer b)
+{
+    return g_random_int_range(0, 3) - 1;
+} /* shuffle_comparator */
 
 /* *****************************************************************/
 /* Public functions.						   */
@@ -706,4 +712,29 @@ ap_playlist_clear (ApPlaylist	    *playlist)
 
     /* Signal */
     g_signal_emit_by_name (playlist, "cleared");
+}
+
+/**
+ * @param playlist	    An #ApPlaylist.
+ *
+ * @brief		    Shuffle playlist.
+ *
+ * @note		    Be careful!!
+ *			    Playlist should be locked by ap_object_lock()
+ *			    before using this function, and unlocked by
+ *			    ap_object_unlock() afterwards.
+ **/
+void
+ap_playlist_shuffle (ApPlaylist	    *playlist)
+{
+    g_return_if_fail (AP_IS_PLAYLIST (playlist));
+    
+    g_array_sort (playlist->queue, shuffle_comparator);
+
+    g_signal_emit_by_name (playlist, "cleared");
+
+    /* XXX It is hack. Fourth argument has wrong type. */
+    g_signal_emit_by_name (playlist, "inserted", 0, playlist->queue);
+
+    /* TODO TODO TODO TODO: Detect new position of currenly playing song. */
 }
