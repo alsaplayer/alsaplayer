@@ -477,8 +477,8 @@ static void oglspectrum_shutdown()
 
 scope_plugin oglspectrum_plugin = {
 	SCOPE_PLUGIN_VERSION,
-	{ "Spectrum GL" },
-	{ "Andy Lo A Foe" },
+	"Spectrum GL",
+	"Andy Lo A Foe",
 	NULL,
 	oglspectrum_init,
 	oglspectrum_start,

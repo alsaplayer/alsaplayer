@@ -331,10 +331,12 @@ static int bscope_running()
 }
 
 
-scope_plugin bscope_plugin = {
+static scope_plugin bscope_plugin;
+/*
+= {
 	SCOPE_PLUGIN_VERSION,
-	{ "Blurscope" },
-	{ "Andy Lo A Foe"},
+	"Blurscope",
+	"Andy Lo A Foe",
 	NULL,
 	init_bscope,
 	start_bscope,
@@ -344,10 +346,20 @@ scope_plugin bscope_plugin = {
 	bscope_set_data,
 	NULL
 };
-
+*/
 
 scope_plugin *scope_plugin_info()
 {
+	memset(&bscope_plugin, 0, sizeof(scope_plugin));
+	bscope_plugin.version = SCOPE_PLUGIN_VERSION;
+	bscope_plugin.name = "Blurscope";
+	bscope_plugin.author = "Andy Lo A Foe";
+	bscope_plugin.init = init_bscope;
+	bscope_plugin.start = start_bscope;
+	bscope_plugin.running = bscope_running;
+	bscope_plugin.stop = stop_bscope;
+	bscope_plugin.shutdown = shutdown_bscope;
+	bscope_plugin.set_data = bscope_set_data;
 	return &bscope_plugin;
 }
 

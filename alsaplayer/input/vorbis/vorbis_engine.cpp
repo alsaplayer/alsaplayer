@@ -411,7 +411,9 @@ static void vorbis_shutdown()
 
 
 
-input_plugin vorbis_plugin =
+static input_plugin vorbis_plugin;
+/*
+=
 {
 	INPUT_PLUGIN_VERSION,
 	0,
@@ -435,12 +437,29 @@ input_plugin vorbis_plugin =
 	NULL,
 	NULL
 };
-
+*/
 
 extern "C" {
 
 input_plugin *input_plugin_info (void)
 {
+	memset(&vorbis_plugin, 0, sizeof(input_plugin));
+	vorbis_plugin.version = INPUT_PLUGIN_VERSION;
+	vorbis_plugin.name = "Ogg Vorbis player v1.1";
+	vorbis_plugin.author = "Andy Lo A Foe";
+	vorbis_plugin.init = vorbis_init;
+	vorbis_plugin.shutdown = vorbis_shutdown;
+	vorbis_plugin.can_handle = vorbis_can_handle;
+	vorbis_plugin.open = vorbis_open;
+	vorbis_plugin.close = vorbis_close;
+	vorbis_plugin.play_frame = vorbis_play_frame;
+	vorbis_plugin.frame_seek = vorbis_frame_seek;
+	vorbis_plugin.frame_size = vorbis_frame_size;
+	vorbis_plugin.nr_frames = vorbis_nr_frames;
+	vorbis_plugin.frame_to_sec = vorbis_frame_to_sec;
+	vorbis_plugin.sample_rate = vorbis_sample_rate;
+	vorbis_plugin.channels = vorbis_channels;
+	vorbis_plugin.stream_info = vorbis_stream_info;
 	return &vorbis_plugin;
 }
 

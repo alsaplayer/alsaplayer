@@ -353,7 +353,7 @@ void playlist_remove(GtkWidget *widget, gpointer data)
 				playlist->Stop();
 				playlist->Next();
 			}	
-			playlist->Remove(selected+1, selected+1);
+			playlist->Remove(selected+1, selected+1, 0);
 			next = next->prev;	
 		}
 	}

@@ -1,5 +1,5 @@
 /*  oss.c - Output driver for OSS/Lite and OSS/Linux
- *  Copyright (C) 1999 Andy Lo A Foe <andy@alsa-project.org>
+ *  Copyright (C) 1999-2002 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -104,8 +104,8 @@ static int oss_set_sample_rate(int rate)
 
 output_plugin oss_output = {
 	OUTPUT_PLUGIN_VERSION,
-	{ "OSS output v1.0" },
-	{ "Andy Lo A Foe" },
+	"OSS output v1.0",
+	"Andy Lo A Foe",
 	oss_init,
 	oss_open,
 	oss_close,

@@ -103,14 +103,14 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 			block_val = secs = coreplayer->GetCurrentTime(coreplayer->GetFrames());
 
 			if (secs == 0) {
-				dosleep(100000);
+				dosleep(1000000);
 				continue;
 			}	
 			t_min = secs / 6000;
 			t_sec = (secs % 6000) / 100;
 			cur_val = secs = coreplayer->GetCurrentTime();
 			if (secs == 0) {
-				dosleep(100000);
+				dosleep(1000000);
 				continue;
 			}	
 			c_min = secs / 6000;
@@ -127,7 +127,7 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 			}
 			fprintf(stdout,"]   ");
 			fflush(stdout);
-			dosleep(100000);
+			dosleep(1000000);
 		}
 		dosleep(1000000);
 		fprintf(stdout, "\n\n");
@@ -140,8 +140,8 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 interface_plugin default_plugin =
 {
 	INTERFACE_PLUGIN_VERSION,
-	{ "TEXT interface v1.0" },
-	{ "Andy Lo A Foe" },
+	"TEXT interface v1.1",
+	"Andy Lo A Foe",
 	NULL,
 	interface_text_init,
 	interface_text_start,

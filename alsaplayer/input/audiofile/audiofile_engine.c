@@ -349,8 +349,8 @@ input_plugin audiofile_plugin =
 {
 	INPUT_PLUGIN_VERSION,
 	0,
-	{ "Audio File Library player v0.2.1" },
-	{ "Michael Pruett" },
+	"Audio File Library player v0.2.1",
+	"Michael Pruett",
 	NULL,
 	audiofile_init,
 	audiofile_shutdown,

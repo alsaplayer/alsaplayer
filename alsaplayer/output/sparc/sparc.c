@@ -82,8 +82,8 @@ static int sparc_set_sample_rate(int rate)
 
 output_plugin sparc_output = {
 		OUTPUT_PLUGIN_VERSION,
-		{ "SPARC output v1.0" },
-		{ "The 5 minute hack dept." },
+		"SPARC output v1.0",
+		"The 5 minute hack dept.",
 		sparc_init,
 		sparc_open,
 		sparc_close,

@@ -1,7 +1,15 @@
+- Made the song scanning function more efficient.
+- Fix nasty bug with CDDA menu entry. 
+- No playlist interface locking was done when playlist entries were removed.
+
+
+Mon Apr  8 14:41:39 CEST 2002
+-----------------------------
+- Song artist - title - time displaying in the playlist.
+- Allow multiple selections in playlist for easier deletes.
 - Found the real source of all the subtle deadlocks. We weren't acquiring
   locks in the same order all the time, a thinko.
 - Replace foreground color change with icon for active entry in playlist
-- Song artist - title - time displaying in the playlist, weehaa :)
 
 
 Mon Apr  1 03:06:08 CEST 2002

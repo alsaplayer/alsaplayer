@@ -333,8 +333,8 @@ static int levelmeter_running()
 
 scope_plugin levelmeter_plugin = {
 	SCOPE_PLUGIN_VERSION,
-	{ "Levelmeter" },
-	{ "Andy Lo A Foe"},
+	"Levelmeter",
+	"Andy Lo A Foe",
 	NULL,
 	init_levelmeter,
 	start_levelmeter,

@@ -1,5 +1,5 @@
 /*
- *  cdda_engine.c (C) 1999-2001 by Andy Lo A Foe
+ *  cdda_engine.c (C) 1999-2002 by Andy Lo A Foe
  *	
  *	Based on code from dagrab 0.3 by Marcello Urbani <murbani@numerica.it>
  *
@@ -65,7 +65,7 @@ struct cdda_local_data {
 	int rel_pos;
 	int track_nr;
 };
-	
+
 struct cd_trk_list {
 	int min;
 	int max;
@@ -94,14 +94,14 @@ static int cd_get_tocentry(int cdrom_fd, int trk, struct cdrom_tocentry *Te, int
 static int cd_read_audio(int cdrom_fd, int lba, int num, unsigned char *buf)
 {
 	struct cdrom_read_audio ra;
-	
+
 	ra.addr.lba = lba;
 	ra.addr_format = CDROM_LBA;
 	ra.nframes = num;
 	ra.buf = buf;
 	if (ioctl(cdrom_fd, CDROMREADAUDIO, &ra)) {
 		fprintf(stderr, "\nCDDA: read raw ioctl failed at lba %d length %d\n",
-			lba, num);
+				lba, num);
 		perror("CDDA");
 		return 1;
 	}
@@ -179,10 +179,10 @@ static void cd_disp_TOC(struct cd_trk_list *tl)
 	{
 		len = tl->starts[i + 1 - tl->min] - tl->starts[i - tl->min];
 		printf("%5d %8d %8d %5s %9s %4d",i,
-			tl->starts[i-tl->min]+CD_MSF_OFFSET, len,
-			tl->types[i-tl->min]?"data":"audio",resttime(len / 75),
-			(len * CD_FRAMESIZE_RAW) >> (20)); // + opt_mono));
-		printf("\n");
+				tl->starts[i-tl->min]+CD_MSF_OFFSET, len,
+				tl->types[i-tl->min]?"data":"audio",resttime(len / 75),
+				(len * CD_FRAMESIZE_RAW) >> (20)); // + opt_mono));
+				printf("\n");
 	}
 	printf("%5d %8d %8s %s\n",CDROM_LEADOUT,
 			tl->starts[i-tl->min]+CD_MSF_OFFSET,"-","leadout");
@@ -204,8 +204,8 @@ static int cd_jc1(int *p1,int *p2) //nuova
 	{
 		n=0;p=p1+opt_ibufsize-opt_keylen/sizeof(int)-1;
 		while((n<IFRAMESIZE*(1+opt_overlap)) && memcmp(p,p2,opt_keylen))
-		  {p--;n++;};
-/*		  {p-=6;n+=6;}; //should be more accurate, but doesn't work well*/
+		{p--;n++;};
+		/*		  {p-=6;n+=6;}; //should be more accurate, but doesn't work well*/
 		if(n>=IFRAMESIZE*(1+opt_overlap)){		/* no match */
 			return -1;
 		};
@@ -254,12 +254,12 @@ static int cdda_open(input_object *obj, char *name)
 	int cdrom_fd;
 
 	if (!obj)
-			return 0;
-	
+		return 0;
+
 	fname = strrchr(name, '/');
 	if (!fname)
 		fname = name;
-	
+
 	if (ap_prefs) {
 		strcpy(device_name, prefs_get_string(ap_prefs, "cdda", "device", DEFAULT_DEVICE));
 	} else {
@@ -279,7 +279,7 @@ static int cdda_open(input_object *obj, char *name)
 
 	obj->local_data = malloc(sizeof(struct cdda_local_data));
 	if (!obj->local_data) {
-			return 0;
+		return 0;
 	}		
 	data = (struct cdda_local_data *)obj->local_data;
 
@@ -293,32 +293,32 @@ static int cdda_open(input_object *obj, char *name)
 	strcpy(data->device_path, device_name);
 
 	if (strcmp(fname, "CD.cdda") == 0) {
-			data->track_start = tl.starts[tl.min-1]; /* + CD_MSF_OFFSET; */
-			data->track_length = tl.starts[tl.max] - data->track_start;
-			data->rel_pos = 0;
-			data->track_nr = 1;
+		data->track_start = tl.starts[tl.min-1]; /* + CD_MSF_OFFSET; */
+		data->track_length = tl.starts[tl.max] - data->track_start;
+		data->rel_pos = 0;
+		data->track_nr = 1;
 #ifdef DEBUG
-			printf("Start: %d. Length: %d\n", data->track_start,
-							data->track_length);
+		printf("Start: %d. Length: %d\n", data->track_start,
+				data->track_length);
 #endif
 	}			
 	else
-	if (sscanf(fname, "Track %02d.cdda\n", &data->track_nr) != 1) {
+		if (sscanf(fname, "Track %02d.cdda\n", &data->track_nr) != 1) {
 			printf("Hmm failed to read track number\n");
 			free(obj->local_data);
 			obj->local_data = NULL;
 			return 0;
-	} else  {
+		} else  {
 #ifdef DEBUG
-		printf("Found track number %d (%s)\n", data->track_nr, fname);
+			printf("Found track number %d (%s)\n", data->track_nr, fname);
 #endif
-		data->track_start = tl.starts[data->track_nr-1];
-		data->track_length = tl.starts[data->track_nr] - tl.starts[data->track_nr-1];
-		data->rel_pos = 0;
-	}
+			data->track_start = tl.starts[data->track_nr-1];
+			data->track_length = tl.starts[data->track_nr] - tl.starts[data->track_nr-1];
+			data->rel_pos = 0;
+		}
 
 	obj->flags = P_SEEK;
-	
+
 	return 1;
 }
 
@@ -333,7 +333,7 @@ static void cdda_close(input_object *obj)
 		return;
 	data = (struct cdda_local_data *)obj->local_data;
 	if (!data) {
-			return;
+		return;
 	}
 #ifdef DEBUG	
 	printf("closing\n");
@@ -353,26 +353,26 @@ static int cdda_play_frame(input_object *obj, char *buf)
 	struct cdda_local_data *data;
 	unsigned char bla[CD_FRAMESIZE_RAW*FRAME_LEN];
 	if (!obj)
-			return 0;
+		return 0;
 	data = (struct cdda_local_data *)obj->local_data;	
 
 	if (!data) {
-			return 0;
+		return 0;
 	}		
 	if (!data->track_length || 
-		(data->rel_pos > data->track_length)) {
+			(data->rel_pos > data->track_length)) {
 		printf("rel_pos = %d, start = %d, end = %d\n",
-			data->rel_pos, data->track_start, 
-			data->track_start + data->track_length);
+				data->rel_pos, data->track_start, 
+				data->track_start + data->track_length);
 		return 0;
 	}
 	memset(bla, 0, sizeof(bla));
 	if (cd_read_audio(data->cdrom_fd, data->track_start + data->rel_pos, FRAME_LEN, bla)) {
-			return 0;
+		return 0;
 	}
 	data->rel_pos += FRAME_LEN;
 	if (buf) {
-			memcpy(buf, bla, (CD_FRAMESIZE_RAW * FRAME_LEN));
+		memcpy(buf, bla, (CD_FRAMESIZE_RAW * FRAME_LEN));
 	}
 	return 1;
 }
@@ -382,7 +382,7 @@ static int cdda_frame_seek(input_object *obj, int index)
 {
 	struct cdda_local_data *data;	
 	if (!obj)
-			return 0;
+		return 0;
 	data = (struct cdda_local_data *)obj->local_data;	
 	if (data)
 		data->rel_pos = (index * FRAME_LEN);
@@ -404,9 +404,9 @@ static int cdda_nr_frames(input_object *obj)
 	int nr_frames = 0;
 
 	if (!obj)
-			return 0;
+		return 0;
 	data = (struct cdda_local_data *)obj->local_data;
-	
+
 	if (data)
 		nr_frames = data->track_length >> 2;	
 	return nr_frames;
@@ -426,7 +426,7 @@ static int cdda_sample_rate(input_object *obj)
 {
 	struct cdda_local_data *data;	
 	if (!obj)
-			return 0;
+		return 0;
 	data = (struct cdda_local_data *)obj->local_data;	
 	return (data ? data->samplerate : 0);
 }
@@ -441,23 +441,23 @@ static int cdda_channels(input_object *obj)
 
 static int cdda_stream_info(input_object *obj, stream_info *info)
 {
-		struct cdda_local_data *data;	
-		if (!obj)
-				return 0;
-		data = (struct cdda_local_data *)obj->local_data;
-        if (!data || !info)
-                return 0;
-        sprintf(info->stream_type, "16-bit 44KHz stereo CDDA");
-        info->author[0] = 0;
-				info->status[0] = 0;
-        if (data->track_nr < 0)
-                info->title[0] = 0;
-        else if (data->track_nr == 0)
-                sprintf(info->title, "Full CD length playback");
-        else
-                sprintf(info->title, "Track %d", data->track_nr);
+	struct cdda_local_data *data;	
+	if (!obj)
+		return 0;
+	data = (struct cdda_local_data *)obj->local_data;
+	if (!data || !info)
+		return 0;
+	sprintf(info->stream_type, "16-bit 44KHz stereo CDDA");
+	info->author[0] = 0;
+	info->status[0] = 0;
+	if (data->track_nr < 0)
+		info->title[0] = 0;
+	else if (data->track_nr == 0)
+		sprintf(info->title, "Full CD length playback");
+	else
+		sprintf(info->title, "Track %d", data->track_nr);
 
-        return 1;
+	return 1;
 }
 
 
@@ -478,36 +478,57 @@ static int cdda_track_seek(input_object *obj, int track)
 }
 
 
-input_plugin cdda_plugin = {
-		INPUT_PLUGIN_VERSION,
-		0,
-		{ "CDDA player v1.1" },
-		{ "Andy Lo A Foe <andy@alsaplayer.org>" },
-		NULL,
-		cdda_init,
-		cdda_shutdown,
-		NULL,
-		cdda_can_handle,
-		cdda_open,
-		cdda_close,
-		cdda_play_frame,
-		cdda_frame_seek,
-		cdda_frame_size,
-		cdda_nr_frames,
-		cdda_frame_to_sec,
-		cdda_sample_rate,
-		cdda_channels,
-		cdda_stream_info,
-		cdda_nr_tracks,
-		cdda_track_seek
+static input_plugin cdda_plugin;
+/*
+= {
+	INPUT_PLUGIN_VERSION,
+	0,
+	"CDDA player v1.1",
+	"Andy Lo A Foe <andy@alsaplayer.org>",
+	NULL,
+	cdda_init,
+	cdda_shutdown,
+	NULL,
+	cdda_can_handle,
+	cdda_open,
+	cdda_close,
+	cdda_play_frame,
+	cdda_frame_seek,
+	cdda_frame_size,
+	cdda_nr_frames,
+	cdda_frame_to_sec,
+	cdda_sample_rate,
+	cdda_channels,
+	cdda_stream_info,
+	cdda_nr_tracks,
+	cdda_track_seek
 };
-
+*/
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 input_plugin *input_plugin_info()
 {
+	memset(&cdda_plugin, 0, sizeof(input_plugin));
+	cdda_plugin.version = INPUT_PLUGIN_VERSION;
+	cdda_plugin.name = "CDDA player v1.2";
+	cdda_plugin.author = "Andy Lo A Foe <andy@alsaplayer.org>";
+	cdda_plugin.init = cdda_init;
+	cdda_plugin.shutdown = cdda_shutdown;
+	cdda_plugin.can_handle = cdda_can_handle;
+	cdda_plugin.open = cdda_open;
+	cdda_plugin.close = cdda_close;
+	cdda_plugin.play_frame = cdda_play_frame;
+	cdda_plugin.frame_seek = cdda_frame_seek;
+	cdda_plugin.frame_size = cdda_frame_size;
+	cdda_plugin.nr_frames = cdda_nr_frames;
+	cdda_plugin.frame_to_sec = cdda_frame_to_sec;
+	cdda_plugin.sample_rate = cdda_sample_rate;
+	cdda_plugin.channels = cdda_channels;
+	cdda_plugin.stream_info = cdda_stream_info;
+	cdda_plugin.nr_tracks = cdda_nr_tracks;
+	cdda_plugin.track_seek = cdda_track_seek;
 	return &cdda_plugin;
 }
 

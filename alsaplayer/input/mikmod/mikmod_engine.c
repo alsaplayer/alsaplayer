@@ -235,9 +235,9 @@ mikmod_stream_info (input_object *obj, stream_info *info)
 input_plugin mikmod_plugin = {
   INPUT_PLUGIN_VERSION,
   0,
-  { "MikMod player v0.9" },
-  { "Paul Fisher <rao@gnu.org>" },
-	NULL,
+  "MikMod player v0.9",
+  "Paul Fisher <rao@gnu.org>",
+  NULL,
   mikmod_init,
   mikmod_shutdown,
   NULL,

@@ -105,8 +105,8 @@ static int sgi_get_latency ()
 
 output_plugin sgi_output = {
 	OUTPUT_PLUGIN_VERSION,
-	{ "SGI Audio Library output v1.0 (broken for mono output)" },
-	{ "Michael Pruett" },
+	"SGI Audio Library output v1.0 (broken for mono output)",
+	"Michael Pruett",
 	sgi_init,
 	sgi_open,
 	sgi_close,

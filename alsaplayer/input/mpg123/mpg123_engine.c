@@ -435,8 +435,8 @@ static void mpeg_shutdown()
 input_plugin mpg123_plugin = {
 		INPUT_PLUGIN_VERSION,
 		0,
-		{ "mpg123 MPEG player v0.59r (obsolete)" },
-		{ "Andy Lo A Foe <andy@alsa-project.org>" },
+		"mpg123 MPEG player v0.59r (obsolete)",
+		"Andy Lo A Foe <andy@alsa-project.org>",
 		NULL,
 		mpeg_init,
 		mpeg_shutdown,

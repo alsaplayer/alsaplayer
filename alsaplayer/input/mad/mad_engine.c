@@ -559,7 +559,7 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 }
 
 
-static int mad_samplerate(input_object *obj)
+static int mad_sample_rate(input_object *obj)
 {
 	struct mad_local_data *data;
 
@@ -633,7 +633,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 				while (header_size < size) {
 					if (data[++header_size] == 0xff &&
 							data[header_size+1] == 0xfb) {
-						alsaplayer_error("Found 0xff 0xfb at %d",  header_size);
+						//alsaplayer_error("Found 0xff 0xfb at %d",  header_size);
 						return header_size;
 					}
 				}
@@ -694,7 +694,7 @@ static int mad_open(input_object *obj, char *path)
 	memset(data, 0, sizeof(struct mad_local_data));
 
 	if ((data->mad_fd = open(path, O_RDONLY | O_BINARY)) < 0) {
-		fprintf(stderr, "mad_open() failed\n");
+		//fprintf(stderr, "mad_open() failed\n");
 		return 0;
 	}
 	if (fstat(data->mad_fd, &data->stat) == -1) {
@@ -855,30 +855,7 @@ static void mad_shutdown()
 }
 
 
-input_plugin mad_plugin =
-{
-	INPUT_PLUGIN_VERSION,
-	0,
-	{ "MAD MPEG audio plugin v0.91" },
-	{ "Andy Lo A Foe" },
-	NULL,
-	mad_init,
-	mad_shutdown,
-	NULL,
-	mad_can_handle,
-	mad_open,
-	mad_close,
-	mad_play_frame,
-	mad_frame_seek,
-	mad_frame_size,
-	mad_nr_frames,
-	mad_frame_to_sec,
-	mad_samplerate,
-	mad_channels,
-	mad_stream_info,
-	NULL,
-	NULL
-};
+static input_plugin mad_plugin;
 
 #ifdef __cplusplus
 extern "C" {
@@ -886,6 +863,23 @@ extern "C" {
 
 input_plugin *input_plugin_info (void)
 {
+	memset(&mad_plugin, 0, sizeof(input_plugin));
+	mad_plugin.version = INPUT_PLUGIN_VERSION;
+	mad_plugin.name = "MAD MPEG audio plugin v0.91";
+	mad_plugin.author = "Andy Lo A Foe";
+	mad_plugin.init = mad_init;
+	mad_plugin.shutdown = mad_shutdown;
+	mad_plugin.can_handle = mad_can_handle;
+	mad_plugin.open = mad_open;
+	mad_plugin.close = mad_close;
+	mad_plugin.play_frame = mad_play_frame;
+	mad_plugin.frame_seek = mad_frame_seek;
+	mad_plugin.frame_size = mad_frame_size;
+	mad_plugin.nr_frames = mad_nr_frames;
+	mad_plugin.frame_to_sec = mad_frame_to_sec;
+	mad_plugin.sample_rate = mad_sample_rate;
+	mad_plugin.channels = mad_channels;
+	mad_plugin.stream_info = mad_stream_info;
 	return &mad_plugin;
 }
 

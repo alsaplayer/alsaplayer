@@ -105,8 +105,8 @@ static int esound_get_latency()
 
 output_plugin esd_output = {
 	OUTPUT_PLUGIN_VERSION,
-	{ "ESD output v1.0 (broken for mono output)" },
-	{ "Andy Lo A Foe" },
+	"ESD output v1.0 (broken for mono output)",
+	"Andy Lo A Foe",
 	esound_init,
 	esound_open,
 	esound_close,

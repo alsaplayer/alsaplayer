@@ -649,8 +649,8 @@ static int synaescope_running()
 
 scope_plugin synaescope_plugin = {
 	SCOPE_PLUGIN_VERSION,
-	{ "Synaescope" },
-	{ "Richard Boulton"},
+	"Synaescope",
+	"Richard Boulton",
 	NULL,
 	init_synaescope,
 	start_synaescope,

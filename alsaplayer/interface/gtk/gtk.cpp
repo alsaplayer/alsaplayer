@@ -193,8 +193,8 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 interface_plugin default_plugin =
 {
 	INTERFACE_PLUGIN_VERSION,
-	{ "GTK+ interface v1.1" },
-	{ "Andy Lo A Foe" },
+	"GTK+ interface v1.2",
+	"Andy Lo A Foe",
 	NULL,
 	interface_gtk_init,
 	interface_gtk_start,

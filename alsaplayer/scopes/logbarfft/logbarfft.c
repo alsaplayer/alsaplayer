@@ -259,8 +259,8 @@ static int fftscope_running()
 
 scope_plugin logscope_plugin = {
 	SCOPE_PLUGIN_VERSION,
-	{ "logFFTscope" },
-	{ "Andy Lo A Foe"},
+	"logFFTscope",
+	"Andy Lo A Foe",
 	NULL,
 	init_fftscope,
 	start_fftscope,

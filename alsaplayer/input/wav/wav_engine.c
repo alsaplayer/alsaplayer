@@ -1,5 +1,5 @@
 /*
- *  wav_engine.c	(C) 1999 by Andy Lo A foe
+ *  wav_engine.c	(C) 1999 by Andy Lo A Foe
  *  Based on wav Copyright (c) by Jaroslav Kysela <perex@jcu.cz>
  *  Based on vplay program by Michael Beck
  *
@@ -404,8 +404,8 @@ static void wav_shutdown()
 input_plugin wav_plugin = {
 	INPUT_PLUGIN_VERSION,
 	0,
-	{ "WAV player v1.01" },
-	{ "Andy Lo A Foe" },
+	"WAV player v1.01",
+	"Andy Lo A Foe",
 	NULL,
 	wav_init,
 	wav_shutdown,

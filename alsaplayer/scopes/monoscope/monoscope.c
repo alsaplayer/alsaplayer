@@ -45,6 +45,7 @@ static GdkRgbCmap *color_map = NULL;
 static int ready_state = 0;
 static pthread_t monoscope_thread;
 static pthread_mutex_t monoscope_mutex;
+static pthread_mutex_t update_mutex;
 static int is_init = 0;
 static int running = 0;
 static convolve_state *state = NULL;
@@ -61,9 +62,13 @@ void monoscope_set_data(void *audio_buffer, int size)
 {
 	int i;	
 	short *sound = (short *)audio_buffer;
+
+	if (pthread_mutex_trylock(&update_mutex) != 0) 
+		return;
 	if (!sound) {
-			memset(&newEq, 0, sizeof(newEq));
-			return;
+		memset(&newEq, 0, sizeof(newEq));
+		pthread_mutex_unlock(&update_mutex);
+		return;
 	}	
 	if (running && size >= CONVOLVE_BIG) {
 		short * newset = newEq;
@@ -73,6 +78,7 @@ void monoscope_set_data(void *audio_buffer, int size)
 			sound += skip;
 		}
 	}
+	pthread_mutex_unlock(&update_mutex);
 }
 
 
@@ -82,81 +88,83 @@ void the_monoscope()
 	int bar;  
 	int i, h;
 	guchar bits[ 257 * 129];
-  guchar *loc;
-	
+	guchar *loc;
+
 	running = 1;
-				
+
 	while (running) {
-					int w, factor;
-					int val;
-					int max = 1;
-					short * thisEq;
-					memcpy (copyEq, newEq, sizeof (short) * CONVOLVE_BIG);
-					thisEq = copyEq;
+		int w, factor;
+		int val;
+		int max = 1;
+		short * thisEq;
+		pthread_mutex_lock(&update_mutex);
+		memcpy (copyEq, newEq, sizeof (short) * CONVOLVE_BIG);
+		thisEq = copyEq;
 #if 1					
-					val = convolve_match (avgEq, copyEq, state);
-					thisEq += val;
-#endif					
-					memset(bits, 0, 256 * 128);
-					for (i=0; i < 256; i++) {
-									foo = thisEq[i] + (avgEq[i] >> 1);
-									avgEq[i] = foo;
-									if (foo < 0)
-													foo = -foo;
-									if (foo > max)
-													max = foo;
+		val = convolve_match (avgEq, copyEq, state);
+		thisEq += val;
+#endif	
+		pthread_mutex_unlock(&update_mutex);
+		memset(bits, 0, 256 * 128);
+		for (i=0; i < 256; i++) {
+			foo = thisEq[i] + (avgEq[i] >> 1);
+			avgEq[i] = foo;
+			if (foo < 0)
+				foo = -foo;
+			if (foo > max)
+				max = foo;
+		}
+		avgMax += max - (avgMax >> 8);
+		if (avgMax < max)
+			avgMax = max; /* Avoid overflow */
+		factor = 0x7fffffff / avgMax;
+		/* Keep the scaling sensible. */
+		if (factor > (1 << 18))
+			factor = 1 << 18;
+		if (factor < (1 << 8))
+			factor = 1 << 8;
+		for (i=0; i < 256; i++) {
+			foo = avgEq[i] * factor;
+			foo >>= 18;
+			if (foo > 63)
+				foo = 63;
+			if (foo < -64)
+				foo = -64;
+			val = (i + ((foo+64) << 8));
+			bar = val;
+			if ((bar > 0) && (bar < (256 * 128))) {
+				loc = bits + bar;
+				if (foo < 0) {
+					for (h = 0; h <= (-foo); h++) {
+						*loc = h;
+						loc+=256; 
 					}
-					avgMax += max - (avgMax >> 8);
-					if (avgMax < max)
-									avgMax = max; /* Avoid overflow */
-					factor = 0x7fffffff / avgMax;
-					/* Keep the scaling sensible. */
-					if (factor > (1 << 18))
-									factor = 1 << 18;
-					if (factor < (1 << 8))
-									factor = 1 << 8;
-					for (i=0; i < 256; i++) {
-									foo = avgEq[i] * factor;
-									foo >>= 18;
-									if (foo > 63)
-													foo = 63;
-									if (foo < -64)
-													foo = -64;
-									val = (i + ((foo+64) << 8));
-									bar = val;
-									if ((bar > 0) && (bar < (256 * 128))) {
-													loc = bits + bar;
-													if (foo < 0) {
-																	for (h = 0; h <= (-foo); h++) {
-																					*loc = h;
-																					loc+=256; 
-																	}
-													} else {
-																	for (h = 0; h <= foo; h++) {
-																					*loc = h;
-																					loc-=256;
-																	}
-													}
-									}
+				} else {
+					for (h = 0; h <= foo; h++) {
+						*loc = h;
+						loc-=256;
 					}
-					for (i=16;i < 128; i+=16) {
-									for (h = 0; h < 256; h+=2) {
-													bits[(i << 8) + h] = 63;
-													if (i == 64)
-																	bits[(i << 8) + h + 1] = 63;
-									}
-					}
-					for (i = 16; i < 256; i+=16) {
-									for (h = 0; h < 128; h+=2) {
-													bits[i + (h << 8)] = 63;
-									}
-					}
-					GDK_THREADS_ENTER();
-					gdk_draw_indexed_image(area->window,area->style->white_gc,
-													0, 0, 256, 128, GDK_RGB_DITHER_NONE, bits, 256, color_map);
-					gdk_flush();
-					GDK_THREADS_LEAVE();
-					dosleep(SCOPE_SLEEP);
+				}
+			}
+		}
+		for (i=16;i < 128; i+=16) {
+			for (h = 0; h < 256; h+=2) {
+				bits[(i << 8) + h] = 63;
+				if (i == 64)
+					bits[(i << 8) + h + 1] = 63;
+			}
+		}
+		for (i = 16; i < 256; i+=16) {
+			for (h = 0; h < 128; h+=2) {
+				bits[i + (h << 8)] = 63;
+			}
+		}
+		GDK_THREADS_ENTER();
+		gdk_draw_indexed_image(area->window,area->style->white_gc,
+				0, 0, 256, 128, GDK_RGB_DITHER_NONE, bits, 256, color_map);
+		gdk_flush();
+		GDK_THREADS_LEAVE();
+		dosleep(SCOPE_SLEEP);
 	}
 
 	GDK_THREADS_ENTER();
@@ -191,7 +199,8 @@ GtkWidget *init_monoscope_window()
 	int i;
 	
 	pthread_mutex_init(&monoscope_mutex, NULL);
-
+	pthread_mutex_init(&update_mutex, NULL);
+	
 	monoscope_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(monoscope_win), "Monoscope");
 	gtk_widget_set_usize(monoscope_win, 256,128);
@@ -319,8 +328,8 @@ static int monoscope_running()
 
 scope_plugin monoscope_plugin = {
 	SCOPE_PLUGIN_VERSION,
-	{ "Monoscope" },
-	{ "Andy Lo A Foe"},
+	"Monoscope",
+	"Andy Lo A Foe",
 	NULL,
 	init_monoscope,
 	start_monoscope,

@@ -190,8 +190,8 @@ static int alsa_get_latency()
 
 output_plugin alsa_output = {
 	OUTPUT_PLUGIN_VERSION,
-	{ "ALSA output v1.5.10a" },
-	{ "Andy Lo A Foe" },
+	"ALSA output v1.5.10a",
+	"Andy Lo A Foe",
 	alsa_init,
 	alsa_open,
 	alsa_close,

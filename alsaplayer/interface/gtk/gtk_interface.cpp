@@ -791,7 +791,8 @@ void cd_cb(GtkWidget *widget, gpointer data)
 
 	if (p) {
 		pl->Pause();
-		if (p->Open("CD.cdda"))
+		p->Stop();
+		if (p->Load("CD.cdda"))
 			p->Start();
 		pl->UnPause();
 	}

@@ -291,8 +291,8 @@ static int nas_set_sample_rate(int rate)
 
 output_plugin nas_output = {
 	OUTPUT_PLUGIN_VERSION,
-	{ "NAS output v0.2 (30-Mar-2000)" },
-	{ "Erik Inge Bolsø" },
+	"NAS output v0.2 (30-Mar-2000)",
+	"Erik Inge Bolsø",
 	nas_init,
 	nas_open,
 	nas_close,

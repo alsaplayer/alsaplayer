@@ -241,8 +241,8 @@ static int spacescope_running()
 
 scope_plugin spacescope_plugin = {
 	SCOPE_PLUGIN_VERSION,
-	{ "Spacescope" },
-	{ "Andy Lo A Foe"},
+	"Spacescope",
+	"Andy Lo A Foe",
 	NULL,
 	init_spacescope,
 	start_spacescope,
