@@ -449,42 +449,115 @@ void speed_cb(GtkWidget *widget, gpointer data)
 	draw_speed();
 }
 
+pthread_t smoother_thread;
+pthread_mutex_t smoother_mutex = PTHREAD_MUTEX_INITIALIZER;
+static float destination = 100.0;
+
+
+void smoother(void *data)
+{
+	GtkAdjustment *adj = (GtkAdjustment *)data;
+	float temp, cur_val;
+	int done = 0;
+
+	if (pthread_mutex_trylock(&smoother_mutex) != 0) {
+		pthread_exit(NULL);
+	}
+	
+	nice(5);
+	
+	if (adj) {
+		//alsaplayer_error("going from %.2f to %.2f",
+		//	adj->value, destination);
+		cur_val = adj->value;
+		while (!done) {
+			temp = cur_val - destination;
+			if (temp < 0.0) temp = -temp;
+			if (temp <= 2.5) {
+				done = 1;
+				continue;
+			}	
+			if (cur_val < destination) {
+				GDK_THREADS_ENTER();
+				gtk_adjustment_set_value(adj, cur_val);
+				gdk_flush();
+				GDK_THREADS_LEAVE();
+				cur_val += 5.0;
+			} else {
+				GDK_THREADS_ENTER();
+				gtk_adjustment_set_value(adj, cur_val);
+				gdk_flush();
+				GDK_THREADS_LEAVE();
+				cur_val -= 5.0;
+			}
+			dosleep(10000);
+		}
+		GDK_THREADS_ENTER();
+		gtk_adjustment_set_value(adj, destination);
+		gdk_flush();
+		GDK_THREADS_LEAVE();
+	}
+	pthread_mutex_unlock(&smoother_mutex);
+	pthread_exit(NULL);
+}
+
+
 void forward_play_cb(GtkWidget *widget, gpointer data)
 {
 	GtkAdjustment *adj;
+	int smooth_trans;
 
-
+	smooth_trans = prefs_get_bool(ap_prefs, "gtk_interface", "smooth_transition", 1);
 	adj = GTK_RANGE(data)->adjustment;
-	gtk_adjustment_set_value(adj, 100.0);
+
+	if (smooth_trans) {
+		destination = 100.0;
+		pthread_create(&smoother_thread, NULL,
+				(void * (*)(void *))smoother, adj);
+		pthread_detach(smoother_thread);
+	} else {	
+		gtk_adjustment_set_value(adj, 100.0);
+	}	
 }
 
 
 void reverse_play_cb(GtkWidget *widget, gpointer data)
 {
 	GtkAdjustment *adj;
+	int smooth_trans;
+
+	smooth_trans = prefs_get_bool(ap_prefs, "gtk_interface", "smooth_transition", 1);
 
 	adj = GTK_RANGE(data)->adjustment;
-	gtk_adjustment_set_value(adj, -100.0);
+
+	if (smooth_trans) {
+		destination = -100.0;
+		pthread_create(&smoother_thread, NULL,
+				(void * (*)(void *))smoother, adj);
+		pthread_detach(smoother_thread);
+	} else {	
+		gtk_adjustment_set_value(adj, -100.0);
+	}	
 }
 
 
 void pause_cb(GtkWidget *widget, gpointer data)
 {
 	GtkAdjustment *adj;
-	float new_val;
-
-	static float val = 100.0;
+	float new_val, temp;
+	int smooth_trans;
 
 	adj = GTK_RANGE(data)->adjustment;
 
-	if (adj->value == 0.0) { // paused
-		new_val = val;
-	} else {
-		new_val = 0.0;
-		val = adj->value;
-	}
-
-	gtk_adjustment_set_value(adj, new_val);
+	smooth_trans = prefs_get_bool(ap_prefs, "gtk_interface", "smooth_transition", 1);
+		
+	destination = 0.0;
+	if (smooth_trans) {
+		pthread_create(&smoother_thread, NULL,
+			(void * (*)(void *))smoother, adj);
+		pthread_detach(smoother_thread);
+	} else
+		gtk_adjustment_set_value(adj, 0.0);
 }
 
 
