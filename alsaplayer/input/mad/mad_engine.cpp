@@ -35,8 +35,8 @@
 #include <sys/mman.h>
 #include "input_plugin.h"
 
-extern "C" { 	// Make sure MAD symbols are not mangled
-							// since we compile them with regular gcc
+extern "C" { 	/* Make sure MAD symbols are not mangled
+							 * since we compile them with regular gcc */
 
 #include "frame.h"
 #include "synth.h"
@@ -44,7 +44,7 @@ extern "C" { 	// Make sure MAD symbols are not mangled
 
 }
 
-#define BLOCK_SIZE 4096	/* We can use any block size we like */
+#define BLOCK_SIZE 4096
 #define MAX_NUM_SAMPLES 8192
 #define STREAM_BUFFER_SIZE	16384
 #define FRAME_RESERVE	2000
@@ -372,8 +372,7 @@ static float mad_can_handle(const char *path)
 								return 0.0;
 				ext++;
 				if (!strcasecmp(ext, "mp3") ||
-												!strcasecmp(ext, "mp2") ||
-												strstr(path, "http://")) {
+												!strcasecmp(ext, "mp2")) {
 								return 0.9;
 				} else {
 								return 0.0;
@@ -419,7 +418,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 								}				
 				}
 				if (data[0] != 0xff) {
-								printf("MAD debug: potential problem file, first 4 bytes =  %x %x %x %x\n",
+								printf("MAD debug: potential problem file or unhandled info block, first 4 bytes =  %x %x %x %x\n",
 																data[0], data[1], data[2], data[3]);
 				}
 				return 0;
@@ -499,7 +498,7 @@ static int mad_open(input_object *obj, char *path)
 												obj->nr_channels = pcm->channels;
 								}
 				}
-				/* Calculate some parameters */
+				/* Calculate some values */
 
 				{
 								ssize_t filesize;			
@@ -522,7 +521,7 @@ static int mad_open(input_object *obj, char *path)
 								obj->nr_tracks = 1;
 				}
 				/* Allocate frame index */
-				if (obj->nr_frames > 500000 ||
+				if (obj->nr_frames > 1000000 ||
 					 (data->frames = (ssize_t *)malloc((obj->nr_frames + FRAME_RESERVE) * sizeof(ssize_t))) == NULL) {
 								data->seekable = 0;
 				}	else {
