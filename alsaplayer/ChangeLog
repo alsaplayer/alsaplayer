@@ -1,5 +1,6 @@
+* New: xosd interface ("-i xosd")
 * New: lightweight ap-control program (see examples directory) to control
-  alsaplayer operation (alpha)
+  alsaplayer operation
 * New API functions for randomizing and saving the current playlist
 * FLAC plugin converted to reader API (Drew) which means we can now also
   receive remote FLAC streams.
