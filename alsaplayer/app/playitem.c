@@ -24,6 +24,7 @@
 
 #include "playitem.h"
 
+/* TODO: Document it for gtkdoc */
 /* TODO: Make i18n oneday. */
 #define _(s) (s)
 
@@ -308,6 +309,21 @@ playitem_get_property (GObject		*object,
 	    break;
     }
 } /* playitem_set_property */
+
+PlayItem*
+playitem_new (const gchar *filename)
+{
+    PlayItem *playitem = g_object_new (TYPE_PLAYITEM,
+				       "filename", filename,
+				       NULL);
+
+    if (!playitem)
+	return NULL;
+
+    playitem_set_filename (playitem, filename);
+
+    return playitem;
+}
 
 void
 playitem_set_filename (PlayItem *playitem, const gchar *filename)
