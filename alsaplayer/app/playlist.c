@@ -480,8 +480,11 @@ shuffle_comparator (gconstpointer a,
 #define ASCENDING	0
 #define DESCENDING	1
 #define COMPARE(what,direction)	    {\
-    return direction==ASCENDING ? g_utf8_collate (sa->##what##, sb->##what##)\
-				: g_utf8_collate (sb->##what##, sa->##what##);\
+    int src;\
+    src = direction==ASCENDING ? g_utf8_collate (sa->##what##, sb->##what##)\
+			       : g_utf8_collate (sb->##what##, sa->##what##);\
+    if (src==0) continue;\
+    return src;\
 }
 
 gint
@@ -494,43 +497,43 @@ sort_comparator (gconstpointer	a,
     const gchar *sort_seq = data;
     const gchar *t;
 
-    // For each kind of sorting field
+    /* For each kind of sorting field */
     for (t = sort_seq; *t; t++) {
 	switch (*t) {
-		case 't':	// Compare titles, descending
+		case 't':	/* Compare titles, descending */
 				COMPARE(title, DESCENDING);
 
-		case 'T':	// Compare titles, ascending
+		case 'T':	/* Compare titles, ascending */
 				COMPARE(title, ASCENDING);
 
-		case 'a':	// Compare artists, descending
+		case 'a':	/* Compare artists, descending */
 				COMPARE(artist, DESCENDING);
 
-		case 'A':	// Compare artists, ascending
+		case 'A':	/* Compare artists, ascending */
 				COMPARE(artist, ASCENDING);
 
-		case 'l':	// Compare albums, descending
+		case 'l':	/* Compare albums, descending */
 				COMPARE(album, DESCENDING);
 
-		case 'L':	// Compare albums, ascending
+		case 'L':	/* Compare albums, ascending */
 				COMPARE(album, ASCENDING);
 
-		case 'g':	// Compare genres, descending
+		case 'g':	/* Compare genres, descending */
 				COMPARE(genre, DESCENDING);
 
-		case 'G':	// Compare genres, ascending
+		case 'G':	/* Compare genres, ascending */
 				COMPARE(genre, ASCENDING);
 
-		case 'f':	// Compare filenames, descending
+		case 'f':	/* Compare filenames, descending */
 				COMPARE(filename, DESCENDING);
 
-		case 'F':	// Compare filenames, ascending
+		case 'F':	/* Compare filenames, ascending */
 				COMPARE(filename, ASCENDING);
 
-		case 'c':	// Compare comments, descending
+		case 'c':	/* Compare comments, descending */
 				COMPARE(comment, DESCENDING);
 
-		case 'C':	// Compare comments, ascending
+		case 'C':	/* Compare comments, ascending */
 				COMPARE(comment, ASCENDING);
 
 		/* TODO: Rewrite this later... when it will be
@@ -726,7 +729,6 @@ ap_playlist_set_loop_playlist (ApPlaylist *playlist, gboolean loop_playlist)
     if (playlist->looping_playlist != loop_playlist) {
 	playlist->looping_playlist = loop_playlist;
 
-	/* Signal */
 	g_signal_emit_by_name (playlist, "looping-playlist-toggled", loop_playlist);
     }
 } /* ap_playitem_set_playtime */
@@ -770,7 +772,7 @@ ap_playlist_update (ApPlaylist	    *playlist,
 
     ap_object_ref (AP_OBJECT (playitem));
     g_async_queue_push (playlist->info_queue, playitem);
-}
+} /* ap_playlist_update */
 
 /**
  * @param playlist	    An #ApPlaylist.
@@ -812,7 +814,7 @@ ap_playlist_insert (ApPlaylist	    *playlist,
     }
 
     g_async_queue_push (playlist->insert_queue, queued);
-}
+} /* ap_playlist_insert */
 
 /**
  * @param playlist	    An #ApPlaylist.
@@ -838,18 +840,15 @@ ap_playlist_clear (ApPlaylist	    *playlist)
     for (i=0; i<playlist->queue->len; i++)
 	ap_object_unref (g_ptr_array_index (playlist->queue, i));
 
-    /* Destroy general queue */
+    /* Replace old queue with empty new */
     g_ptr_array_free (playlist->queue, TRUE);
-   
-    /* Create new general queue for playitems. */
     playlist->queue = g_ptr_array_new ();
 
     /* TODO TODO TODO TODO: Stop coreplayer[s].
      * And notify about curritem changes. */
 
-    /* Signal */
     g_signal_emit_by_name (playlist, "cleared");
-}
+} /* ap_playlist_clear */
 
 /**
  * @param playlist	    An #ApPlaylist.
@@ -872,7 +871,7 @@ ap_playlist_shuffle (ApPlaylist	    *playlist)
     g_signal_emit_by_name (playlist, "inserted", 0, playlist->queue);
 
     /* TODO TODO TODO TODO: Detect new position of currenly playing song. */
-}
+} /* ap_playlist_shuffle */
 
 /**
  * @param playlist	    An #ApPlaylist.
@@ -900,4 +899,4 @@ ap_playlist_sort (ApPlaylist	    *playlist,
     g_signal_emit_by_name (playlist, "inserted", 0, playlist->queue);
 
     /* TODO TODO TODO TODO: Detect new position of currenly playing song. */
-}
+} /* ap_playlist_sort */
