@@ -70,6 +70,8 @@
 #define AP_GET_FILE_PATH	0xcc25
 #define AP_ADD_PLAYLIST		0xcc26
 #define AP_JUMP_TO		0xcc27
+#define AP_SHUFFLE_PLAYLIST	0xcc28
+#define AP_SAVE_PLAYLIST	0xcc29
 
 /* Add new commands here */
 

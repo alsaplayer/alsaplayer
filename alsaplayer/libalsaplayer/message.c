@@ -114,7 +114,7 @@ void ap_message_delete(ap_message_t *msg)
 			ap_key_delete(last);
 		}	
 		free(msg);
-		//printf("delete msg successful\n");
+		//puts("delete msg successful");
 	}	
 }
 
@@ -753,7 +753,7 @@ int ap_add_and_play(int session, const char *path)
 		ap_message_delete(reply);
 		return 1;
 	}
-	printf("ap_add_and_play() failed for some reason\n");
+	puts("ap_add_and_play() failed for some reason");
 	ap_message_delete(reply);
 	return 0;
 }
@@ -783,7 +783,7 @@ int ap_add_path(int session, const char *path)
 		ap_message_delete(reply);
 		return 1;
 	}
-	printf("ap_add_path() failed for some reason\n");
+	puts("ap_add_path() failed for some reason");
 	ap_message_delete(reply);
 	return 0;
 }
@@ -813,7 +813,7 @@ int ap_add_playlist(int session, const char *playlistfile)
 		ap_message_delete(reply);
 		return 1;
 	}
-	printf("ap_add_playlist() failed for some reason\n");
+	puts("ap_add_playlist() failed for some reason");
 	ap_message_delete(reply);
 	return 0;
 }
@@ -843,14 +843,14 @@ int ap_sort (int session, char *seq)
 		ap_message_delete(reply);
 		return 1;
 	}
-	printf("ap_sort() failed for some reason\n");
+	puts("ap_sort() failed for some reason");
 	ap_message_delete(reply);
 	return 0;
 }
 
 
 /* Convenience function for commands that take no argument */
-int ap_do_command_only(int session, int32_t cmd)
+static int ap_do_command_only(int session, int32_t cmd)
 {
 	int fd;
 	int32_t *result, ret_val;
@@ -912,6 +912,11 @@ int ap_unpause(int session)
 int ap_clear_playlist(int session)
 {
 	return (ap_do_command_only(session, AP_CLEAR_PLAYLIST));
+}
+
+int ap_shuffle_playlist(int session)
+{
+	return (ap_do_command_only(session, AP_SHUFFLE_PLAYLIST));
 }
 
 int ap_quit(int session)
