@@ -69,6 +69,7 @@ static int alsa_open(char *name)
 static void alsa_close()
 {
 	if (sound_handle) {
+		snd_pcm_drain(sound_handle);
 		snd_pcm_close(sound_handle);
 		sound_handle = NULL;
 	}	
