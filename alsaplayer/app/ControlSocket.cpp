@@ -139,6 +139,7 @@ void socket_looper(void *arg)
 	
 		switch(msg->header.cmd) {
 			case AP_PING:
+				//alsaplayer_error("ping received");
 				ap_message_add_int32(reply, "pong", 10281975);
 				ap_message_add_int32(reply, "ack", 1);
 				break;

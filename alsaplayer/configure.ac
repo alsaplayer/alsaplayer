@@ -86,20 +86,6 @@ fi
 export PKG_CONFIG_PATH
 
 
-dnl AC_ARG_ENABLE(prefer-mad,
-dnl [  --enable-prefer-mad     prefer MAD plugin over mpg123 (default=yes)],
-dnl [if test "$enableval" = "no"
-dnl then
-dnl	if test "$prefer_mad" = "yes"
-dnl	then
-dnl		prefer_mad=no
-dnl	fi
-dnl fi])
-
-dnl if test "$prefer_mad" = yes; then
-dnl	AC_DEFINE(PREFER_MAD, 1, [Define if you prefer MAD over mpg123])
-dnl fi	
-
 dnl ===============
 dnl Debugging stuff
 dnl ===============
@@ -242,6 +228,7 @@ else
 	have_audiofile=no
 fi
 
+
 AC_ARG_ENABLE(flac,
 [  --enable-flac           Enable flac plugin (default=yes)],
 [if test "$enableval" = "no"
@@ -289,6 +276,18 @@ dnl audiofile library
 dnl =================
 
 AM_CONDITIONAL(HAVE_AUDIOFILE,test "x$have_audiofile" = xyes)
+
+
+dnl ==================
+dnl libsndfile library
+dnl ==================
+
+have_sndfile=no
+
+PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.0, have_sndfile=yes)
+AC_SUBST(SNDFILE_LIBS)
+AC_SUBST(SNDFILE_CFLAGS)
+AM_CONDITIONAL(HAVE_SNDFILE, test "x$have_sndfile" = xyes)
 
 dnl ===============
 dnl POSIX.4 threads
@@ -729,6 +728,7 @@ input/wav/Makefile
 input/vorbis/Makefile
 input/audiofile/Makefile
 input/flac/Makefile
+input/sndfile/Makefile
 reader/Makefile
 reader/file/Makefile
 reader/http/Makefile
@@ -761,6 +761,7 @@ Configuration:
   Build mikmod input plugin:          ${have_mikmod}
   Build audiofile input plugin:       ${have_audiofile}
   Build flac input plugin:            ${have_flac}
+  Build sndfile input plugin:         ${have_sndfile}
   0% top CPU usage hack enabled:      ${tophack}"
 echo
 

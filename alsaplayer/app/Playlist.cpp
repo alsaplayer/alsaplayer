@@ -609,7 +609,7 @@ void Playlist::Insert(std::vector<std::string> const & paths, unsigned position,
 	PlInsertItems * items = new PlInsertItems(this);
 	items->position = position;
 
-	pthread_join(adder, NULL);
+	//pthread_join(adder, NULL);
 
 	// Copy list
 	std::vector<std::string>::const_iterator i = paths.begin();
