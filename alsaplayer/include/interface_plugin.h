@@ -28,7 +28,7 @@
  * THE VERSION NUMBER IS *NOT* A USER SERVICABLE PART!
  */
 
-#define INTERFACE_PLUGIN_VERSION    0x1001
+#define INTERFACE_PLUGIN_VERSION    0x1002
 
 typedef int interface_version_type;
 typedef int(*interface_init_type)();
@@ -42,6 +42,7 @@ typedef struct _interface_plugin
 	interface_version_type version;		
 	char name[256];
 	char author[256];
+	void *handle;
 	interface_init_type init;
 	interface_start_type start;
 	interface_running_type running;
