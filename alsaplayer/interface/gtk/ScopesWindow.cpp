@@ -60,12 +60,15 @@ void scope_entry_destroy_notify(gpointer data)
 bool  scope_feeder_func(void *arg, void *data, int size) 
 {
 	static char buf[16384];
+	static char *latency_buffer = NULL;
+	static int latency = -1;
 	static int fft_buf[512];
 	static int fill = 0;
 	static int left = 0;
 	static int warn = 0;
 	static int init = 0;
 	static int buf_size = 0;
+	static AlsaNode *the_node = NULL;
 	int i;
 	short *sound;
 	int *left_pos;
@@ -96,10 +99,23 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 		if (!left_fftstate || !right_fftstate)
 			alsaplayer_error("WARNING: could not do fft_init()");
 		buf_size = SCOPE_BUFFER <= (FFT_BUFFER_SIZE * 2) ? SCOPE_BUFFER : FFT_BUFFER_SIZE;
+		CorePlayer *the_coreplayer = (CorePlayer *)arg;
+		if (the_coreplayer) {
+			the_node = the_coreplayer->GetNode();
+		}
+		if (the_node) {
+			latency = the_node->GetLatency();
+		}
+		if (latency < SCOPE_BUFFER)
+			latency = SCOPE_BUFFER;
+		//init_effects();
+		
 		init = 1;	
 	}	
 
 	scope_entry *se = root_scope;
+
+	//buffer_effect(data, size);
 
 	if (fill + size >= SCOPE_BUFFER) {
 		left = SCOPE_BUFFER - fill;
@@ -110,7 +126,8 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 		right_newset = right_actEq;
 		
 		sound = (short *)buf;
-			
+		//sound = (short *)delay_feed(latency, SCOPE_BUFFER);
+		
 		for (i = 0; i < buf_size; i++) {
 			*left_newset++ = (sound_sample)((int)(*sound));
 			*right_newset++ = (sound_sample)((int)(*(sound+1)));
