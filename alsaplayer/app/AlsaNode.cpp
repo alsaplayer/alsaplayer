@@ -100,7 +100,7 @@ AlsaNode::~AlsaNode()
 	StopStreaming();
 	assert(plugin);
 	plugin->close();
-
+	
 	if (driver_name) {
 		delete driver_name;
 		driver_name = NULL;
@@ -205,13 +205,20 @@ int AlsaNode::SetSamplingRate(int freq)
 }
 
 
-int AlsaNode::SetStreamBuffers(int frag_size, int count, int channels)
+int AlsaNode::SetStreamBuffers(int frag_size, int frag_count, int channels)
 {
 	assert(plugin);
+	int size;
+	int count;
+	int chans;
 
-	if (plugin->set_buffer(frag_size, count, channels)) {
+	size = frag_size;
+	count = frag_count;
+	chans = channels;
+
+	if (plugin->set_buffer(&size, &count, &chans)) {
 		nr_fragments = count;
-		fragment_size = frag_size;
+		fragment_size = size;
 		return 1;
 	} else {
 		return 0;
@@ -238,11 +245,6 @@ void AlsaNode::looper(void *pointer)
 #ifdef DEBUG
 	alsaplayer_error("THREAD-%d=soundcard thread\n", getpid());
 #endif
-	if (pthread_mutex_trylock(&node->thread_mutex) != 0) {
-		free(buffer_data);
-		pthread_exit(NULL);
-		return;
-	}	
 #ifdef USE_REALTIME
 	
 	if (node->realtime_sched) {
@@ -454,8 +456,10 @@ void AlsaNode::StartStreaming()
 
 	if (plugin->start_callbacks)
 		return;
+	if (pthread_mutex_trylock(&thread_mutex) != 0) {
+		return;
+	} 
 	pthread_create(&looper_thread, NULL, (void * (*)(void *))looper, this);
-	//pthread_detach(looper_thread);
 }
 
 
@@ -468,8 +472,9 @@ void AlsaNode::StopStreaming()
 	}	
 	
 	looping = false;
-	//pthread_cancel(looper_thread);
-	pthread_join(looper_thread, NULL); // Wait for thread
+	if (pthread_join(looper_thread, NULL)) {
+		alsaplayer_error("An error occurred waiting for looper thread!");
+	}
 }
 
 
