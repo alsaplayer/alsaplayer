@@ -70,7 +70,8 @@ class AlsaNode
 	int nr_fragments;
 	int sample_freq;
 	int external_latency;
-	char *use_pcm;
+	char *driver_name;
+	char *driver_args;
 	char client_name[32];
 	bool realtime_sched;
 	bool init;
@@ -78,7 +79,7 @@ class AlsaNode
 	static void looper(void *);
 	pthread_t looper_thread;
  public:		
-	AlsaNode(char *name, int realtime=0);
+	AlsaNode(const char *name, const char *args, int realtime=0);
 	~AlsaNode();
 	int SetSamplingRate(int freq);
 	int SamplingRate() { return sample_freq; }

@@ -165,7 +165,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	input_plugin * GetPlayer(const char *); // This one is temporary
 	int GetLatency() { if (node) return node->GetLatency(); else return 0; }
 
-	bool Load(const char *path = NULL);
+	bool Load(const char *path = (const char *)NULL);
 	void Unload();
 	bool Start();
 	void Stop();
