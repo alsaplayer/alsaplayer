@@ -207,7 +207,6 @@ int prefs_get_bool(prefs_handle_t *prefs, char *section, char *key, int default_
 {
 	char str[1024];
 	char *res;
-	int val;
 	
 	if (!prefs || !key || !section)
 		return -1;
@@ -294,6 +293,8 @@ int prefs_save(prefs_handle_t *prefs)
 		entry = entry->next;
 	}
 	fclose(fd);
+
+	return 0;
 }
 
 // Function to free user created prefs
