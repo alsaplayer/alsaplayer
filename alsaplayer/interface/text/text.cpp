@@ -130,9 +130,6 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 
 	going = true;
 
-	// FIXME: document the purpose of this sleep
-	sleep(2);
-
 	memset(&notifier, 0, sizeof(notifier));
 	notifier.speed_changed = speed_changed;
 	notifier.volume_changed = volume_changed;
@@ -146,6 +143,11 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 	pthread_mutex_lock(&finish_mutex);
 
 	// playlist loop
+	if (playlist->Length() == 0) {
+		fprintf(stdout, "Nothing to play.\n");
+		pthread_mutex_unlock(&finish_mutex);
+		return 0;
+	}	
 	while(going && !playlist->Eof()) {
 		unsigned long secs, t_min, t_sec, c_min, c_sec;
 		t_min = t_sec = c_min = c_sec = 0;
