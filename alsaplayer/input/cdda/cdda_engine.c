@@ -35,6 +35,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <pwd.h>
+#include <endian.h>
 #ifdef HAVE_LINUX_CDROM_H
 #include <linux/cdrom.h>
 #endif
@@ -43,8 +44,10 @@
 #include <sys/vfs.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/param.h>
 #include <pthread.h>
 #include "input_plugin.h"
+#include "alsaplayer_error.h"
 
 #define DEFAULT_DEVICE	"/dev/cdrom"
 #define FRAME_LEN	4
@@ -354,6 +357,7 @@ static int cdda_play_frame(input_object *obj, char *buf)
 {
 	struct cdda_local_data *data;
 	unsigned char bla[CD_FRAMESIZE_RAW*FRAME_LEN];
+	
 	if (!obj)
 		return 0;
 	data = (struct cdda_local_data *)obj->local_data;	
@@ -375,6 +379,11 @@ static int cdda_play_frame(input_object *obj, char *buf)
 	data->rel_pos += FRAME_LEN;
 	if (buf) {
 		memcpy(buf, bla, (CD_FRAMESIZE_RAW * FRAME_LEN));
+#ifdef __BYTE_ORDER
+	#if __BYTE_ORDER == __BIG_ENDIAN
+		swab (buf, buf, (CD_FRAMESIZE_RAW * FRAME_LEN));
+	#endif	
+#endif		
 	}
 	return 1;
 }
