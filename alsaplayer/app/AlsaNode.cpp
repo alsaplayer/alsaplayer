@@ -89,11 +89,11 @@ AlsaNode::AlsaNode(char *name, int realtime)
 		printf("client activated\n");
 	
 		if (jack_port_connect (client, jack_port_name(my_output_port1),
-				"ALSA I/O:Output 1")) {
+				"alsa_pcm:out_1")) {
 				alsaplayer_error("cannot connect output port 1");
 		}		
 		if (jack_port_connect (client, jack_port_name(my_output_port2),
-				"ALSA I/O:Output 2")) {
+				"alsa_pcm:out_2")) {
 				alsaplayer_error("cannot connect output port 2");
 		}		
 	
