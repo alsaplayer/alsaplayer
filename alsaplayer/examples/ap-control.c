@@ -15,7 +15,7 @@
 
 static void usage(void)
 {
-	puts("usage: mp3control command\n\n"
+	puts("usage: ap-control command\n\n"
 	"supported commands:\n\n"
 	"play <title> [<title> ...]\n"
 	"playlist <playlistfile>\n"
