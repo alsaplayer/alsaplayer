@@ -49,7 +49,6 @@ typedef enum  {
 	AP_GET_INT_POS_FRAME
 } ap_cmd_t;	
 
-int ap_connect_session(int session);
 int ap_do(int session, ap_cmd_t cmd);
 int ap_get_int(int session, ap_cmd_t cmd, int *val);
 int ap_set_int(int session ,ap_cmd_t cmd, int val);
