@@ -128,7 +128,7 @@ int AlsaNode::SetStreamBuffers(int frag_size, int count, int channels)
 
 void AlsaNode::looper(void *pointer)
 {
-	char buffer_data[65536];
+	char buffer_data[16384];
 	AlsaNode *node = (AlsaNode *)pointer;
 	int read_size = node->GetFragmentSize();
 	bool status;
@@ -163,8 +163,8 @@ void AlsaNode::looper(void *pointer)
 	node->looping = true;
 
 	read_size = node->GetFragmentSize();
-	if (read_size > 65536) {
-		alsaplayer_error("We will crash soon (read_size > 65536)");
+	if (read_size > 16384) {
+		alsaplayer_error("We will crash soon (read_size > 16384)");
 	}	
 	while (node->looping) {
 		subscriber *i;

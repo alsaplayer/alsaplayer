@@ -355,6 +355,7 @@ static void help()
 			list_available_plugins("interface");
 	fprintf(stdout,
 		" ]\n"
+		"  -I,--script file        script to pass to interface plugin\n"
 		"  -l,--volume n           set software volume [0-100]\n"
 		"  -n,--session n          use this session id [default=0]\n"
 		"  -o,--output <output>    use specific output driver [default=alsa]. choices:\n");
@@ -369,6 +370,7 @@ static void help()
 		"  -s,--session-name name  name this session \"name\"\n"
 		"  -v,--version            print version of this program\n"
 		"  --verbose               be verbose about the output\n"
+		"  --nosave                do not save playlist content at exit\n"
 		"\n"
 		"Testing options:\n"
 		"\n"
@@ -425,6 +427,7 @@ int main(int argc, char **argv)
 	int use_vol = 100;
 	int use_session = 0;
 	int do_crossfade = 0;
+	int do_save = 1;
 	int was_playing = 0;
 	char *use_output = NULL;
 	char *use_interface = NULL;
@@ -432,7 +435,7 @@ int main(int argc, char **argv)
 	
 	int opt;
 	int option_index;
-	const char *options = "bc:d:eEf:F:g:hi:I:l:n:p:qrs:vRSPVxo:";
+	const char *options = "bc:d:eEf:F:g:hi:I:l:n:Np:qrs:vRSPVxo:";
 	struct option long_options[] = {
 		{ "background", 0, 0, 'b' },
 		{ "config", 1, 0, 'c' },
@@ -446,10 +449,11 @@ int main(int argc, char **argv)
 		{ "interface", 1, 0, 'i' },
 		{ "volume", 1, 0, 'l' },
 		{ "session", 1, 0, 'n' },
+		{ "nosave", 0, 0, 'N' },
 		{ "path", 1, 0, 'p' },
 		{ "quiet", 0, 0, 'q' },
 		{ "realtime", 0, 0, 'r' },
-		{ "interface-script", 1, 0, 'I'},
+		{ "script", 1, 0, 'I'},
 		{ "session-name", 1, 0, 's' },
 		{ "version", 0, 0, 'v' },
 		{ "verbose", 0, 0, 'V' },
@@ -551,6 +555,9 @@ int main(int argc, char **argv)
 				break;
 			case 'n':
 				use_session = atoi(optarg);
+				break;
+			case 'N':
+				do_save = 0;
 				break;
 			case 'p':
 				global_pluginroot = strdup(optarg);
@@ -854,7 +861,7 @@ int main(int argc, char **argv)
 	playlist->Save(prefs_path, PL_FORMAT_M3U);
 
 	// Save preferences
-	if (ap_prefs) {
+	if (ap_prefs && do_save) {
 		if (prefs_save(ap_prefs) < 0) {
 			alsaplayer_error("failed to save preferences.");
 		}
