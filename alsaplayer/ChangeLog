@@ -1,4 +1,8 @@
-- libalsaplayer updates, new commands.
+- Add genre and album parsing in MAD plugin (Evgeny)
+- Complete reimplentation of socket control API (libalsaplayer)
+  This breaks all old libalsaplayer apps, fortunately there aren't that many
+  right now. The new API is much more flexible. It is partly based on ideas
+  from BeOS (RIP) BMessage.
 - Parse XING headers so VBR mp3's get the correct time (finally! :)
 - Include prefs_free() call, should have been in the previous version
 - Force control socket to be read/write for the owner only
