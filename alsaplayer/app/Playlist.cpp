@@ -187,7 +187,8 @@ void info_looper(Playlist *playlist)
 	count = 0;
 	while (playlist->active) {
 		//playlist->Lock ();
-
+		const char *path;
+	
 		if (p >= playlist->queue.end()) {
 		    /* Playlist cleared, shrinked or its an end of list */
 		    //playlist->Unlock ();
@@ -195,7 +196,9 @@ void info_looper(Playlist *playlist)
 		}
 
 		if (!(*p).Parsed()) {
-			if (myplayer->Load((*p).filename.c_str())) { // Examine file
+			path = (*p).filename.c_str();
+
+			if (path && !strstr(path, "http://") && myplayer->Load((*p).filename.c_str())) { // Examine file
 				t_sec = myplayer->GetCurrentTime(myplayer->GetFrames());
 				if (t_sec) {
 					t_sec /= 100;
@@ -364,6 +367,10 @@ void insert_looper(void *data) {
 	}
 	playlist->UnlockInterfaces();
 	// Free the list again
+	
+	/* Metadate gathering is disabled for now. It completely
+	 * breaks streaming and it was never very efficient. A complete
+	 * reimplementation will follow shortly */
 	if (playlist->active)
 		info_looper(playlist);
 	
@@ -773,11 +780,12 @@ Playlist::Load(std::string const &uri, unsigned position, bool force)
 	// Check extension
 	if(!force) {
 		if(uri.length() < 4 ||
-		   strcasecmp(uri.substr(uri.length() - 4).c_str(), ".m3u")) {
+		   (strcasecmp(uri.substr(uri.length() - 4).c_str(), ".m3u") == 0 &&
+		   strcasecmp(uri.substr(uri.length() - 4).c_str(), ".pls") == 0)) {
+			alsaplayer_error("Dubious? \"%s\"", uri.substr(uri.length() - 4).c_str());
 			return E_PL_DUBIOUS;
 		}
 	}
-
 	// Open Playlist
 	reader_type *f = reader_open (uri.c_str());
 	if (!f)
@@ -802,13 +810,17 @@ Playlist::Load(std::string const &uri, unsigned position, bool force)
 	unsigned successes = 0;
 	unsigned failures = 0;
 	while(failures < MAXLOADFAILURES || failures < successes) {
+		char *s;
 		if (!reader_readline (f, path, READBUFSIZE))
 		    break;
 
 		std::string newfile;
+
 		if (*path == '#') {
 		    // Comment... skip it for now
 		    continue;
+		} else if ((s=strstr(path, "File1="))) {
+			newfile = std::string(s + 6);
 		} else if (*path=='/') {
 		     newfile = std::string(path); /* These 2 */
 		} else if (reader_can_handle (path)) {

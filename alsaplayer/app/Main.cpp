@@ -140,7 +140,7 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 			// Error reading object
 			alsaplayer_error
 				("Cannot find plugin: %s\n"
-				 "Try chosing different plugin name with \"-o\" parameter"
+				 "Try choosing different plugin name with \"-o\" parameter\n"
 				 "or \"main.default_output\" configuration file option",
 				 path);
 			return;
@@ -157,7 +157,7 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 				alsaplayer_error
 				    ("Symbol error in shared object: %s\n"
 				     "Try starting up with \"-o\" or setting \"main.default_output\""
-				     "in configuration file to load a specific output module (alsa,
+				     "in configuration file to load a specific output module (alsa,"
 				     "oss, esound, etc.)",
 				     path);
 				dlclose(handle);
@@ -650,7 +650,7 @@ int main(int argc, char **argv)
 	// Check the output option
 	if (use_output == NULL) {
 		use_output = prefs_get_string(ap_prefs, "main",
-				"default_output", "");
+				"default_output", "alsa");
 	}
 
 	// Else do the usual plugin based thing
@@ -714,7 +714,8 @@ int main(int argc, char **argv)
 #endif
 				char *ext;
 				ext = strrchr(argv[optind], '.');
-				if (ext && strncasecmp(++ext, "m3u", 3) == 0) {
+				if (ext && (strncasecmp(++ext, "m3u", 3) == 0 ||
+						strncasecmp(ext, "pls", 3) == 0)) {
 					playlist->Load(std::string(argv[optind++]),
 						playlist->Length(), false);
 				} else {	
@@ -723,13 +724,13 @@ int main(int argc, char **argv)
 			}
 		}
 		playlist->Insert(newitems, playlist->Length());
-		playlist->UnPause();
 	} else {
 		homedir = get_homedir();
 		snprintf(prefs_path, sizeof(prefs_path)-1, "%s/.alsaplayer/alsaplayer.m3u", homedir);
 		playlist->Load(prefs_path, playlist->Length(), false);
 	}
-
+	playlist->UnPause();
+		
 	// Loop song
 	if (do_loopsong) {
 		playlist->LoopSong();
@@ -784,8 +785,6 @@ int main(int argc, char **argv)
 		if (global_verbose)
 			fprintf(stdout, "Interface plugin: %s\n",
 					ui->name);
-		if (global_verbose)			
-			alsaplayer_error("Calling ui->init()");			
 		if (!ui->init()) {
 			alsaplayer_error
 				("Failed to load interface plugin. Should fall back to text\n");
