@@ -26,28 +26,40 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
 #include "input_plugin.h"
 #include "mad.h"
 
 #define BLOCK_SIZE 4096	/* We can use any block size we like */
 #define MAX_NUM_SAMPLES 8192
 #define STREAM_BUFFER_SIZE	16384
-#define MAX_FRAMES	128000
+
+# if !defined(O_BINARY)
+#  define O_BINARY  0
+# endif
 
 struct mad_local_data {
 				int mad_fd;
-				ssize_t	frames[MAX_FRAMES];
-				int frame_pos;
+				uint8_t *mad_map;
+				struct stat stat;
+				ssize_t	*frames;
+				int highest_frame;
+				int current_frame;
 				char path[FILENAME_MAX+1];
 				struct mad_synth  synth; 
 				struct mad_stream stream;
 				struct mad_frame  frame;
 				uint8_t stream_buffer[STREAM_BUFFER_SIZE];
 				int mad_init;
-				int bytes_in_buffer;
 				ssize_t offset;
 				int samplerate;
 				int bitrate;
+				int seekable;
+				int eof;
+				int last_index;
 };		
 
 
@@ -117,6 +129,7 @@ static int mad_frame_seek(input_object *obj, int frame)
 				struct mad_header header;
 				int64_t pos;
 				int bytes_read;
+				int advance;
 				int num_bytes;
 
 				if (!obj)
@@ -126,56 +139,22 @@ static int mad_frame_seek(input_object *obj, int frame)
 				mad_header_init(&header);
 
 				if (data) {
-								if (frame > MAX_FRAMES-1) {
-												printf("Max %d seekable frames. Tell <andy@alsaplayer.org> you hit this limit\n", MAX_FRAMES);
-												return 0;
-								}	
-								data->frame_pos = 0;
-								data->frames[data->frame_pos] = 0;
-								lseek(data->mad_fd, data->offset + (frame * 418), SEEK_SET);
-								data->bytes_in_buffer = 0;
-								if ((bytes_read = read(data->mad_fd, 
-																								data->stream_buffer + data->bytes_in_buffer,
-																								STREAM_BUFFER_SIZE - data->bytes_in_buffer)) <
-																(STREAM_BUFFER_SIZE - data->bytes_in_buffer)) {
-												printf("MAD debug: seek could not read enough data (%d %d)\n", bytes_read,
-																				data->bytes_in_buffer);
+								ssize_t current_pos;
+								printf("frame = %d, highest frame = %d\n", frame, data->highest_frame);	
+								if (frame < data->highest_frame) {
+												mad_frame_mute(&data->frame);
+												mad_synth_mute(&data->synth);
+												return frame;
+								} else { /* Decode headers until frame pos */
 								}
-								data->bytes_in_buffer = bytes_read;
-								/* Search for a valid mpeg frame header */
-#if 0					
-								{
-												int pos = 0;			
-												uint8_t *buf = (uint8_t *)data->stream_buffer;
-												while (pos < data->bytes_in_buffer) {
-																if (buf[pos] == 0xff && buf[pos + 1] == 0xfb) {
-																				/* Found a header */
-																				printf("found frame, offset %d (%x)\n", pos, 
-																												buf[pos + 1]);
-																				memmove(data->stream_buffer, data->stream_buffer + pos, data->bytes_in_buffer - pos);
-																				data->bytes_in_buffer -= pos;
-																				break;
-																} else {
-																				pos++;
-																}				
-												}
-												if (pos == data->bytes_in_buffer) {
-																printf("No frame header found... this is bad\n");
-												}				
-								}
-#endif				
-								mad_stream_buffer (&data->stream, data->stream_buffer, data->bytes_in_buffer);
-								mad_frame_decode(&data->frame, &data->stream);
-								mad_frame_decode(&data->frame, &data->stream);
-								mad_synth_frame(&data->synth, &data->frame);
-								data->synth.pcm.length = 0;
-								num_bytes = data->stream_buffer + data->bytes_in_buffer - data->stream.next_frame;
-								data->bytes_in_buffer = num_bytes;
-								memmove(data->stream_buffer, data->stream.next_frame, data->bytes_in_buffer);
-								if (data->stream_buffer[0] != 0xff) {
-												printf("problem............\n");
-								}				
-								return frame;
+								while (data->highest_frame != frame) {
+												if (mad_header_decode(&header, &data->stream) == -1) {
+															printf("MAD debug: error seeking to %d, going to %d\n",
+																							frame, data->highest_frame);
+															return data->highest_frame;
+												}	
+												data->highest_frame++;
+								}			
 				}
 				return 0;
 }
@@ -204,22 +183,6 @@ static int mad_play_frame(input_object *obj, char *buf)
 				if (!data)
 								return 0;
 
-				if (data->bytes_in_buffer < 3072) { /* Hmm, this sucks */
-								if ((bytes_read = read(data->mad_fd, 
-																								data->stream_buffer + data->bytes_in_buffer, 
-																								STREAM_BUFFER_SIZE - data->bytes_in_buffer)) < 
-																(STREAM_BUFFER_SIZE - data->bytes_in_buffer)) {
-#ifdef MAD_DEBUG												
-												printf("MAD debug: not enough data read (%d, %d)\n",
-																				bytes_read, data->bytes_in_buffer);
-#endif
-												if (data->bytes_in_buffer < 417)
-																return 0;
-								}
-								if (bytes_read > 0)
-												data->bytes_in_buffer += bytes_read;
-				}				
-				mad_stream_buffer (&data->stream, data->stream_buffer, data->bytes_in_buffer);
 #ifdef MAD_DEBUG
 				printf("MAD debug: going to decode frame\n");
 #endif
@@ -242,8 +205,6 @@ static int mad_play_frame(input_object *obj, char *buf)
 								uint16_t	*output = (uint16_t *)buf;
 								int nsamples = pcm->length;
 								int nchannels = pcm->channels;
-								int num_bytes = data->stream_buffer + 
-												data->bytes_in_buffer - data->stream.next_frame;
 
 								left_ch = pcm->samples[0];
 								right_ch = pcm->samples[1];
@@ -255,14 +216,7 @@ static int mad_play_frame(input_object *obj, char *buf)
 												if (nchannels == 2) 
 																*output++ = scale(*right_ch++);
 								}
-#ifdef MAD_DEBUG					
-								printf("MAD debug: going to move data (%d -> %d)\n",
-																data->bytes_in_buffer, num_bytes);
-#endif					
-								/* Move data, this is inefficient */
-								data->bytes_in_buffer = num_bytes;
-								memmove(data->stream_buffer, data->stream.next_frame,
-																data->bytes_in_buffer);
+								//printf("next_frame: %d, this_frame: %d\n", data->stream.next_frame, data->stream.this_frame);
 				}
 
 				return 1;
@@ -426,7 +380,6 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 static int mad_open(input_object *obj, char *path)
 {
 				struct mad_local_data *data;
-				int bytes_read;
 
 				if (!obj)
 								return 0;
@@ -439,53 +392,45 @@ static int mad_open(input_object *obj, char *path)
 				data = (struct mad_local_data *)obj->local_data;
 				memset(data, 0, sizeof(struct mad_local_data));
 
-				if ((data->mad_fd = open(path, O_RDONLY)) < 0) {
+				if ((data->mad_fd = open(path, O_RDONLY | O_BINARY)) < 0) {
 								fprintf(stderr, "mad_open() failed\n");
 								return 0;
 				}
-				if ((bytes_read = read(data->mad_fd,
-																				data->stream_buffer, STREAM_BUFFER_SIZE)) < 1024) {
-								/* Not enough data available */
-								fprintf(stderr, "mad_open() can't read enough initial data\n");
-								close(data->mad_fd);
+				if (fstat(data->mad_fd, &data->stat) == -1) {
+								perror("fstat");
 								return 0;
-				}		
+				}
+				if (!S_ISREG(data->stat.st_mode)) {
+								fprintf(stderr, "%s: Not a regular file\n", path);
+								return 0;
+				}
+				data->mad_map = (uint8_t *)mmap(0, data->stat.st_size, PROT_READ, MAP_SHARED, data->mad_fd, 0);
+
+				if (data->mad_map == MAP_FAILED) {
+								perror("mmap");
+								return 0;
+				}				
 				mad_synth_init  (&data->synth);
 				mad_stream_init (&data->stream);
 				mad_frame_init  (&data->frame);
 				data->mad_init = 1;
-				data->offset = find_initial_frame(data->stream_buffer, bytes_read);
-				data->frame_pos = 0;
+				data->offset = find_initial_frame(data->mad_map, STREAM_BUFFER_SIZE);
+				data->highest_frame = 0;
 				if (data->offset < 0) {
 								fprintf(stderr, "mad_open() couldn't find valid MPEG header\n");
-								close(data->mad_fd);
 								return 0;
-				} else {
-								lseek(data->mad_fd, data->offset, SEEK_SET);
-								bytes_read = read(data->mad_fd,
-																data->stream_buffer, STREAM_BUFFER_SIZE);
-								data->bytes_in_buffer = bytes_read;
 				}
-
-				mad_stream_buffer(&data->stream, data->stream_buffer, bytes_read);
-
+				mad_stream_buffer(&data->stream, data->mad_map + data->offset,
+												data->stat.st_size - data->offset);
+				
 				if ((mad_frame_decode(&data->frame, &data->stream) != 0)) {
-								int num_bytes;	
-								if (data->stream.next_frame) {
-												num_bytes = data->stream_buffer + bytes_read - data->stream.next_frame;
-												printf("MAD debug: num_bytes = %d\n", num_bytes);
-												memmove(data->stream_buffer, data->stream.next_frame, num_bytes);
-								}
-
 								switch (data->stream.error) {
 												case	MAD_ERROR_BUFLEN:
 																printf("MAD_ERROR_BUFLEN...\n");
-																close(data->mad_fd);
 																break;
 												default:
 																printf("MAD debug: no valid frame found at start\n");
 								}
-								close(data->mad_fd);
 								return 0;
 				} else {
 								int mode = (data->frame.header.mode == MAD_MODE_SINGLE_CHANNEL) ?
@@ -509,7 +454,7 @@ static int mad_open(input_object *obj, char *path)
 								int64_t samples;
 								int64_t frames;
 
-								filesize = lseek(data->mad_fd, 0, SEEK_END);
+								filesize = data->stat.st_size;
 								filesize -= data->offset;
 
 								time = (filesize * 8) / (data->bitrate);
@@ -522,25 +467,28 @@ static int mad_open(input_object *obj, char *path)
 
 								obj->nr_frames = (int) frames;
 								obj->nr_tracks = 1;
-								/*	
-										printf("%lld seconds, %lld samples, %lld frames total\n", time, samples, frames);
-								 */
 				}
-
+				/* Allocate frame index */
+				if (obj->nr_frames > 500000 ||
+					 (data->frames = (ssize_t *)malloc(obj->nr_frames * sizeof(ssize_t))) == NULL) {
+								data->seekable = 0;
+				}	else {
+								printf("Allocated %d index positions\n", obj->nr_frames);
+								data->seekable = 1;
+				}				
+				
 				/* Reset decoder */
 				data->mad_init = 0;
 				mad_synth_finish (&data->synth);
 				mad_frame_finish (&data->frame);
 				mad_stream_finish(&data->stream);
 
-				lseek(data->mad_fd, data->offset, SEEK_SET);
-
 				mad_synth_init  (&data->synth);
 				mad_stream_init (&data->stream);
 				mad_frame_init  (&data->frame);
 				data->mad_init = 1;
 
-				data->bytes_in_buffer = 0;	
+				mad_stream_buffer (&data->stream, data->mad_map + data->offset, data->stat.st_size - data->offset);
 				return 1;
 }
 
@@ -554,6 +502,8 @@ static void mad_close(input_object *obj)
 				data = (struct mad_local_data *)obj->local_data;
 
 				if (data) {
+								if (data->mad_map)
+												munmap(data->mad_map, data->stat.st_size);
 								if (data->mad_fd)
 												close(data->mad_fd);
 								if (data->mad_init) {
@@ -561,6 +511,9 @@ static void mad_close(input_object *obj)
 												mad_frame_finish (&data->frame);
 												mad_stream_finish(&data->stream);
 								}
+								if (data->frames) {
+												free(data->frames);
+								}				
 								free(obj->local_data);
 								obj->local_data = NULL;
 				}				
