@@ -92,9 +92,9 @@ int AlsaNode::jack_prepare(void *arg)
 		jack_on_shutdown (node->client, jack_shutdown, arg);
 
 		node->my_output_port1 = jack_port_register (node->client, "out_1",
-				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);		
+				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput|JackPortIsTerminal, 0);		
 		node->my_output_port2 = jack_port_register (node->client, "out_2",
-				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);		
+				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput|JackPortIsTerminal, 0);		
 
 		if (jack_activate (node->client)) {
 			alsaplayer_error("cannot activate client");
