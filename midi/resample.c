@@ -56,12 +56,19 @@
 
 #define OVERSHOOT_STEP 50
 
+#define WAVE_ONE (1L<<FRACTION_BITS)
+#define WAVE_TWO (2L<<FRACTION_BITS)
+#define WAVE_SIX (6L<<FRACTION_BITS)
+#define SAMP(a) ((a)>>FRACTION_BITS)
+#define WAVE(a) ((a)<<FRACTION_BITS)
+
 
 /*sample_t resample_buffer[AUDIO_BUFFER_SIZE+100];*/
 /*uint32 resample_buffer_offset = 0; */
 
 static sample_t *vib_resample_voice(int, uint32 *, int, struct md *);
 static sample_t *normal_resample_voice(int, uint32 *, int, struct md *);
+static int32 calc_mod_freq(int v, int32 incr, struct md *d);
 
 /* Returns 1 if envelope runs out */
 int recompute_modulation(int v, struct md *d)
@@ -108,11 +115,11 @@ int recompute_modulation(int v, struct md *d)
 int update_modulation(int v, struct md *d)
 {
 
-  if(d->voice[v].modulation_delay > 0)
+  if (d->voice[v].modulation_delay > 0)
   {
-      /* d->voice[v].modulation_delay -= control_ratio; I think units are already
-	 in terms of control_ratio */
-      d->voice[v].modulation_delay -= 1;
+      if (d->voice[v].modulation_delay  > control_ratio)
+                        d->voice[v].modulation_delay -= control_ratio;
+      else d->voice[v].modulation_delay = 0;
       if(d->voice[v].modulation_delay > 0)
 	  return 0;
   }
@@ -134,17 +141,18 @@ int update_modulation(int v, struct md *d)
 }
 
 /* Returns 1 if the note died */
-int update_modulation_signal(int v, struct md *d)
+int32 update_modulation_signal(int v, int32 incr, struct md *d)
 {
-  if (d->voice[v].modulation_increment && update_modulation(v, d))
-    return 1;
-  return 0;
+  if (d->voice[v].modulation_increment && update_modulation(v, d)) {
+    return calc_mod_freq(v, incr, d);
+  }
+  return incr;
 }
 
 
 
 /* modulation_volume has been set by above routine */
-int32 calc_mod_freq(int v, int32 incr, struct md *d)
+static int32 calc_mod_freq(int v, int32 incr, struct md *d)
 {
   FLOAT_T mod_amount;
   int32 freq;
@@ -227,11 +235,10 @@ static sample_t *rs_plain(int v, uint32 *countptr, struct md *d)
 		*dest++ = (sample_t)((v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: v1));
 		ofs=ofsd;
 	}
-		if (!cc_count--) {
-		    cc_count = control_ratio - 1;
-		    if (!update_modulation_signal(v, d))
-		        incr = calc_mod_freq(v, incr, d);
-		}
+	if (!cc_count--) {
+	    cc_count = control_ratio - 1;
+	    incr = update_modulation_signal(v, incr, d);
+	}
       ofs += incr;
       if (ofs >= se + (overshoot << FRACTION_BITS))
 	{
@@ -317,11 +324,10 @@ static sample_t *rs_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
 		*dest++ = (sample_t)((v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: v1));
 		ofs=ofsd;
 	}
-		if (!cc_count--) {
-		    cc_count = control_ratio - 1;
-		    if (!update_modulation_signal(v, d))
-		        incr = calc_mod_freq(v, incr, d);
-		}
+	if (!cc_count--) {
+	    cc_count = control_ratio - 1;
+	    incr = update_modulation_signal(v, incr, d);
+	}
       ofs += incr;
       if (ofs>=le)
 	{
@@ -506,7 +512,7 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count, struct md *d)
 /*********************** vibrato versions ***************************/
 
 /* We only need to compute one half of the vibrato sine cycle */
-static uint32 vib_phase_to_inc_ptr(uint32 phase, struct md *d)
+static uint32 vib_phase_to_inc_ptr(uint32 phase)
 {
   if (phase < VIBRATO_SAMPLE_INCREMENTS/2)
     return VIBRATO_SAMPLE_INCREMENTS/2-1-phase;
@@ -516,7 +522,7 @@ static uint32 vib_phase_to_inc_ptr(uint32 phase, struct md *d)
     return phase-VIBRATO_SAMPLE_INCREMENTS/2;
 }
 
-static int32 update_vibrato(Voice *vp, int sign, struct md *d)
+static int32 update_vibrato(int v, Voice *vp, int sign, struct md *d)
 {
   uint32 depth, freq=vp->frequency;
 #ifdef ENVELOPE_PITCH_MODULATION
@@ -535,7 +541,7 @@ static int32 update_vibrato(Voice *vp, int sign, struct md *d)
 
   if (vp->vibrato_phase++ >= 2*VIBRATO_SAMPLE_INCREMENTS-1)
     vp->vibrato_phase=0;
-  phase=vib_phase_to_inc_ptr(vp->vibrato_phase, d);
+  phase=vib_phase_to_inc_ptr(vp->vibrato_phase);
 
   if (vp->vibrato_sample_increment[phase])
     {
@@ -567,12 +573,12 @@ static int32 update_vibrato(Voice *vp, int sign, struct md *d)
     }
 
 #ifdef ENVELOPE_PITCH_MODULATION
-#ifndef FILTER_INTERPOLATION
-  if (update_modulation_signal(0, d)) mod_amount = 0;
-  else
-#endif
-  if (mod_amount>0.02)
-   freq = (int32)( (double)freq*(1.0 + (mod_amount - 1.0) * (vp->modulation_volume>>22) / 255.0) );
+  if (vp->modulation_increment && mod_amount > 0.0) {
+          update_modulation(v, d);
+          if (vp->modulation_volume) {
+                freq = (int32)( (double)freq*( mod_amount * (double)(vp->modulation_volume>>22) / 255.0) );
+          }
+  }
 #endif
 
   pb=(int)((sine(vp->vibrato_phase *
@@ -640,7 +646,7 @@ static sample_t *rs_vib_plain(int v, uint32 *countptr, struct md *d)
       if (!cc--)
 	{
 	  cc=vp->vibrato_control_ratio;
-	  incr=update_vibrato(vp, 0, d);
+	  incr=update_vibrato(v, vp, 0, d);
 	}
 
 	offset = ofs >> FRACTION_BITS;
@@ -731,7 +737,7 @@ static sample_t *rs_vib_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
       if (!cc--)
 	{
 	  cc=vp->vibrato_control_ratio;
-	  incr=update_vibrato(vp, 0, d);
+	  incr=update_vibrato(v, vp, 0, d);
 	}
 
 	offset = ofs >> FRACTION_BITS;
@@ -875,7 +881,7 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
       if (vibflag)
 	{
 	  cc = vp->vibrato_control_ratio;
-	  incr = update_vibrato(vp, 0, d);
+	  incr = update_vibrato(v, vp, 0, d);
 	  vibflag = 0;
 	}
     }
@@ -937,7 +943,7 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
       if (vibflag)
 	{
 	  cc = vp->vibrato_control_ratio;
-	  incr = update_vibrato(vp, (incr < 0), d);
+	  incr = update_vibrato(v, vp, (incr < 0), d);
 	  vibflag = 0;
 	}
       if (ofs >= le)

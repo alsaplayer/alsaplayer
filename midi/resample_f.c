@@ -57,6 +57,12 @@
 
 #define OVERSHOOT_STEP 50
 
+#define WAVE_ONE (1L<<FRACTION_BITS)
+#define WAVE_TWO (2L<<FRACTION_BITS)
+#define WAVE_SIX (6L<<FRACTION_BITS)
+#define SAMP(a) ((a)>>FRACTION_BITS)
+#define WAVE(a) ((a)<<FRACTION_BITS)
+
 
 static sample_t *vib_resample_voice(int, uint32 *, int, struct md *);
 static sample_t *normal_resample_voice(int, uint32 *, int, struct md *);
@@ -94,7 +100,10 @@ static int calc_bw_index(int v, struct md *d)
 
   if (d->voice[v].lfo_phase_increment) update_lfo(v, d);
 
+#if 0
+/* FIXME */
   if (!d->voice[v].lfo_phase_increment && update_modulation_signal(v, d)) return 0;
+#endif
 
 /* printf("mod_amount %f ", mod_amount); */
   if (d->voice[v].lfo_volume>0.001) {
@@ -178,21 +187,21 @@ static sample_t *rs_plain(int v, uint32 *countptr, struct md *d)
         }else  v2 = (int32)src[offset+1];
 	if(d->dont_cspline ||
 	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){
+#if 0
+/* FIXME */
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
-		        /*bw_index = vp->bw_index;*/
-			bw_index = d->voice[v].bw_index;
+		        bw_index = vp->bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
-#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
-#endif
 		}
+#endif
 		if (dont_filter_melodic) bw_index = 0;
                 newsample = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
 	        if (bw_index) {
@@ -204,9 +213,6 @@ static sample_t *rs_plain(int v, uint32 *countptr, struct md *d)
 		    y0 = outsamp;
 		    newsample = (outsamp > MAX_DATAVAL)? MAX_DATAVAL:
 			((outsamp < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)outsamp);
-#ifdef SHOWFOUT
-fprintf(stderr,"(%f, %d, ", insamp, (sample_t)outsamp);
-#endif
 	        }
 	}else{
 		ofsdu=ofs;
@@ -222,21 +228,21 @@ fprintf(stderr,"(%f, %d, ", insamp, (sample_t)outsamp);
 		      ((((((5*v0 - 11*v1 + 7*temp - v3)*
 		       ofs)>>FRACTION_BITS)*ofs)>>(FRACTION_BITS+2))-1))*ofs;
 		v1 = (v1 + v2)/(6L<<FRACTION_BITS);
+#if 0
+/* This has to be revised -- incr now returned by update_modulation_signal() */
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
-		        /*bw_index = vp->bw_index;*/
-			bw_index = d->voice[v].bw_index;
+			bw_index = vp->bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
-#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
-#endif
 		}
+#endif
 		if (dont_filter_melodic) bw_index = 0;
 		newsample = (v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)v1);
 		if (bw_index) {
@@ -248,16 +254,10 @@ fprintf(stderr,"(%f, %d, ", insamp, (sample_t)outsamp);
 		    y0 = outsamp;
 		    newsample = (sample_t)( (outsamp > MAX_DATAVAL)? MAX_DATAVAL:
 			((outsamp < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)outsamp) );
-#ifdef SHOWFOUT
-fprintf(stderr,"%f, %d, ", insamp, (sample_t)outsamp);
-#endif
 		}
 		ofs=ofsdu;
 	}
-	*dest++ = (sample_t)newsample;
-#ifdef SHOWFOUT
-fprintf(stderr,"%d\n", (sample_t)newsample);
-#endif
+	*dest++ = newsample;
       ofs += incr;
       if (ofs >= se + (overshoot << FRACTION_BITS))
 	{
@@ -339,21 +339,21 @@ static sample_t *rs_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
         }else  v2 = (int32)src[offset+1];
 	if(d->dont_cspline ||
 	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){
+#if 0
+/* FIXME */
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 		        bw_index = vp->bw_index;
-			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
-#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
-#endif
 		}
+#endif
 		if (dont_filter_melodic) bw_index = 0;
                 newsample = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
 	        if (bw_index) {
@@ -365,9 +365,6 @@ static sample_t *rs_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
 		    y0 = outsamp;
 		    newsample = (outsamp > MAX_DATAVAL)? MAX_DATAVAL:
 			((outsamp < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)outsamp);
-#ifdef SHOWFOUT
-fprintf(stderr,"(%f, %d, ", insamp, (sample_t)outsamp);
-#endif
 	        }
 	}else{
 		ofsdu=ofs;
@@ -383,21 +380,21 @@ fprintf(stderr,"(%f, %d, ", insamp, (sample_t)outsamp);
 		      ((((((5*v0 - 11*v1 + 7*temp - v3)*
 		       ofs)>>FRACTION_BITS)*ofs)>>(FRACTION_BITS+2))-1))*ofs;
 		v1 = (v1 + v2)/(6L<<FRACTION_BITS);
+#if 0
+/* This has to be revised -- incr now returned by update_modulation_signal() */
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 			bw_index = vp->bw_index;
-			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
-#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
-#endif
 		}
+#endif
 		if (dont_filter_melodic) bw_index = 0;
 		newsample = (v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)v1);
 		if (bw_index) {
@@ -409,16 +406,10 @@ fprintf(stderr,"(%f, %d, ", insamp, (sample_t)outsamp);
 		    y0 = outsamp;
 		    newsample = (sample_t)( (outsamp > MAX_DATAVAL)? MAX_DATAVAL:
 			((outsamp < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)outsamp) );
-#ifdef SHOWFOUT
-fprintf(stderr,"%f, %d, ", insamp, (sample_t)outsamp);
-#endif
 		}
 		ofs=ofsdu;
 	}
 	*dest++ = newsample;
-#ifdef SHOWFOUT
-fprintf(stderr,"%d\n", newsample);
-#endif
       ofs += incr;
       if (ofs>=le)
 	{
@@ -519,21 +510,21 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count, struct md *d)
         }else  v2 = (int32)src[offset+1];
 	if(d->dont_cspline ||
 	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){
+#if 0
+/* FIXME */
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 		        bw_index = vp->bw_index;
-			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
-#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
-#endif
 		}
+#endif
 		if (dont_filter_melodic) bw_index = 0;
                 newsample = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
 	        if (bw_index) {
@@ -560,21 +551,21 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count, struct md *d)
 		      ((((((5*v0 - 11*v1 + 7*temp - v3)*
 		       ofs)>>FRACTION_BITS)*ofs)>>(FRACTION_BITS+2))-1))*ofs;
 		v1 = (v1 + v2)/(6L<<FRACTION_BITS);
+#if 0
+/* This has to be revised -- incr now returned by update_modulation_signal() */
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 			bw_index = vp->bw_index;
-			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
-#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
-#endif
 		}
+#endif
 		if (dont_filter_melodic) bw_index = 0;
 		newsample = (v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)v1);
 		if (bw_index) {
@@ -627,21 +618,21 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count, struct md *d)
         }else  v2 = (int32)src[offset+1];
 	if(d->dont_cspline ||
 	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){
+#if 0
+/* FIXME */
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 		        bw_index = vp->bw_index;
-			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
-#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
-#endif
 		}
+#endif
 		if (dont_filter_melodic) bw_index = 0;
                 newsample = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
 	        if (bw_index) {
@@ -668,21 +659,21 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count, struct md *d)
 		      ((((((5*v0 - 11*v1 + 7*temp - v3)*
 		       ofs)>>FRACTION_BITS)*ofs)>>(FRACTION_BITS+2))-1))*ofs;
 		v1 = (v1 + v2)/(6L<<FRACTION_BITS);
+#if 0
+/* This has to be revised -- incr now returned by update_modulation_signal() */
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 			bw_index = vp->bw_index;
-			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
-#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
-#endif
 		}
+#endif
 		if (dont_filter_melodic) bw_index = 0;
 		newsample = (v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)v1);
 		if (bw_index) {
@@ -731,7 +722,7 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count, struct md *d)
 /*********************** vibrato versions ***************************/
 
 /* We only need to compute one half of the vibrato sine cycle */
-static uint32 vib_phase_to_inc_ptr(uint32 phase, struct md *d)
+static uint32 vib_phase_to_inc_ptr(uint32 phase)
 {
   if (phase < VIBRATO_SAMPLE_INCREMENTS/2)
     return VIBRATO_SAMPLE_INCREMENTS/2-1-phase;
@@ -741,7 +732,7 @@ static uint32 vib_phase_to_inc_ptr(uint32 phase, struct md *d)
     return phase-VIBRATO_SAMPLE_INCREMENTS/2;
 }
 
-static int32 update_vibrato(Voice *vp, int sign, struct md *d)
+static int32 update_vibrato(int v, Voice *vp, int sign, struct md *d)
 {
   uint32 depth, freq=vp->frequency;
 #ifdef ENVELOPE_PITCH_MODULATION
@@ -760,7 +751,7 @@ static int32 update_vibrato(Voice *vp, int sign, struct md *d)
 
   if (vp->vibrato_phase++ >= 2*VIBRATO_SAMPLE_INCREMENTS-1)
     vp->vibrato_phase=0;
-  phase=vib_phase_to_inc_ptr(vp->vibrato_phase, d);
+  phase=vib_phase_to_inc_ptr(vp->vibrato_phase);
 
   if (vp->vibrato_sample_increment[phase])
     {
@@ -792,12 +783,12 @@ static int32 update_vibrato(Voice *vp, int sign, struct md *d)
     }
 
 #ifdef ENVELOPE_PITCH_MODULATION
-#ifndef FILTER_INTERPOLATION
-  if (update_modulation_signal(0, d)) mod_amount = 0;
-  else
-#endif
-  if (mod_amount>0.02)
-   freq = (int32)( (double)freq*(1.0 + (mod_amount - 1.0) * (vp->modulation_volume>>22) / 255.0) );
+  if (vp->modulation_increment && mod_amount > 0.0) {
+          update_modulation(v, d);
+          if (vp->modulation_volume) {
+                freq = (int32)( (double)freq*( mod_amount * (double)(vp->modulation_volume>>22) / 255.0) );
+          }
+  }
 #endif
 
   pb=(int)((sine(vp->vibrato_phase *
@@ -874,7 +865,7 @@ static sample_t *rs_vib_plain(int v, uint32 *countptr, struct md *d)
       if (!cc--)
 	{
 	  cc=vp->vibrato_control_ratio;
-	  incr=update_vibrato(vp, 0, d);
+	  incr=update_vibrato(v, vp, 0, d);
 	}
 
 
@@ -890,21 +881,21 @@ static sample_t *rs_vib_plain(int v, uint32 *countptr, struct md *d)
         }else  v2 = (int32)src[offset+1];
 	if(d->dont_cspline ||
 	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){
+#if 0
+/* FIXME */
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 		        bw_index = vp->bw_index;
-			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
-#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
-#endif
 		}
+#endif
 		if (dont_filter_melodic) bw_index = 0;
                 newsample = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
 	        if (bw_index) {
@@ -931,21 +922,21 @@ static sample_t *rs_vib_plain(int v, uint32 *countptr, struct md *d)
 		      ((((((5*v0 - 11*v1 + 7*temp - v3)*
 		       ofs)>>FRACTION_BITS)*ofs)>>(FRACTION_BITS+2))-1))*ofs;
 		v1 = (v1 + v2)/(6L<<FRACTION_BITS);
+#if 0
+/* This has to be revised -- incr now returned by update_modulation_signal() */
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 			bw_index = vp->bw_index;
-			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
-#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
-#endif
 		}
+#endif
 		if (dont_filter_melodic) bw_index = 0;
 		newsample = (v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)v1);
 		if (bw_index) {
@@ -1034,7 +1025,7 @@ static sample_t *rs_vib_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
       if (!cc--)
 	{
 	  cc=vp->vibrato_control_ratio;
-	  incr=update_vibrato(vp, 0, d);
+	  incr=update_vibrato(v, vp, 0, d);
 	}
 
 
@@ -1050,21 +1041,21 @@ static sample_t *rs_vib_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
         }else  v2 = (int32)src[offset+1];
 	if(d->dont_cspline ||
 	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){
+#if 0
+/* FIXME */
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 		        bw_index = vp->bw_index;
-			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
-#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
-#endif
 		}
+#endif
 		if (dont_filter_melodic) bw_index = 0;
                 newsample = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
 	        if (bw_index) {
@@ -1091,21 +1082,21 @@ static sample_t *rs_vib_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
 		      ((((((5*v0 - 11*v1 + 7*temp - v3)*
 		       ofs)>>FRACTION_BITS)*ofs)>>(FRACTION_BITS+2))-1))*ofs;
 		v1 = (v1 + v2)/(6L<<FRACTION_BITS);
+#if 0
+/* This has to be revised -- incr now returned by update_modulation_signal() */
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 			bw_index = vp->bw_index;
-			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
-#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
-#endif
 		}
+#endif
 		if (dont_filter_melodic) bw_index = 0;
 		newsample = (v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)v1);
 		if (bw_index) {
@@ -1225,21 +1216,21 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
         }else  v2 = (int32)src[offset+1];
 	if(d->dont_cspline ||
 	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){
+#if 0
+/* FIXME */
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 		        bw_index = vp->bw_index;
-			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
-#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
-#endif
 		}
+#endif
 		if (dont_filter_melodic) bw_index = 0;
                 newsample = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
 	        if (bw_index) {
@@ -1266,21 +1257,21 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
 		      ((((((5*v0 - 11*v1 + 7*temp - v3)*
 		       ofs)>>FRACTION_BITS)*ofs)>>(FRACTION_BITS+2))-1))*ofs;
 		v1 = (v1 + v2)/(6L<<FRACTION_BITS);
+#if 0
+/* This has to be revised -- incr now returned by update_modulation_signal() */
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 			bw_index = vp->bw_index;
-			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
-#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
-#endif
 		}
+#endif
 		if (dont_filter_melodic) bw_index = 0;
 		newsample = (v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)v1);
 		if (bw_index) {
@@ -1301,7 +1292,7 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
       if (vibflag)
 	{
 	  cc = vp->vibrato_control_ratio;
-	  incr = update_vibrato(vp, 0, d);
+	  incr = update_vibrato(v, vp, 0, d);
 	  vibflag = 0;
 	}
     }
@@ -1341,21 +1332,21 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
         }else  v2 = (int32)src[offset+1];
 	if(d->dont_cspline ||
 	   ((ofs-(1L<<FRACTION_BITS))<ls)||((ofs+(2L<<FRACTION_BITS))>le)){
+#if 0
+/* FIXME */
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 		        bw_index = vp->bw_index;
-			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
-#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
-#endif
 		}
+#endif
 		if (dont_filter_melodic) bw_index = 0;
                 newsample = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
 	        if (bw_index) {
@@ -1382,21 +1373,21 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
 		      ((((((5*v0 - 11*v1 + 7*temp - v3)*
 		       ofs)>>FRACTION_BITS)*ofs)>>(FRACTION_BITS+2))-1))*ofs;
 		v1 = (v1 + v2)/(6L<<FRACTION_BITS);
+#if 0
+/* This has to be revised -- incr now returned by update_modulation_signal() */
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 			bw_index = vp->bw_index;
-			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
-#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
-#endif
 		}
+#endif
 		if (dont_filter_melodic) bw_index = 0;
 		newsample = (v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)v1);
 		if (bw_index) {
@@ -1417,7 +1408,7 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
       if (vibflag)
 	{
 	  cc = vp->vibrato_control_ratio;
-	  incr = update_vibrato(vp, (incr < 0), d);
+	  incr = update_vibrato(v, vp, (incr < 0), d);
 	  vibflag = 0;
 	}
       if (ofs >= le)

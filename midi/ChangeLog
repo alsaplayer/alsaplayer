@@ -1,3 +1,7 @@
+Sat May  4 16:18:37 HST 2002
+	sndfont.c: always call calc_cutoff()
+	resample.c: modulation_delay decrement by control_ratio
+	resample_l.c: correct lfo frequency modulation
 Fri May  3 13:28:39 HST 2002
 	pcmap.c: corrections
 Fri May  3 04:05:54 HST 2002

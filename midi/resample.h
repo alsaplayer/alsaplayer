@@ -34,5 +34,5 @@ extern int recompute_modulation(int v, struct md *d);
 /*extern sample_t resample_buffer[AUDIO_BUFFER_SIZE+100];*/
 /*extern uint32 resample_buffer_offset;*/
 extern int update_modulation(int v, struct md *d);
-extern int update_modulation_signal(int v, struct md *d);
-extern int32 calc_mod_freq(int v, int32 incr, struct md *d);
+extern int32 update_modulation_signal(int v, int32 incr, struct md *d);
+/*extern int32 calc_mod_freq(int v, int32 incr, struct md *d);*/

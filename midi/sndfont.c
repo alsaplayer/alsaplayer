@@ -1613,10 +1613,11 @@ sp->v.scale_tuning, sp->v.freq_scale, sp->v.freq_center);
 	sp->startsample = sp->startsample * 2 + sf->samplepos;
 	sp->endsample *= 2;
 
+/*printf("%s: bank %d, preset %d\n", *namep, banknum, preset);*/
 	/* set cutoff frequency */
-	if (lay->set[SF_initialFilterFc] || lay->set[SF_env1ToFilterFc])
+	/*if (lay->set[SF_initialFilterFc] || lay->set[SF_env1ToFilterFc])*/
 		calc_cutoff(lay, sf, sp);
-	else sp->cutoff_freq = 0;
+	/*else sp->cutoff_freq = 0;*/
 /*
 if (sp->cutoff_freq)
 printf("bank %d, program %d, f= %d (%d)\n", banknum, program, sp->cutoff_freq, lay->val[SF_initialFilterFc]);
@@ -2204,7 +2205,7 @@ static void calc_cutoff(Layer *lay, SFInfo *sf, SampleList *sp)
 
 	if (lay->set[SF_env1ToPitch]) {
 		sp->v.modEnvToPitch = pow(2.0, ((FLOAT_T)lay->val[SF_env1ToPitch]/1200.0));
-/* printf("mE %d -> %f\n", (int)lay->val[SF_env1ToPitch], sp->v.modEnvToPitch); */
+/* printf("mE %d -> %f\n", (int)lay->val[SF_env1ToPitch], sp->v.modEnvToPitch);*/
 	}
 	else sp->v.modEnvToPitch = 0;
 

@@ -56,6 +56,12 @@
 
 #define OVERSHOOT_STEP 50
 
+#define WAVE_ONE (1L<<FRACTION_BITS)
+#define WAVE_TWO (2L<<FRACTION_BITS)
+#define WAVE_SIX (6L<<FRACTION_BITS)
+#define SAMP(a) ((a)>>FRACTION_BITS)
+#define WAVE(a) ((a)<<FRACTION_BITS)
+
 
 static sample_t *vib_resample_voice(int, uint32 *, int, struct md *);
 static sample_t *normal_resample_voice(int, uint32 *, int, struct md *);
@@ -160,52 +166,58 @@ static sample_t *rs_plain(int v, uint32 *countptr, struct md *d)
     while (count--)
     {
 
-	offset = ofs >> FRACTION_BITS;
+	offset = SAMP(ofs);
 
 	if (ofs >= se) {
-		int32 delta = (ofs - se)>>FRACTION_BITS ;
-        	v1 = (int32)src[(int)(se>>FRACTION_BITS)-1];
+		int32 delta = SAMP(ofs - se);
+        	v1 = (int32)src[(int)SAMP(se)-1];
 		v1 -=  (delta+1) * v1 / overshoot;
         }
 	else  v1 = (int32)src[offset];
 
-	if (ofs + (1L<<FRACTION_BITS) >= se) {
+	if (ofs + WAVE_ONE >= se) {
 		v2 = v1;
         }
 	else  v2 = (int32)src[offset+1];
 
-	if(d->dont_cspline ||
-	   ( (ofs-(1L<<FRACTION_BITS)) < ls) ||
-	     ((ofs+(2L<<FRACTION_BITS)) > le) ) {
-                *dest++ = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
+	if (         d->dont_cspline ||
+	     ((ofs - WAVE_ONE) < ls) ||
+	     ((ofs + WAVE_TWO) > le)    ) {
+
+                *dest++ = (sample_t)(
+				v1 + (
+				       (int32)(
+						(v2-v1) * (ofs & FRACTION_MASK)
+					      ) >> FRACTION_BITS
+				     )
+				    );
 	}
 	else {
                 v0 = (int32)src[offset-1];
                 v3 = (int32)src[offset+2];
-                ofsd = (int32)(ofs & FRACTION_MASK) + (1L << FRACTION_BITS);
-                v1 = v1*ofsd>>FRACTION_BITS;
-                v2 = v2*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd>>FRACTION_BITS;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = v0*ofsd>>FRACTION_BITS;
-                v2 = v2*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd>>FRACTION_BITS;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = v0*ofsd>>FRACTION_BITS;
-                v1 = v1*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = (v3 - v0*ofsd)/(6L << FRACTION_BITS);
-                v1 = (v1 - v2)*ofsd>>(FRACTION_BITS+1);
+                ofsd = (int32)(ofs & FRACTION_MASK) + WAVE_ONE;
+                v1 = v1 * SAMP(ofsd);
+                v2 = v2 * SAMP(ofsd);
+                v3 = v3 * SAMP(ofsd);
+                ofsd -= WAVE_ONE;
+                v0 = v0 * SAMP(ofsd);
+                v2 = v2 * SAMP(ofsd);
+                v3 = v3 * SAMP(ofsd);
+                ofsd -= WAVE_ONE;
+                v0 = v0 * SAMP(ofsd);
+                v1 = v1 * SAMP(ofsd);
+                v3 = v3 * ofsd;
+                ofsd -= WAVE_ONE;
+                v0 = (v3 - v0 * ofsd) / WAVE_SIX;
+                v1 = (v1 - v2) * ofsd>>(FRACTION_BITS+1);
 		v1 += v0;
 		*dest++ = (sample_t)((v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: v1));
 	}
 
-		if (!cc_count--) {
-		    cc_count = control_ratio - 1;
-		    if (!update_modulation_signal(v, d))
-		        incr = calc_mod_freq(v, incr, d);
-		}
+	if (!cc_count--) {
+	    cc_count = control_ratio - 1;
+	    incr = update_modulation_signal(v, incr, d);
+	}
       ofs += incr;
       if (ofs >= se + (overshoot << FRACTION_BITS))
 	{
@@ -261,52 +273,58 @@ static sample_t *rs_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
   while (count--)
     {
 
-	offset = ofs >> FRACTION_BITS;
+	offset = SAMP(ofs);
 
 	if (ofs >= se) {
-		int32 delta = (ofs - se)>>FRACTION_BITS ;
-        	v1 = (int32)src[(int)(se>>FRACTION_BITS)-1];
+		int32 delta = SAMP(ofs - se);
+        	v1 = (int32)src[(int)SAMP(se)-1];
 		v1 -=  (delta+1) * v1 / overshoot;
         }
 	else  v1 = (int32)src[offset];
 
-	if (ofs + (1L<<FRACTION_BITS) >= se) {
+	if (ofs + WAVE_ONE >= se) {
 		v2 = v1;
         }
 	else  v2 = (int32)src[offset+1];
 
-	if(d->dont_cspline ||
-	   ( (ofs-(1L<<FRACTION_BITS)) < ls) ||
-	     ((ofs+(2L<<FRACTION_BITS)) > le) ) {
-                *dest++ = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
+	if (         d->dont_cspline ||
+	     ((ofs - WAVE_ONE) < ls) ||
+	     ((ofs + WAVE_TWO) > le)    ) {
+
+                *dest++ = (sample_t)(
+				v1 + (
+				       (int32)(
+						(v2-v1) * (ofs & FRACTION_MASK)
+					      ) >> FRACTION_BITS
+				     )
+				    );
 	}
 	else {
                 v0 = (int32)src[offset-1];
                 v3 = (int32)src[offset+2];
-                ofsd = (int32)(ofs & FRACTION_MASK) + (1L << FRACTION_BITS);
-                v1 = v1*ofsd>>FRACTION_BITS;
-                v2 = v2*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd>>FRACTION_BITS;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = v0*ofsd>>FRACTION_BITS;
-                v2 = v2*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd>>FRACTION_BITS;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = v0*ofsd>>FRACTION_BITS;
-                v1 = v1*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = (v3 - v0*ofsd)/(6L << FRACTION_BITS);
-                v1 = (v1 - v2)*ofsd>>(FRACTION_BITS+1);
+                ofsd = (int32)(ofs & FRACTION_MASK) + WAVE_ONE;
+                v1 = v1 * SAMP(ofsd);
+                v2 = v2 * SAMP(ofsd);
+                v3 = v3 * SAMP(ofsd);
+                ofsd -= WAVE_ONE;
+                v0 = v0 * SAMP(ofsd);
+                v2 = v2 * SAMP(ofsd);
+                v3 = v3 * SAMP(ofsd);
+                ofsd -= WAVE_ONE;
+                v0 = v0 * SAMP(ofsd);
+                v1 = v1 * SAMP(ofsd);
+                v3 = v3 * ofsd;
+                ofsd -= WAVE_ONE;
+                v0 = (v3 - v0 * ofsd) / WAVE_SIX;
+                v1 = (v1 - v2) * ofsd>>(FRACTION_BITS+1);
 		v1 += v0;
 		*dest++ = (sample_t)((v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: v1));
 	}
 
-		if (!cc_count--) {
-		    cc_count = control_ratio - 1;
-		    if (!update_modulation_signal(v, d))
-		        incr = calc_mod_freq(v, incr, d);
-		}
+	if (!cc_count--) {
+	    cc_count = control_ratio - 1;
+	    incr = update_modulation_signal(v, incr, d);
+	}
       ofs += incr;
       if (ofs>=le)
 	{
@@ -380,43 +398,50 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count, struct md *d)
       for(j = 0; j < i; j++)
 	{
 
-	offset = ofs >> FRACTION_BITS;
+	offset = SAMP(ofs);
 
 	if (ofs >= se) {
-		int32 delta = (ofs - se)>>FRACTION_BITS ;
-        	v1 = (int32)src[(int)(se>>FRACTION_BITS)-1];
+		int32 delta = SAMP(ofs - se);
+        	v1 = (int32)src[(int)SAMP(se)-1];
 		v1 -=  (delta+1) * v1 / overshoot;
         }
 	else  v1 = (int32)src[offset];
 
-	if (ofs + (1L<<FRACTION_BITS) >= se) {
+	if (ofs + WAVE_ONE >= se) {
 		v2 = v1;
         }
 	else  v2 = (int32)src[offset+1];
 
-	if(d->dont_cspline ||
-	   ( (ofs-(1L<<FRACTION_BITS)) < ls) ||
-	     ((ofs+(2L<<FRACTION_BITS)) > le) ) {
-                *dest++ = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
+	if (         d->dont_cspline ||
+	     ((ofs - WAVE_ONE) < ls) ||
+	     ((ofs + WAVE_TWO) > le)    ) {
+
+                *dest++ = (sample_t)(
+				v1 + (
+				       (int32)(
+						(v2-v1) * (ofs & FRACTION_MASK)
+					      ) >> FRACTION_BITS
+				     )
+				    );
 	}
 	else {
                 v0 = (int32)src[offset-1];
                 v3 = (int32)src[offset+2];
-                ofsd = (int32)(ofs & FRACTION_MASK) + (1L << FRACTION_BITS);
-                v1 = v1*ofsd>>FRACTION_BITS;
-                v2 = v2*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd>>FRACTION_BITS;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = v0*ofsd>>FRACTION_BITS;
-                v2 = v2*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd>>FRACTION_BITS;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = v0*ofsd>>FRACTION_BITS;
-                v1 = v1*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = (v3 - v0*ofsd)/(6L << FRACTION_BITS);
-                v1 = (v1 - v2)*ofsd>>(FRACTION_BITS+1);
+                ofsd = (int32)(ofs & FRACTION_MASK) + WAVE_ONE;
+                v1 = v1 * SAMP(ofsd);
+                v2 = v2 * SAMP(ofsd);
+                v3 = v3 * SAMP(ofsd);
+                ofsd -= WAVE_ONE;
+                v0 = v0 * SAMP(ofsd);
+                v2 = v2 * SAMP(ofsd);
+                v3 = v3 * SAMP(ofsd);
+                ofsd -= WAVE_ONE;
+                v0 = v0 * SAMP(ofsd);
+                v1 = v1 * SAMP(ofsd);
+                v3 = v3 * ofsd;
+                ofsd -= WAVE_ONE;
+                v0 = (v3 - v0 * ofsd) / WAVE_SIX;
+                v1 = (v1 - v2) * ofsd>>(FRACTION_BITS+1);
 		v1 += v0;
 		*dest++ = (sample_t)((v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: v1));
 	}
@@ -445,43 +470,50 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count, struct md *d)
       for(j = 0; j < i && ofs < se; j++)
 	{
 
-	offset = ofs >> FRACTION_BITS;
+	offset = SAMP(ofs);
 
 	if (ofs >= se) {
-		int32 delta = (ofs - se)>>FRACTION_BITS ;
-        	v1 = (int32)src[(int)(se>>FRACTION_BITS)-1];
+		int32 delta = SAMP(ofs - se);
+        	v1 = (int32)src[(int)SAMP(se)-1];
 		v1 -=  (delta+1) * v1 / overshoot;
         }
 	else  v1 = (int32)src[offset];
 
-	if (ofs + (1L<<FRACTION_BITS) >= se) {
+	if (ofs + WAVE_ONE >= se) {
 		v2 = v1;
         }
 	else  v2 = (int32)src[offset+1];
 
-	if(d->dont_cspline ||
-	   ( (ofs-(1L<<FRACTION_BITS)) < ls) ||
-	     ((ofs+(2L<<FRACTION_BITS)) > le) ) {
-                *dest++ = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
+	if (         d->dont_cspline ||
+	     ((ofs - WAVE_ONE) < ls) ||
+	     ((ofs + WAVE_TWO) > le)    ) {
+
+                *dest++ = (sample_t)(
+				v1 + (
+				       (int32)(
+						(v2-v1) * (ofs & FRACTION_MASK)
+					      ) >> FRACTION_BITS
+				     )
+				    );
 	}
 	else {
                 v0 = (int32)src[offset-1];
                 v3 = (int32)src[offset+2];
-                ofsd = (int32)(ofs & FRACTION_MASK) + (1L << FRACTION_BITS);
-                v1 = v1*ofsd>>FRACTION_BITS;
-                v2 = v2*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd>>FRACTION_BITS;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = v0*ofsd>>FRACTION_BITS;
-                v2 = v2*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd>>FRACTION_BITS;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = v0*ofsd>>FRACTION_BITS;
-                v1 = v1*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = (v3 - v0*ofsd)/(6L << FRACTION_BITS);
-                v1 = (v1 - v2)*ofsd>>(FRACTION_BITS+1);
+                ofsd = (int32)(ofs & FRACTION_MASK) + WAVE_ONE;
+                v1 = v1 * SAMP(ofsd);
+                v2 = v2 * SAMP(ofsd);
+                v3 = v3 * SAMP(ofsd);
+                ofsd -= WAVE_ONE;
+                v0 = v0 * SAMP(ofsd);
+                v2 = v2 * SAMP(ofsd);
+                v3 = v3 * SAMP(ofsd);
+                ofsd -= WAVE_ONE;
+                v0 = v0 * SAMP(ofsd);
+                v1 = v1 * SAMP(ofsd);
+                v3 = v3 * ofsd;
+                ofsd -= WAVE_ONE;
+                v0 = (v3 - v0 * ofsd) / WAVE_SIX;
+                v1 = (v1 - v2) * ofsd>>(FRACTION_BITS+1);
 		v1 += v0;
 		*dest++ = (sample_t)((v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: v1));
 	}
@@ -513,7 +545,7 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count, struct md *d)
 /*********************** vibrato versions ***************************/
 
 /* We only need to compute one half of the vibrato sine cycle */
-static uint32 vib_phase_to_inc_ptr(uint32 phase, struct md *d)
+static uint32 vib_phase_to_inc_ptr(uint32 phase)
 {
   if (phase < VIBRATO_SAMPLE_INCREMENTS/2)
     return VIBRATO_SAMPLE_INCREMENTS/2-1-phase;
@@ -523,7 +555,7 @@ static uint32 vib_phase_to_inc_ptr(uint32 phase, struct md *d)
     return phase-VIBRATO_SAMPLE_INCREMENTS/2;
 }
 
-static int32 update_vibrato(Voice *vp, int sign, struct md *d)
+static int32 update_vibrato(int v, Voice *vp, int sign, struct md *d)
 {
   uint32 depth, freq=vp->frequency;
 #ifdef ENVELOPE_PITCH_MODULATION
@@ -542,7 +574,7 @@ static int32 update_vibrato(Voice *vp, int sign, struct md *d)
 
   if (vp->vibrato_phase++ >= 2*VIBRATO_SAMPLE_INCREMENTS-1)
     vp->vibrato_phase=0;
-  phase=vib_phase_to_inc_ptr(vp->vibrato_phase, d);
+  phase=vib_phase_to_inc_ptr(vp->vibrato_phase);
 
   if (vp->vibrato_sample_increment[phase])
     {
@@ -574,12 +606,12 @@ static int32 update_vibrato(Voice *vp, int sign, struct md *d)
     }
 
 #ifdef ENVELOPE_PITCH_MODULATION
-#ifndef FILTER_INTERPOLATION
-  if (update_modulation_signal(0, d)) mod_amount = 0;
-  else
-#endif
-  if (mod_amount>0.02)
-   freq = (int32)( (double)freq*(1.0 + (mod_amount - 1.0) * (vp->modulation_volume>>22) / 255.0) );
+  if (vp->modulation_increment && mod_amount > 0.0) {
+          update_modulation(v, d);
+          if (vp->modulation_volume) {
+                freq = (int32)( (double)freq*( mod_amount * (double)(vp->modulation_volume>>22) / 255.0) );
+          }
+  }
 #endif
 
   pb=(int)((sine(vp->vibrato_phase *
@@ -647,46 +679,53 @@ static sample_t *rs_vib_plain(int v, uint32 *countptr, struct md *d)
       if (!cc--)
 	{
 	  cc=vp->vibrato_control_ratio;
-	  incr=update_vibrato(vp, 0, d);
+	  incr=update_vibrato(v, vp, 0, d);
 	}
 
-	offset = ofs >> FRACTION_BITS;
+	offset = SAMP(ofs);
 
 	if (ofs >= se) {
-		int32 delta = (ofs - se)>>FRACTION_BITS ;
-        	v1 = (int32)src[(int)(se>>FRACTION_BITS)-1];
+		int32 delta = SAMP(ofs - se);
+        	v1 = (int32)src[(int)SAMP(se)-1];
 		v1 -=  (delta+1) * v1 / overshoot;
         }
 	else  v1 = (int32)src[offset];
 
-	if (ofs + (1L<<FRACTION_BITS) >= se) {
+	if (ofs + WAVE_ONE >= se) {
 		v2 = v1;
         }
 	else  v2 = (int32)src[offset+1];
 
-	if(d->dont_cspline ||
-	   ( (ofs-(1L<<FRACTION_BITS)) < ls) ||
-	     ((ofs+(2L<<FRACTION_BITS)) > le) ) {
-                *dest++ = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
+	if (         d->dont_cspline ||
+	     ((ofs - WAVE_ONE) < ls) ||
+	     ((ofs + WAVE_TWO) > le)    ) {
+
+                *dest++ = (sample_t)(
+				v1 + (
+				       (int32)(
+						(v2-v1) * (ofs & FRACTION_MASK)
+					      ) >> FRACTION_BITS
+				     )
+				    );
 	}
 	else {
                 v0 = (int32)src[offset-1];
                 v3 = (int32)src[offset+2];
-                ofsd = (int32)(ofs & FRACTION_MASK) + (1L << FRACTION_BITS);
-                v1 = v1*ofsd>>FRACTION_BITS;
-                v2 = v2*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd>>FRACTION_BITS;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = v0*ofsd>>FRACTION_BITS;
-                v2 = v2*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd>>FRACTION_BITS;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = v0*ofsd>>FRACTION_BITS;
-                v1 = v1*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = (v3 - v0*ofsd)/(6L << FRACTION_BITS);
-                v1 = (v1 - v2)*ofsd>>(FRACTION_BITS+1);
+                ofsd = (int32)(ofs & FRACTION_MASK) + WAVE_ONE;
+                v1 = v1 * SAMP(ofsd);
+                v2 = v2 * SAMP(ofsd);
+                v3 = v3 * SAMP(ofsd);
+                ofsd -= WAVE_ONE;
+                v0 = v0 * SAMP(ofsd);
+                v2 = v2 * SAMP(ofsd);
+                v3 = v3 * SAMP(ofsd);
+                ofsd -= WAVE_ONE;
+                v0 = v0 * SAMP(ofsd);
+                v1 = v1 * SAMP(ofsd);
+                v3 = v3 * ofsd;
+                ofsd -= WAVE_ONE;
+                v0 = (v3 - v0 * ofsd) / WAVE_SIX;
+                v1 = (v1 - v2) * ofsd>>(FRACTION_BITS+1);
 		v1 += v0;
 		*dest++ = (sample_t)((v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: v1));
 	}
@@ -749,46 +788,53 @@ static sample_t *rs_vib_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
       if (!cc--)
 	{
 	  cc=vp->vibrato_control_ratio;
-	  incr=update_vibrato(vp, 0, d);
+	  incr=update_vibrato(v, vp, 0, d);
 	}
 
-	offset = ofs >> FRACTION_BITS;
+	offset = SAMP(ofs);
 
 	if (ofs >= se) {
-		int32 delta = (ofs - se)>>FRACTION_BITS ;
-        	v1 = (int32)src[(int)(se>>FRACTION_BITS)-1];
+		int32 delta = SAMP(ofs - se);
+        	v1 = (int32)src[(int)SAMP(se)-1];
 		v1 -=  (delta+1) * v1 / overshoot;
         }
 	else  v1 = (int32)src[offset];
 
-	if (ofs + (1L<<FRACTION_BITS) >= se) {
+	if (ofs + WAVE_ONE >= se) {
 		v2 = v1;
         }
 	else  v2 = (int32)src[offset+1];
 
-	if(d->dont_cspline ||
-	   ( (ofs-(1L<<FRACTION_BITS)) < ls) ||
-	     ((ofs+(2L<<FRACTION_BITS)) > le) ) {
-                *dest++ = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
+	if (         d->dont_cspline ||
+	     ((ofs - WAVE_ONE) < ls) ||
+	     ((ofs + WAVE_TWO) > le)    ) {
+
+                *dest++ = (sample_t)(
+				v1 + (
+				       (int32)(
+						(v2-v1) * (ofs & FRACTION_MASK)
+					      ) >> FRACTION_BITS
+				     )
+				    );
 	}
 	else {
                 v0 = (int32)src[offset-1];
                 v3 = (int32)src[offset+2];
-                ofsd = (int32)(ofs & FRACTION_MASK) + (1L << FRACTION_BITS);
-                v1 = v1*ofsd>>FRACTION_BITS;
-                v2 = v2*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd>>FRACTION_BITS;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = v0*ofsd>>FRACTION_BITS;
-                v2 = v2*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd>>FRACTION_BITS;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = v0*ofsd>>FRACTION_BITS;
-                v1 = v1*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = (v3 - v0*ofsd)/(6L << FRACTION_BITS);
-                v1 = (v1 - v2)*ofsd>>(FRACTION_BITS+1);
+                ofsd = (int32)(ofs & FRACTION_MASK) + WAVE_ONE;
+                v1 = v1 * SAMP(ofsd);
+                v2 = v2 * SAMP(ofsd);
+                v3 = v3 * SAMP(ofsd);
+                ofsd -= WAVE_ONE;
+                v0 = v0 * SAMP(ofsd);
+                v2 = v2 * SAMP(ofsd);
+                v3 = v3 * SAMP(ofsd);
+                ofsd -= WAVE_ONE;
+                v0 = v0 * SAMP(ofsd);
+                v1 = v1 * SAMP(ofsd);
+                v3 = v3 * ofsd;
+                ofsd -= WAVE_ONE;
+                v0 = (v3 - v0 * ofsd) / WAVE_SIX;
+                v1 = (v1 - v2) * ofsd>>(FRACTION_BITS+1);
 		v1 += v0;
 		*dest++ = (sample_t)((v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: v1));
 	}
@@ -869,43 +915,50 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
       for(j = 0; j < i; j++)
 	{
 
-	offset = ofs >> FRACTION_BITS;
+	offset = SAMP(ofs);
 
 	if (ofs >= se) {
-		int32 delta = (ofs - se)>>FRACTION_BITS ;
-        	v1 = (int32)src[(int)(se>>FRACTION_BITS)-1];
+		int32 delta = SAMP(ofs - se);
+        	v1 = (int32)src[(int)SAMP(se)-1];
 		v1 -=  (delta+1) * v1 / overshoot;
         }
 	else  v1 = (int32)src[offset];
 
-	if (ofs + (1L<<FRACTION_BITS) >= se) {
+	if (ofs + WAVE_ONE >= se) {
 		v2 = v1;
         }
 	else  v2 = (int32)src[offset+1];
 
-	if(d->dont_cspline ||
-	   ( (ofs-(1L<<FRACTION_BITS)) < ls) ||
-	     ((ofs+(2L<<FRACTION_BITS)) > le) ) {
-                *dest++ = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
+	if (         d->dont_cspline ||
+	     ((ofs - WAVE_ONE) < ls) ||
+	     ((ofs + WAVE_TWO) > le)    ) {
+
+                *dest++ = (sample_t)(
+				v1 + (
+				       (int32)(
+						(v2-v1) * (ofs & FRACTION_MASK)
+					      ) >> FRACTION_BITS
+				     )
+				    );
 	}
 	else {
                 v0 = (int32)src[offset-1];
                 v3 = (int32)src[offset+2];
-                ofsd = (int32)(ofs & FRACTION_MASK) + (1L << FRACTION_BITS);
-                v1 = v1*ofsd>>FRACTION_BITS;
-                v2 = v2*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd>>FRACTION_BITS;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = v0*ofsd>>FRACTION_BITS;
-                v2 = v2*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd>>FRACTION_BITS;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = v0*ofsd>>FRACTION_BITS;
-                v1 = v1*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = (v3 - v0*ofsd)/(6L << FRACTION_BITS);
-                v1 = (v1 - v2)*ofsd>>(FRACTION_BITS+1);
+                ofsd = (int32)(ofs & FRACTION_MASK) + WAVE_ONE;
+                v1 = v1 * SAMP(ofsd);
+                v2 = v2 * SAMP(ofsd);
+                v3 = v3 * SAMP(ofsd);
+                ofsd -= WAVE_ONE;
+                v0 = v0 * SAMP(ofsd);
+                v2 = v2 * SAMP(ofsd);
+                v3 = v3 * SAMP(ofsd);
+                ofsd -= WAVE_ONE;
+                v0 = v0 * SAMP(ofsd);
+                v1 = v1 * SAMP(ofsd);
+                v3 = v3 * ofsd;
+                ofsd -= WAVE_ONE;
+                v0 = (v3 - v0 * ofsd) / WAVE_SIX;
+                v1 = (v1 - v2) * ofsd>>(FRACTION_BITS+1);
 		v1 += v0;
 		*dest++ = (sample_t)((v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: v1));
 	}
@@ -915,7 +968,7 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
       if (vibflag)
 	{
 	  cc = vp->vibrato_control_ratio;
-	  incr = update_vibrato(vp, 0, d);
+	  incr = update_vibrato(v, vp, 0, d);
 	  vibflag = 0;
 	}
     }
@@ -942,43 +995,50 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
       while (i-- && ofs < se)
 	{
 
-	offset = ofs >> FRACTION_BITS;
+	offset = SAMP(ofs);
 
 	if (ofs >= se) {
-		int32 delta = (ofs - se)>>FRACTION_BITS ;
-        	v1 = (int32)src[(int)(se>>FRACTION_BITS)-1];
+		int32 delta = SAMP(ofs - se);
+        	v1 = (int32)src[(int)SAMP(se)-1];
 		v1 -=  (delta+1) * v1 / overshoot;
         }
 	else  v1 = (int32)src[offset];
 
-	if (ofs + (1L<<FRACTION_BITS) >= se) {
+	if (ofs + WAVE_ONE >= se) {
 		v2 = v1;
         }
 	else  v2 = (int32)src[offset+1];
 
-	if(d->dont_cspline ||
-	   ( (ofs-(1L<<FRACTION_BITS)) < ls) ||
-	     ((ofs+(2L<<FRACTION_BITS)) > le) ) {
-                *dest++ = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
+	if (         d->dont_cspline ||
+	     ((ofs - WAVE_ONE) < ls) ||
+	     ((ofs + WAVE_TWO) > le)    ) {
+
+                *dest++ = (sample_t)(
+				v1 + (
+				       (int32)(
+						(v2-v1) * (ofs & FRACTION_MASK)
+					      ) >> FRACTION_BITS
+				     )
+				    );
 	}
 	else {
                 v0 = (int32)src[offset-1];
                 v3 = (int32)src[offset+2];
-                ofsd = (int32)(ofs & FRACTION_MASK) + (1L << FRACTION_BITS);
-                v1 = v1*ofsd>>FRACTION_BITS;
-                v2 = v2*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd>>FRACTION_BITS;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = v0*ofsd>>FRACTION_BITS;
-                v2 = v2*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd>>FRACTION_BITS;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = v0*ofsd>>FRACTION_BITS;
-                v1 = v1*ofsd>>FRACTION_BITS;
-                v3 = v3*ofsd;
-                ofsd -= (1L << FRACTION_BITS);
-                v0 = (v3 - v0*ofsd)/(6L << FRACTION_BITS);
-                v1 = (v1 - v2)*ofsd>>(FRACTION_BITS+1);
+                ofsd = (int32)(ofs & FRACTION_MASK) + WAVE_ONE;
+                v1 = v1 * SAMP(ofsd);
+                v2 = v2 * SAMP(ofsd);
+                v3 = v3 * SAMP(ofsd);
+                ofsd -= WAVE_ONE;
+                v0 = v0 * SAMP(ofsd);
+                v2 = v2 * SAMP(ofsd);
+                v3 = v3 * SAMP(ofsd);
+                ofsd -= WAVE_ONE;
+                v0 = v0 * SAMP(ofsd);
+                v1 = v1 * SAMP(ofsd);
+                v3 = v3 * ofsd;
+                ofsd -= WAVE_ONE;
+                v0 = (v3 - v0 * ofsd) / WAVE_SIX;
+                v1 = (v1 - v2) * ofsd>>(FRACTION_BITS+1);
 		v1 += v0;
 		*dest++ = (sample_t)((v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: v1));
 	}
@@ -988,7 +1048,7 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
       if (vibflag)
 	{
 	  cc = vp->vibrato_control_ratio;
-	  incr = update_vibrato(vp, (incr < 0), d);
+	  incr = update_vibrato(v, vp, (incr < 0), d);
 	  vibflag = 0;
 	}
       if (ofs >= le)
