@@ -222,7 +222,7 @@ static unsigned char *read_whole_sf() {
  *		in which case oldbank=<num>
  *	level: nesting level of cfg file (what is this for?)
  */
-void init_soundfont(char *fname, int oldbank, int newbank, int level)
+int init_soundfont(char *fname, int oldbank, int newbank, int level)
 {
 	int i;
 	InstList *ip;
@@ -247,14 +247,14 @@ void init_soundfont(char *fname, int oldbank, int newbank, int level)
 	    if (last_sf_index >= MAX_SF_FILES) {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "Too many soundfont files to load %s.", fname);
-		return;
+		return FALSE;
 	    }
 	    current_sf_index = last_sf_index;
 
 	    if ((sfrec[current_sf_index].fd = open_file(fname, 1, OF_VERBOSE, level)) == NULL) {
 		ctl->cmsg(CMSG_ERROR, VERB_NORMAL,
 			  "Can't open soundfont file %s.", fname);
-		return;
+		return FALSE;
 	    }
 	    last_sf_index++;
 	    sfrec[current_sf_index].fname = strcpy((char*)safe_malloc(strlen(fname)+1), fname);
@@ -302,6 +302,7 @@ void init_soundfont(char *fname, int oldbank, int newbank, int level)
 #else
 	sf_contents = read_whole_sf();
 #endif
+	if (!sf_contents) return FALSE;
 	sfrec[current_sf_index].contents = sf_contents;
 	sfrec[current_sf_index].size_of_contents = sf_size_of_contents;
 
@@ -316,7 +317,7 @@ void init_soundfont(char *fname, int oldbank, int newbank, int level)
 	/* mark instruments as loaded so they won't be loaded again if we're re-called */
 	for (ip = sfrec[current_sf_index].instlist; ip; ip = ip->next) ip->already_loaded = 10000000;
 #endif
-
+	return TRUE;
 }
 
 

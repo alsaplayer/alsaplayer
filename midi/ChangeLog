@@ -1,3 +1,6 @@
+Thu Apr 25 07:48:50 HST 2002
+	resample.h, etc: do cspline interpolation by default
+	sndfont.c, cfg.l: init_soundfont returns success/failure
 Wed Apr 24 14:03:26 HST 2002
 	added PC42b.h: makes timidity.cfg unnecessary
 	instrum.h, cfg.l, autocfg.c: automation of configuration

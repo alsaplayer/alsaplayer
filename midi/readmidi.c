@@ -1078,7 +1078,8 @@ static void groom_list(int32 divisions, struct md *d)
 #ifdef POLYPHONY_COUNT
   current_polyphony = 0;
   hind_list = lp;
-  future_interval = play_mode->rate / 2;
+  /*future_interval = play_mode->rate / 2;*/
+  future_interval = play_mode->rate / 4;
 #endif
 
   for (i=0; i<d->event_count; i++)
@@ -1355,9 +1356,10 @@ static void groom_list(int32 divisions, struct md *d)
 	  *lp=meep->event;
 	  lp->time=st;
 	#ifdef POLYPHONY_COUNT
+	  lp->polyphony = current_polyphony;
 	  while (hind_list < lp && hind_list->time <= st - future_interval)
 	    {
-		hind_list->polyphony = current_polyphony;
+		hind_list->polyphony = 128 + current_polyphony - hind_list->polyphony;
 		hind_list++;
 	    }
 	#endif

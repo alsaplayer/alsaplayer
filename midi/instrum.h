@@ -160,7 +160,7 @@ extern int32 convert_vibrato_sweep(uint8 sweep, int32 vib_control_ratio);
 extern int32 convert_tremolo_rate(uint8 rate);
 extern int32 convert_vibrato_rate(uint8 rate);
 
-extern void init_soundfont(char *fname, int oldbank, int newbank, int level);
+extern int init_soundfont(char *fname, int oldbank, int newbank, int level);
 #ifdef FFF_HAS_BEEN_FIXED
 extern InstrumentLayer *load_fff_patch(const char *name, int gm_num, int bank, int percussion,
  int panning, int amp, int note_to_use, int strip_loop, int strip_envelope, int strip_tail);

@@ -22,7 +22,7 @@
 
    */
 
-#define POLYPHONY_COUNT
+/*#define POLYPHONY_COUNT*/
 
 #ifdef POLYPHONY_COUNT
 typedef struct {

@@ -1143,7 +1143,7 @@ YY_RULE_SETUP
 		while (j < yyleng && isspace(yytext[j])) j++;
 		if (j < yyleng && isdigit(yytext[j])) sf_oldbank = atoi(yytext+j);
 	}
-	init_soundfont(sfname, sf_oldbank, sf_newbank, rcf_count);
+	if (!init_soundfont(sfname, sf_oldbank, sf_newbank, rcf_count)) return -1;
 }
 	YY_BREAK
 case 6:
@@ -2666,9 +2666,10 @@ int read_config_file(const char *name, int prescan)
 	current_toneset = current_drumset = 0;
 	doing_drums = doing_sf = 0;
 	if (!(retvalue = yylex())) {
-	   if (prescan) got_a_configuration = 1;
-	   else got_a_configuration = 2;
+	   /*if (prescan) got_a_configuration = 1;
+	   else*/ got_a_configuration = 2;
 	}
+
 
 	close_file(yyin);
 	return retvalue;
@@ -2682,12 +2683,6 @@ static int pc42b_config_file(const char *name, int prescan)
 	int i = 0;
 	prescanning = prescan;
 	rcf_count = 1;
-/*
-	if (prescanning) {
-	   current_config_file = (char *)safe_malloc(strlen(name)+1);
-	   strcpy(current_config_file, name);
-	}
-*/
 	current_toneset = current_drumset = 0;
 	doing_drums = doing_sf = 0;
 
@@ -2724,7 +2719,7 @@ static int pc42b_config_file(const char *name, int prescan)
 				new_patch(sfname, patchno);
 				break;
 			case FONT_SBK:
-				init_soundfont(sfname, which, which, 1);
+				if (!init_soundfont((char *)sfname, which, which, 1)) retvalue = -1;
 				break;
 		}
 
@@ -2732,8 +2727,8 @@ static int pc42b_config_file(const char *name, int prescan)
 		i++;
 	}
 
-	if (prescan) got_a_configuration = 1;
-	else got_a_configuration = 2;
+	/*if (prescan) got_a_configuration = 1;
+	else*/ got_a_configuration = 2;
 	return retvalue;
 }
 

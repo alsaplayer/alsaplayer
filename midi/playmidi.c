@@ -67,7 +67,7 @@ int opt_volume_curve = 1;
 int opt_stereo_surround = 1;
 int dont_filter_melodic=1;
 int dont_filter_drums=1;
-int config_interpolation=2;
+int config_interpolation=DO_CSPLINE_INTERPOLATION;
 
 int32 control_ratio=0;
 
@@ -1365,8 +1365,10 @@ if (!debug_count) {
 debug_count--;
 #endif
 
+#if 0
 #ifdef POLYPHONY_COUNT
   if (d->current_polyphony < d->future_polyphony * 2) obf /= 2;
+#endif
 #endif
 
   permitted = vcs - 16;
@@ -1379,6 +1381,7 @@ debug_count--;
 
   d->voice_reserve = rsv;
 
+#if 0
   if (!d->current_interpolation) d->dont_cspline = 1;
   else if (obf < 10) d->dont_cspline = 1;
   else if (obf > 40) d->dont_cspline = 0;
@@ -1391,6 +1394,7 @@ debug_count--;
 
   if (opt_dry || obf < 6) d->dont_keep_looping = 1;
   else if (obf > 22) d->dont_keep_looping = 0;
+#endif
 
 /*
   if (obf < 20) dont_filter = 1;

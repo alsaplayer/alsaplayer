@@ -25,27 +25,11 @@ int autocfg() {
 	char cfg_path[1024];
 	FILE *fp;
 
-	strcpy(cfg_path, DEFAULT_PATH);
-	strcat(cfg_path, "/PC42b.sf2");
-
-	if ( (fp=fopen(cfg_path, "r")) ) {
-		fclose(fp);
-		current_config_pc42b = 1;
-		add_to_pathlist(DEFAULT_PATH, 0);
-		return 1;
-	}
-
 	if (!(homedir = getenv("HOME"))) return 0;
 	sprintf(prefs_path, "%s/.alsaplayer", homedir);
 
 	chdir(prefs_path);
 
-	if ( (fp=fopen("PC42b.sf2", "r")) ) {
-		fclose(fp);
-		current_config_pc42b = 1;
-		add_to_pathlist(prefs_path, 0);
-		return 1;
-	}
 
 	strcpy(cfg_path, prefs_path);
 	strcat(cfg_path,"/timidity.cfg");
@@ -53,6 +37,15 @@ int autocfg() {
 	if ( (fp=fopen(cfg_path, "r")) ) {
 		haveone = 1;
 		fclose(fp);
+	}
+
+	if (!haveone) {
+		if ( (fp=fopen("PC42b.sf2", "r")) ) {
+			fclose(fp);
+			current_config_pc42b = 1;
+			add_to_pathlist(prefs_path, 0);
+			return 1;
+		}
 	}
 
 	if (!haveone) {
@@ -72,5 +65,18 @@ int autocfg() {
 		current_config_file = strdup(cfg_path);
 		add_to_pathlist(prefs_path, 0);
 	}
+
+#ifdef DEFAULT_PATH
+	if (!haveone) {
+		chdir(DEFAULT_PATH);
+		if ( (fp=fopen("PC42b.sf2", "r")) ) {
+			fclose(fp);
+			current_config_pc42b = 1;
+			add_to_pathlist(DEFAULT_PATH, 0);
+			return 1;
+		}
+	}
+#endif
+
 	return haveone;
 }

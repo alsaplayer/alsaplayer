@@ -20,6 +20,11 @@
     resample.h
 */
 
+#define DO_LINEAR_INTERPOLATION 0
+#define DO_CSPLINE_INTERPOLATION 1
+#define DO_LAGRANGE_INTERPOLATION 2
+#define DO_FILTER_INTERPOLATION 3
+
 extern sample_t *resample_voice(int v, uint32 *countptr, struct md *d);
 extern sample_t *resample_voice_lagrange(int v, uint32 *countptr, struct md *d);
 extern sample_t *resample_voice_filter(int v, uint32 *countptr, struct md *d);

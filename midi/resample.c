@@ -1097,9 +1097,9 @@ sample_t *resample_voice(int v, uint32 *countptr, struct md *d)
 	return vp->sample->data+ofs;
     }
 
-    if (d->current_interpolation == 2)
+    if (d->current_interpolation == DO_LAGRANGE_INTERPOLATION)
 	 return resample_voice_lagrange(v, countptr, d);
-    else if (d->current_interpolation == 3)
+    else if (d->current_interpolation == DO_FILTER_INTERPOLATION)
 	 return resample_voice_filter(v, countptr, d);
 
     mode = vp->sample->modes;

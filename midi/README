@@ -28,9 +28,11 @@ Installing a soundfont:
 	The best and most straightforward way of providing
 	patches for midi-in, IMO, is to download Jim Roe's soundfont
 	PC42b.sf2, which is in a separate file accompanying
-	this distribution.  It's quite large.  Unpack the
-	tar file, and put the file PC42b.sf2 in your home
-	directory in a subdirectory .alsaplayer (where
+	this distribution.  (Now, it is in the alsaplayer
+	CVS Files section in the tar archive PC42b.tar.bz2.)
+	It's quite large.
+	  Unpack the tar file, and put the file PC42b.sf2 in your
+	home directory in a subdirectory .alsaplayer (where
 	alsaplayer keeps its configuration info).  Or
 	alternatively, you can put it in
 	/usr/local/share/timidity, or wherever you configured

@@ -35,6 +35,7 @@
 #include "output.h"
 #include "controls.h"
 #include "tables.h"
+#include "resample.h"
 #include "version.h"
 #include "sbk.h"
 
@@ -180,11 +181,6 @@ static int init_midi()
 
   output_fragsize = 8192;
 
-/* should I do this? */
-#ifdef DEFAULT_PATH
-  add_to_pathlist(DEFAULT_PATH, 0);
-#endif
-
   if (read_config_file("timidity.cfg", 1)) {
 	  configuration_failed = TRUE;
 	  return FALSE;
@@ -279,6 +275,7 @@ static int midi_open(input_object *obj, char *name)
 	d->calc_window = 1000;
 	d->output_buffer_full = 10;
 	d->flushing_output_device = FALSE;
+
 #ifdef PLAYLOCK
 	if (sem_init(&d->play_lock, 0, 1)) fprintf(stderr,"no semaphore\n");
 #endif
@@ -463,10 +460,11 @@ fprintf(stderr,"midi_play_frame to %x\n", buf);
 	obfp = d->bbcount * 100 / BB_SIZE;
 
 /*
-fprintf(stderr,"mpf: slack=%d lc=%d req int=%d cwindow=%d poly=%d rp=%d dv=%d vperm=%d obfp=%d trouble=%d lost=%d\n",
+fprintf(stderr,"mpf: slack=%d lc=%d req int=%d cwindow=%d poly=%d fp=%d rp=%d dv=%d vperm=%d obfp=%d trouble=%d lost=%d\n",
 	     slacktime, d->last_calc,
 	     req_interval, d->calc_window,
-	     d->current_polyphony, d->voices - d->current_free_voices, d->current_dying_voices,
+	     d->current_polyphony, 0,
+	     d->voices - d->current_free_voices, d->current_dying_voices,
 	     d->voices - d->voice_reserve,
 	     obfp, d->trouble_ahead, d->lost_notes);
 */
