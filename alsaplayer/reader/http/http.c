@@ -27,6 +27,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <sys/time.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -54,6 +55,7 @@ typedef struct http_desc_t_ {
     pthread_cond_t fast_condition;  /* Give me data as soon as possible. */
     int error;			    /* Error status (0 - none). */
     int fastmode;		    /* No delay while reading from socket. */
+    int seekable;
 } http_desc_t;
 
 /* How much data we should read at once? (bytes)*/
@@ -383,7 +385,11 @@ static int reconnect (http_desc_t *desc)
 	return 1;
 
     /* Check protocol */
-    if (strncmp (response, "HTTP/1.1 ", 9)) {
+    if (!strncmp (response, "HTTP/1.0 ", 9)) {
+	desc->seekable = 0;
+    } else if (!strncmp (response, "HTTP/1.1 ", 9)) {
+        desc->seekable = 1;
+    } else {
 	alsaplayer_error ("HTTP: Wrong server protocol for http://%s:%u%s",
 		desc->host, desc->port, desc->path);
 	return 1;
@@ -413,14 +419,18 @@ static int reconnect (http_desc_t *desc)
 	if (!desc->size)
 	    desc->size = atol (s+18);
     } else {
-	alsaplayer_error ("HTTP: Content-Length header is absent!");
-	return 0;
+	desc->seekable = 0;
     }
 
     /* Attach thread to fill a buffer */
     desc->going = 1;
     desc->fastmode = 0;
     pthread_create (&desc->thread, NULL, (void* (*)(void *)) buffer_thread, desc);
+
+    /* Prebuffer if this is stream */
+    if (!desc->seekable) {
+        dosleep (2000000);
+    }
     
     return 0;
 } /* end of: reconnect */
@@ -607,6 +617,8 @@ static int http_seek (void *d, long offset, int whence)
 {
     http_desc_t *desc = (http_desc_t*)d;
   
+    if (!desc->seekable)  return -1;
+    
     if (whence == SEEK_SET)
 	desc->pos = offset;
     else if (whence == SEEK_CUR)
