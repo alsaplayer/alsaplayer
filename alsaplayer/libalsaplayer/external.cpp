@@ -24,6 +24,7 @@
 #include <sys/un.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,10 +37,14 @@ ap_connect_session (int session)
 {
   int socket_fd;
   struct sockaddr_un saddr;
+	struct passwd *pwd;
+
+	pwd = getpwuid(geteuid());
 
   if ((socket_fd = socket (AF_UNIX, SOCK_STREAM, 0)) != -1) {
     saddr.sun_family = AF_UNIX;
-    sprintf (saddr.sun_path, "/tmp/alsaplayer_%d", 0);
+    sprintf (saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
+					"anonymous" : pwd->pw_name, 0);
     if (connect (socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
       return socket_fd;
     }
