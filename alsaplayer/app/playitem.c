@@ -59,34 +59,6 @@ static void	ap_playitem_finalize	    (GObject		*object);
 static gpointer		parent_class = NULL;
 
 /* --- functions --- */
-GType
-ap_playitem_get_type (void)
-{
-    static GType type = 0;
-    static const GTypeInfo playitem_info = {
-	sizeof (ApPlayItemClass),
-	NULL,
-        NULL,
-        (GClassInitFunc) ap_playitem_class_init,
-        NULL,
-        NULL,
-        sizeof (ApPlayItem),
-        0,
-        (GInstanceInitFunc) ap_playitem_init,
-        NULL
-    };
-
-    if (!type) {
-	/* First time create */
-	type = g_type_register_static (G_TYPE_OBJECT,	/* Parent Type */
-				"ApPlayItem",		/* Name */
-				&playitem_info,		/* Type Info */
-				0);			/* Flags */
-    }
-
-    return type;
-}; /* ap_playitem_object_get_type */
-
 static void
 ap_playitem_class_init (ApPlayItemClass *class)
 {
@@ -310,6 +282,54 @@ ap_playitem_get_property (GObject	*object,
     }
 } /* ap_playitem_set_property */
 
+/* Public functions. */
+
+/**
+ * ap_playitem_get_type:
+ *
+ * Register the #ApPlayItemClass if necessary,
+ * and returns the type ID associated to it.
+ *
+ * Return value: The type ID of the &ApPlayItemClass.
+ **/
+GType
+ap_playitem_get_type (void)
+{
+    static GType type = 0;
+    static const GTypeInfo playitem_info = {
+	sizeof (ApPlayItemClass),
+	NULL,
+        NULL,
+        (GClassInitFunc) ap_playitem_class_init,
+        NULL,
+        NULL,
+        sizeof (ApPlayItem),
+        0,
+        (GInstanceInitFunc) ap_playitem_init,
+        NULL
+    };
+
+    if (!type) {
+	/* First time create */
+	type = g_type_register_static (G_TYPE_OBJECT,	/* Parent Type */
+				"ApPlayItem",		/* Name */
+				&playitem_info,		/* Type Info */
+				0);			/* Flags */
+    }
+
+    return type;
+}; /* ap_playitem_object_get_type */
+
+/**
+ * ap_playitem_new:
+ * @filename: the filename of the item
+ *
+ * Create a new playitem with given filename for it.
+ * You should only call ap_playitem_new() with the NULL parameter
+ * if you really know what you are doing.
+ *
+ * Return value: 
+ **/
 ApPlayItem*
 ap_playitem_new (const gchar *filename)
 {
@@ -329,6 +349,7 @@ void
 ap_playitem_set_filename (ApPlayItem *playitem, const gchar *filename)
 {
     g_return_if_fail (AP_IS_PLAYITEM (playitem));
+    g_return_if_fail (!filename);
 
     if (playitem->filename)
 	g_free (playitem->filename);

@@ -179,7 +179,7 @@ ap_playlist_dispose (GObject *object)
     g_thread_join (playlist->info_thread);
    
     G_OBJECT_CLASS (parent_class)->dispose (object);
-} /* ap_playlist_finalize */
+} /* ap_playlist_dispose */
 
 
 static void
@@ -299,7 +299,7 @@ ap_playlist_info_thread (gpointer data)
 /**
  * ap_playlist_get_type:
  *
- * Register the &ApPlaylistClass if necessary,
+ * Register the #ApPlaylistClass if necessary,
  * and returns the type ID associated to it.
  *
  * Return value: The type ID of the &ApPlaylistClass.
@@ -436,11 +436,11 @@ ap_playlist_is_looping_playlist (ApPlaylist *playlist)
 
 /**
  * ap_playlist_update_playitem:
- * @playlist: a PyPlaylist
+ * @playlist: a #PyPlaylist
  * @playitem: playitem to update
  *
  * Queue @playitem for update. You can track end of the
- * updating proecess via the "playitem-updated" signal.
+ * updating process via the "playitem-updated" signal.
  *
  **/
 void
