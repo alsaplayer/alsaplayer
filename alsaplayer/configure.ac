@@ -707,13 +707,13 @@ Configuration:
   Install path:                       ${prefix}
   Use libmad shared library:          ${use_libmad}
   Enable libid3tag support:           ${use_libid3tag}
-  Build gtk interface:                ${have_gtk}
-  Build with jack support:            ${have_jack}
+  Build GTK interface:                ${have_gtk}
   Build OpenGL based visual plugins:  ${have_opengl}
   Build alsa 0.5.x output plugin:     ${have_alsa_05x}
   Build alsa 0.9.x output plugin:     ${have_alsa_final}
+  Build jack output plugin:           ${have_jack}
   Build oss output plugin:            ${have_oss}
-  Build esd output plugin:            ${have_esd}
+  Build esound output plugin:         ${have_esd}
   Build sparc output plugin:          ${have_sparc}
   Build sgi output plugin:            ${have_sgi}
   Build nas output plugin:            ${have_nas}

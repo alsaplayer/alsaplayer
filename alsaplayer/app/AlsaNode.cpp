@@ -247,9 +247,7 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 
 	/* If this is a callback based plugin, immediately start */
 	if (plugin->start_callbacks) {
-		alsaplayer_error("Callback based plugin");
 		if (!plugin->start_callbacks(subs)) {
-			alsaplayer_error("Callback startup failed");
 			plugin->close();
 			plugin = NULL;
 			return 0;
@@ -335,7 +333,6 @@ void AlsaNode::StartStreaming()
 
 	if (plugin->start_callbacks)
 		return;
-	alsaplayer_error("Going to start looper (%x)", plugin->start_callbacks);		
 	pthread_create(&looper_thread, NULL, (void * (*)(void *))looper, this);
 	pthread_detach(looper_thread);
 }

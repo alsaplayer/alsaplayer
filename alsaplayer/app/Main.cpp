@@ -78,6 +78,7 @@ static char *default_pcm_device = "default";
 
 const char *default_output_addons[] = {
 	{"alsa"},
+	{"jack"},
 	{"nas"},
 	{"oss"},
 	{"sparc"},
@@ -137,8 +138,9 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 			    (output_plugin_info_type) dlsym(handle,
 							    "output_plugin_info");
 			if (output_plugin_info) {
-				node->RegisterPlugin(output_plugin_info());
-				return;
+				if (node->RegisterPlugin(output_plugin_info())) {
+					return;
+				}	
 			} else {
 				alsaplayer_error
 				    ("symbol error in shared object: %s\n"
@@ -153,7 +155,7 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 		}
 	} else {
 		for (int i = 0; default_output_addons[i]; i++) {
-			sprintf(path, "%s/output/lib%s.so", addon_dir,
+			sprintf(path, "%s/output/lib%s_out.so", addon_dir,
 				default_output_addons[i]);
 			if (stat(path, &statbuf) != 0)
 				continue;
@@ -168,9 +170,7 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 					    ("Loading output plugin: %s\n",
 					     path);
 #endif
-					if (node->
-					    RegisterPlugin
-					    (output_plugin_info())) {
+					if (node->RegisterPlugin(output_plugin_info())) {
 						if (!node->ReadyToRun()) {
 							alsaplayer_error
 							    ("%s failed to init",
