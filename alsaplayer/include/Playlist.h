@@ -93,6 +93,7 @@ private:
 	bool paused;	// Playlist is paused
 	bool loopingSong;	//  Loop the current song
 	bool loopingPlaylist;	// Loop the Playlist
+	bool crossfade; // Crossfade the playlist
 
 	CorePlayer *coreplayer; // Core player - set this
 
@@ -102,10 +103,11 @@ private:
 	std::set<PlaylistInterface *> interfaces;  // Things to tell when things change
 
 	void Looper(void *data);
+public:	
 	void Stop();
 	void PlayFile(PlayItem const &);
 	bool CanPlay(std::string const &);
-public:
+	
 	Playlist(CorePlayer *);
 	Playlist(AlsaNode *);
 	~Playlist();
@@ -153,6 +155,11 @@ public:
 	virtual void Pause() { paused = true; }
 	virtual void UnPause() { paused = false; }
 
+	// Crossfade controls
+	virtual bool Crossfading() { return crossfade; }
+	virtual void Crossfade() { crossfade = true; }
+	virtual void UnCrossfade() { crossfade = false; }
+	
 	// Loop_Song controls
 	virtual bool LoopingSong() { return loopingSong; }
 	virtual void LoopSong() { loopingSong = true; }
