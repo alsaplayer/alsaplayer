@@ -1,3 +1,9 @@
+Wed Apr 10 07:28:30 HST 2002
+	ChangeLog
+	Makefile.am: add timidity subdir
+	configure.ac: create timidity/Makefile, timidity/patch/Makefile
+	add timidity/ configuration & patch directory
+	README
 Mon Apr  8 14:20:49 HST 2002
 	remove slang_c.c (useless leftover that wasn't compiled)
 	configure.ac: make location of timidity/ dir configurable, etc.

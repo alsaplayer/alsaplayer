@@ -1,0 +1,258 @@
+
+bank 0	standard
+#	  0 "Piano 1"
+	  0 patch/sologrnd
+#	  1 "Piano 2"
+	  1 patch/sologrnd
+#	  2 "Piano 3"
+	  2 patch/sologrnd
+#	  3 "Honky-tonk"
+	  3 patch/sologrnd strip=tail
+#	  4 "E.Piano 1"
+	  4 patch/sologrnd
+#	  5 "E.Piano 2"
+	  5 patch/sologrnd
+#	  6 "Harpsichord"
+	  6 patch/sologrnd strip=tail
+#	  7 "Clavinet"
+	  7 patch/sologrnd
+#	  8 "Celesta"
+	  8 patch/sologrnd strip=env
+#	  9 "Glockenspiel"
+	  9 patch/sologrnd strip=loop
+#	 10 "Music Box"
+	 10 patch/sologrnd
+#	 11 "Vibraphone"
+	 11 patch/sologrnd
+#	 12 "Marimba"
+	 12 patch/sologrnd strip=loop
+#	 13 "Xylophone"
+	 13 patch/sologrnd strip=loop
+#	 14 "Tubular-bell"
+	 14 patch/sologrnd strip=env
+#	 15 "Santur"
+	 15 patch/sologrnd
+#	 16 "Organ 1"
+	 16 patch/sologrnd
+#	 17 "Organ 2"
+	 17 patch/sologrnd
+#	 18 "Organ 3"
+	 18 patch/sologrnd
+#	 19 "Church Organ 1"
+	 19 patch/sologrnd
+#	 20 "Reed Organ"
+	 20 patch/sologrnd
+#	 21 "Accordion Fr"
+	 21 patch/sologrnd
+#	 22 "Harmonica"
+	 22 patch/sologrnd
+#	 23 "Bandoneon"
+	 23 patch/sologrnd
+#	 24 "Nylon-str. Guitar"
+	 24 patch/nylongt2
+#	 25 "Steel-str. Guitar"
+	 25 patch/nylongt2
+#	 26 "Jazz Guitar"
+	 26 patch/nylongt2
+#	 27 "Clean Guitar"
+	 27 patch/nylongt2 strip=tail
+#	 28 "Muted Guitar"
+	 28 patch/nylongt2 strip=loop
+#	 29 "Overdrive Guitar"
+	 29 patch/nylongt2
+#	 30 "Distortion Guitar"
+	 30 patch/nylongt2
+#	 31 "Guitar Harmonics"
+	 31 patch/nylongt2
+#	 32 "Acoustic Bass"
+	 32 patch/acbass
+#	 33 "Fingered Bass"
+	 33 patch/acbass
+#	 34 "Picked Bass"
+	 34 patch/acbass strip=loop
+#	 35 "Fretless Bass"
+	 35 patch/acbass
+#	 36 "Slap Bass 1"
+	 36 patch/acbass strip=loop
+#	 37 "Slap Bass 2"
+	 37 patch/acbass strip=loop
+#	 38 "Synth Bass 1"
+	 38 patch/acbass
+#	 39 "Synth Bass 2"
+	 39 patch/acbass
+#	 40 "Violin"
+	 40 patch/nylongt2 strip=env
+#	 41 "Viola"
+	 41 patch/nylongt2 strip=env
+#	 42 "Cello"
+	 42 patch/nylongt2 strip=env
+#	 43 "Contrabass"
+	 43 patch/acbass strip=env
+#	 44 "Tremolo Strings"
+	 44 patch/nylongt2 strip=env
+#	 45 "Pizzicato Strings"
+	 45 patch/nylongt2 strip=loop
+#	 46 "Harp"
+	 46 patch/nylongt2 strip=tail
+#	 47 "Timpani"
+	 47 patch/sologrnd strip=env
+#	 48 "Strings"
+	 48 patch/nylongt2 strip=env
+#	 49 "Slow Strings"
+	 49 patch/nylongt2 strip=env
+#	 50 "Synth Strings 1"
+	 50 patch/nylongt2 strip=env
+#	 51 "Synth Strings 2"
+	 51 patch/nylongt2 strip=env
+#	 52 "Choir Aahs"
+	 52 patch/sologrnd
+#	 53 "Voice Oohs"
+	 53 patch/sologrnd
+#	 54 "Synth Vox"
+	 54 patch/sologrnd
+#	 55 "Orchestra Hit"
+	 55 patch/sologrnd
+#	 56 "Trumpet"
+	 56 patch/sologrnd
+#	 57 "Trombone"
+	 57 patch/sologrnd
+#	 58 "Tuba"
+	 58 patch/sologrnd
+#	 59 "Muted Trumped"
+	 59 patch/sologrnd
+#	 60 "French Horn"
+	 60 patch/sologrnd
+#	 61 "Brass 1"
+	 61 patch/sologrnd
+#	 62 "Synth Brass 1"
+	 62 patch/sologrnd
+#	 63 "Synth Brass 2"
+	 63 patch/sologrnd
+#	 64 "Soprano Sax"
+	 64 patch/sologrnd
+#	 65 "Alto Sax"
+	 65 patch/sologrnd
+#	 66 "Tenor Sax"
+	 66 patch/sologrnd
+#	 67 "Baritone Sax"
+	 67 patch/sologrnd
+#	 68 "Oboe"
+	 68 patch/sologrnd
+#	 69 "English Horn"
+	 69 patch/sologrnd
+#	 70 "Bassoon"
+	 70 patch/sologrnd
+#	 71 "Clarinet"
+	 71 patch/sologrnd
+#	 72 "Piccolo"
+	 72 patch/sologrnd
+#	 73 "Flute"
+	 73 patch/sologrnd
+#	 74 "Recorder"
+	 74 patch/sologrnd
+#	 75 "Pan Flute"
+	 75 patch/sologrnd
+#	 76 "Bottle Blow"
+	 76 patch/sologrnd
+#	 77 "Shakuhachi"
+	 77 patch/sologrnd
+#	 78 "Whistle"
+	 78 patch/sologrnd
+#	 79 "Ocarina"
+	 79 patch/sologrnd
+#	 80 "Square Wave"
+	 80 patch/sologrnd
+#	 81 "Saw Wave"
+	 81 patch/sologrnd
+#	 82 "Synth Calliope"
+	 82 patch/sologrnd
+#	 83 "Chiffer Lead"
+	 83 patch/sologrnd
+#	 84 "Charang"
+	 84 patch/sologrnd
+#	 85 "Solo Vox"
+	 85 patch/sologrnd
+#	 86 "5th Saw Wave"
+	 86 patch/sologrnd
+#	 87 "Bass & Lead"
+	 87 patch/sologrnd
+#	 88 "Fantasia"
+	 88 patch/sologrnd
+#	 89 "Warm Pad"
+	 89 patch/sologrnd
+#	 90 "Polysynth"
+	 90 patch/sologrnd
+#	 91 "Space Voice"
+	 91 patch/sologrnd
+#	 92 "Bowed Glass"
+	 92 patch/sologrnd
+#	 93 "Metal Pad"
+	 93 patch/sologrnd
+#	 94 "Halo Pad"
+	 94 patch/sologrnd
+#	 95 "Sweep Pad"
+	 95 patch/sologrnd
+#	 96 "Ice Rain"
+	 96 patch/sologrnd
+#	 97 "Soundtrack"
+	 97 patch/sologrnd
+#	 98 "Crystal"
+	 98 patch/sologrnd
+#	 99 "Atmosphere"
+	 99 patch/sologrnd
+#	100 "Brightness"
+	100 patch/sologrnd
+#	101 "Goblin"
+	101 patch/sologrnd
+#	102 "Echo Drops"
+	102 patch/sologrnd
+#	103 "Star Theme"
+	103 patch/nylongt2
+#	104 "Sitar"
+	104 patch/nylongt2
+#	105 "Banjo"
+	105 patch/nylongt2
+#	106 "Shamisen"
+	106 patch/nylongt2
+#	107 "Koto"
+	107 patch/nylongt2
+#	108 "Kalimba"
+	108 patch/nylongt2
+#	109 "Bagpipe"
+	109 patch/sologrnd
+#	110 "Fiddle"
+	110 patch/sologrnd strip=env
+#	111 "Shanai"
+	111 patch/sologrnd
+#	112 "Tinkle Bell"
+	112 patch/sologrnd
+#	113 "Agogo"
+	113 patch/sologrnd
+#	114 "Steel Drums"
+	114 patch/sologrnd
+#	115 "Woodblock"
+	115 patch/sologrnd strip=loop
+#	116 "Taiko"
+	116 patch/sologrnd strip=loop
+#	117 "Melodic Tom 1"
+	117 patch/sologrnd strip=loop
+#	118 "Synth Drum"
+	118 patch/sologrnd strip=loop
+#	119 "Reverse Cymbal"
+	119 patch/sologrnd strip=loop
+#	120 "Guitar Fret Noise"
+	120 patch/sologrnd
+#	121 "Breath Noise"
+	121 patch/sologrnd
+#	122 "Seashore" strip=loop
+	122 patch/sologrnd
+#	123 "Bird"
+	123 patch/sologrnd
+#	124 "Telephone 1"
+	124 patch/sologrnd
+#	125 "Helicopter" strip=loop
+	125 patch/sologrnd
+#	126 "Applause" strip=env
+	126 patch/sologrnd
+#	127 "Gun Shot" strip=env
+	127 patch/sologrnd

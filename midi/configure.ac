@@ -102,6 +102,8 @@ AC_SUBST(MIDI_VERSION)
 
 AC_OUTPUT([
 Makefile
+timidity/Makefile
+timidity/patch/Makefile
 ])
 echo
 echo Now type \'make\' to build the MIDI input plugin.

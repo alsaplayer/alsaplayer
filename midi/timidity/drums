@@ -1,0 +1,29 @@
+	33 patch/cymride1
+	34 patch/cymride1 strip=loop
+	35 patch/kick1
+	36 patch/kick2
+	37 patch/hihatcl strip=tail
+	38 patch/hihatcl strip=env
+	39 patch/cymride1 strip=env
+	40 patch/cymride1 strip=env
+	41 patch/kick2 strip=tail
+	42 patch/hihatcl
+	43 patch/kick1
+	44 patch/hihatcl
+	45 patch/kick1
+	46 patch/hihatcl
+	47 patch/kick1
+	48 patch/kick2
+	49 patch/cymride1 strip=env
+	50 patch/kick1
+	51 patch/cymride1
+	52 patch/cymride1
+	53 patch/cymride1 strip=env
+	54 patch/hihatcl
+	55 patch/cymride1 strip=env
+	56 patch/cymride1 strip=loop
+	60 patch/kick2
+	61 patch/kick1
+	62 patch/kick2
+	63 patch/kick1
+	64 patch/kick1

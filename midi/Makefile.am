@@ -1,5 +1,5 @@
 
-#SUBDIRS = timidity
+SUBDIRS = timidity
 
 midi_inltlibs = libmidi_in.la
 midi_inldflags = -export-dynamic -avoid-version

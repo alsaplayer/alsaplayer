@@ -2,9 +2,8 @@
 
 This is a midi input plugin for alsaplayer.  Compile and install it
 in alsaplayer's input/ plugin directory, then you can play midi files.
-You can, that is, if you happen to have a timidity/ patch directory
-on your system.  The plugin won't play without patches.  I'll be
-uploading some pretty soon.
+The patches I've include don't sound like much.  I haven't figured
+out whether I should include a real soundfont with the distribution.
 
 
 				--Greg Lee, greg@ling.lll.hawaii.edu
