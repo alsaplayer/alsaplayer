@@ -35,6 +35,7 @@
 #include "controls.h"
 #include "tables.h"
 #include "version.h"
+#include "sbk.h"
 
 #include <sys/stat.h>
 
@@ -295,11 +296,7 @@ static char prefs_path[1024];
 static char *get_homedir()
 {
 	char *homedir = NULL;
-
-	if ((homedir = getenv("HOME")) == NULL) {
-		homedir = strdup("/tmp");
-	}
-
+	homedir = getenv("HOME");
 	return homedir;
 }
 #endif
@@ -309,6 +306,10 @@ static void init_midi()
 	if (got_a_configuration) return;
 #ifdef PLUGDEBUG
 	fprintf(stderr,"init_midi\n");
+#endif
+
+#ifdef HOME_CONFIGURE
+	autocfg();
 #endif
 
 #ifdef DO_PREFS
@@ -322,18 +323,13 @@ static void init_midi()
 #endif
 
 #ifdef HOME_CONFIGURE
-	homedir = get_homedir();
-	sprintf(prefs_path, "%s/.alsaplayer", homedir);
-  	add_to_pathlist(prefs_path, 0);
+	if (homedir = get_homedir()) {
+		sprintf(prefs_path, "%s/.alsaplayer", homedir);
+  		add_to_pathlist(prefs_path, 0);
+	}
 #endif
 
-/* if I try to prescan and there are "timidity.cfg" files
- * in both the config dir and in ~/.alsaplayer, the second
- * real scan, below, opens the wrong one -- in the config
- * dir.  I don't know why.
- */
-  /*read_config_file("timidity.cfg", 1);*/
-  read_config_file("timidity.cfg", 0);
+  read_config_file("timidity.cfg", 1);
   if (output_rate) play_mode->rate=output_rate;
   if (output_name)
 	 {
@@ -469,7 +465,7 @@ fprintf(stderr,"midi_play_frame to %x\n", buf);
 
 	if (!data->is_playing) return 0;
 
-	if (bbcount < output_fragsize || (!flushing_output_device && bbcount < 3 * output_fragsize)) {
+	if (bbcount < output_fragsize /*|| (!flushing_output_device && bbcount < 3 * output_fragsize)*/) {
 #ifdef PLUGDEBUG
 		fprintf(stderr,"bbcount of %d < fragsize %d: ", bbcount, output_fragsize);
 #endif
