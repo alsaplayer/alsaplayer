@@ -250,7 +250,7 @@ void socket_looper(void *arg)
 					player->GetStreamInfo(&info);
 					pkt.payload_length = strlen(info.artist);
 					write (fd, &pkt, sizeof(ap_pkt_t));
-					write(fd, info.title, sizeof(info.artist));
+					write(fd, info.artist, sizeof(info.artist));
 				} else {
 					pkt.result = 0;
 					write (fd, &pkt, sizeof(ap_pkt_t));
@@ -262,7 +262,7 @@ void socket_looper(void *arg)
 					player->GetStreamInfo(&info);
 					pkt.payload_length = strlen(info.album);
 					write (fd, &pkt, sizeof(ap_pkt_t));
-					write(fd, info.title, sizeof(info.album));
+					write(fd, info.album, sizeof(info.album));
 				} else {
 					pkt.result = 0;
 					write (fd, &pkt, sizeof(ap_pkt_t));
@@ -274,7 +274,7 @@ void socket_looper(void *arg)
 					player->GetStreamInfo(&info);
 					pkt.payload_length = strlen(info.genre);
 					write (fd, &pkt, sizeof(ap_pkt_t));
-					write(fd, info.title, sizeof(info.genre));
+					write(fd, info.genre, sizeof(info.genre));
 				} else {
 					pkt.result = 0;
 					write (fd, &pkt, sizeof(ap_pkt_t));
