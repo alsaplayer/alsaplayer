@@ -1,3 +1,5 @@
+- Include prefs_free() call, should have been in the previous version
+- Force control socket to be read/write for the owner only
 - Fix crashing bug when old visual scopes were present.
 - Stop the mikmod plugin from crashing. This plugin was not 
   reentrant, and it still isn't, not until libmikmod becomes reentrant :(

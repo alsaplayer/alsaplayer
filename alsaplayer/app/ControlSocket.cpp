@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/un.h>
@@ -83,6 +84,7 @@ void socket_looper(void *arg)
 			sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ? 
 					"anonymous" : pwd->pw_name, session_id);
 			if (bind(socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
+				chmod(saddr.sun_path, 00600); // Force permission
 				listen(socket_fd, 100);
 				session_ok = 1;
 			} else {
