@@ -10,6 +10,7 @@ configure
 libtool
 missing
 stamp-h
+stamp-h1
 aclocal.m4
 acinclude.m4
 alsaplayer-config
