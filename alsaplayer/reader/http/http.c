@@ -107,7 +107,7 @@ static int parse_uri (const char *uri, char **host, int *port, char **path)
 	
 	/* Test, port should be digit */
 	if ((slash && s!=slash) || (!slash && *s!='\0')) {
-	    alsaplayer_error ("HTTP: Couldn't open %s: Port parse error.", uri);
+	    alsaplayer_error ("\nHTTP: Couldn't open %s: Port -- parse error.", uri);
 	    return -1;
 	}
 
@@ -406,7 +406,6 @@ static int reconnect (http_desc_t *desc, char *redirect)
         desc->seekable = 1;
     } else if (!strncmp (response, "ICY 200 OK", 10)) {
     	desc->seekable = 0;
-	/* alsaplayer_error("ICY server"); */
 	rc = 200;
     } else {	    
 	alsaplayer_error ("HTTP: Wrong server protocol for http://%s:%u%s",
@@ -461,7 +460,6 @@ static int reconnect (http_desc_t *desc, char *redirect)
     s = strstr (response, "\r\nicy-metaint:");
     if (s) {
 	desc->icy_metaint = atoi(s+14);
-        alsaplayer_error("icy-metaint = %d", desc->icy_metaint);
     } else {
     	desc->icy_metaint = 0;
     }	
@@ -472,11 +470,12 @@ static int reconnect (http_desc_t *desc, char *redirect)
     pthread_create (&desc->thread, NULL, (void* (*)(void *)) buffer_thread, desc);
 
     /* Prebuffer if this is stream */
+#if 1
     if (!desc->seekable) {
 	alsaplayer_error("Prebuffering...");    
-        dosleep (4000000);
+        //dosleep (3000000);
     }
-    
+#endif
     return 0;
 } /* end of: reconnect */
 
