@@ -145,7 +145,7 @@ int interface_gtk_start(CorePlayer *coreplayer, Playlist *playlist, int argc, ch
 	
 	// Scope functions
 	scopes = new AlsaSubscriber();
-	scopes->Subscribe(coreplayer->GetNode());
+	scopes->Subscribe(coreplayer->GetNode(), POS_END);
 	scopes->EnterStream(scope_feeder_func, coreplayer);
 	
 	gtk_set_locale();
