@@ -31,14 +31,14 @@ static int esound_socket = -1;
 
 static int esound_init()
 {
-	char *host = (const char *)NULL;
-	char *name = (const char *)NULL;
+	char *host = NULL;
+	char *name = NULL;
+	esd_format_t format = ESD_BITS16 | ESD_STEREO | ESD_STREAM | ESD_PLAY;
+	int rate = 44100;
 
 	if (global_session_name) {
 		name = global_session_name; 
 	}
-	esd_format_t format = ESD_BITS16 | ESD_STEREO | ESD_STREAM | ESD_PLAY;
-	int rate = 44100;
 #if 0            
 	printf("ESD: loading libesd.so\n");
 	void *handle = dlopen("libesd.so", RTLD_LAZY);
@@ -68,7 +68,7 @@ static int esound_init()
 	return 1;
 }
 
-static int esound_open(int card, int device)
+static int esound_open(char *path)
 {
 	if (esound_socket >= 0) 
 		return 1;
