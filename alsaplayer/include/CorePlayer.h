@@ -60,7 +60,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	float pitch;
 	float pitch_multi;
 	bool producing;
-	int master_volume;
+	int volume;
 	int pan;
 	AlsaNode *node;
 	AlsaSubscriber *sub;
@@ -83,7 +83,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	virtual void update_pitch();
 	virtual bool Open();
 	virtual void Close();
- 	static void producer_func(void *data);
+	static void producer_func(void *data);
 	static bool streamer_func(void *, void *, int);
 	virtual int pcm_worker(sample_buf *dest, int start, int lin=0);
 	virtual int Read32(void *, int);
@@ -97,18 +97,25 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	~CorePlayer();
 	AlsaNode *GetNode() { return node; }
 	int RegisterPlugin(input_plugin *the_plugin);
-	virtual int SetSpeed(float val);
-	virtual float GetSpeed();
-	virtual int GetMasterVolume() { return master_volume; }
-	virtual void SetMasterVolume(int vol) { master_volume = vol; }
-	virtual int GetPan() { return pan; }
-	virtual void SetPan(int p) { pan = p; }
-	virtual void SetFile(const char *path);
-	virtual int GetPosition();
+	virtual int GetPosition();				// Current position in frames
+	virtual int SetSpeed(float val);	// Set the playback speed: 1.0 = 100%
+	virtual float GetSpeed();					// Get speed
+	virtual int GetVolume() { return volume; }				// Get Volume level
+	virtual void SetVolume(int vol) { volume = vol; }	// Set volume level
+	virtual int GetPan() { return pan; }	// Get Pan level
+	
+	virtual void SetPan(int p) { pan = p; }	// Set Pan level: 
+																					// 0		= center
+																					// -100	= right channel muted
+																					// 100  = left channel muted
+	
+	virtual void SetFile(const char *path);	// Set path to file
 	virtual unsigned long GetCurrentTime(int frame=-1);
-	virtual int GetStreamInfo(stream_info *info);
-	virtual int GetFrames();
-	virtual int GetSampleRate();
+																		// Returns the time position of frame in
+																		// hundreths of seconds
+	virtual int GetStreamInfo(stream_info *info); // Return stream info
+	virtual int GetFrames();					// Total number of frames
+	virtual int GetSampleRate();			// Samplerat of this player
 	input_plugin * GetPlayer(const char *);
 	// This one is temporary
 	virtual int GetLatency() { if (node) return node->GetLatency(); else return 0; }
