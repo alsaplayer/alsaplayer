@@ -1,4 +1,4 @@
-/* convolve.h: Header for convolutions.
+/* alsaplayer_convolve.h: Header for convolutions.
  *
  *  Copyright (C) 1999 Ralph Loader <suckfish@ihug.co.nz>
  *

@@ -32,7 +32,7 @@
 #include <assert.h>
 #include "scope_config.h"
 #include "prefs.h"
-#include "convolve.h"
+#include "alsaplayer_convolve.h"
 #include "alsaplayer_error.h"
 
 short newEq[CONVOLVE_BIG];	/* latest block of 512 samples. */

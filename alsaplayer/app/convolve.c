@@ -56,7 +56,7 @@
  * 2^{n+1} output." */
 
 #include <stdlib.h>
-#include "convolve.h"
+#include "alsaplayer_convolve.h"
 
 typedef union stack_entry_s {
 		struct {const double * left, * right; double * out;} v;
