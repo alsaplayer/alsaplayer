@@ -48,6 +48,9 @@ class PlaylistInterface
 		// Current position changed
 		virtual void CbSetCurrent(unsigned pos) = 0;
 
+		virtual void CbLock() = 0;	// If locking needs to be don
+		virtual void CbUnlock() = 0;	
+		
 		// Some items were inserted
 		// Note: pos is the position to insert at
 		// So - pos == 0  means insert items at beginning
@@ -71,13 +74,16 @@ friend void insert_thread(void *);
 private:
    // Mutex to stop moving onto next song while we're modifying the playlist
 	pthread_mutex_t playlist_mutex;
-
+	
 	// Thread which starts new song when previous one finishes
 	// -- would be nice to get rid of this eventually...
 	// (perhaps by setting a callback on the player to be called
 	// when the song finishes)
 	pthread_t playlist_thread;
 
+	// Added thread
+	pthread_t adder;
+	
 	// Flags used by thread to exit neatly
 	bool active;    // True until set to false by destructor
 	bool paused;	// Playlist is paused
@@ -108,8 +114,8 @@ public:
 	// Position 1 is first item, n is last item where n is length of list
 	virtual void Play(unsigned);
 
-	virtual void Next();    // Start playing next item in playlist
-	virtual void Prev();    // Start playing previous item in playlist
+	virtual void Next(int locking=0);    // Start playing next item in playlist
+	virtual void Prev(int locking=0);    // Start playing previous item in playlist
 	virtual int GetCurrent() { return curritem; } // Return current item
 	
 	// Insert items at position - 0 = beginning, 1 = after first item, etc
