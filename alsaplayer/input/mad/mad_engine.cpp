@@ -141,6 +141,7 @@ static int mad_frame_seek(input_object *obj, int frame)
 				int bytes_read;
 				int advance;
 				int num_bytes;
+				int skip;
 				ssize_t byte_offset;
 				
 				if (!obj)
@@ -157,7 +158,7 @@ static int mad_frame_seek(input_object *obj, int frame)
 								mad_header_init(&header);
 
 								if (frame <= data->highest_frame) {
-												int skip = 0;
+												skip = 0;
 												if (frame > 4) {
 																skip = 3;
 												}
@@ -197,6 +198,19 @@ static int mad_frame_seek(input_object *obj, int frame)
 																			data->stream.this_frame - data->mad_map;
 								}
 								data->current_frame = data->highest_frame;
+								if (data->current_frame > 4) {
+										skip = 3;
+										byte_offset = data->frames[data->current_frame-skip];
+										mad_stream_buffer(&data->stream, data->mad_map +
+											byte_offset, data->stat.st_size - byte_offset);
+											skip++;
+											while (skip != 0) { 
+													skip--;
+													mad_frame_decode(&data->frame, &data->stream);
+													if (skip == 0) 
+														mad_synth_frame (&data->synth, &data->frame);
+											}
+								}			
 								return data->current_frame;
 				}
 				return 0;
