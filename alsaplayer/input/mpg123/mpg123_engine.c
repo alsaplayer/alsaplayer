@@ -385,7 +385,7 @@ static float mpeg_can_handle(const char *name)
 	if (!strcasecmp(ext, "mp3") ||
 		!strcasecmp(ext, "mp2") ||
 		strstr(name, "http://")) {
-			return 1.0;
+			return 0.8;
 	} else {
 			return 0.0;
 	}
