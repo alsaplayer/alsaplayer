@@ -349,7 +349,8 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 	
 	/* Remember this plugin - it's the one we're going to use. */
 	plugin = tmp;
-	if (!tmp->init() || !tmp->open(driver_args)) {
+	if (!plugin->init() || !plugin->open(driver_args)) {
+		alsaplayer_error("Failed to initialize plugin!");
 		plugin = NULL;
 		return 0; // Unclean but good enough for now
 	}
@@ -379,7 +380,7 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 	
 	init = true;
 	if (global_verbose)
-		fprintf(stdout, "Output plugin: %s\n", tmp->name);
+		fprintf(stdout, "Output plugin: %s\n", plugin->name);
 	return 1;
 }
 
