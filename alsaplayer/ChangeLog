@@ -1,8 +1,11 @@
-Sat Apr 19 12:53:53 CEST 2003
+Thu Apr 24 01:16:41 CEST 2003
 -----------------------------
+* Fix XING header parsing
 * Basic start/stop transport control support in JACK plugin
 * Playlist is set to looping by default
 * Add --pause parameter to pause/unpause a running player
+* Add --status parameter to dump some info about a session
+* Add --quit parameter to quit a session
 * Added support for ALSA's dmix device. Improved the alsa plugin.
 * Fixed a pretty silly bug in AlsaNode which caused crashing when adding
   multiple subscribers.
