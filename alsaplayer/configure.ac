@@ -4,7 +4,7 @@ AC_INIT(app/CorePlayer.cpp)
 
 ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
-ALSAPLAYER_MICRO_VERSION=75
+ALSAPLAYER_MICRO_VERSION=76
 
 BETA=
 
@@ -295,7 +295,7 @@ AM_CONDITIONAL(HAVE_AUDIOFILE,test "x$have_audiofile" = xyes)
 dnl ==========
 dnl JACK stuff
 dnl ==========
-PKG_CHECK_MODULES(JACK, jack >= 0.50.0, have_jack=yes, have_jack=no)
+PKG_CHECK_MODULES(JACK, jack >= 0.61.0, have_jack=yes, have_jack=no)
 AC_SUBST(JACK_LIBS)
 AC_SUBST(JACK_CFLAGS)
 
