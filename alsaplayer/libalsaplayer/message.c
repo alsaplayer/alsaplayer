@@ -680,7 +680,7 @@ int ap_ping(int session)
 	int32_t *pong;
 	int32_t ret_val;
 	ap_message_t *msg, *reply;
-	
+
 	fd = ap_connect_session(session);
 	if (fd < 0)
 		return 0;
