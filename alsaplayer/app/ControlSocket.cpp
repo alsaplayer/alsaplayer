@@ -302,8 +302,8 @@ void socket_looper(void *arg)
 					playlist->UnPause();
 				} else {
 					pkt.result = 0;
-					write (fd, &pkt, sizeof(ap_pkt_t));
 				}	
+				write (fd, &pkt, sizeof(ap_pkt_t));
 				break;
 			case AP_GET_INT_POS_SECOND:
 				player = playlist->GetCorePlayer();
@@ -328,8 +328,8 @@ void socket_looper(void *arg)
 					player->Seek(int_val);
 				} else {
 					pkt.result = 0;
-					write (fd, &pkt, sizeof(ap_pkt_t));
 				}	
+				write (fd, &pkt, sizeof(ap_pkt_t));
 				break;
 			case AP_GET_INT_SONG_LENGTH_SECOND:
 				player = playlist->GetCorePlayer();

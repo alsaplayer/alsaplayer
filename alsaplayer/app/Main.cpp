@@ -501,16 +501,16 @@ int main(int argc, char **argv)
 
 		if (use_session == 0) {
 			for (; use_session < 32; use_session++) {
-				if (ap_session_running(use_session)) {
-					ap_result = 0;
+				ap_result = ap_session_running(use_session);
+
+				if (ap_result)
 					break;
-				}
-				ap_result = -1;
 			}
 		}
 		count = optind;
-		while (count < argc && ap_result == 0) {
-			if (argv[count][0] != '/') {	// Not absolute so append cwd
+		while (count < argc && ap_result) {
+			if (argv[count][0] != '/') {
+				// Not absolute so append cwd
 				if (getcwd(queue_name, 1024) == NULL) {
 					alsaplayer_error
 						("error getting cwd\n");
@@ -521,13 +521,11 @@ int main(int argc, char **argv)
 			} else
 				strcpy(queue_name, argv[count]);
 			count++;
-			if (ap_set_string
-					(use_session, AP_SET_STRING_ADD_FILE,
-					 queue_name) == -1) {
-				ap_result = -1;
-			}
+			ap_result = ap_set_string(use_session,
+				AP_SET_STRING_ADD_FILE, queue_name);
+			alsaplayer_error("ap_result = %d", ap_result);	
 		}
-		if (ap_result != -1)
+		if (ap_result)
 			return 0;
 	}
 
