@@ -23,7 +23,8 @@ flac_inid3sources = FlacId3v1Tag.cpp
 endif
 
 EXTRA_DIST = FlacEngine.cpp FlacPlugin.cpp FlacFile.cpp FlacTag.cpp \
-	     FlacId3v1Tag.cpp FlacId3tagTag.cpp
+	     FlacId3v1Tag.cpp FlacId3tagTag.cpp FlacEngine.h FlacFile.h \
+	     FlacId3Tag.h FlacTag.h
 
 lib_LTLIBRARIES = $(flac_inltlibs)
 
