@@ -118,6 +118,7 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 	char *home;
 	stream_info info;
 	stream_info old_info;
+	bool streamInfoRequested;
 
 	memset(&info, 0, sizeof(stream_info));
 	memset(&old_info, 0, sizeof(stream_info));
@@ -148,20 +149,24 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 			 playlist->GetCurrent() != playlist->Length())) {
 		unsigned long secs, t_min, t_sec, c_min, c_sec;
 		t_min = t_sec = c_min = c_sec = 0;
+		streamInfoRequested = false;
 
 		// single title loop
 		//
 		while (going && (coreplayer->IsActive() || coreplayer->IsPlaying())) {
 			int cur_val, block_val, i;
-			coreplayer->GetStreamInfo(&info);
-			if (*info.title && strcmp(info.title, old_info.title) != 0) {
-				if (*info.artist)
-					fprintf(stdout, "\nPlaying: %s - %s\n", info.artist, info.title);
-				else if (*info.title)
-					fprintf(stdout, "\nPlaying: %s\n", info.title);
-				else
-					fprintf(stdout, "\nPlaying: (no information available)\n");
-				memcpy(&old_info, &info, sizeof(stream_info));
+			if (!streamInfoRequested) {
+				coreplayer->GetStreamInfo(&info);
+				if (*info.title && strcmp(info.title, old_info.title) != 0) {
+					if (*info.artist)
+						fprintf(stdout, "\nPlaying: %s - %s\n", info.artist, info.title);
+					else if (*info.title)
+						fprintf(stdout, "\nPlaying: %s\n", info.title);
+					else
+						fprintf(stdout, "\nPlaying: (no information available)\n");
+					memcpy(&old_info, &info, sizeof(stream_info));
+				}
+				streamInfoRequested = true;
 			}
 
 			if (global_quiet) {
