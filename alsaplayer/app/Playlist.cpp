@@ -498,6 +498,8 @@ void Playlist::SetCurrent(unsigned pos)
 
 // Remove tracks from position start to end inclusive
 void Playlist::Remove(unsigned start, unsigned end) {
+	bool restart = 0;
+    
 	std::set<PlaylistInterface *>::const_iterator i;
 	std::set<playlist_interface *>::const_iterator j;
 
@@ -516,31 +518,39 @@ void Playlist::Remove(unsigned start, unsigned end) {
 
 	queue.erase(queue.begin() + start - 1, queue.begin() + end);
 
-	if(curritem > start) {
+	if (curritem >= start) {
 		if(curritem > end) {
 			curritem -= (end + 1 - start);
 		} else {
 			curritem = start;
+			restart = 1;
 		}
 	} else if (queue.size() == 0) {
 		curritem = 0;
+		restart = 1;
 	}	
 
 	// Tell the subscribing interfaces about the change
-	if(interfaces.size() > 0) {
+	if (interfaces.size() > 0) {
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
 			(*i)->CbRemove(start, end);
-			(*i)->CbSetCurrent(curritem);
+			if (!restart)  (*i)->CbSetCurrent(curritem);
 		}
 	}
-	if(cinterfaces.size() > 0) {
+	if (cinterfaces.size() > 0) {
 		for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
 			(*j)->cbremove((*j)->data, start, end);
-			(*j)->cbsetcurrent((*j)->data, curritem);
+			if (!restart)  (*j)->cbsetcurrent((*j)->data, curritem);
 		}
 	}
 	
 	Unlock();
+
+	if (restart && curritem == 0) {
+	    Stop ();
+	} else if (restart) {
+	    Play (curritem);
+	}
 }
 
 
