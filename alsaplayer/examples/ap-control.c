@@ -69,14 +69,16 @@ int main(int argc, char *argv[])
 		}
 		if (ap_get_playlist(0, &items, &playlist)) {
 			printf("Found %d items on playlist\n", items);
-			for (c = 0; c < items; c++) {
-				printf("%d. %s\n", c+1, playlist[c]);
+			if (items) {
+				for (c = 0; c < items; c++) {
+					printf("%d. %s\n", c+1, playlist[c]);
+				}
+				// Memory cleanup
+				for (c = 0; c < items; c++) {
+					free(playlist[c]);
+				}
+				free(playlist);
 			}
-			// Memory cleanup
-			for (c = 0; c < items; c++) {
-				free(playlist[c]);
-			}
-			free(playlist);
 		}	
 		return 0;
 
