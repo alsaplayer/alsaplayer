@@ -238,9 +238,12 @@ void CorePlayer::UnregisterPlugins()
 	pthread_mutex_lock(&player_mutex);
 	for (int i = 0; i < plugin_count; i++) {
 		tmp = &plugins[i];
-		printf("Unregistering Input plugin: %s\n", tmp->name); 
-		if (tmp->handle)
+		fprintf(stdout, "Unloading Input plugin: %s\n", tmp->name); 
+		if (tmp->handle) {
 			dlclose(tmp->handle);
+			tmp->handle = NULL;
+			tmp = NULL;
+		}	
 	}		
 	pthread_mutex_unlock(&player_mutex);
 }
@@ -283,7 +286,7 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	if (plugin_count == 1) { // First so assign plugin
 		plugin = tmp;
 	}
-	fprintf(stdout, "Input plugin: %s\n", tmp->name);
+	fprintf(stdout, "Loading Input plugin: %s\n", tmp->name);
 	pthread_mutex_unlock(&player_mutex);
 	return 1;
 }
