@@ -50,21 +50,23 @@ extern void playlist_looper(void *data)
 	if(!pl) return;
 	
 	while(pl->active) {
-		if (!(coreplayer = (CorePlayer *)(pl->coreplayer)))
-			return;
-		if (!coreplayer->IsActive()) {
-			if (!pl->Paused() && pl->Length()) {
-				pl->Next(1);
-			}	
-		}
-		// Cross example
-		if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < 110) {
-				if (pl->player1->IsActive())
-						pl->coreplayer = pl->player2;
-				else
-						pl->coreplayer = pl->player1;
-				pl->Next(1);
-		}		
+		if (!pl->Paused()) {
+			if (!(coreplayer = (CorePlayer *)(pl->coreplayer)))
+				return;
+			if (!coreplayer->IsActive()) {
+				if (pl->Length()) {
+					pl->Next(1);
+				}	
+			}
+			// Cross example
+			if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < 110) {
+					if (pl->player1->IsActive())
+							pl->coreplayer = pl->player2;
+					else
+							pl->coreplayer = pl->player1;
+					pl->Next(1);
+			}
+		}	
 		dosleep(100000);
 	}
 }
@@ -592,7 +594,10 @@ void Playlist::Stop() {
 #ifdef DEBUG
 	printf("Playlist::Stop()\n");
 #endif /* DEBUG */
-	coreplayer->Stop();
+	Pause();
+	player1->Stop(); // coreplayer->Stop();
+	player2->Stop();
+	
 }
 
 void Playlist::PlayFile(PlayItem const & item) {
@@ -603,6 +608,7 @@ void Playlist::PlayFile(PlayItem const & item) {
 	coreplayer->Stop();
 	coreplayer->SetFile(item.filename.c_str());
 	coreplayer->Start();
+	UnPause();
 }
 
 // Check if we are able to play a given file
