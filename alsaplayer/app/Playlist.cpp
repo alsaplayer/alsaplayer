@@ -52,7 +52,7 @@ extern void playlist_looper(void *data)
 	while(pl->active) {
 		if (!coreplayer->IsActive()) {
 			if (!pl->Paused() && pl->Length())
-				pl->Next();
+				pl->Next(1);
 		}
 		dosleep(50000);
 	}
@@ -124,8 +124,10 @@ void insert_thread(void *data) {
 		std::set<PlaylistInterface *>::const_iterator i;
 		for(i = playlist->interfaces.begin();
 			i != playlist->interfaces.end(); i++) {
+			(*i)->CbLock();
 			(*i)->CbInsert(newitems, items->position);
 			(*i)->CbSetCurrent(playlist->curritem);
+			(*i)->CbUnlock();
 		}
 	}
 
@@ -152,10 +154,13 @@ Playlist::~Playlist() {
 	// but we're going to replace this anyway
 	active = false;
 	pthread_join(playlist_thread, NULL);
+	interfaces.clear();	// Unregister all interfaces
 	pthread_mutex_destroy(&playlist_mutex);
 
 	// FIXME - need to do something to kill off an insert thread, if one is
 	// running - otherwise it might have its playlist torn from underneath it
+	
+	//pthread_destroy(&adder);
 }
 
 // Return number of items in playlist
@@ -189,7 +194,7 @@ void Playlist::Play(unsigned item) {
 }
 
 // Request to move to next item
-void Playlist::Next() {
+void Playlist::Next(int locking) {
 	pthread_mutex_lock(&playlist_mutex);
 	unsigned olditem = curritem;
 	if(queue.size() > 0) {
@@ -207,7 +212,11 @@ void Playlist::Next() {
 		if(interfaces.size() > 0) {
 			std::set<PlaylistInterface *>::const_iterator i;
 			for(i = interfaces.begin(); i != interfaces.end(); i++) {
+				if (locking)
+					(*i)->CbLock();
 				(*i)->CbSetCurrent(curritem);
+				if (locking)
+					(*i)->CbUnlock();
 			}
 		}
 	}
@@ -215,7 +224,7 @@ void Playlist::Next() {
 }
 
 // Request to move to previous item
-void Playlist::Prev() {
+void Playlist::Prev(int locking) {
 	pthread_mutex_lock(&playlist_mutex);
 	unsigned olditem = curritem;
 	if(curritem > queue.size()) {
@@ -236,7 +245,11 @@ void Playlist::Prev() {
 		if(interfaces.size() > 0) {
 			std::set<PlaylistInterface *>::const_iterator i;
 			for(i = interfaces.begin(); i != interfaces.end(); i++) {
+				if (locking)
+					(*i)->CbLock();
 				(*i)->CbSetCurrent(curritem);
+				if (locking)
+					(*i)->CbUnlock();
 			}
 		}
 	}
@@ -263,11 +276,10 @@ void Playlist::Insert(std::vector<std::string> const & paths, unsigned position)
 	// a) block the user interface
 	// b) risk getting caught in a deadlock when we call the interface to
 	//    inform it of the change
-	//pthread_t adder;
-	//pthread_create(&adder, NULL,
-	//			   (void * (*)(void *))insert_thread, (void *)items);
+	pthread_create(&adder, NULL,
+				   (void * (*)(void *))insert_thread, (void *)items);
 
-	insert_thread(items);
+	//insert_thread(items);
 }
 
 // Add some items start them playing
