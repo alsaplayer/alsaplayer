@@ -211,13 +211,12 @@ static int sort_comparator (const PlayItem &a, const PlayItem &b) {
     return 0;
 } /* end of: sort_comparator */
 
-// Since sort_seq varibale is a global variable, it should be locked when it is in use
+// Since sort_seq variable is a global variable, it should be locked when it is in use
 // This variable should be initialized when the program started.
 pthread_mutex_t playlist_sort_seq_mutex;
 
-void info_looper(void *data)
+void info_looper(Playlist *playlist)
 {
-	Playlist *playlist = (Playlist *)data;
 	CorePlayer *myplayer;
 	stream_info info;
 	int t_sec, count;
@@ -235,13 +234,13 @@ void info_looper(void *data)
 	count = 0;
 	while (playlist->active) {
 		playlist->Lock ();
-		
+
 		if (p >= playlist->queue.end()) {
 		    /* Playlist cleared, shrinked or its an end of list */
 		    playlist->Unlock ();
 		    break;
 		}
-		
+
 		if (!(*p).Parsed()) {
 			if (myplayer->Load((*p).filename.c_str())) { // Examine file
 				t_sec = myplayer->GetCurrentTime(myplayer->GetFrames());
@@ -278,7 +277,6 @@ void info_looper(void *data)
 				}
 			}
 			playlist->UnlockInterfaces();
-
 		}
 		p++;
 		count++;
@@ -416,7 +414,7 @@ void insert_looper(void *data) {
 	// TEST
 	if (playlist->active)
 		info_looper(playlist);
-	
+
 	pthread_exit(NULL);
 }
 

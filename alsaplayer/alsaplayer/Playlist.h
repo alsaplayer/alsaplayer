@@ -112,7 +112,7 @@ class Playlist
 {
 	friend void playlist_looper(void *data);
 	friend void insert_looper(void *);
-	friend void info_looper(void *);
+	friend void info_looper(Playlist *);
 	private:
 	CorePlayer *player1;
 	CorePlayer *player2;
