@@ -133,11 +133,11 @@ void prefs_set_string(prefs_handle_t *prefs, char *key, char *val)
 		strncpy(entry->value, val, len+1);
 		
 		/* XXX Need to protect the following with a mutex */	
-		if (prefs->last)
-			prefs->last = entry;
-		else /* First key */
+		if (prefs->last) {
+			prefs->last->next = entry;
+		} else { /* First key */
 			prefs->keys = entry;
-			
+		}	
 		prefs->last = entry;		
 	}		
 }
