@@ -117,6 +117,7 @@ interface_plugin default_plugin =
 	INTERFACE_PLUGIN_VERSION,
 	{ "Default CLI interface v1.0" },
 	{ "Andy Lo A Foe" },
+	NULL,
 	interface_cli_init,
 	interface_cli_start,
 	interface_cli_running,
