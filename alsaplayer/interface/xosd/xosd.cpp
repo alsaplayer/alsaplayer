@@ -198,9 +198,6 @@ int daemon_start(Playlist *playlist, int argc, char **argv)
 			dosleep(1000000);
 		}
 
-		// remove current title from playlist, so we do not loop forever
-//		playlist->Remove(1,1);
-
 		if (!finished)
 			dosleep(1000000);
 	}
