@@ -359,6 +359,7 @@ create_playlist_window (void)
   gtk_clist_set_column_width (GTK_CLIST (playlist), 0, 80);
   gtk_clist_set_column_width (GTK_CLIST (playlist), 1, 80);
   gtk_clist_set_column_width (GTK_CLIST (playlist), 2, 80);
+  gtk_clist_set_selection_mode (GTK_CLIST (playlist), GTK_SELECTION_EXTENDED);
   gtk_clist_column_titles_hide (GTK_CLIST (playlist));
 
   label2 = gtk_label_new ("label2");

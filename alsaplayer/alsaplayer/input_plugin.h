@@ -30,9 +30,12 @@
 #include "SampleBuffer.h"
 #endif
 
-#define	P_SEEK	0x1
-#define P_TRACK	0x2
-#define	P_MULTI	0x4
+#define	P_SEEK		1
+#define P_PERFECTSEEK	2
+#define	P_REENTRANT 	4
+#define P_TRACKS	8
+#define P_FILEBASED	16
+#define P_STREAMBASED	32
 
 /*
  * Format of version number is 0x1000 + version

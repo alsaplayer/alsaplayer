@@ -330,6 +330,7 @@ void playlist_remove(GtkWidget *widget, gpointer data)
 	PlaylistWindowGTK *playlist_window_gtk = (PlaylistWindowGTK *) data;
 	Playlist *playlist = NULL;
 	GtkWidget *list = NULL;
+	GList *next, *start;
 
 	if (playlist_window_gtk) {
 			playlist = playlist_window_gtk->GetPlaylist();
@@ -338,12 +339,22 @@ void playlist_remove(GtkWidget *widget, gpointer data)
 	list = playlist_window_gtk->GetPlaylist_list();	
 	if (playlist && list) {
 		int selected = 0;
-		if (GTK_CLIST(list)->selection) {
-			selected = GPOINTER_TO_INT(GTK_CLIST(list)->selection->data);
-			if (playlist->GetCurrent() == selected+1)
+		next = start = GTK_CLIST(list)->selection;
+		if (next == NULL) { // Nothing was selected
+			return;
+		}	
+		
+		while (next->next != NULL) {
+			next = next->next;
+		}	
+		while (next != start->prev) {
+			selected = GPOINTER_TO_INT(next->data);
+			if (playlist->GetCurrent() == selected+1) {
+				playlist->Stop();
 				playlist->Next();
+			}	
 			playlist->Remove(selected+1, selected+1);
-			
+			next = next->prev;	
 		}
 	}
 }

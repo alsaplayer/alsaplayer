@@ -439,7 +439,7 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 
 	/* If we already have a plugin, close the old one. */
 	if (plugin)  {
-		alsaplayer_error("Closing already opened plugin?!");
+		//alsaplayer_error("Closing already opened plugin?!");
 		plugin->close();
 	}
 	/* Remember this plugin - it's the one we're going to use. */

@@ -272,11 +272,11 @@ static int mad_play_frame(input_object *obj, char *buf)
 		return 0;
 	if (mad_frame_decode(&data->frame, &data->stream) == -1) {
 		if (!MAD_RECOVERABLE(data->stream.error)) {
-			/* printf("MAD error: %s\n", error_str(data->stream.error, data->str)); */
+			/* alsaplayer_error("MAD error: %s", error_str(data->stream.error, data->str)); */
 			mad_frame_mute(&data->frame);
 			return 0;
 		}	else {
-			/* printf("MAD error: %s\n", error_str(data->stream.error, data->str)); */
+			/* alsaplayer_error("MAD error: %s", error_str(data->stream.error, data->str)); */
 		}
 	}
 	data->current_frame++;
@@ -284,9 +284,9 @@ static int mad_play_frame(input_object *obj, char *buf)
 			&& data->seekable) {
 		data->frames[data->current_frame] = 
 			data->stream.this_frame - data->mad_map;
-		if (data->current_frame && 
+		if (data->current_frame > 3 && 
 				(data->frames[data->current_frame] -
-				 data->frames[data->current_frame-1]) < 2) {
+				 data->frames[data->current_frame-3]) < 6) {
 			/* alsaplayer_error("EOF reached"); */
 			return 0;
 		}		

@@ -1,6 +1,8 @@
 - Found the real source of all the subtle deadlocks. We weren't acquiring
-  locks in the same order all the time.
+  locks in the same order all the time, a thinko.
 - Replace foreground color change with icon for active entry in playlist
+- Song artist - title - time displaying in the playlist, weehaa :)
+
 
 Mon Apr  1 03:06:08 CEST 2002
 -----------------------------
