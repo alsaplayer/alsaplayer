@@ -1,1 +1,2 @@
-SUBDIRS = logbarfft levelmeter synaescope spacescope monoscope blurscope
+SUBDIRS = logbarfft levelmeter synaescope spacescope monoscope blurscope \
+	opengl_spectrum

@@ -108,6 +108,41 @@ fi
 AC_SUBST(DFLAGS)
 
 
+dnl ======
+dnl OpenGL
+dnl ======
+
+AC_ARG_ENABLE(opengl,
+[  --enable-opengl         Enable OpenGL plugins [default=yes]],,
+	enable_opengl=yes)
+
+if test "x$enable_opengl" = xyes; then
+	LIBS_save=$LIBS
+	OPENGL_LIBS=error
+	AC_CHECK_LIB(GL, glBegin, OPENGL_LIBS="-lGL")
+	
+	if test "x$OPENGL_LIBS" = xerror; then
+		AC_CHECK_LIB(MesaGL, glBegin, OPENGL_LIBS="-lMesaGL")
+	fi
+
+	have_opengl_headers=yes
+	AC_CHECK_HEADERS(GL/gl.h GL/glx.h,,have_opengl_headers=no)
+
+	if test "x$OPENGL_LIBS" = xerror || test "x$have_opengl_headers" = xno; then
+		have_opengl=no
+	else
+		have_opengl=yes
+	fi	
+
+	LIBS=$LIBS_save
+else
+	AC_MSG_RESULT([*** Disabling OpenGL plugins per user request ***])
+	have_opengl=no
+fi
+
+AC_SUBST(OPENGL_LIBS)
+AM_CONDITIONAL(HAVE_OPENGL, test "x$have_opengl" = xyes)
+
 dnl ================
 dnl Some input stuff
 dnl ================
@@ -549,6 +584,7 @@ scopes/spacescope/Makefile
 scopes/logbarfft/Makefile
 scopes/synaescope/Makefile
 scopes/blurscope/Makefile
+scopes/opengl_spectrum/Makefile
 output/Makefile
 output/alsa-0.5.x/Makefile
 output/alsa-final/Makefile
