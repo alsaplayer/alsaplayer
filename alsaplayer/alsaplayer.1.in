@@ -45,6 +45,9 @@ device here) [default=/dev/dsp].
 .B \-f, \-\-fragsize #
 Set fragment size in bytes [default=4096].
 .TP
+.B \-e, \-\-enqueue file(s)
+Enqueue file(s) in a running alsaplayer.
+.TP
 .B \-F, \-\-frequency #
 Set the output frequency [default=44100].
 .TP
@@ -54,11 +57,14 @@ Fragment count [default=8].
 .B \-h, \-\-help
 Print this help message.
 .TP
-.B \-n, \-\-interface <interface>
+.B \-i, \-\-interface <interface>
 Load <interface> instead of default one
 .TP
 .B \-l, \-\-volume #
 Set software volume [0-100].
+.TP
+.B \-n, \-\-session #
+Select session # [default=0]
 .TP
 .B \-p, \-\-path [path]
 Print/set the path alsaplayer looks for add-ons.
@@ -70,14 +76,14 @@ Quiet operation, no output.
 Enable realtime scheduling.  To use this as a normal user, alsaplayer
 must be SUID root.
 .TP
+.B \-s, \-\-session-name name
+Name this session "name"
+.TP
 .B \-v, \-\-version
 Print version of this program.
 .TP
-.B \-\-reverb
-Use reverb function (CPU intensive!).
-.TP
-.B \-o, \-\-output [alsa|oss|nas|sgi|sparc]
-Use ALSA, OSS, NAS, SGI or Sparc driver for output
+.B \-o, \-\-output [alsa|jack|oss|nas|sgi|sparc]
+Use ALSA, JACK, OSS, NAS, SGI or Sparc driver for output
 .SH SEE ALSO
 .BR mikmod (1),
 .BR mpg123 (1).
