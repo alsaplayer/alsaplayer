@@ -15,4 +15,5 @@ alsaplayer-config
 alsaplayer.pc
 autom4te.cache
 ltmain.sh
+stamp-h.in
 .cvsignore
