@@ -1,10 +1,21 @@
+* Add --pause parameter to pause/unpause a running player
+* Added support for ALSA's dmix device. Improved the alsa plugin.
+* Fixed a pretty silly bug in AlsaNode which caused crashing when adding
+  multiple subscribers.
+* API Update: scope_plugin, init takes a pointer argument (not used yet)
+* API Update: input_plugin, stream_info structure expanded (not used yet)
+* API Update: output_plugin, set_buffer call.
+* Remove --background parameter, use &
+* Eliminate extra memcpy in streaming core
+* Remove static JACK mixbuffer.
 * Remove the confusing Load/Unload calls from CorePlayer. Open/Close now.
 * Made MAD plugin a bit more robust
 * Fix crashing bug when shoutcast/icecast stream is not in sync
 * Add _interface postfix to all interface plugin shared libraries
 * More warning fixes for gcc 3.3
-* Fix all known compiler warnings. Should compile with -Werror
+* Fix a whole bunch of compiler warnings.
 * Remove deprecated JACK function call, requires jack 0.50.0 or higher now
+
 
 Thu Feb  6 06:49:35 CET 2003
 ----------------------------

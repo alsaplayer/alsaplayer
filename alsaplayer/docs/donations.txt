@@ -4,3 +4,4 @@ to further development of AlsaPlayer:
 * Christopher Gallant - CASH
 * Patrick Shirkey - CMI8738 soundcard
 * Crystal Software (Canada) Inc. - CASH
+* Joachim Bondo - CASH
