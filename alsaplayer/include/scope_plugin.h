@@ -28,7 +28,7 @@
 #define SCOPE_PLUGIN_VERSION    0x1002
 
 #define SCOPE_NICE	15
-#define SCOPE_SLEEP 20000
+#define SCOPE_SLEEP 30000
 #define SCOPE_BG_RED	0
 #define SCOPE_BG_BLUE	0
 #define SCOPE_BG_GREEN	0

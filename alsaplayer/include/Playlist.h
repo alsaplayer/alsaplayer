@@ -138,7 +138,7 @@ public:
 	virtual void Remove(unsigned start, unsigned end);
 
 	// Shuffle playlist
-	virtual void Shuffle();
+	virtual void Shuffle(int locking=0);
 	
 	// Clear playlist
 	virtual void Clear();
