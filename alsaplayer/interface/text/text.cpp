@@ -42,6 +42,7 @@
 #include "interface_plugin.h"
 
 #define NR_BLOCKS	30
+#define SLEEPTIME	500000
 
 extern int global_quiet;
 
@@ -118,8 +119,10 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 	char *home;
 	stream_info info;
 	stream_info old_info;
-	bool streamInfoRequested;
-
+	bool streamInfoRequested = false;
+	bool displayProgress = true;
+	int nr_frames, pos = -1, old_pos = -1;
+	
 	memset(&info, 0, sizeof(stream_info));
 	memset(&old_info, 0, sizeof(stream_info));
 
@@ -143,54 +146,67 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 	pthread_mutex_lock(&finish_mutex);
 
 	// playlist loop
-	//
-	while(going && (coreplayer = playlist->GetCorePlayer()) &&
-			(coreplayer->IsActive() || coreplayer->IsPlaying() ||
-			 playlist->GetCurrent() != playlist->Length())) {
+	while(going && !playlist->Eof()) {
 		unsigned long secs, t_min, t_sec, c_min, c_sec;
 		t_min = t_sec = c_min = c_sec = 0;
 		streamInfoRequested = false;
 
+		
 		// single title loop
-		//
+		coreplayer = playlist->GetCorePlayer();
+		
 		while (going && (coreplayer->IsActive() || coreplayer->IsPlaying())) {
 			int cur_val, block_val, i;
+			
+			old_pos = pos;	
+			pos = playlist->GetCurrent();
+			if (pos != old_pos) {
+				fprintf(stdout, "\n");
+				streamInfoRequested = false;
+			}	
 			if (!streamInfoRequested) {
 				coreplayer->GetStreamInfo(&info);
 				if (*info.title && strcmp(info.title, old_info.title) != 0) {
 					if (*info.artist)
-						fprintf(stdout, "\nPlaying: %s - %s\n", info.artist, info.title);
+						fprintf(stdout, "Playing: %s - %s\n", info.artist, info.title);
 					else if (*info.title)
-						fprintf(stdout, "\nPlaying: %s\n", info.title);
+						fprintf(stdout, "Playing: %s\n", info.title);
 					else
-						fprintf(stdout, "\nPlaying: (no information available)\n");
+						fprintf(stdout, "Playing: (no information available)\n");
 					memcpy(&old_info, &info, sizeof(stream_info));
-				}
+				} else {
+					fprintf(stdout, "Playing...\n");
+				}	
 				streamInfoRequested = true;
 			}
 
 			if (global_quiet) {
-				dosleep(1000000);
+				dosleep(SLEEPTIME);
 				continue;
 			}
 
-			block_val = secs = coreplayer->GetCurrentTime(coreplayer->GetFrames());
-
-			if (secs == 0) {
-				dosleep(1000000);
-				continue;
-			}	
+			nr_frames = coreplayer->GetFrames();
+			if (nr_frames >= 0) {
+				block_val = secs = coreplayer->GetCurrentTime(nr_frames);
+			} else {
+				block_val = secs = 0;
+			}
+			
 			t_min = secs / 6000;
 			t_sec = (secs % 6000) / 100;
 			cur_val = secs = coreplayer->GetCurrentTime();
 			if (secs == 0) {
-				dosleep(1000000);
+				dosleep(SLEEPTIME);
 				continue;
 			}	
 			c_min = secs / 6000;
 			c_sec = (secs % 6000) / 100;	
-			fprintf(stdout, "\r   Time: %02ld:%02ld (%02ld:%02ld) ",
-					c_min, c_sec, t_min, t_sec);
+			fprintf(stdout, "\r   Time: %02ld:%02ld ", c_min, c_sec);
+			if (nr_frames >= 0) 
+				fprintf(stdout, "(%02ld:%02ld) ", t_min, t_sec);
+			else {
+				fprintf(stdout, "-- Live broadcast -- ");
+			}	
 			// Draw nice indicator
 			block_val /= NR_BLOCKS; 
 
@@ -198,19 +214,22 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 				cur_val = 0;
 			else
 				cur_val /= block_val;
-			//printf("%d - %d\n", block_val, cur_val);
-			fprintf(stdout, "[");
-			for (i = 0; i < NR_BLOCKS; i++) {
-				fputc(cur_val >= i ? '*':' ', stdout);
+			
+			if (displayProgress && nr_frames >= 0) {
+				fprintf(stdout, "[");
+				for (i = 0; i < NR_BLOCKS; i++) {
+					fputc(cur_val >= i ? '*':' ', stdout);
+				}
+				fprintf(stdout,"] ");
 			}
-			fprintf(stdout,"] (%03d/%03d)  ",
+			fprintf(stdout, "(%03d/%03d)  ",
 				playlist->GetCurrent(), playlist->Length());
 			fflush(stdout);
-			dosleep(1000000);
+			dosleep(SLEEPTIME);
 		}
-		fprintf(stdout, "\n\n");
+		//fprintf(stdout, "\n\n");
 	}
-	fprintf(stdout, "...done playing\n");
+	fprintf(stdout, "\n\n...done playing\n");
 	pthread_mutex_unlock(&finish_mutex);
 
 	//playlist->UnRegisterNotifier(&notifier);
