@@ -7,7 +7,7 @@ lib_LTLIBRARIES = $(mpg123ltlibs)
 
 libdir = $(ADDON_DIR)/input
 
-ASFLAGS = $(ASFLAGS)
+ASFLAGS =
 
 COMMON_CFLAGS = -I$(top_builddir) -I$(top_srcdir)/include \
 	@ARCH_CFLAGS@ -D_REENTRANT @DFLAGS@
