@@ -15,7 +15,6 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */ 
-#include <glib.h>
 #include <jack/jack.h>
 #include <pthread.h>
 #include <unistd.h>
@@ -41,8 +40,8 @@ static jack_nframes_t nr_fragments;
 static jack_nframes_t latency = 0;
 static int jack_reconnect = 1;
 
-static char dest_port1[32];
-static char dest_port2[32];
+static char dest_port1[128];
+static char dest_port2[128];
 
 static int bufsize(jack_nframes_t nframes, void *arg);
 static int srate(jack_nframes_t nframes, void *arg);
@@ -135,11 +134,13 @@ int jack_prepare(void *arg)
 			alsaplayer_error("connecting to jack ports: %s & %s", dest_port1, dest_port2);
 
 		if (jack_connect (client, jack_port_name(my_output_port1), dest_port1)) {
-			alsaplayer_error("cannot connect output port 1");
+			alsaplayer_error("cannot connect output port 1 (%s)",
+				dest_port1);
 			return -1;
 		}               
 		if (jack_connect (client, jack_port_name(my_output_port2), dest_port2)) {
-			alsaplayer_error("cannot connect output port 2");
+			alsaplayer_error("cannot connect output port 2 (%s)",
+				dest_port2);
 			return -1;
 		}               
 		return 0;
@@ -168,10 +169,19 @@ int srate(jack_nframes_t rate, void *arg)
 static int jack_init()
 {
 	// Always return ok for now
-	strcpy(dest_port1, prefs_get_string(ap_prefs,
-		"jack", "output1", "alsa_pcm:out_1"));
-	strcpy(dest_port2, prefs_get_string(ap_prefs,
-		"jack", "output2", "alsa_pcm:out_2"));
+	strncpy(dest_port1, prefs_get_string(ap_prefs,
+		"jack", "output1", "alsa_pcm:playback_1"), 127);
+	if (strncmp(dest_port1, "alsa_pcm:out", 12) == 0) {
+		alsaplayer_error("jack: discarding old alsa_pcm naming");
+		strcpy(dest_port1, "alsa_pcm:playback_1");
+	}	
+	strncpy(dest_port2, prefs_get_string(ap_prefs,
+		"jack", "output2", "alsa_pcm:playback_2"), 127);
+	if (strncmp(dest_port2, "alsa_pcm:out", 12) == 0){
+		alsaplayer_error("jack: discarding old alsa_pcm naming");
+		strcpy(dest_port2, "alsa_pcm:playback_2");
+	}	
+
 	return 1;
 }
 
@@ -208,9 +218,9 @@ static int jack_open(char *name)
 		if ((s=strchr(t, ','))) {
 			alsaplayer_error("t=%s", t);
 			*s++ = 0;
-			strncpy(dest_port1, t, 31);
-			strncpy(dest_port2, s, 31);
-			dest_port1[31] = dest_port2[31] = 0;
+			strncpy(dest_port1, t, 127);
+			strncpy(dest_port2, s, 127);
+			dest_port1[127] = dest_port2[127] = 0;
 			alsaplayer_error("jack: using ports %s & %s for output",
 					dest_port1, dest_port2);
 		} else if (strcmp(t, "noreconnect") == 0) {
