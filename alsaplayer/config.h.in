@@ -32,6 +32,8 @@
 #undef ARCH_ULTRA
 /* Define if the GTK+ interface should be build */
 #undef HAVE_GTK
+/* Define if the Qt interface should be build */
+#undef HAVE_QT
 
 /* Define if you have the <audio/audiolib.h> header file. */
 #undef HAVE_AUDIO_AUDIOLIB_H
