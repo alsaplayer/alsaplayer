@@ -360,7 +360,7 @@ static void help()
 		"  --verbose               be verbose about the output\n"
 		"  --nosave                do not save playlist content at exit\n"
 		"\n"
-		"Player control (use -n to sleect another session than the default):\n"
+		"Player control (use -n to select another session than the default):\n"
 		"\n"
 		"  -e,--enqueue file(s)  queue files in running alsaplayer\n"
 		"  -E,--replace file(s)  clears and queues files in running alsaplayer\n"
