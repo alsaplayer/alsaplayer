@@ -22,6 +22,8 @@ GtkWidget*
 create_main_window (void)
 {
   GtkWidget *main_window;
+  GtkWidget *vbox25;
+  GtkWidget *frame1;
   GtkWidget *main_box;
   GtkWidget *info_box;
   GtkWidget *pos_box;
@@ -54,16 +56,30 @@ create_main_window (void)
   main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_object_set_data (GTK_OBJECT (main_window), "main_window", main_window);
   gtk_widget_set_usize (main_window, 408, 98);
-  gtk_container_set_border_width (GTK_CONTAINER (main_window), 4);
   gtk_window_set_title (GTK_WINDOW (main_window), "AlsaPlayer");
   gtk_window_set_policy (GTK_WINDOW (main_window), TRUE, TRUE, FALSE);
+
+  vbox25 = gtk_vbox_new (FALSE, 0);
+  gtk_widget_ref (vbox25);
+  gtk_object_set_data_full (GTK_OBJECT (main_window), "vbox25", vbox25,
+                            (GtkDestroyNotify) gtk_widget_unref);
+  gtk_widget_show (vbox25);
+  gtk_container_add (GTK_CONTAINER (main_window), vbox25);
+
+  frame1 = gtk_frame_new (NULL);
+  gtk_widget_ref (frame1);
+  gtk_object_set_data_full (GTK_OBJECT (main_window), "frame1", frame1,
+                            (GtkDestroyNotify) gtk_widget_unref);
+  gtk_widget_show (frame1);
+  gtk_box_pack_start (GTK_BOX (vbox25), frame1, TRUE, TRUE, 0);
+  gtk_frame_set_shadow_type (GTK_FRAME (frame1), GTK_SHADOW_OUT);
 
   main_box = gtk_vbox_new (FALSE, 0);
   gtk_widget_ref (main_box);
   gtk_object_set_data_full (GTK_OBJECT (main_window), "main_box", main_box,
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (main_box);
-  gtk_container_add (GTK_CONTAINER (main_window), main_box);
+  gtk_container_add (GTK_CONTAINER (frame1), main_box);
 
   info_box = gtk_hbox_new (FALSE, 0);
   gtk_widget_ref (info_box);
@@ -94,6 +110,7 @@ create_main_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (button_scale_box);
   gtk_box_pack_start (GTK_BOX (main_box), button_scale_box, FALSE, FALSE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (button_scale_box), 2);
 
   control_box = gtk_hbox_new (FALSE, 0);
   gtk_widget_ref (control_box);

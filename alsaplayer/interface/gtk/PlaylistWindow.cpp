@@ -53,6 +53,8 @@ PlaylistWindowGTK::PlaylistWindowGTK(Playlist * pl) {
 		gtk_object_get_data(GTK_OBJECT(playlist_list), "status");
 	showing = false;
 
+	pthread_mutex_init(&playlist_list_mutex, NULL);
+
 	playlist->Register(this);
 }
 
@@ -89,7 +91,9 @@ void PlaylistWindowGTK::CbInsert(std::vector<PlayItem> & items, unsigned positio
 #ifdef DEBUG
 	printf("CbInsert(`%d items', %d)\n", items.size(), position);
 #endif /* DEBUG */
-	
+
+	pthread_mutex_lock(&playlist_list_mutex);
+
 	std::vector<PlayItem> item_copy = items;
 
 	GiveStatus("Adding files...");
@@ -104,7 +108,7 @@ void PlaylistWindowGTK::CbInsert(std::vector<PlayItem> & items, unsigned positio
 			new_list_item(item->filename.c_str(), list_item);
 
 			// Add it to the playlist
-			int index = gtk_clist_append(GTK_CLIST(playlist_list), list_item);
+			int index = gtk_clist_insert(GTK_CLIST(playlist_list), position, list_item);
 			gtk_clist_set_shift(GTK_CLIST(playlist_list), index, 1, 2, 2);
 
 			index ++;
@@ -117,12 +121,14 @@ void PlaylistWindowGTK::CbInsert(std::vector<PlayItem> & items, unsigned positio
 	GiveStatus(msg);
 	gtk_clist_thaw(GTK_CLIST(playlist_list));
 
+	pthread_mutex_unlock(&playlist_list_mutex);
 }
 
 // Remove items from start to end
-void PlaylistWindowGTK::CbRemove(unsigned start, unsigned end) {
+void PlaylistWindowGTK::CbRemove(unsigned start, unsigned end)
+{
 
-	
+	pthread_mutex_lock(&playlist_list_mutex);	
 	GiveStatus("Removing files...");
 	gtk_clist_freeze(GTK_CLIST(playlist_list));
 
@@ -139,19 +145,21 @@ void PlaylistWindowGTK::CbRemove(unsigned start, unsigned end) {
 	GiveStatus(msg);
 
 	gtk_clist_thaw(GTK_CLIST(playlist_list));
-
+	
+	pthread_mutex_unlock(&playlist_list_mutex);
 }
 
 // Clear the displayed list
-void PlaylistWindowGTK::CbClear() {
+void PlaylistWindowGTK::CbClear()
+{
 
-
+	pthread_mutex_lock(&playlist_list_mutex);
 #ifdef DEBUG
 	printf("CbClear()\n");
 #endif /* DEBUG */
 	gtk_clist_clear(GTK_CLIST(playlist_list));
 	GiveStatus("List was cleared");
-
+	pthread_mutex_unlock(&playlist_list_mutex);
 }
 
 // Display a status message

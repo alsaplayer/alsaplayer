@@ -31,6 +31,7 @@ class PlaylistWindowGTK : public virtual PlaylistInterface
 		GtkWidget * playlist_window;  // The window containing the list
 		GtkWidget * playlist_list;    // The list itself
 		GtkLabel * playlist_status;   // Label giving status of list
+		pthread_mutex_t playlist_list_mutex; // Mutex for list
 		bool showing;
 	public:
 		PlaylistWindowGTK(Playlist *);
