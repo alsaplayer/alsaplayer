@@ -88,11 +88,11 @@ AlsaNode::AlsaNode(char *name, int realtime)
 		}	
 		printf("client activated\n");
 	
-		if (jack_port_connect (client, jack_port_name(my_output_port1),
+		if (jack_connect (client, jack_port_name(my_output_port1),
 				"alsa_pcm:out_1")) {
 				alsaplayer_error("cannot connect output port 1");
 		}		
-		if (jack_port_connect (client, jack_port_name(my_output_port2),
+		if (jack_connect (client, jack_port_name(my_output_port2),
 				"alsa_pcm:out_2")) {
 				alsaplayer_error("cannot connect output port 2");
 		}		
@@ -108,14 +108,15 @@ AlsaNode::AlsaNode(char *name, int realtime)
 
 AlsaNode::~AlsaNode()
 {
-	StopStreaming();
 #ifdef USE_JACK
 	if (use_jack) {
 		if (client)
 			jack_client_close (client);
+		StopStreaming();	
 		return;
 	}	
 #endif
+	StopStreaming();
 	assert(plugin);
 	plugin->close();
 }
@@ -196,7 +197,7 @@ void sample_move_dS_s16 (sample_t *dst, char *src,
         }
 }      
 
-//#define STATS  /* Only meaningful if fragments per interrupt is 64
+//#define STATS  /* Only meaningful if fragments per interrupt is 64 */
 
 int AlsaNode::process(nframes_t nframes, void *arg)
 {
@@ -257,17 +258,10 @@ int AlsaNode::process(nframes_t nframes, void *arg)
 
 		for (c = 0; c < MAX_SUB; c++) {
 			i = &node->subs[c];
-			if (!i->active) { // Skip inactive streamers
+			if (!i->active || !i->streamer) { // Skip inactive streamers
 				continue;
 			}	
-			if (i->streamer) {
-				status = i->streamer(i->arg, bufsize, nframes * 2);
-			} else { 
-				continue;
-			}	
-			if (status == false) { // Disable this streamer
-				i->active = false;
-			}
+			i->active = i->streamer(i->arg, bufsize, nframes * 2);
 		}
 		sample_move_dS_s16(out1, bufsize, nframes, sizeof(short) << 1);
 		sample_move_dS_s16(out2, bufsize + sizeof(short), nframes, sizeof(short) << 1); 
