@@ -24,7 +24,6 @@ extern "C" {
 
 #define AP_CONTROL_BASE_VERSION		0x1000
 #define AP_CONTROL_VERSION				(AP_CONTROL_BASE_VERSION + 1)
-#define MAX_AP_SESSIONS						32	/* Convenience, will be removed */
 	
 typedef enum  {
 	AP_DO_PLAY = 0x1,

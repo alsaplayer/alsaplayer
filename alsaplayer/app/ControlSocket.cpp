@@ -29,6 +29,8 @@
 #include "Playlist.h"
 #include "error.h"
 
+#define MAX_AP_SESSIONS 1024
+
 static pthread_t socket_thread;
 static int socket_thread_running = 0;
 

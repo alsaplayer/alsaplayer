@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -243,16 +244,39 @@ int ap_find_session(char *session_name)
 {
 	int i = 0;
 	char remote_name[1024];
-	
+	char test_path[1024];
+	char tmp[1024];
+	char username[512];
+	struct passwd *pwd;
+	DIR *dir;
+	dirent *entry;
+	int session_id;
+
 	if (!session_name)
 		return -1;
-	for (int i=0; i < MAX_AP_SESSIONS; i++) {
-		if (ap_session_running(i) == 1) {
-			if (ap_get_string(i, AP_GET_STRING_SESSION_NAME, remote_name) != -1) {
-				if (strcmp(remote_name, session_name) == 0)
-					return i;
-			}
-		}
+	dir = opendir("/tmp");
+
+	pwd = getpwuid(geteuid());
+	
+	sprintf(username, pwd == NULL ? "anonymous" : pwd->pw_name);
+	
+	sprintf(test_path, "alsaplayer_%s_", username);
+
+	if (dir) {
+		while ((entry = readdir(dir)) != NULL) {
+			if (strncmp(entry->d_name, test_path, strlen(test_path)) == 0) {
+				sprintf(tmp, "%s%%d", test_path);
+				if (sscanf(entry->d_name, tmp, &session_id) == 1) {
+					if (ap_session_running(i) == 1) {
+						if (ap_get_string(i, AP_GET_STRING_SESSION_NAME, remote_name) != -1) {
+							if (strcmp(remote_name, session_name) == 0) {
+								return i;
+								}
+						}
+					}
+				}
+			}	
+		}	
 	}
 	return -1;
 }

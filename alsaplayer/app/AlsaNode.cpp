@@ -100,8 +100,8 @@ int AlsaNode::jack_prepare(void *arg)
 			alsaplayer_error("cannot activate client");
 			return -1;
 		}	
-
-		alsaplayer_error("connecting to jack ports: %s & %s", node->dest_port1, node->dest_port2);
+		if (global_verbose)
+			alsaplayer_error("connecting to jack ports: %s & %s", node->dest_port1, node->dest_port2);
 
 		if (jack_connect (node->client, jack_port_name(node->my_output_port1), node->dest_port1)) {
 				alsaplayer_error("cannot connect output port 1");
