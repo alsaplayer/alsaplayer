@@ -42,7 +42,7 @@
 
 static void additems(std::vector<std::string> *items, std::string path, int depth);
 
-// Pointer to sequence of soritng fields.
+// Pointer to sequence of sorting fields.
 // This is temporary variable, it is valid while Sort function active.
 // Meaning of chars:
 //	a - sort by artist in descending direction,
@@ -249,7 +249,7 @@ void playlist_looper(void *data)
 	Playlist *pl = (Playlist *)data;
 	CorePlayer *coreplayer;
 	if(!pl) return;
-	
+
 	while(pl->active) {
 		if (!pl->Paused()) {
 			if (!(coreplayer = (CorePlayer *)(pl->coreplayer)))
@@ -258,10 +258,11 @@ void playlist_looper(void *data)
 			if (!coreplayer->IsActive()) {
 				if (pl->Length()) {
 					pl->Next();
+					// TODO? set a flag to skip the dosleep()
 				}	
 			}
-			
-			if (pl->Length() && pl->Crossfading() && pl->coreplayer->GetSpeed() >= 0.0) {
+
+			if (pl->Crossfading() && pl->Length() && pl->coreplayer->GetSpeed() >= 0.0) {
 				// Cross example
 				if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < 300) {
 						if (pl->player1->IsActive() && pl->player2->IsActive()) {
@@ -277,10 +278,12 @@ void playlist_looper(void *data)
 								pl->coreplayer = pl->player1;
 						}		
 						pl->Next();
+						// TODO? set a flag to skip the dosleep()
 				}
 			}
 		}
-		pl->coreplayer->PositionUpdate(); // Update the position
+		// Update the position: notifier information
+		pl->coreplayer->PositionUpdate();
 		dosleep(200000);
 	}
 }
@@ -388,7 +391,7 @@ Playlist::Playlist(AlsaNode *the_node) {
 	player2 = new CorePlayer(the_node);
 
 	if (!player1 || !player2) {
-		printf("Cannot create player objects in Playlist constructor\n");
+		puts("Cannot create player objects in Playlist constructor");
 		return;
 	}
 	coreplayer = player1;
@@ -486,17 +489,17 @@ void Playlist::Next() {
 	    }
 	  }
 	}
-	//printf("Notifying playlists.....\n");
+	//puts("Notifying playlists...");
 
 	// Tell the subscribing interfaces about the change
-	if(curritem != olditem) {
-		if(interfaces.size() > 0) {
-			for(i = interfaces.begin(); i != interfaces.end(); i++) {
+	if (curritem != olditem) {
+		if (interfaces.size() > 0) {
+			for (i = interfaces.begin(); i != interfaces.end(); i++) {
 				(*i)->CbSetCurrent(curritem);
 			}
 		}
 		if (cinterfaces.size() > 0) {
-			for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
+			for (j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
 				(*j)->cbsetcurrent((*j)->data, curritem);
 			}
 		}	
