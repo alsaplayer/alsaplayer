@@ -330,7 +330,7 @@ void playlist_looper(void *data)
 			}
 		}
 		pl->coreplayer->PositionUpdate(); // Update the position
-		dosleep(100000);
+		dosleep(200000);
 	}
 }
 
