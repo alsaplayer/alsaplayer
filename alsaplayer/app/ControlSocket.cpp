@@ -131,7 +131,8 @@ void socket_looper(void *arg)
 	
 		switch(msg->header.cmd) {
 			case AP_PING:
-				ap_message_add_int32(reply, "pong", 28);
+				ap_message_add_int32(reply, "pong", 10281975);
+				ap_message_add_int32(reply, "ack", 1);
 				break;
 			case AP_ADD_PATH:
 				if ((path = ap_message_find_string(msg, "path1"))) {
@@ -209,37 +210,37 @@ void socket_looper(void *arg)
 			case AP_GET_TITLE:
 				if (player) {
 					player->GetStreamInfo(&info);
-					ap_message_add_string(reply, "title", info.title);
+					ap_message_add_string(reply, "string", info.title);
 					ap_message_add_int32(reply, "ack", 1);
 				}
 				break;
 			case AP_GET_ARTIST:
 				if (player) {
 					player->GetStreamInfo(&info);
-					ap_message_add_string(reply, "artist", info.artist);
+					ap_message_add_string(reply, "string", info.artist);
 					ap_message_add_int32(reply, "ack", 1);
 				}
 				break;
 			case AP_GET_ALBUM:
 				if (player) {
 					player->GetStreamInfo(&info);
-					ap_message_add_string(reply, "album", info.album);
+					ap_message_add_string(reply, "string", info.album);
 					ap_message_add_int32(reply, "ack", 1);
 				}
 				break;
 			case AP_GET_GENRE:
 				if (player) {
 					player->GetStreamInfo(&info);
-					ap_message_add_string(reply, "genre", info.genre);
+					ap_message_add_string(reply, "string", info.genre);
 					ap_message_add_int32(reply, "ack", 1);
 				}
 				break;
 			case AP_GET_SESSION_NAME:
 				if (global_session_name) {
-					ap_message_add_string(reply, "name", global_session_name);
+					ap_message_add_string(reply, "string", global_session_name);
 				} else {
 					sprintf(session_name, "alsaplayer-%d", global_session_id);
-					ap_message_add_string(reply, "name", session_name);
+					ap_message_add_string(reply, "string", session_name);
 				}
 				ap_message_add_int32(reply, "ack", 1);
 				break;
