@@ -81,7 +81,6 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	int jumped;
 	int jump_point;
 	int last_read;
-	int max_seek;
 	bool streaming;
 	int repitched;
 	int new_frame_number;
