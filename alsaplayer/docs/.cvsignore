@@ -1,3 +1,5 @@
 Makefile
 Makefile.in
 reference.doxygen
+reference
+doxygen-build.stamp
