@@ -33,7 +33,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
-#include <bits/mman.h>
 #include "input_plugin.h"
 
 extern "C" { 	/* Make sure MAD symbols are not mangled
@@ -462,9 +461,10 @@ static int mad_open(input_object *obj, char *path)
 								return 0;
 				}
 				/* Use madvise to tell kernel we will do mostly sequential reading */
+#ifdef HAVE_MADVISE				
 				if (madvise(data->mad_map, data->stat.st_size, MADV_SEQUENTIAL) < 0)
 					printf("MAD warning: madvise() call failed\n");
-				
+#endif				
 				mad_synth_init  (&data->synth);
 				mad_stream_init (&data->stream);
 				mad_frame_init  (&data->frame);
