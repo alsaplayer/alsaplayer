@@ -225,6 +225,8 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	buffer = NULL;
 	the_object = NULL;
 
+	save_speed = 0.0;
+	
 	if ((buffer = new sample_buf[NR_BUF]) == NULL) {
 		alsaplayer_error("Out of memory in CorePlayer::CorePlayer");
 		exit(1);
@@ -1183,4 +1185,18 @@ bool CorePlayer::streamer_func(void *arg, void *data, int size)
 		obj->streaming = false;
 		return false;
 	}	
+}
+
+void CorePlayer::Pause()
+{
+	save_speed = GetSpeed ();
+	SetSpeed (0.0);
+}
+
+void CorePlayer::UnPause()
+{
+	if (save_speed)
+	    SetSpeed (save_speed);
+	else
+	    SetSpeed (1.0);
 }

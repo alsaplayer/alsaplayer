@@ -191,7 +191,6 @@ void AlsaNode::looper(void *pointer)
 
 bool AlsaNode::IsInStream(int the_id)
 {
-	subscriber *i;
 	int c;
 
 	pthread_mutex_lock(&queue_mutex);	

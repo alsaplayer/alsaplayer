@@ -89,7 +89,8 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	int pan;
 	AlsaNode *node;
 	AlsaSubscriber *sub;
-	
+	float save_speed;
+
 	std::set<coreplayer_notifier *> notifiers;
 	
 	// INPUT plugin stuff
@@ -167,6 +168,9 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	void Stop();
 	int Seek(int pos);
 	bool CanSeek();
+
+	void Pause ();
+	void UnPause ();
 	
 	int IsActive() { return streaming; }	
 	int IsPlaying() { return producing; }

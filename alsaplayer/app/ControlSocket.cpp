@@ -59,15 +59,12 @@ void socket_looper(void *arg)
 	long total_time;
 	void *data;
 	float *float_val;
-	float save_speed = 0.0;
 	char *path;
-	long *long_val;
 	int32_t *int_val;
 	socklen_t len;
 	int fd;
 	int session_id = 0;
 	int session_ok = 0;
-	int return_value;
 	ap_message_t *msg;
 	struct passwd *pwd;
 
@@ -190,19 +187,13 @@ void socket_looper(void *arg)
 				ap_message_add_int32(reply, "ack", 1);
 				break;
 			case AP_PAUSE:
-				if (player) {
-					save_speed = player->GetSpeed();
-					player->SetSpeed(0.0);
-				}	
+				if (player)
+					player->Pause();
 				ap_message_add_int32(reply, "ack", 1);
 				break;
 			case AP_UNPAUSE:
-				if (player) {
-					if (save_speed)
-						player->SetSpeed(save_speed);
-					else	
-						player->SetSpeed(1.0);
-				}		
+				if (player)
+					player->UnPause();
 				ap_message_add_int32(reply, "ack", 1);
 				break;
 			case AP_CLEAR_PLAYLIST:
