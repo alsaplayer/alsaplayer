@@ -637,7 +637,13 @@ int main(int argc, char **argv)
 			do_remote_control = 0;
 			do_enqueue = 0;
 		} else {
-			//alsaplayer_error("Found remote session %d", use_session);
+			//alsaplayer_error("Found session %d", use_session);
+			if (prefs_get_bool(ap_prefs, "main", "multiopen", 1) == 0) {
+				// We should not spawn another alsaplayer
+				//alsaplayer_error("Using session %d, not doing multiopen", use_session);
+				do_enqueue = 1;
+				do_replace = 1;
+			}	
 		}	
 	}
 
@@ -674,17 +680,19 @@ int main(int argc, char **argv)
 		} else 	
 			alsaplayer_error("No remote control command executed.");
 	}
-
+				
+	
 	// Check if we need to enqueue the files
 	if (do_enqueue) {
 		char queue_name[2048];
 		int count = 0;
 		int was_playing = 0;
 		int playlist_length = 0;
-		
+	
+		count = optind;
 		ap_result = 1;
 		
-		if (do_replace) {
+		if (do_replace && count < argc) {
 			ap_is_playing(use_session, &was_playing);
 			if (was_playing) {
 				ap_stop(use_session);
@@ -696,8 +704,6 @@ int main(int argc, char **argv)
 				was_playing = 1;
 			}		
 		}	
-		
-		count = optind;
 		while (count < argc && ap_result) {
 			if (is_playlist(argv[count])) {
 				ap_add_playlist(use_session, argv[count]);
