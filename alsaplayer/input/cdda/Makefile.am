@@ -20,7 +20,7 @@ CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
 CXXFLAGS = $(CFLAGS)
 
 # autoconf/automake BUG!!
-LINK = $(CXXLINK)
+# LINK = $(CXXLINK)
 
 libdir = $(ADDON_DIR)/input
 
