@@ -27,6 +27,8 @@
 #include <glib-object.h>
 #include <glib.h>
 
+#include "playitem.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -55,6 +57,11 @@ struct _ApPlaylist {
     
     gboolean	    paused;
     gboolean	    looping_song;
+    gboolean	    looping_playlist;
+
+    GAsyncQueue*    info_queue;
+    GThread*	    info_thread;
+    gboolean	    info_thread_active;
 };
 
 struct _ApPlaylistClass {
@@ -76,17 +83,34 @@ struct _ApPlaylistClass {
     void*   (*looping_song_toggled_signal)	(ApPlaylist	*playlist,
 						 gboolean	looping_song,
 						 gpointer	data);
+
+    void*   (*looping_playlist_toggled_signal)	(ApPlaylist	*playlist,
+						 gboolean	looping_playlist,
+						 gpointer	data);
+
+    void*   (*playitem_updated_signal)		(ApPlaylist	*playlist,
+						 ApPlayItem	*playitem,
+						 gpointer	data);
 };
 
-GType			    ap_playlist_get_type	(void) G_GNUC_CONST;
+GType		    ap_playlist_get_type		(void) G_GNUC_CONST;
 
-void			    ap_playlist_pause		(ApPlaylist	*playlist);
-void			    ap_playlist_unpause		(ApPlaylist	*playlist);
-gboolean		    ap_playlist_is_paused	(ApPlaylist	*playlist);
+void		    ap_playlist_pause			(ApPlaylist	*playlist);
+void		    ap_playlist_unpause			(ApPlaylist	*playlist);
+gboolean	    ap_playlist_is_paused		(ApPlaylist	*playlist);
 
-void			    ap_playlist_loop_song	(ApPlaylist	*playlist);
-void			    ap_playlist_unloop_song	(ApPlaylist	*playlist);
-gboolean		    ap_playlist_is_looping_song	(ApPlaylist	*playlist);
+void		    ap_playlist_loop_song		(ApPlaylist	*playlist);
+void		    ap_playlist_unloop_song		(ApPlaylist	*playlist);
+gboolean	    ap_playlist_is_looping_song		(ApPlaylist	*playlist);
+
+void		    ap_playlist_loop_playlist		(ApPlaylist	*playlist);
+void		    ap_playlist_unloop_playlist		(ApPlaylist	*playlist);
+gboolean	    ap_playlist_is_looping_playlist	(ApPlaylist	*playlist);
+
+void		    ap_playlist_update_playitem		(ApPlaylist	*playlist,
+							 ApPlayItem	*playitem);
+void		    ap_playlist_playitem_updated	(ApPlaylist	*playlist,
+							 ApPlayItem	*playitem);
 
 #ifdef __cplusplus
 }
