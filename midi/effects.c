@@ -464,4 +464,18 @@ void effect_ctrl_reset( int idChannel, struct md *d )
 	}
 }
 
+/**************************************************************************/
+/**	fct : effect_ctrl_kill
+ */
+void effect_ctrl_kill( int idChannel, struct md *d )
+{
+	int idEffect ; 
+
+	for( idEffect = 0 ; idEffect < NUM_EFFECTS ; ++ idEffect )
+	{
+		if( d->effect_list[idEffect][idChannel] != 0 )
+			( (d->effect_list[idEffect][idChannel])->m_pfnDestruct )( d->effect_list[idEffect][idChannel] ) ;
+	}
+}
+
 #endif /*CHANNEL_EFFECT*/

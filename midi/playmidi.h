@@ -278,6 +278,7 @@ extern int skip_to(uint32 until_time, struct md *d);
 #endif
 extern int read_config_file(const char *name, int prescanning);
 extern char *current_config_file;
+extern int current_config_pc42b;
 extern int reverb_options;
 extern int global_reverb;
 extern int global_chorus;

@@ -2634,7 +2634,15 @@ int play_midi_file(struct md *d)
 
 void play_midi_finish(struct md *d)
 {
+  int i;
   compute_data(0, d);
+#ifdef CHANNEL_EFFECT
+  if (opt_effect)
+  for (i=0; i<MAXCHAN; i++)
+    {
+	effect_ctrl_kill( i, d ) ;
+    }
+#endif
   if (free_instruments_afterwards)
       free_instruments();
   if (d->event) free(d->event);

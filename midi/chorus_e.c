@@ -309,9 +309,4 @@ Effect* ChorusCtor()
 	return ( Effect* )pReturn ;
 }
 
-
-
-
-
-
 #endif /* CHANNEL_EFFECT */

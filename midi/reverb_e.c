@@ -272,6 +272,8 @@ static void ActionStereo( reverb_effect* pThis , int32* pStereoBuffer , int32 co
 
 static void CtrlReset( reverb_effect* pThis )
 {
+	if (!opt_effect_reverb) return;
+
 	pThis->m_uiNullCount = 0 ;
 	redim_cirbuff( &( pThis->leftX ) , 0 ) ;
 	redim_cirbuff( &( pThis->leftYa ) , 0 ) ;	
@@ -300,6 +302,8 @@ static void CtrlReset( reverb_effect* pThis )
 static void CtrlChange( reverb_effect* pThis , MidiEvent* pCurrentEvent )
 {
 	int amount = pCurrentEvent->a;
+	if (!opt_effect_reverb) return;
+
 	if (amount < global_reverb) amount = global_reverb;
 
 	if (!opt_effect_reverb) return;
@@ -336,6 +340,8 @@ static void Name( char* pszBuff )
 
 static void Destruct( reverb_effect* pThis  )
 {
+	if (!opt_effect_reverb) return;
+
 	delete_cirbuff( &( pThis->leftX ) ) ;
 	delete_cirbuff( &( pThis->leftYa ) ) ;	
 	delete_cirbuff( &( pThis->rightX ) ) ;
@@ -352,6 +358,9 @@ static void Destruct( reverb_effect* pThis  )
 Effect* ReverbCtor() 
 {
 	reverb_effect* pReturn = 0 ;
+
+	if (!opt_effect_reverb) return ( Effect* )pReturn ;
+
 	pReturn =(reverb_effect*) malloc( sizeof( reverb_effect ) ) ;
 	memset( pReturn , 0 , sizeof( reverb_effect ) ) ;
 	

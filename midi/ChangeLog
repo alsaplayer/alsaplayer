@@ -1,3 +1,11 @@
+Wed Apr 24 14:03:26 HST 2002
+	added PC42b.h: makes timidity.cfg unnecessary
+	instrum.h, cfg.l, autocfg.c: automation of configuration
+	midi_engine.c: make sure I got initialized
+Tue Apr 23 10:00:35 HST 2002
+	effect.c, playmidi.c: destroy effects on midi-close
+	reverb_e.c: disable
+	DESIGN: add some info about dropouts
 Tue Apr 23 08:03:14 HST 2002
 	reduce clicks; increase polyphony
 Mon Apr 22 03:25:16 HST 2002

@@ -2,8 +2,6 @@ Midi Design
 Greg Lee, 4/02
 
 
-
-
 			Synthesis Model
 
 TiMidity has a tone generator, two envelope generators, three low frequency
@@ -64,20 +62,17 @@ amplified speakers, or whatever.
 
 TiMidity can fall behind in computing data to send out to the sound driver, and
 then there are dropouts in the music.  TiMidity tries to anticipate the possibility
-of a dropout by monitoring the state of its output buffer and those of the
-sound driver, and when there is not much in the buffers, it tries to catch up
-by minimising the calculations it has to do: it uses a cruder interpolation
-routine in resampling, stops doing extra echo and detuned notes for reverb and
-chorus effects, and starts terminating notes early, or even skipping notes
-altogether.  So, depending on midi song, patchset, how fast your system is,
-even if you don't hear dropouts, you will notice a loss in quality as TiMidity
-gets busier.
+of a dropout by monitoring the state of its output buffer, and when there is not
+much in the buffer, it tries to catch up by minimising the calculations it has to do:
+it uses a cruder interpolation routine in resampling, stops doing extra echo and
+detuned notes for reverb and chorus effects, and starts terminating notes early.
+So, depending on midi song, patchset, how fast your system is, even if you don't hear
+dropouts, you will notice a loss in quality as TiMidity gets busier.
 
-Monitoring the output buffer involves calling the sound driver to find out how
-much data it has buffered up.  I know how to do this for Hannu Savolainen's OSS
-driver (Linux and some other systems), perhaps for older Suns (it used to work),
-but not for other drivers.
-
+A way to reduce computation time, in the event you're getting too many dropouts,
+is to put "-p <number>" in the configuration file timiditiy.cfg.  This limits the
+maximum polyphony -- the number of simultaneously playing notes -- to the number
+you specify.  The default maximum is 256.
 
 			Memory Issues
 
@@ -93,6 +88,8 @@ ram to the system.  The default maximum is 60 megs, which works ok on my system 
 have 48 megs ram and 196 megs cache).  Setting this to a lower value means that
 more patches have to be reloaded from patch files as you play through a list of midi
 songs, which slows things up.  If you're ram rich, you can set it to "no limit".
+(Actually, at this writing, you can't set it at all, since there are no front panel
+controls to do that.)
 If you allowed enough room, entire soundfont files are read at once, instead of
 patch by patch.  Setting the maximum too low can be counterproductive, because
 soundfont files occupy much less memory in toto when the entire file is read than when
@@ -100,5 +97,7 @@ the patches are read individually (I don't know why).
 
 For little-endian systems like x86, rather than being read in, sf2 soundfonts are
 mmapped.  This is much faster on startup.  I haven't figured out a way to do this
-for big-endian systems.
+for big-endian systems.  (The problem is that the patches are little-endian, and
+byte-order has to be changed for big-endian systems.)
+
 

@@ -90,9 +90,19 @@ typedef struct _InstrumentLayer {
   struct _InstrumentLayer *next;
 } InstrumentLayer;
 
+
+struct cfg_type {
+	int font_code;
+	int num;
+	const char *name;
+};
+
 #define FONT_NORMAL 0
 #define FONT_FFF    1
 #define FONT_SBK    2
+#define FONT_TONESET 3
+#define FONT_DRUMSET 4
+#define FONT_PRESET 5
 
 typedef struct {
   const char *name;

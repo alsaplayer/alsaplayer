@@ -2636,18 +2636,29 @@ static void set_patchno(char *m)
 
 
 char *current_config_file = 0;
+int current_config_pc42b = 0;
+
+static int pc42b_config_file(const char *name, int prescan);
 
 int read_config_file(const char *name, int prescan)
 {
-	int retvalue;
+	int retvalue = 0;
 	prescanning = prescan;
 	include_stack_ptr = 0;
 	rcf_count = 1;
 
-	yyin = open_file(name, 1, OF_VERBOSE, rcf_count);
+	if (current_config_pc42b) {
+		return pc42b_config_file(name, prescan);
+	}
+
+	if (current_config_file) {
+		yyin = fopen(current_config_file, "r");
+	}
+	else yyin = open_file(name, 1, OF_VERBOSE, rcf_count);
+
 	if (!yyin) return -1;
 
-	if (prescanning) {
+	if (!current_config_file) {
 	   current_config_file = (char *)safe_malloc(strlen(current_filename)+1);
 	   strcpy(current_config_file, current_filename);
 	}
@@ -2658,6 +2669,71 @@ int read_config_file(const char *name, int prescan)
 	   if (prescan) got_a_configuration = 1;
 	   else got_a_configuration = 2;
 	}
+
 	close_file(yyin);
 	return retvalue;
 }
+
+#include "PC42b.h"
+
+static int pc42b_config_file(const char *name, int prescan)
+{
+	int retvalue = 0;
+	int i = 0;
+	prescanning = prescan;
+	rcf_count = 1;
+/*
+	if (prescanning) {
+	   current_config_file = (char *)safe_malloc(strlen(name)+1);
+	   strcpy(current_config_file, name);
+	}
+*/
+	current_toneset = current_drumset = 0;
+	doing_drums = doing_sf = 0;
+
+	while (1) {
+		int action, which;
+		const char *sfname;
+		char *vc_name = NULL;
+
+		action = PC42b[i].font_code;
+		which = PC42b[i].num;
+		sfname = PC42b[i].name;
+
+		switch (action) {
+			case FONT_TONESET:
+				current_toneset = which;
+				doing_drums = 0;
+				doing_sf = 1;
+				new_toneset(current_toneset);
+				font_type=FONT_SBK;
+				break;
+			case FONT_DRUMSET:
+				current_drumset = which;
+				doing_drums = 1;
+				doing_sf = 1;
+				new_toneset(current_drumset);
+				font_type=FONT_SBK;
+    				if (!bank->name) bank->name = sfname;
+				break;
+			case FONT_PRESET:
+				patchno = which;
+				if (doing_drums) tone_bank = current_drumset;
+				else tone_bank = current_toneset;
+				new_toneset(tone_bank);
+				new_patch(sfname, patchno);
+				break;
+			case FONT_SBK:
+				init_soundfont(sfname, which, which, 1);
+				break;
+		}
+
+		if (action == FONT_SBK) break;
+		i++;
+	}
+
+	if (prescan) got_a_configuration = 1;
+	else got_a_configuration = 2;
+	return retvalue;
+}
+

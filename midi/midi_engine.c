@@ -153,9 +153,8 @@ static int look_midi_file(struct md *d)
 }
 
 
-#define HOME_CONFIGURE
+static int configuration_failed = FALSE;
 
-#ifdef HOME_CONFIGURE
 static char *homedir;
 static char prefs_path[1024];
 static char *get_homedir()
@@ -164,38 +163,32 @@ static char *get_homedir()
 	homedir = getenv("HOME");
 	return homedir;
 }
-#endif
 
-static void init_midi()
+static int init_midi()
 {
-	if (got_a_configuration) return;
+	if (configuration_failed) return FALSE;
+	if (got_a_configuration) return TRUE;
 #ifdef PLUGDEBUG
 	fprintf(stderr,"init_midi\n");
 #endif
 
-#ifdef HOME_CONFIGURE
 	autocfg();
-#endif
 
 #ifdef DO_PREFS
 	prefs_set_bool(ap_prefs, "midi", "active", 1);
 #endif
 
-  /*output_fragsize = 4096;*/
   output_fragsize = 8192;
 
+/* should I do this? */
 #ifdef DEFAULT_PATH
   add_to_pathlist(DEFAULT_PATH, 0);
 #endif
 
-#ifdef HOME_CONFIGURE
-	if (homedir = get_homedir()) {
-		sprintf(prefs_path, "%s/.alsaplayer", homedir);
-  		add_to_pathlist(prefs_path, 0);
-	}
-#endif
-
-  read_config_file("timidity.cfg", 1);
+  if (read_config_file("timidity.cfg", 1)) {
+	  configuration_failed = TRUE;
+	  return FALSE;
+  }
   if (output_rate) play_mode->rate=output_rate;
   if (output_name)
 	 {
@@ -213,7 +206,13 @@ static void init_midi()
   }
 
   if (*def_instr_name) set_default_instrument(def_instr_name);
-  if (got_a_configuration < 2) read_config_file(current_config_file, 0);
+  if (got_a_configuration < 2) {
+	  if (read_config_file(current_config_file, 0)) {
+	  	configuration_failed = TRUE;
+	  	return FALSE;
+	  }
+  }
+  return TRUE;
 }
 
 
@@ -233,6 +232,7 @@ static int midi_open(input_object *obj, char *name)
 	int rc = 0;
 	char *ptr;
 	
+	if (!init_midi()) return FALSE;
 	if (!obj) return 0;
 
 	obj->local_data = malloc(sizeof(struct md));
@@ -283,7 +283,6 @@ static int midi_open(input_object *obj, char *name)
 	if (sem_init(&d->play_lock, 0, 1)) fprintf(stderr,"no semaphore\n");
 #endif
 
-	if (!got_a_configuration) init_midi();
 
         if (strlen(name) > FILENAME_MAX) {
                 strncpy(d->midi_path_name, name, FILENAME_MAX-1);
@@ -345,6 +344,7 @@ void midi_close(input_object *obj)
 {
         struct md *d;
 
+	if (!init_midi()) return;
 	if (!obj) return;
 	if (!obj->local_data) return;
 	d = (struct md *)obj->local_data;
@@ -419,6 +419,7 @@ static int midi_play_frame(input_object *obj, char *buf)
 #ifdef PLUGDEBUG
 fprintf(stderr,"midi_play_frame to %x\n", buf);
 #endif
+	if (!init_midi()) return FALSE;
 	if (!obj) return 0;
 	if (!obj->local_data) return 0;
 	d = (struct md *)obj->local_data;
@@ -538,6 +539,7 @@ static int midi_frame_seek(input_object *obj, int frame)
 	int result = 0;
 	int current_frame = 0, tim_time = 0;
 
+	if (!init_midi()) return FALSE;
 	if (!obj) return 0;
 	if (!obj->local_data) return 0;
 	d = (struct md *)obj->local_data;
@@ -564,6 +566,7 @@ fprintf(stderr,"midi_frame_seek to %d; result %d from skip_to(%d, d)\n", frame,
 static int midi_frame_size(input_object *obj)
 {
         struct md *d;
+	if (!init_midi()) return FALSE;
 	if (!obj) return 0;
 	if (!obj->local_data) return 0;
 	d = (struct md *)obj->local_data;
@@ -580,6 +583,7 @@ static int midi_nr_frames(input_object *obj)
         struct md *d;
 	int result = 0;	
 
+	if (!init_midi()) return FALSE;
 	if (!obj) return 0;
 	if (!obj->local_data) return 0;
 	d = (struct md *)obj->local_data;
@@ -599,6 +603,7 @@ static int midi_sample_rate(input_object *obj)
         struct md *d;
 	int result = 0;	
 
+	if (!init_midi()) return FALSE;
 	if (!obj) return 0;
 	if (!obj->local_data) return 0;
 	d = (struct md *)obj->local_data;
@@ -626,6 +631,7 @@ static long midi_frame_to_sec(input_object *obj, int frame)
 	unsigned long result = 0;
 	unsigned long sample_pos;
 	
+	if (!init_midi()) return FALSE;
 	if (!obj) return 0;
 	if (!obj->local_data) return 0;
 	d = (struct md *)obj->local_data;
@@ -651,6 +657,8 @@ static float midi_can_handle(const char *name) {
 fprintf(stderr,"midi_can_handle(%s)?\n", name);
 #endif
 
+	if (!init_midi()) return FALSE;
+
 	if (stat(name, &st)) return 0.0;
 
 	if (!S_ISREG(st.st_mode)) return 0.0;
@@ -672,6 +680,7 @@ static int midi_stream_info(input_object *obj, stream_info *info)
 {
         struct md *d;
 
+	if (!init_midi()) return FALSE;
 	if (!obj) return 0;
 	if (!obj->local_data) return 0;
 	d = (struct md *)obj->local_data;
@@ -695,7 +704,7 @@ static int midi_init()
 #ifdef PLUGDEBUG
 fprintf(stderr,"midi_init\n");
 #endif
-	init_midi();
+	if (!init_midi()) return FALSE;
 	return 1;
 }
 

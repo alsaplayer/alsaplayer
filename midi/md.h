@@ -93,3 +93,4 @@ extern void recompute_freq(int v, struct md *d);
 extern int init_effect(struct md *d) ;
 extern void effect_ctrl_change( MidiEvent* pCurrentEvent, struct md *d );
 extern void effect_ctrl_reset( int idChannel, struct md *d );
+extern void effect_ctrl_kill( int idChannel, struct md *d );
