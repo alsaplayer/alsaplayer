@@ -1,1 +1,1 @@
-SUBDIRS = cdda audiofile mpg123 mikmod wav vorbis
+SUBDIRS = cdda audiofile mpg123 mikmod wav vorbis mad
