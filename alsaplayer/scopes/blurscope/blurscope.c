@@ -103,8 +103,10 @@ void generate_cmap(void)
 
 static void stop_bscope(void)
 {
-	running = 0;
-	pthread_join(bscope_thread, NULL);
+	if (running) {
+		running = 0;
+		pthread_join(bscope_thread, NULL);
+	}	
 }
 
 

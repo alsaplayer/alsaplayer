@@ -266,8 +266,10 @@ void levelmeter_hide(void)
 
 static void stop_levelmeter(void)
 {
-	running = 0;
-	pthread_join(levelmeter_thread, NULL);
+	if (running) {
+		running = 0;
+		pthread_join(levelmeter_thread, NULL);
+	}	
 }
 
 

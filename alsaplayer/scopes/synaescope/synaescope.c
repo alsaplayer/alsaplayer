@@ -447,11 +447,11 @@ static void stop_synaescope(void);
 
 static gboolean close_synaescope_window(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-				GDK_THREADS_LEAVE();
+	GDK_THREADS_LEAVE();
         stop_synaescope();
-				GDK_THREADS_ENTER();
+	GDK_THREADS_ENTER();
 
-		return TRUE;
+	return TRUE;
 }
 
 static GtkWidget *init_synaescope_window(void)
@@ -512,8 +512,10 @@ static void synaescope_hide(void)
 
 static void stop_synaescope(void)
 {
-	running = 0;
-	pthread_join(synaescope_thread, NULL);
+	if (running) {
+		running = 0;
+		pthread_join(synaescope_thread, NULL);
+	}	
 }
 
 

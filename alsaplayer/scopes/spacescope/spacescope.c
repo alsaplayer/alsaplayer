@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*/ 
+ */ 
 #include <dirent.h>
 #include <sys/stat.h>
 #include <gtk/gtk.h>
@@ -55,14 +55,14 @@ void spacescope_set_data(void *audio_buffer, int size)
 {
 	int i;
 	short *sound = (short *)audio_buffer;
-	
+
 	if (!sound) {
-			memset(&actEq, 0, sizeof(actEq));
-			return;
+		memset(&actEq, 0, sizeof(actEq));
+		return;
 	}		
 	if (running && sound) {
 		char *newset = actEq;
-        	int bufsize = size / (size >= 512 ? 512 : size);
+		int bufsize = size / (size >= 512 ? 512 : size);
 		for (i=0; i < 256; i++) {
 			*newset++=(char)(((int)(*sound)+(int)(*(sound+1)))>>10);
 			sound += bufsize;
@@ -82,7 +82,7 @@ void the_spacescope(void)
 	while (running) {
 		memset(bits, 0, SPACE_WH * SPACE_WH);
 		memcpy(oldset,newset,256);
-		
+
 		for (i=0; i < 256; i++) {
 			foo = (1+(oldset[i]+64))>>1;
 			bar = ((( scX[i]*foo)>>7 )+(64)) +
@@ -94,7 +94,7 @@ void the_spacescope(void)
 		}
 		GDK_THREADS_ENTER();
 		gdk_draw_indexed_image(area->window,area->style->white_gc,
-			0, 0, SPACE_WH, SPACE_WH, GDK_RGB_DITHER_NONE, bits, SPACE_WH, color_map);
+				0, 0, SPACE_WH, SPACE_WH, GDK_RGB_DITHER_NONE, bits, SPACE_WH, color_map);
 		GDK_THREADS_LEAVE();
 		dosleep(SCOPE_SLEEP);
 	}
@@ -122,7 +122,7 @@ GtkWidget *init_spacescope_window(void)
 	GdkColor color;
 	guint32 colors[65];
 	int i;
-	
+
 	pthread_mutex_init(&spacescope_mutex, NULL);
 
 	spacescope_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -138,8 +138,8 @@ GtkWidget *init_spacescope_window(void)
 	gdk_color_alloc(gdk_colormap_get_system(), &color);
 	colors[0] = 0;
 	for (i = 1; i < 32; i++) {
-				colors[i] = (i*8 << 16) + (255*8 << 8);
-				colors[i+31] = (255*8 << 16) + ((31 - i)*8 << 8);
+		colors[i] = (i*8 << 16) + (255*8 << 8);
+		colors[i+31] = (255*8 << 16) + ((31 - i)*8 << 8);
 	}
 	colors[63] = (255*8 << 16);
 	color_map = gdk_rgb_cmap_new(colors, 64);
@@ -154,22 +154,22 @@ GtkWidget *init_spacescope_window(void)
 	/* Signals */
 
 	gtk_signal_connect(GTK_OBJECT(spacescope_win), "delete_event",
-                GTK_SIGNAL_FUNC(close_spacescope_window), spacescope_win);
+			GTK_SIGNAL_FUNC(close_spacescope_window), spacescope_win);
 
-	
+
 	/* Create sin/cos tables */
-	
+
 	for (i = 0; i < 256; i++) {
-                scX[i] = (char) (sin(((2*M_PI)/255)*i)*128);
-                scY[i] = (char) (-cos(((2*M_PI)/255)*i)*128);
-        } 
+		scX[i] = (char) (sin(((2*M_PI)/255)*i)*128);
+		scY[i] = (char) (-cos(((2*M_PI)/255)*i)*128);
+	} 
 	return spacescope_win;
 }  
 
 void spacescope_hide(void)
 {
 	gint x, y;
-	 
+
 	if (scope_win) {
 		gdk_window_get_root_origin(scope_win->window, &x, &y);	
 		gtk_widget_hide(scope_win);
@@ -179,8 +179,10 @@ void spacescope_hide(void)
 
 void stop_spacescope(void)
 {
-	running = 0;
-	pthread_join(spacescope_thread, NULL);
+	if (running) {
+		running = 0;
+		pthread_join(spacescope_thread, NULL);
+	}	
 }
 
 void run_spacescope(void *data)
@@ -211,24 +213,24 @@ void start_spacescope(void)
 static int init_spacescope(void *arg)
 {
 	if (prefs_get_bool(ap_prefs, "spacescope", "active", 0))
-			start_spacescope();
+		start_spacescope();
 	return 1;
 }
 
 static void shutdown_spacescope(void)
 {
 	prefs_set_bool(ap_prefs, "spacescope", "active", spacescope_running());
-	
-	if (spacescope_running())
-		stop_spacescope();
 
+	if (spacescope_running()) {
+		stop_spacescope();
+	}
 	if (area) {
-					gtk_widget_destroy(area);
-					area = NULL;
+		gtk_widget_destroy(area);
+		area = NULL;
 	}
 	if (scope_win) {
-					gtk_widget_destroy(scope_win);
-					scope_win = NULL;
+		gtk_widget_destroy(scope_win);
+		scope_win = NULL;
 	}				
 }
 

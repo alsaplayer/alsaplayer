@@ -17,7 +17,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
  *  $Id$
-*/ 
+ */ 
 #include <pthread.h>
 #include <dirent.h>
 #include <sys/stat.h>
@@ -55,8 +55,8 @@ static void monoscope_hide(void);
 static int monoscope_running(void);
 
 static const int default_colors[] = {
-    10, 20, 30,
-    230, 230, 230
+	10, 20, 30,
+	230, 230, 230
 };
 
 void monoscope_set_data(void *audio_buffer, int size)
@@ -187,11 +187,11 @@ void stop_monoscope(void);
 
 static gboolean close_monoscope_window(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-		GDK_THREADS_LEAVE();		
-		stop_monoscope();
-		GDK_THREADS_ENTER();
-		
-		return TRUE;
+	GDK_THREADS_LEAVE();		
+	stop_monoscope();
+	GDK_THREADS_ENTER();
+
+	return TRUE;
 }
 
 
@@ -201,18 +201,18 @@ GtkWidget *init_monoscope_window(void)
 	GdkColor color;
 	guint32 colors[65];
 	int i;
-	
+
 	pthread_mutex_init(&monoscope_mutex, NULL);
 	pthread_mutex_init(&update_mutex, NULL);
-	
+
 	monoscope_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(monoscope_win), "Monoscope");
 	gtk_widget_set_usize(monoscope_win, 256,128);
 	gtk_window_set_wmclass (GTK_WINDOW(monoscope_win), "Monoscope", "AlsaPlayer");
 	gtk_window_set_policy (GTK_WINDOW (monoscope_win), FALSE, FALSE, FALSE);
-	
+
 	gtk_widget_realize(monoscope_win);
-	
+
 	color.red = SCOPE_BG_RED << 8;
 	color.blue = SCOPE_BG_BLUE << 8;
 	color.green = SCOPE_BG_GREEN << 8;
@@ -222,7 +222,7 @@ GtkWidget *init_monoscope_window(void)
 	for (i = 1; i < 32; i++) {
 		colors[i] = (i*8 << 16) +(255 << 8);
 		colors[i+31] = (255 << 16) + (((31 - i) * 8) << 8);
-  	}
+	}
 	colors[63] = (40 << 16) + (75 << 8);
 	color_map = gdk_rgb_cmap_new(colors, 64);
 	area = gtk_drawing_area_new();
@@ -232,11 +232,11 @@ GtkWidget *init_monoscope_window(void)
 
 	gtk_widget_show(area);
 	gtk_widget_show(monoscope_win);
-	
+
 	/* Signals */
-		
+
 	gtk_signal_connect(GTK_OBJECT(monoscope_win), "delete_event",
-                GTK_SIGNAL_FUNC(close_monoscope_window), monoscope_win);
+			GTK_SIGNAL_FUNC(close_monoscope_window), monoscope_win);
 
 
 	ready_state = 1;
@@ -248,7 +248,7 @@ GtkWidget *init_monoscope_window(void)
 void monoscope_hide(void)
 {
 	gint x, y;
-	
+
 	if (scope_win) {
 		gdk_window_get_root_origin(scope_win->window, &x, &y);
 		gtk_widget_hide(scope_win);
@@ -261,17 +261,19 @@ void monoscope_hide(void)
 
 void stop_monoscope(void)
 {
-	running = 0;
-	pthread_join(monoscope_thread, NULL);
+	if (running) {
+		running = 0;
+		pthread_join(monoscope_thread, NULL);
+	}	
 }
 
 
 void run_monoscope(void *data)
 {
 	nice(SCOPE_NICE); /* Be nice to most processes */
-	
+
 	the_monoscope();
-	
+
 	pthread_mutex_unlock(&monoscope_mutex);
 	pthread_exit(NULL);
 }
@@ -302,7 +304,7 @@ static int init_monoscope(void *arg)
 
 	if (prefs_get_bool(ap_prefs, "monoscope", "active", 0))
 		start_monoscope();
-	
+
 	return 1;
 }
 
@@ -314,7 +316,7 @@ static void shutdown_monoscope(void)
 		stop_monoscope();
 	/*	
 		if (state)
-	*/						
+		*/						
 }
 
 static int monoscope_running(void)

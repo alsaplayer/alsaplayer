@@ -194,8 +194,10 @@ static void fftscope_hide(void)
 
 static void stop_fftscope(void)
 {
-	running = 0;
-	pthread_join(fftscope_thread, NULL);
+	if (running) {
+		running = 0;
+		pthread_join(fftscope_thread, NULL);
+	}	
 }
 
 
