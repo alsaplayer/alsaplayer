@@ -6,9 +6,6 @@ synaescopesources = synaescope.c
 
 lib_LTLIBRARIES = $(synaescopeltlibs)
 
-CFLAGS += -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
-			@ARCH_CFLAGS@ @GTK_CFLAGS@ @DFLAGS@
-
 else
 
 synaescopeltlibs =
@@ -16,6 +13,9 @@ synaescopeldflags =
 synaescopesources =
 
 endif
+
+CFLAGS += -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
+			@ARCH_CFLAGS@ @GTK_CFLAGS@ @DFLAGS@
 
 libdir = $(ADDON_DIR)/scopes
 

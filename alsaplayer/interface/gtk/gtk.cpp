@@ -172,14 +172,7 @@ int interface_gtk_start(CorePlayer *coreplayer, Playlist *playlist, int argc, ch
 	gtk_main();
 	playlist->Pause();
 	GDK_THREADS_LEAVE();
-	int s = 20;
-/*
-	while (s) {
-		gdk_flush();
-		dosleep(200000);
-		s--;
-	}	
-*/
+	
 	dl_close_scopes();
 	return 0;
 }

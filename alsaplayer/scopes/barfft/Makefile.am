@@ -7,10 +7,6 @@ barfftsources = $(gtk_barfft)
 
 lib_LTLIBRARIES = $(barfftltlibs)
 
-CFLAGS += -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
-			-I$(top_srcdir)/app/scopes \
-			@GTK_CFLAGS@ @DFLAGS@
-
 else
 
 gtk_barfft =
@@ -21,6 +17,10 @@ barfftsources =
 endif
 
 EXTRA_DIST = gtk_barfft.c
+
+CFLAGS += -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
+			-I$(top_srcdir)/app/scopes \
+			@GTK_CFLAGS@ @DFLAGS@
 
 libdir = $(ADDON_DIR)/scopes
 
