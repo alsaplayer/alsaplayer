@@ -526,7 +526,7 @@ static int reconnect (http_desc_t *desc, char *redirect)
     s = strstr (response, "\r\nicy-metaint:");
     if (s) {
 	desc->icy_metaint = atoi(s+14);
-	alsaplayer_error("Found metaint: %d", desc->icy_metaint);
+	//alsaplayer_error("Found metaint: %d", desc->icy_metaint);
     } else {
     	desc->icy_metaint = 0;
     }	
