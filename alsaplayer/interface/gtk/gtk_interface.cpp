@@ -130,11 +130,8 @@ gint indicator_callback(gpointer data);
 gboolean main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	GtkFunction f = (GtkFunction)data;
-	//CorePlayer *p = (CorePlayer *)data;
 	global_update = -1;
-	pthread_cancel(indicator_thread);
 	pthread_join(indicator_thread, NULL);
-	//p->Stop();
 	if (playlist_window_gtk)
 		delete playlist_window_gtk;
 
@@ -837,11 +834,11 @@ void indicator_looper(void *data)
 	printf("THREAD-%d=indicator thread\n", getpid());
 #endif
 	while (global_update >= 0) {
-		GDK_THREADS_ENTER();
 		if (global_update == 1) {
+			GDK_THREADS_ENTER();
 			indicator_callback(data);
+			GDK_THREADS_LEAVE();
 		}
-		GDK_THREADS_LEAVE();
 		dosleep(UPDATE_TIMEOUT);
 	}	
 }
@@ -1231,6 +1228,7 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	// start indicator thread
 	pthread_create(&indicator_thread, NULL,
 				   (void * (*)(void *))indicator_looper, playlist);
+	//gtk_timeout_add(100, (GtkFunction)indicator_callback, playlist);
 #ifdef DEBUG
 	printf("THREAD-%d=main thread\n", getpid());
 #endif
