@@ -37,9 +37,6 @@
 #include "utilities.h"
 #include "alsaplayer_error.h"
 
-#define MAX_FRAGS	32
-#define LOW_FRAGS	1	
-
 extern void exit_sighandler(int);
 
 AlsaNode::AlsaNode(const char *name, const char *args, int realtime)
@@ -131,7 +128,7 @@ int AlsaNode::SetStreamBuffers(int frag_size, int count, int channels)
 
 void AlsaNode::looper(void *pointer)
 {
-	char buffer_data[16384];
+	char buffer_data[65536];
 	AlsaNode *node = (AlsaNode *)pointer;
 	int read_size = node->GetFragmentSize();
 	bool status;
@@ -166,11 +163,14 @@ void AlsaNode::looper(void *pointer)
 	node->looping = true;
 
 	read_size = node->GetFragmentSize();
+	if (read_size > 65536) {
+		alsaplayer_error("We will crash soon (read_size > 65536)");
+	}	
 	while (node->looping) {
 		subscriber *i;
 		int c;
 
-		memset(buffer_data, 0, 16384);
+		memset(buffer_data, 0, read_size);
 		for (c = 0; c < MAX_SUB; c++) {
 			i = &node->subs[c];
 

@@ -50,9 +50,6 @@
 #include "utilities.h"
 #include "alsaplayer_error.h"
 
-#define MAX_FRAGS	16
-#define LOW_FRAGS	4	
-
 extern void exit_sighandler(int);
 static char addon_dir[1024];
 
@@ -957,7 +954,8 @@ int CorePlayer::Read32(void *data, int samples)
 	if (pitch == 0.0 || (read_buf == write_buf)) {
 		if (write_buf->next->start == -2 || !producing) {
 			return -2;
-		}	
+		}
+		//alsaplayer_error("Nothing to play (spitting out silence)");
 		memset(data, 0, samples * 4);
 		return samples;
 	}
