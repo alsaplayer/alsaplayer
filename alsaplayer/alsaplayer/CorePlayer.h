@@ -73,7 +73,6 @@ typedef struct _sample_buf
 class CorePlayer // Much more abstraction to come, well maybe not
 {
  private:
-	char file_path[1024]; 
 	int total_frames;
 	int write_buf_changed;
 	int read_direction;

@@ -215,7 +215,6 @@ static int jack_open(const char *name)
 		//alsaplayer_error("current = \"%s\", left = \"%s\"", t, c);
 		// Check if the token is comma delimited, meaning port names
 		if ((s=strchr(t, ','))) {
-			alsaplayer_error("t=%s", t);
 			*s++ = 0;
 			strncpy(dest_port1, t, 127);
 			strncpy(dest_port2, s, 127);

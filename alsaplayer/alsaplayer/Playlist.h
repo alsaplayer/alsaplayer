@@ -39,14 +39,19 @@ class PlayItem
 {
 	private:
 		bool parsed;
+		bool eof;
 	public:
 		PlayItem(std::string filename_new) {
 			filename = filename_new;
 			playtime = 0;
 			parsed = false;
 			marked_to_keep_curritem = 0;
+			UnsetEof();
 		}
 		bool Parsed() { return parsed; }
+		void SetEof() { eof = true; }
+		void UnsetEof() { eof = false; }
+		bool Eof() { return eof; }
 		void SetParsed() { parsed = true; }
 		std::string filename;
 		std::string title;

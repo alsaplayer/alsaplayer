@@ -646,7 +646,6 @@ AC_FUNC_MMAP
 AC_CHECK_FUNCS(madvise)
 AC_CHECK_FUNCS(strdup strstr)
 
-
 ADDON_DIR=${libdir}/$PACKAGE
 
 dnl ================

@@ -29,5 +29,5 @@ AM_CFLAGS = $(AM_CXXFLAGS)
 libdir = $(ADDON_DIR)/output
 
 libjack_out_la_LDFLAGS = $(jack_outldflags)
-libjack_out_la_LIBADD = @JACK_LIB@
+libjack_out_la_LIBADD = @JACK_LIBS@
 libjack_out_la_SOURCES= $(jack_outsources)

@@ -1,4 +1,7 @@
-* OGG plugin also supports HTTP streaming!
+* FLAC plugin converted to reader API (Drew) which means we can now also
+  receive remote FLAC streams.
+* Shoutcast metadata handling.
+* OGG plugin also supports Icecast/Shoutcast streaming!
 * Add initial support for Icecast/Shoutcast streaming!
 * Support pls playlist loading (no metadata loading)
 * Add preliminary HTTP 302 redirect handling in http reader plugin
@@ -7,11 +10,14 @@
 * --quiet mode disables progress bar in text mode interface
 * Improved ogg vorbis performance
 * New -E option, which replaces the queue in a running alsaplayer
+* New -c option, which lets you select a specific config file for use
 * New ap_jump_to() libalsaplayer function which allows jumping to specific
   playlist tracks.
 * Fix playlist loading
 * Fix FLAC playback support
 * Fix crashing bug when fragment size was bigger than 16K
+* Fix timedisplay for none 44KHz OGG  streams
+* NAS output plugin fixes
 
 
 Sun Dec  1 17:11:03 CET 2002
