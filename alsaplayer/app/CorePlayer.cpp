@@ -192,6 +192,7 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 #ifndef NEW_PLAY	
 	the_object->write_buffer = NULL;
 #endif
+	the_object->ready = 0;
 
 	pthread_mutex_init(&the_object->object_mutex, NULL);
 	test_sub = new AlsaSubscriber();
@@ -300,7 +301,7 @@ unsigned long CorePlayer::GetCurrentTime(int frame)
 	unsigned long result = 0;
 
 	pthread_mutex_lock(&player_mutex);
-	if (plugin && the_object) {
+	if (plugin && the_object && the_object->ready) {
 		result = plugin->frame_to_sec(the_object, frame < 0 ? GetPosition()
 			: frame);
 	}
@@ -314,7 +315,7 @@ int CorePlayer::GetPosition()
 {
 	if (jumped)	// HACK!
 		return jump_point;
-	if (read_buf && plugin && the_object) {
+	if (read_buf && plugin && the_object && the_object->ready) {
 		if (read_buf->start < 0)
 			return 0;		
 
@@ -334,7 +335,7 @@ int CorePlayer::GetFrames()
 	int result = 0;
 
 	pthread_mutex_lock(&player_mutex);
-	if (plugin && the_object)
+	if (plugin && the_object && the_object->ready)
 		result = plugin->nr_frames(the_object);
 	pthread_mutex_unlock(&player_mutex);
 
@@ -347,7 +348,7 @@ int CorePlayer::GetSampleRate()
 	int result = 0;
 
 	pthread_mutex_lock(&player_mutex);
-	if (plugin && the_object)
+	if (plugin && the_object && the_object->ready)
 		result = plugin->sample_rate(the_object);
 	pthread_mutex_unlock(&player_mutex);
 
@@ -489,7 +490,7 @@ int CorePlayer::Seek(int index)
 
 int CorePlayer::FrameSeek(int index)
 {
-	if (plugin && the_object)
+	if (plugin && the_object && the_object->ready)
 		index = plugin->frame_seek(the_object, index);
 	else 
 		index = -1;
@@ -506,8 +507,10 @@ bool CorePlayer::PlayFile(const char *path)
 
 void CorePlayer::Close()
 {
-	if (plugin && the_object)
+	if (plugin && the_object && the_object->ready) {
+		the_object->ready = 0;
 		plugin->close(the_object);
+	}	
 }
 
 
@@ -565,6 +568,7 @@ bool CorePlayer::Open()
 		result = false;
 		frames_in_buffer = 0;
 	}	
+	the_object->ready = 1;
 
 	return result;	
 }
@@ -771,7 +775,7 @@ int CorePlayer::pcm_worker(sample_buf *dest, int start, int len)
 	int bytes_written = 0;
 	char *sample_buffer;
 
-	if (dest && the_object) {
+	if (dest && the_object && the_object->ready) {
 		int count = dest->buf->GetBufferSizeBytes(plugin->frame_size(the_object));
 		dest->buf->Clear();
 		if (last_read == start) {
