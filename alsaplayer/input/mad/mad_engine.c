@@ -730,8 +730,11 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 	while (pos < (size - 10)) {
 		if (pos == 0 && data[pos] == 0x0d && data[pos+1] == 0x0a)
 			pos += 2;
-		if (data[pos] == 0xff && (data[pos+1] == 0xfb || data[pos+1] == 0xfa || data[pos+1] == 0xf3 
-					|| data[pos+1] == 0xe2)) {
+		if (data[pos] == 0xff && (data[pos+1] == 0xfb
+					|| data[pos+1] == 0xfa
+					|| data[pos+1] == 0xf3 
+					|| data[pos+1] == 0xe2
+					|| data[pos+1] == 0xe3)) {
 			//alsaplayer_error("found header at %d", pos);
 			return pos;
 		}	
