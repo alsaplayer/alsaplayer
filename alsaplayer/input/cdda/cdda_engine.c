@@ -911,8 +911,6 @@ void cd_adder(void *data) {
 	
 	nr_tracks = (int)data;
 	
-	ap_clear_playlist(global_session_id);
-		
 	for (i=1;i <= nr_tracks;i++) {
 		sprintf(track_name, "Track %02d.cdda", i);
 		ap_add_path(global_session_id, track_name);
@@ -1145,7 +1143,7 @@ static int cdda_stream_info(input_object *obj, stream_info *info)
 
 	tl = &data->tl;
 
-	sprintf(info->stream_type, "16-bit 44KHz stereo CDDA");
+	sprintf(info->stream_type, "CD Audio, 44KHz, stereo");
 	sprintf(info->artist, "%s", tracks[1].artist);
 	sprintf(info->album, "%s", tracks[1].album);
 	info->status[0] = 0;

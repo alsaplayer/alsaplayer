@@ -466,6 +466,8 @@ static int reconnect (http_desc_t *desc, char *redirect)
 	//alsaplayer_error("%s", response);
     } else if (!strncmp (response, "ICY 400 Server Full", 19)) {
 	rc = 400;
+    } else if (!strncmp (response, "ICY 404", 7)) {
+	 rc = 404;
     } else {
 	if (strlen(response)) {	
 		alsaplayer_error ("HTTP: Wrong server protocol for http://%s:%u%s",
@@ -506,6 +508,11 @@ static int reconnect (http_desc_t *desc, char *redirect)
 		return 1;
 	} else if (rc == 401) {
 		alsaplayer_error("Unauthorized access.");
+		if (redirect)
+			redirect[0] = 0;
+		return 1;
+	} else if (rc == 404) {
+		alsaplayer_error("Resource not found.");
 		if (redirect)
 			redirect[0] = 0;
 		return 1;

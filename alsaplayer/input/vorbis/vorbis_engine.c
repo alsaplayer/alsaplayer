@@ -297,11 +297,13 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 			long br = ov_bitrate_instant(&data->vf);
 			if (br > 0) 
 				data->bitrate_instant = br;
-			sprintf(info->stream_type, "%dKHz %d kbit ogg",
+			sprintf(info->stream_type, "OGG Vorbis, %dKHz, %s, %-3dkbit",
 					vi->rate / 1000, 
+					 obj->nr_channels == 1 ? "mono":"stereo",
 					data->bitrate_instant / 1000);
-		} else
+		} else {
 			strcpy(info->stream_type, "Unkown OGG VORBIS");
+		}	
 		info->status[0] = 0;
 	}
 	return 1;

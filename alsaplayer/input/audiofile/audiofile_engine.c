@@ -65,7 +65,7 @@ static void init_audiofile ()
 
 static int audiofile_open (input_object *obj, char *name)
 {
-	static int				audiofile_init_done = 0;
+	static int audiofile_init_done = 0;
 	struct af_local_data	*data;
 
 #ifdef DEBUG
