@@ -206,6 +206,7 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	pthread_mutex_init(&counter_mutex, NULL); 
 	pthread_mutex_init(&player_mutex, NULL);
 	pthread_mutex_init(&notifier_mutex, NULL);
+	pthread_cond_init(&producer_ready, NULL);
 	
 	producer_thread = 0; 
 	total_frames = 0;
@@ -651,11 +652,8 @@ void CorePlayer::Stop()
 	}
 	producing = false;
 	streaming = false;
-
-	/* We don't know locked it or not */
-	pthread_mutex_trylock (&counter_mutex);
-	pthread_mutex_unlock (&counter_mutex);
-
+	//alsaplayer_error("Signalling 6...");
+	pthread_cond_signal(&producer_ready);
 #ifdef DEBUG	
 	alsaplayer_error("Waiting for producer_thread to finish...");
 #endif
@@ -663,7 +661,7 @@ void CorePlayer::Stop()
 	    if (pthread_join(producer_thread, NULL)) {
 		    alsaplayer_error("producer_thread not running...");
 	    } 
-	}	    
+	}
 	pthread_mutex_destroy(&counter_mutex);
 	
 	pthread_mutex_init(&counter_mutex, NULL);
@@ -918,7 +916,8 @@ int CorePlayer::SetDirection(int direction)
 		new_frame_number = new_write_buf->start;
 		write_buf_changed = 1;
 		read_direction = direction;
-		pthread_mutex_unlock(&counter_mutex);		
+		//alsaplayer_error("Signalling...1");
+		pthread_cond_signal(&producer_ready);		
 	}
 	return 0;	
 	
@@ -1013,7 +1012,8 @@ int CorePlayer::Read32(void *data, int samples)
 		new_write_buf->start = jump_point;
 		new_frame_number = jump_point;
 		write_buf_changed = 1;
-		pthread_mutex_unlock(&counter_mutex);
+		//alsaplayer_error("Signalling 2...");
+		pthread_cond_signal(&producer_ready);
 	}
 #ifdef EMBEDDED
 	// provide a fast path implementation for the common case (no pitch)
@@ -1040,7 +1040,8 @@ int CorePlayer::Read32(void *data, int samples)
 
 			// get next block
 			read_buf = read_buf->next;
-			pthread_mutex_unlock(&counter_mutex);
+			//alsaplayer_error("Signalling 3...");
+			pthread_cond_signal(&producer_ready);
 			read_buf->buf->SetReadDirection(DIR_FORWARD);
 			read_buf->buf->ResetRead();
 			in_buf = (int *)read_buf->buf->buffer_data;
@@ -1073,7 +1074,8 @@ int CorePlayer::Read32(void *data, int samples)
 					read_buf->start);
 				}
 				read_buf = read_buf->next;
-				pthread_mutex_unlock(&counter_mutex);
+				//alsaplayer_error("Signalling 4...");
+				pthread_cond_signal(&producer_ready);
 				read_buf->buf->SetReadDirection(DIR_FORWARD);
 				read_buf->buf->ResetRead();
 				in_buf = (int *)read_buf->buf->buffer_data;
@@ -1100,7 +1102,8 @@ int CorePlayer::Read32(void *data, int samples)
 					return samples;
 				}
 				read_buf = read_buf->prev;
-				pthread_mutex_unlock(&counter_mutex);
+				//alsaplayer_error("Signalling 5...");
+				pthread_cond_signal(&producer_ready);
 				read_buf->buf->SetReadDirection(DIR_BACK);
 				read_buf->buf->ResetRead();
 				int buf_size = read_buf->buf->write_index;
@@ -1217,6 +1220,10 @@ void CorePlayer::producer_func(void *data)
 		} else {
 			//alsaplayer_error("producer: waiting for free buffer");
 			pthread_mutex_lock(&obj->counter_mutex);
+			//alsaplayer_error("Waiting for a signal...");
+			pthread_cond_wait(&obj->producer_ready, &obj->counter_mutex);
+			//alsaplayer_error("Got signalled...");
+			pthread_mutex_unlock(&obj->counter_mutex);
 			//alsaplayer_error("producer: unblocked");
 		}	
 	}

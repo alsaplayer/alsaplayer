@@ -104,6 +104,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	pthread_t producer_thread;
 	pthread_mutex_t player_mutex;
 	pthread_mutex_t counter_mutex;
+	pthread_cond_t producer_ready;
 	pthread_mutex_t thread_mutex;
 	pthread_mutex_t notifier_mutex;
 #if !defined(EMBEDDED)
