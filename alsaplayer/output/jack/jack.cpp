@@ -29,6 +29,8 @@
 #include "alsaplayer_error.h"
 #include "prefs.h"
 
+#define TEST_MASTER
+
 typedef jack_default_audio_sample_t sample_t;
 static pthread_t restarter;
 static jack_port_t *my_output_port1;
@@ -329,8 +331,7 @@ int process(jack_nframes_t nframes, void *arg)
 			if ((transport.valid & JackTransportState) &&
 					(transport.transport_state == JackTransportStopped)) {
 				stopped = 1;
-			}	
-				
+			}
 		}	
 		
 		sample_t *out1 = (sample_t *) jack_port_get_buffer(my_output_port1, nframes);
@@ -354,12 +355,15 @@ int process(jack_nframes_t nframes, void *arg)
 #ifdef TEST_MASTER	
 	if (jack_master) { // master control
 		tinfo.valid = jack_transport_bits_t(JackTransportPosition | JackTransportState | JackTransportLoop);
-		tinfo.frame = framepos++; 
+		framepos++; 
 		tinfo.loop_start = tinfo.loop_end = 0;
-		if (framepos < 200 || framepos > 600)
+		tinfo.bar = tinfo.beat = tinfo.tick = 0;
+		if (framepos < 200 || framepos > 600) {
 			tinfo.transport_state = JackTransportRolling;
-		else
+			tinfo.frame = framepos;
+		} else {
 			tinfo.transport_state = JackTransportStopped;
+		}	
 		jack_set_transport_info(client, &tinfo);
 	}	
 #endif	
