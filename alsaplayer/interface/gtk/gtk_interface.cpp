@@ -747,16 +747,17 @@ gint indicator_callback(gpointer, int locking)
 		c_hsec = 0;
 		sprintf(info.title, "No stream");
 	}
-	if (strlen(info.status)) {
+	if (nr_frames < 0 || strlen(info.status)) {
 		sprintf(str, "%s", info.status);
+		if (!strlen(info.status)) {
+			alsaplayer_error("empty string");
+		}	
 	} else {
 #ifdef SUBSECOND_DISPLAY
 		sprintf(str, "%02ld:%02ld.%02d/%02d:%02d", c_min, c_sec, c_hsec, t_min, t_sec);
 #else
 		if (nr_frames >= 0) 
 			sprintf(str, "%02ld:%02ld/%02ld:%02ld", c_min, c_sec, t_min, t_sec);
-		else
-			sprintf(str, "Live: %02ld:%02ld", c_min, c_sec);
 #endif
 	}
 	if (val_ind && strcmp(old_str, str) != 0) {
