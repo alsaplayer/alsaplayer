@@ -36,6 +36,7 @@
 #define BLOCK_SIZE 4096	/* We can use any block size we like */
 #define MAX_NUM_SAMPLES 8192
 #define STREAM_BUFFER_SIZE	16384
+#define FRAME_RESERVE	2000
 
 # if !defined(O_BINARY)
 #  define O_BINARY  0
@@ -52,14 +53,12 @@ struct mad_local_data {
 				struct mad_synth  synth; 
 				struct mad_stream stream;
 				struct mad_frame  frame;
-				uint8_t stream_buffer[STREAM_BUFFER_SIZE];
 				int mad_init;
 				ssize_t offset;
 				int samplerate;
 				int bitrate;
 				int seekable;
 				int eof;
-				int last_index;
 };		
 
 
@@ -131,7 +130,8 @@ static int mad_frame_seek(input_object *obj, int frame)
 				int bytes_read;
 				int advance;
 				int num_bytes;
-
+				ssize_t byte_offset;
+				
 				if (!obj)
 								return 0;
 				data = (struct mad_local_data *)obj->local_data;
@@ -140,21 +140,48 @@ static int mad_frame_seek(input_object *obj, int frame)
 
 				if (data) {
 								ssize_t current_pos;
-								printf("frame = %d, highest frame = %d\n", frame, data->highest_frame);	
-								if (frame < data->highest_frame) {
-												mad_frame_mute(&data->frame);
-												mad_synth_mute(&data->synth);
-												return frame;
-								} else { /* Decode headers until frame pos */
+								if (frame <= data->highest_frame) {
+												int skip = 0;
+												if (frame > 4) {
+																skip = 3;
+												}
+												byte_offset = data->frames[frame-skip];
+												mad_stream_buffer(&data->stream, data->mad_map + 
+																				byte_offset,
+																				data->stat.st_size - byte_offset);
+												skip++;
+												while (skip != 0) {
+																skip--;
+
+																mad_frame_decode(&data->frame, &data->stream);
+																if (skip == 0)
+																	mad_synth_frame (&data->synth, &data->frame);
+												}				
+												data->current_frame = frame;
+												return data->current_frame;
 								}
-								while (data->highest_frame != frame) {
+								mad_stream_buffer(&data->stream, data->mad_map +
+																data->frames[data->highest_frame],
+																data->stat.st_size - data->offset -
+																data->frames[data->highest_frame]);
+								while (data->highest_frame < frame) {
 												if (mad_header_decode(&header, &data->stream) == -1) {
-															printf("MAD debug: error seeking to %d, going to %d\n",
-																							frame, data->highest_frame);
-															return data->highest_frame;
-												}	
-												data->highest_frame++;
-								}			
+																if (!MAD_RECOVERABLE(data->stream.error)) {
+																				printf("MAD debug: error seeking to %d, going to %d\n",
+																												data->current_frame, data->highest_frame);
+																				mad_stream_buffer(&data->stream,
+																					data->mad_map + data->offset +
+																					data->frames[data->highest_frame],
+																					data->stat.st_size - data->offset -
+																					data->frames[data->highest_frame]);
+																				return 0;
+																}				
+												}
+												data->frames[++data->highest_frame] =
+																			data->stream.this_frame - data->mad_map;
+								}
+								data->current_frame = data->highest_frame;
+								return data->current_frame;
 				}
 				return 0;
 }
@@ -183,9 +210,6 @@ static int mad_play_frame(input_object *obj, char *buf)
 				if (!data)
 								return 0;
 
-#ifdef MAD_DEBUG
-				printf("MAD debug: going to decode frame\n");
-#endif
 				if (mad_frame_decode(&data->frame, &data->stream) == -1) {
 								if (!MAD_RECOVERABLE(data->stream.error)) {
 												printf("MAD error: %s\n", error_str(data->stream.error));
@@ -193,11 +217,16 @@ static int mad_play_frame(input_object *obj, char *buf)
 												return 0;
 								}	else {
 												printf("MAD error: %s\n", error_str(data->stream.error));
-								}		
+								}
 				}
-#ifdef MAD_DEBUG	
-				printf("MAD debug: going to synth frame\n");
-#endif	
+				data->current_frame++;
+				if (data->current_frame < (obj->nr_frames + FRAME_RESERVE)) {
+								data->frames[data->current_frame] = 
+												data->stream.this_frame - data->mad_map;
+								if (data->highest_frame < data->current_frame)
+												data->highest_frame = data->current_frame;
+				}				
+				
 				mad_synth_frame (&data->synth, &data->frame);
 				{
 								struct mad_pcm *pcm = &data->synth.pcm;
@@ -205,18 +234,13 @@ static int mad_play_frame(input_object *obj, char *buf)
 								uint16_t	*output = (uint16_t *)buf;
 								int nsamples = pcm->length;
 								int nchannels = pcm->channels;
-
 								left_ch = pcm->samples[0];
 								right_ch = pcm->samples[1];
-#ifdef MAD_DEBUG					
-								printf("MAD debug: going to write out sample data\n");	
-#endif					
 								while (nsamples--) {
 												*output++ = scale(*left_ch++);
 												if (nchannels == 2) 
 																*output++ = scale(*right_ch++);
 								}
-								//printf("next_frame: %d, this_frame: %d\n", data->stream.next_frame, data->stream.this_frame);
 				}
 
 				return 1;
@@ -324,11 +348,6 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 				ssize_t header_size = 0;
 				while (pos < (size - 10)) {
 								if ((data[pos] == 0x49 && data[pos+1] == 0x44 && data[pos+2] == 0x33)) {
-#ifdef MAD_DEBUG									
-												printf("-----------------------\nMAD debug: skipping ID3v2 header (%x %x %x)\n",
-																				data[pos], data[pos+1], data[pos+2]);
-#endif									
-
 												header_size = (data[pos + 6] << 21) + 
 																(data[pos + 7] << 14) +
 																(data[pos + 8] << 7) +
@@ -337,17 +356,9 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 																header_size += 10; /* 10 byte extended header */
 												}
 												header_size += 10;
-#ifdef MAD_DEBUG									
-												printf("MAD debug: header size = %d (%x %x %x %x)\n", header_size,
-																				data[pos + 6], data[pos + 7], data[pos + 8],
-																				data[pos + 9]);
-#endif									
 												return header_size;
 								} else if (data[pos] == 'R' && data[pos+1] == 'I' &&
 																data[pos+2] == 'F' && data[pos+3] == 'F') {
-#ifdef MAD_DEBUG									
-												printf("-----------------------\nMAD debug: skipping RIFF header\n");
-#endif									
 												pos+=4;
 												while (pos < size) {
 																if (data[pos] == 'd' && data[pos+1] == 'a' &&
@@ -361,9 +372,6 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 												return -1;
 								} else if (data[pos] == 'T' && data[pos+1] == 'A' && 
 																data[pos+2] == 'G') {
-#ifdef MAD_DEBUG									
-												printf("----------------------\nMAD debug: skipping TAG data\n");
-#endif									
 												return 128;	/* TAG is fixed 128 bytes */
 								}  else {
 												pos++;
@@ -470,12 +478,13 @@ static int mad_open(input_object *obj, char *path)
 				}
 				/* Allocate frame index */
 				if (obj->nr_frames > 500000 ||
-					 (data->frames = (ssize_t *)malloc(obj->nr_frames * sizeof(ssize_t))) == NULL) {
+					 (data->frames = (ssize_t *)malloc((obj->nr_frames + FRAME_RESERVE) * sizeof(ssize_t))) == NULL) {
 								data->seekable = 0;
 				}	else {
 								printf("Allocated %d index positions\n", obj->nr_frames);
 								data->seekable = 1;
 				}				
+				data->frames[0] = data->offset;
 				
 				/* Reset decoder */
 				data->mad_init = 0;
