@@ -105,8 +105,10 @@ void CorePlayer::UnlockNotifiers()
 
 void CorePlayer::RegisterNotifier(coreplayer_notifier *core_notif)
 {
-	if (!core_notif)
+	if (!core_notif) {
+		alsaplayer_error("Notifier is NULL");
 		return;
+	}	
 	Lock();
 	if (core_notif->speed_changed)
 		core_notif->speed_changed(GetSpeed());
@@ -114,7 +116,7 @@ void CorePlayer::RegisterNotifier(coreplayer_notifier *core_notif)
 		core_notif->pan_changed(GetPan());
 	if (core_notif->volume_changed)
 		core_notif->volume_changed(GetVolume());
-	LockNotifiers();	
+	LockNotifiers();
 	notifiers.insert(core_notif);
 	UnlockNotifiers();
 	Unlock();
@@ -655,7 +657,7 @@ void CorePlayer::PositionUpdate()
 	std::set<coreplayer_notifier *>::const_iterator i;
 	LockNotifiers();
 	for (i = notifiers.begin(); i != notifiers.end(); i++) {
-		if ((*i)->pan_changed)
+		if ((*i)->position_notify)
 			(*i)->position_notify(GetPosition());
 	}
 	UnlockNotifiers();
