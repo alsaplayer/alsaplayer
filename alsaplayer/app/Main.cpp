@@ -34,6 +34,7 @@
 #include <fcntl.h>
 #include <dlfcn.h>
 #include <math.h>
+#include <stdarg.h>
 
 #include "config.h"
 
