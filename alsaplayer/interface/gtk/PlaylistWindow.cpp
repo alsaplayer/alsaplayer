@@ -108,7 +108,7 @@ void PlaylistWindowGTK::CbInsert(std::vector<PlayItem> & items, unsigned positio
 			new_list_item(item->filename.c_str(), list_item);
 
 			// Add it to the playlist
-			int index = gtk_clist_insert(GTK_CLIST(playlist_list), position, list_item);
+			int index = gtk_clist_insert(GTK_CLIST(playlist_list), index, list_item);
 			gtk_clist_set_shift(GTK_CLIST(playlist_list), index, 1, 2, 2);
 
 			index ++;
