@@ -149,7 +149,7 @@ void PlaylistWindowGTK::CbUpdated(void *data,PlayItem & item, unsigned position)
 	gtk_clist_freeze(GTK_CLIST(gtkpl->playlist_list));
 	if (item.title.size()) {
 		sprintf(tmp, "%s %s", item.title.c_str(),
-			item.artist.size() ? (string("- ") + item.artist).c_str() : "");
+			item.artist.size() ? (std::string("- ") + item.artist).c_str() : "");
 		gtk_clist_set_text(GTK_CLIST(gtkpl->playlist_list), position,
 				1, g_strdup(tmp));
 	}
@@ -438,7 +438,7 @@ static void new_list_item(const PlayItem *item, gchar **list_item)
 			filename = (gchar *)g_strdup(new_path);
 	if (item->title.size()) {
 		sprintf(pt, "%s %s", item->title.c_str(), 
-			item->artist.size() ? (string("- ") + item->artist).c_str() :
+			item->artist.size() ? (std::string("- ") + item->artist).c_str() :
 				"");
 	} else {
 		sprintf(pt, "%s", filename);
