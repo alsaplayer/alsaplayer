@@ -424,7 +424,7 @@ void Playlist::Shuffle(int locking) {
 }	
 
 // Empty playlist
-void Playlist::Clear() {
+void Playlist::Clear(int locking) {
 	pthread_mutex_lock(&playlist_mutex);
 	queue.clear();
 	curritem = 0;
@@ -436,7 +436,11 @@ void Playlist::Clear() {
 	if(interfaces.size() > 0) {
 		std::set<PlaylistInterface *>::const_iterator i;
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
+			if (locking)
+				(*i)->CbLock();
 			(*i)->CbClear();
+			if (locking)
+				(*i)->CbUnlock();
 		}
 	}
 	pthread_mutex_unlock(&playlist_mutex);

@@ -108,7 +108,7 @@ void socket_looper(void *arg)
 						player->SetSpeed(0.0);
 					break;
 				case AP_DO_CLEAR_PLAYLIST:
-					playlist->Clear();
+					playlist->Clear(1);
 					break;
 				case AP_SET_FLOAT_SPEED:
 					player = playlist->GetCorePlayer();
