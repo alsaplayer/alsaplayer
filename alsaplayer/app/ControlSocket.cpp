@@ -47,6 +47,8 @@ void socket_looper(void *arg)
 		int int_val;
 		socklen_t len;
 		int fd;
+		int session_id = 0;
+		int session_ok = 0;
 		ap_pkt_t pkt;
 		struct passwd *pwd;
 		
@@ -58,18 +60,23 @@ void socket_looper(void *arg)
 		}
 	
 		pwd = getpwuid(geteuid());
-
+		
 		if ((socket_fd = socket(AF_UNIX, SOCK_STREAM, 0)) != -1) {
 			saddr.sun_family = AF_UNIX;
-			sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ? 
-				"anonymous" : pwd->pw_name, 0);
-			unlink(saddr.sun_path); // Wipe before use, XXX FIXME
-			if (bind(socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
-				listen(socket_fd, 100);
-			} else {
-				alsaplayer_error("Error listening on control socket\n");
-				return;
+			while (session_id < MAX_AP_SESSIONS && !session_ok) {
+				sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ? 
+					"anonymous" : pwd->pw_name, session_id);
+				if (bind(socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
+					listen(socket_fd, 100);
+					session_ok = 1;
+				} else {
+					session_id++;
+				}
 			}
+			if (!session_ok) {
+				alsaplayer_error("Out of alsaplayer sockets\n");
+				return;
+			}	
 		} else {
 			alsaplayer_error("Error setting up control socket\n");
 			return;

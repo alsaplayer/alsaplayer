@@ -24,7 +24,8 @@ extern "C" {
 
 #define AP_CONTROL_BASE_VERSION		0x1000
 #define AP_CONTROL_VERSION				(AP_CONTROL_BASE_VERSION + 1)
-
+#define MAX_AP_SESSIONS						32	/* Convenience, will be removed */
+	
 typedef enum  {
 	AP_DO_PLAY = 0x1,
 	AP_DO_STOP,
@@ -56,6 +57,8 @@ int ap_get_float(int session, ap_cmd_t cmd, float *val);
 int ap_set_float(int session, ap_cmd_t cmd, float val);
 int ap_get_string(int session, ap_cmd_t cmd, char *val);
 int ap_set_string(int session, ap_cmd_t cmd, char *val);
+int ap_find_session(char *session_name);
+int ap_session_running(int session);
 
 #ifdef __cplusplus
 }

@@ -23,6 +23,7 @@
 #include "packet.h"
 #include <sys/un.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <pwd.h>
 #include <stdio.h>
@@ -208,6 +209,47 @@ ap_get_string(int session, ap_cmd_t cmd, char *result)
 	}
 	return 0;
 }
+
+
+int ap_session_running(int session)
+{
+	struct stat statbuf;
+	struct passwd *pwd;
+	char path[1024];
+	float ping;
+
+	pwd = getpwuid(geteuid());
+	
+	sprintf(path, "/tmp/alsaplayer_%s_%d", pwd == NULL ? "anonymous" :
+		pwd->pw_name, session);
+	if (stat(path, &statbuf) != 0) 
+		return -1;
+	if (S_ISSOCK(statbuf.st_mode)) {
+		if (ap_get_float(session, AP_GET_FLOAT_PING, &ping) != -1)
+			return 1;
+	}
+	return -1;
+}
+
+
+int ap_find_session(char *session_name)
+{
+	int i = 0;
+	char remote_name[1024];
+	
+	if (!session_name)
+		return -1;
+	for (int i=0; i < MAX_AP_SESSIONS; i++) {
+		if (ap_session_running(i) == 1) {
+			if (ap_get_string(i, AP_GET_STRING_SESSION_NAME, remote_name) != -1) {
+				if (strcmp(remote_name, session_name) == 0)
+					return i;
+			}
+		}
+	}
+	return -1;
+}
+
 
 } /* extern "C" */
 
