@@ -554,6 +554,12 @@ int ap_get_position(int session, int *val)
 	return (ap_cmd_get_int(session, AP_GET_POS_SECOND, val));
 }
 
+int ap_get_tracks(int session, int *val)
+{
+	return (ap_cmd_get_int(session, AP_GET_TRACKS, val));
+}
+
+
 int ap_get_volume(int session, int *volume)
 {
 	return (ap_cmd_get_int(session, AP_GET_VOLUME, volume));

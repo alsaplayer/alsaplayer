@@ -73,6 +73,7 @@
 #define AP_SHUFFLE_PLAYLIST	0xcc28
 #define AP_SAVE_PLAYLIST	0xcc29
 #define AP_GET_PLAYLIST_LENGTH	0xcc2a
+#define AP_GET_TRACKS		0xcc2b
 
 /* Add new commands here */
 
