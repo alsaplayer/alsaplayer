@@ -6,7 +6,7 @@ ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
 ALSAPLAYER_MICRO_VERSION=58
 
-BETA=-pre1
+BETA=
 
 ALSAPLAYER_VERSION=$ALSAPLAYER_MAJOR_VERSION.$ALSAPLAYER_MINOR_VERSION.${ALSAPLAYER_MICRO_VERSION}${BETA}
 
@@ -72,6 +72,18 @@ AC_CHECK_LIB(audiofile, afOpenFile,
 	AC_SUBST(AUDIOFILE_LIBS)
 	], )
 AC_HEADER_STDC
+
+
+dnl ======================
+dnl PKGCONFIG preparations
+dnl ======================
+
+if test -z $PKG_CONFIG_PATH; then
+	PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/lib/pkgconfig
+fi
+
+export PKG_CONFIG_PATH
+
 
 dnl ==================
 dnl Hackety hack stuff

@@ -1,21 +1,18 @@
-Core code by Andy Lo A Foe <andy@alsa-project.org>
+Core code by Andy Lo A Foe <andy@alsaplayer.org>
 
 CDDA plugin uses some routines from dagrab by Marcello Urbani
 
 MP3 plugin based on the mpg123 engine by Michael Hipp
 
-I therefore also ripped some stuff from the x11amp mpg123
-input plugin for convenience. Thanks x11amp authors
-
 WAV plugin uses routines from aplay by Jaroslave Kysela
 
 The reverb routines are (C) by Philip Edelbrock.
 
-The FFTscope fft routines, and sockmon plugin are (C) by Richard Boulton.
+The FFTscope fft routines, are (C) by Richard Boulton.
 
 Ralph Loader enhanced the Monoscope a great deal
 
 Erik Inge Bolsø wrote the NAS plugin
 
-Looping code by Patrick Shirkey (not yet included)
+Looping code by Patrick Shirkey
 
