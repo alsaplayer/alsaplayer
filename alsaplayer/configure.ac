@@ -185,10 +185,6 @@ dnl ======================
 dnl Check for header files
 dnl ======================
 
-CFLAGS="$CFLAGS -I$x_includes -L$x_libraries"
-CPPFLAGS="$CPPFLAGS -I$x_includes -I/usr/include/glib-1.2 -I/usr/lib/glib/include -I/usr/local/jack/include"
-AS="$CC"
-
 AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_CHECK_HEADERS(fcntl.h)
@@ -200,7 +196,6 @@ AC_CHECK_HEADERS(linux/cdrom.h)
 AC_CHECK_HEADERS(sys/soundcard.h)
 AC_CHECK_HEADERS(sys/audioio.h)
 AC_CHECK_HEADERS(audio/audiolib.h)
-AC_CHECK_HEADERS(jack/jack.h)
 
 dnl ==========
 dnl ALSA stuff
@@ -234,6 +229,7 @@ ALSA_LIB="-lasound"
 AC_MSG_RESULT([found latest])
 )
 )
+
 
 dnl =========
 dnl ESD stuff
@@ -289,14 +285,26 @@ AC_SUBST(NAS_LIB)
 dnl ==========
 dnl JACK stuff
 dnl ==========
+
+AC_ARG_WITH(jack,[  --with-jack=PFX        Prefix where jack is installed (optional)],
+ jack_prefix="$withval", jack_prefix="/usr/local") 
+
+JACK_CFLAGS="-I$jack_prefix/include"
+
+CFLAGS="$CFLAGS $JACK_CFLAGS"
+CPPFLAGS="$CPPFLAGS"
+AS="$CC"
+
+AC_CHECK_HEADERS(jack/jack.h)
+
 if test "$have_glib" = "yes"
 then
 oldcflags=$CFLAGS
-CFLAGS="$CFLAGS -L/usr/local/jack/lib -ldl"
+CFLAGS="$CFLAGS -ldl"
 AC_CHECK_LIB(jack,jack_activate,
 [
 have_jack=yes
-JACK_LIB="-L/usr/local/jack/lib -ljack"
+JACK_LIB="-L$jack_prefix/lib -ljack -ldl"
 ],
 [
 have_jack=no
