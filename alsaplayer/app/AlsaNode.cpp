@@ -221,7 +221,7 @@ int AlsaNode::SetStreamBuffers(int frag_size, int count, int channels)
 
 void AlsaNode::looper(void *pointer)
 {
-	char buffer_data[16384];
+	char *buffer_data;
 	AlsaNode *node = (AlsaNode *)pointer;
 	int read_size = node->GetFragmentSize();
 	bool status;
@@ -229,14 +229,22 @@ void AlsaNode::looper(void *pointer)
 	signal(SIGINT, exit_sighandler);
 
 	assert(node->plugin);
+
+	buffer_data = (char *)malloc(1024*128);
+	if (!buffer_data) {
+		alsaplayer_error("Error allocating mix buffer");
+		return;
+	}	
 #ifdef DEBUG
 	alsaplayer_error("THREAD-%d=soundcard thread\n", getpid());
 #endif
 	if (pthread_mutex_trylock(&node->thread_mutex) != 0) {
+		free(buffer_data);
 		pthread_exit(NULL);
 		return;
 	}	
 #ifdef USE_REALTIME
+	
 	if (node->realtime_sched) {
 		struct sched_param sp;
 		memset(&sp, 0, sizeof(sp));
@@ -256,9 +264,6 @@ void AlsaNode::looper(void *pointer)
 	node->looping = true;
 
 	read_size = node->GetFragmentSize();
-	if (read_size > 16384) {
-		alsaplayer_error("We will crash soon (read_size > 16384)");
-	}	
 	while (node->looping) {
 		subscriber *i;
 		int c;
@@ -283,7 +288,7 @@ void AlsaNode::looper(void *pointer)
 
 		read_size = node->GetFragmentSize(); // Change on the fly
 	}
-
+	free(buffer_data);
 	pthread_mutex_unlock(&node->thread_mutex);
 	pthread_exit(NULL);
 }
