@@ -76,36 +76,35 @@ static void socket_looper(void *arg)
 
 	pwd = getpwuid(geteuid());
 
-	if ((socket_fd = socket(AF_UNIX, SOCK_STREAM, 0)) != -1) {
-		saddr.sun_family = AF_UNIX;
-		while (session_id < MAX_AP_SESSIONS && !session_ok) {
-			if (!ap_ping(session_id)) {
-				sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
-						"anonymous" : pwd->pw_name, session_id);
-				unlink(saddr.sun_path); // Clean up a bit
-			} else {
-				// Live session so skip it immediately
-				session_id++;
-				continue;
-			}	
-			sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ? 
-					"anonymous" : pwd->pw_name, session_id);
-			if (bind(socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
-				chmod(saddr.sun_path, 00600); // Force permission
-				listen(socket_fd, 100);
-				session_ok = 1;
-			} else {
-				session_id++;
-			}
-		}
-		if (!session_ok) {
-			alsaplayer_error("Out of alsaplayer sockets (MAX = %d)", MAX_AP_SESSIONS);
-			return;
-		}	
-	} else {
+	if ((socket_fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		alsaplayer_error("Error setting up control socket");
 		return;
 	}
+	saddr.sun_family = AF_UNIX;
+	while (session_id < MAX_AP_SESSIONS && !session_ok) {
+		if (!ap_ping(session_id)) {
+			sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
+					"anonymous" : pwd->pw_name, session_id);
+			unlink(saddr.sun_path); // Clean up a bit
+		} else {
+			// Live session so skip it immediately
+			session_id++;
+			continue;
+		}	
+		sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ? 
+				"anonymous" : pwd->pw_name, session_id);
+		if (bind(socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
+			chmod(saddr.sun_path, 00600); // Force permission
+			listen(socket_fd, 100);
+			session_ok = 1;
+		} else {
+			session_id++;
+		}
+	}
+	if (!session_ok) {
+		alsaplayer_error("Out of alsaplayer sockets (MAX = %d)", MAX_AP_SESSIONS);
+		return;
+	}	
 	global_session_id = session_id;
 
 	while (socket_thread_running) {

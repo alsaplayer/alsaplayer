@@ -256,7 +256,7 @@ static int mad_frame_seek(input_object *obj, int frame)
 static int mad_frame_size(input_object *obj)
 {
 	if (!obj || !obj->frame_size) {
-		printf("No frame size!!!!\n");
+		puts("No frame size!");
 		return 0;
 	}
 	return obj->frame_size;
@@ -774,7 +774,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 				} else
 					pos++;
 			}
-			printf("MAD debug: invalid header\n");
+			puts("MAD debug: invalid header");
 			return -1;
 		} else if (pos == 0 && data[pos] == 'T' && data[pos+1] == 'A' && 
 				data[pos+2] == 'G') {
@@ -812,7 +812,7 @@ static int mad_open(input_object *obj, const char *path)
 
 	obj->local_data = malloc(sizeof(struct mad_local_data));
 	if (!obj->local_data) {
-		printf("failed to allocate local data\n");		
+		puts("failed to allocate local data");
 		return 0;
 	}
 	data = (struct mad_local_data *)obj->local_data;
@@ -851,7 +851,7 @@ static int mad_open(input_object *obj, const char *path)
 	if ((mad_frame_decode(&data->frame, &data->stream) != 0)) {
 		alsaplayer_error("MAD error: %s", error_str(data->stream.error, data->str));
 		switch (data->stream.error) {
-			case	MAD_ERROR_BUFLEN:
+			case MAD_ERROR_BUFLEN:
 				return 0;
 			case MAD_ERROR_LOSTSYNC:
 				return 0;
