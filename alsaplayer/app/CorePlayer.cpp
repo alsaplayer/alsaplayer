@@ -77,7 +77,8 @@ input_plugin CorePlayer::plugins[MAX_INPUT_PLUGINS];
 
 void CorePlayer::Lock()
 {
-	pthread_mutex_lock(&player_mutex);
+	if (pthread_mutex_lock(&player_mutex))
+		alsaplayer_error("FIRE!!!!!");
 }
 
 
@@ -819,7 +820,8 @@ bool CorePlayer::Open(const char *path)
 {
 	bool result = false;
 	input_plugin *best_plugin;
-	input_object our_object;
+
+	Close();
 	
 	if (path == NULL || strlen(path) == 0) {
 		alsaplayer_error("No path supplied");
@@ -829,10 +831,10 @@ bool CorePlayer::Open(const char *path)
 		alsaplayer_error("No suitable plugin found for \"%s\"", path);
 		return false;
 	}
-
-	memset(&our_object, 0, sizeof(our_object));
-	if (best_plugin->open(&our_object, path)) {
-		if (best_plugin->frame_size(&our_object) > BUF_SIZE) {
+	Lock();	
+	
+	if (best_plugin->open(the_object, path)) {
+		if (best_plugin->frame_size(the_object) > BUF_SIZE) {
 			alsaplayer_error("CRITICAL ERROR: this plugin advertised a buffer size\n"
 					 "larger than %d bytes. This is not supported by AlsaPlayer!\n"
 					 "Contact the author to fix this problem.\n"
@@ -842,23 +844,15 @@ bool CorePlayer::Open(const char *path)
 					 "We will retreat, as chaos and despair await us on\n"
 					 "this chosen path........................................", BUF_SIZE);
 			result = false;
-			best_plugin->close(&our_object);
+			best_plugin->close(the_object);
 		} else {
 			result = true;
 		}
 	} else {
 		result = false;
-		best_plugin->close(&our_object);
+		best_plugin->close(the_object);
 	}
 
-	if (!result)
-		return false;
-
-	Close();
-	
-	Lock();
-
-	memcpy(the_object, &our_object, sizeof(our_object));
 	the_object->ready = 1;
 	plugin = best_plugin;
 	
