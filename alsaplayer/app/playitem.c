@@ -43,52 +43,52 @@ enum {
 };
 
 /* --- prototypes --- */
-static void	playitem_class_init	    (PlayItemClass	*class);
-static void	playitem_init		    (PlayItem		*playitem);
-static void	playitem_set_property	    (GObject		*object,
+static void	ap_playitem_class_init	    (ApPlayItemClass	*class);
+static void	ap_playitem_init	    (ApPlayItem		*playitem);
+static void	ap_playitem_set_property    (GObject		*object,
 					     guint		prop_id,
 					     const GValue	*value,
 					     GParamSpec		*pspec);
-static void	playitem_get_property	    (GObject		*object,
+static void	ap_playitem_get_property    (GObject		*object,
 					     guint		prop_id,
 					     GValue		*value,
 					     GParamSpec		*pspec);
-static void	playitem_finalize	    (GObject		*object);
+static void	ap_playitem_finalize	    (GObject		*object);
 
 /* --- variables --- */
 static gpointer		parent_class = NULL;
 
 /* --- functions --- */
 GType
-playitem_get_type (void)
+ap_playitem_get_type (void)
 {
     static GType type = 0;
     static const GTypeInfo playitem_info = {
-	sizeof (PlayItemClass),
+	sizeof (ApPlayItemClass),
 	NULL,
         NULL,
-        (GClassInitFunc) playitem_class_init,
+        (GClassInitFunc) ap_playitem_class_init,
         NULL,
         NULL,
-        sizeof (PlayItem),
+        sizeof (ApPlayItem),
         0,
-        (GInstanceInitFunc) playitem_init,
+        (GInstanceInitFunc) ap_playitem_init,
         NULL
     };
 
     if (!type) {
 	/* First time create */
 	type = g_type_register_static (G_TYPE_OBJECT,	/* Parent Type */
-				"PlayItem",		/* Name */
+				"ApPlayItem",		/* Name */
 				&playitem_info,		/* Type Info */
 				0);			/* Flags */
     }
 
     return type;
-}; /* playitem_object_get_type */
+}; /* ap_playitem_object_get_type */
 
 static void
-playitem_class_init (PlayItemClass *class)
+ap_playitem_class_init (ApPlayItemClass *class)
 {
     /* Like aliases */
     GObjectClass *gobject_class = G_OBJECT_CLASS (class);
@@ -97,9 +97,9 @@ playitem_class_init (PlayItemClass *class)
     parent_class = g_type_class_peek_parent (class);
     
     /* Init GObject Class */
-    gobject_class->set_property = playitem_set_property;
-    gobject_class->get_property = playitem_get_property;
-    gobject_class->finalize = playitem_finalize;
+    gobject_class->set_property = ap_playitem_set_property;
+    gobject_class->get_property = ap_playitem_get_property;
+    gobject_class->finalize = ap_playitem_finalize;
 
     /* Install properties */
     g_object_class_install_property (gobject_class,
@@ -190,10 +190,10 @@ playitem_class_init (PlayItemClass *class)
 				     );
 
 
-} /* playitem_class_init */
+} /* ap_playitem_class_init */
 
 static void
-playitem_init (PlayItem	*playitem)
+ap_playitem_init (ApPlayItem *playitem)
 {
     playitem->filename = NULL;
     playitem->title = NULL;
@@ -207,9 +207,9 @@ playitem_init (PlayItem	*playitem)
 } /* playitem_init */
 
 static void
-playitem_finalize (GObject *object)
+ap_playitem_finalize (GObject *object)
 {
-    PlayItem *playitem = PLAYITEM (object); 
+    ApPlayItem *playitem = AP_PLAYITEM (object); 
     
     if (playitem->filename)
 	g_free (playitem->filename);
@@ -230,54 +230,54 @@ playitem_finalize (GObject *object)
 	g_free (playitem->comment);
     
     G_OBJECT_CLASS (parent_class)->finalize (object);
-} /* playitem_finalize */
+} /* ap_playitem_finalize */
 
 static void
-playitem_set_property (GObject		*object,
+ap_playitem_set_property (GObject	*object,
 		       guint		prop_id,
 		       const GValue	*value,
 		       GParamSpec	*pspec)
 {
-    PlayItem *playitem = PLAYITEM (object);
+    ApPlayItem *playitem = AP_PLAYITEM (object);
 
     switch (prop_id) {
 	case PROP_FILENAME:
-	    playitem_set_filename (playitem, g_value_get_string (value));
+	    ap_playitem_set_filename (playitem, g_value_get_string (value));
 	    break;
 	case PROP_TITLE:
-	    playitem_set_title (playitem, g_value_get_string (value));
+	    ap_playitem_set_title (playitem, g_value_get_string (value));
 	    break;
 	case PROP_ARTIST:
-	    playitem_set_artist (playitem, g_value_get_string (value));
+	    ap_playitem_set_artist (playitem, g_value_get_string (value));
 	    break;
 	case PROP_ALBUM:
-	    playitem_set_album (playitem, g_value_get_string (value));
+	    ap_playitem_set_album (playitem, g_value_get_string (value));
 	    break;
 	case PROP_GENRE:
-	    playitem_set_genre (playitem, g_value_get_string (value));
+	    ap_playitem_set_genre (playitem, g_value_get_string (value));
 	    break;
 	case PROP_COMMENT:
-	    playitem_set_comment (playitem, g_value_get_string (value));
+	    ap_playitem_set_comment (playitem, g_value_get_string (value));
 	    break;
 	case PROP_YEAR:
-	    playitem_set_year (playitem, g_value_get_uint (value));
+	    ap_playitem_set_year (playitem, g_value_get_uint (value));
 	    break;
 	case PROP_TRACK:
-	    playitem_set_track (playitem, g_value_get_uint (value));
+	    ap_playitem_set_track (playitem, g_value_get_uint (value));
 	    break;
 	case PROP_PLAYTIME:
-	    playitem_set_playtime (playitem, g_value_get_uint (value));
+	    ap_playitem_set_playtime (playitem, g_value_get_uint (value));
 	    break;
     }
-} /* playitem_set_property */
+} /* ap_playitem_set_property */
 
 static void
-playitem_get_property (GObject		*object,
-		       guint		prop_id,
-		       GValue		*value,
-		       GParamSpec	*pspec)
+ap_playitem_get_property (GObject	*object,
+		          guint		prop_id,
+		          GValue	*value,
+		          GParamSpec	*pspec)
 {
-    PlayItem *playitem = PLAYITEM (object);
+    ApPlayItem *playitem = AP_PLAYITEM (object);
 
     switch (prop_id) {
 	case PROP_FILENAME:
@@ -308,181 +308,181 @@ playitem_get_property (GObject		*object,
 	    g_value_set_uint (value, playitem->playtime);
 	    break;
     }
-} /* playitem_set_property */
+} /* ap_playitem_set_property */
 
-PlayItem*
-playitem_new (const gchar *filename)
+ApPlayItem*
+ap_playitem_new (const gchar *filename)
 {
-    PlayItem *playitem = g_object_new (TYPE_PLAYITEM,
-				       "filename", filename,
-				       NULL);
+    ApPlayItem *playitem = g_object_new (AP_TYPE_PLAYITEM,
+				         "filename", filename,
+				          NULL);
 
     if (!playitem)
 	return NULL;
 
-    playitem_set_filename (playitem, filename);
+    ap_playitem_set_filename (playitem, filename);
 
     return playitem;
-}
+} /* ap_playitem_new */
 
 void
-playitem_set_filename (PlayItem *playitem, const gchar *filename)
+ap_playitem_set_filename (ApPlayItem *playitem, const gchar *filename)
 {
-    g_return_if_fail (IS_PLAYITEM (playitem));
+    g_return_if_fail (AP_IS_PLAYITEM (playitem));
 
     if (playitem->filename)
 	g_free (playitem->filename);
 
     playitem->filename = g_strdup (filename);
-} /* playitem_set_filename */
+} /* ap_playitem_set_filename */
 
 G_CONST_RETURN gchar *
-playitem_get_filename (PlayItem *playitem)
+ap_playitem_get_filename (ApPlayItem *playitem)
 {
-    g_return_val_if_fail (IS_PLAYITEM (playitem), NULL);
+    g_return_val_if_fail (AP_IS_PLAYITEM (playitem), NULL);
 
     return playitem->filename;
 } /* playitem_get_filename */
 
 void
-playitem_set_title (PlayItem *playitem, const gchar *title)
+ap_playitem_set_title (ApPlayItem *playitem, const gchar *title)
 {
-    g_return_if_fail (IS_PLAYITEM (playitem));
+    g_return_if_fail (AP_IS_PLAYITEM (playitem));
 
     if (playitem->title)
 	g_free (playitem->title);
 
     playitem->title = g_strdup (title);
-} /* playitem_set_title */
+} /* ap_playitem_set_title */
 
 G_CONST_RETURN gchar *
-playitem_get_title (PlayItem *playitem)
+ap_playitem_get_title (ApPlayItem *playitem)
 {
-    g_return_val_if_fail (IS_PLAYITEM (playitem), NULL);
+    g_return_val_if_fail (AP_IS_PLAYITEM (playitem), NULL);
 
     return playitem->title;
 } /* playitem_get_title */
 
 void
-playitem_set_artist (PlayItem *playitem, const gchar *artist)
+ap_playitem_set_artist (ApPlayItem *playitem, const gchar *artist)
 {
-    g_return_if_fail (IS_PLAYITEM (playitem));
+    g_return_if_fail (AP_IS_PLAYITEM (playitem));
 
     if (playitem->artist)
 	g_free (playitem->artist);
 
     playitem->artist = g_strdup (artist);
-} /* playitem_set_artist */
+} /* ap_playitem_set_artist */
 
 G_CONST_RETURN gchar *
-playitem_get_artist (PlayItem *playitem)
+ap_playitem_get_artist (ApPlayItem *playitem)
 {
-    g_return_val_if_fail (IS_PLAYITEM (playitem), NULL);
+    g_return_val_if_fail (AP_IS_PLAYITEM (playitem), NULL);
 
     return playitem->artist;
-} /* playitem_get_artist */
+} /* ap_playitem_get_artist */
 
 void
-playitem_set_album (PlayItem *playitem, const gchar *album)
+ap_playitem_set_album (ApPlayItem *playitem, const gchar *album)
 {
-    g_return_if_fail (IS_PLAYITEM (playitem));
+    g_return_if_fail (AP_IS_PLAYITEM (playitem));
 
     if (playitem->album)
 	g_free (playitem->album);
 
     playitem->album = g_strdup (album);
-} /* playitem_set_album */
+} /* ap_playitem_set_album */
 
 G_CONST_RETURN gchar *
-playitem_get_album (PlayItem *playitem)
+ap_playitem_get_album (ApPlayItem *playitem)
 {
-    g_return_val_if_fail (IS_PLAYITEM (playitem), NULL);
+    g_return_val_if_fail (AP_IS_PLAYITEM (playitem), NULL);
 
     return playitem->album;
-} /* playitem_get_album */
+} /* ap_playitem_get_album */
 
 void
-playitem_set_genre (PlayItem *playitem, const gchar *genre)
+ap_playitem_set_genre (ApPlayItem *playitem, const gchar *genre)
 {
-    g_return_if_fail (IS_PLAYITEM (playitem));
+    g_return_if_fail (AP_IS_PLAYITEM (playitem));
 
     if (playitem->genre)
 	g_free (playitem->genre);
 
     playitem->genre = g_strdup (genre);
-} /* playitem_set_genre */
+} /* ap_playitem_set_genre */
 
 G_CONST_RETURN gchar *
-playitem_get_genre (PlayItem *playitem)
+ap_playitem_get_genre (ApPlayItem *playitem)
 {
-    g_return_val_if_fail (IS_PLAYITEM (playitem), NULL);
+    g_return_val_if_fail (AP_IS_PLAYITEM (playitem), NULL);
 
     return playitem->genre;
-} /* playitem_get_genre */
+} /* ap_playitem_get_genre */
 
 void
-playitem_set_comment (PlayItem *playitem, const gchar *comment)
+ap_playitem_set_comment (ApPlayItem *playitem, const gchar *comment)
 {
-    g_return_if_fail (IS_PLAYITEM (playitem));
+    g_return_if_fail (AP_IS_PLAYITEM (playitem));
 
     if (playitem->comment)
 	g_free (playitem->comment);
 
     playitem->comment = g_strdup (comment);
-} /* playitem_set_comment */
+} /* ap_playitem_set_comment */
 
 G_CONST_RETURN gchar *
-playitem_get_comment (PlayItem *playitem)
+ap_playitem_get_comment (ApPlayItem *playitem)
 {
-    g_return_val_if_fail (IS_PLAYITEM (playitem), NULL);
+    g_return_val_if_fail (AP_IS_PLAYITEM (playitem), NULL);
 
     return playitem->comment;
-} /* playitem_get_comment */
+} /* ap_playitem_get_comment */
 
 void
-playitem_set_year (PlayItem *playitem, guint year)
+ap_playitem_set_year (ApPlayItem *playitem, guint year)
 {
-    g_return_if_fail (IS_PLAYITEM (playitem));
+    g_return_if_fail (AP_IS_PLAYITEM (playitem));
 
     playitem->year = year;
-} /* playitem_set_year */
+} /* ap_playitem_set_year */
 
 guint
-playitem_get_year (PlayItem *playitem)
+ap_playitem_get_year (ApPlayItem *playitem)
 {
-    g_return_val_if_fail (IS_PLAYITEM (playitem), 0);
+    g_return_val_if_fail (AP_IS_PLAYITEM (playitem), 0);
 
     return playitem->year;
-} /* playitem_get_year */
+} /* ap_playitem_get_year */
 
 void
-playitem_set_track (PlayItem *playitem, guint track)
+ap_playitem_set_track (ApPlayItem *playitem, guint track)
 {
-    g_return_if_fail (IS_PLAYITEM (playitem));
+    g_return_if_fail (AP_IS_PLAYITEM (playitem));
 
     playitem->track = track;
-} /* playitem_set_track */
+} /* ap_playitem_set_track */
 
 guint
-playitem_get_track (PlayItem *playitem)
+ap_playitem_get_track (ApPlayItem *playitem)
 {
-    g_return_val_if_fail (IS_PLAYITEM (playitem), 0);
+    g_return_val_if_fail (AP_IS_PLAYITEM (playitem), 0);
 
     return playitem->track;
-} /* playitem_get_track */
+} /* ap_playitem_get_track */
 
 void
-playitem_set_playtime (PlayItem *playitem, guint playtime)
+ap_playitem_set_playtime (ApPlayItem *playitem, guint playtime)
 {
-    g_return_if_fail (IS_PLAYITEM (playitem));
+    g_return_if_fail (AP_IS_PLAYITEM (playitem));
 
     playitem->playtime = playtime;
-} /* playitem_set_playtime */
+} /* ap_playitem_set_playtime */
 
 guint
-playitem_get_playtime (PlayItem *playitem)
+ap_playitem_get_playtime (ApPlayItem *playitem)
 {
-    g_return_val_if_fail (IS_PLAYITEM (playitem), 0);
+    g_return_val_if_fail (AP_IS_PLAYITEM (playitem), 0);
 
     return playitem->playtime;
-} /* playitem_get_playtime */
+} /* ap_playitem_get_playtime */

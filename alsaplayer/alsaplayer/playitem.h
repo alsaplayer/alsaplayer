@@ -32,22 +32,22 @@ extern "C" {
 /* TODO: Document it for gtkdoc */
 
 /* Macro for PlayItem type. */
-#define TYPE_PLAYITEM			(playitem_get_type ())
-#define PLAYITEM(playitem)		(G_TYPE_CHECK_INSTANCE_CAST ((object), TYPE_PLAYITEM, PlayItem))
-#define IS_PLAYITEM(playitem)		(G_TYPE_CHECK_INSTANCE_TYPE ((playitem), TYPE_PLAYITEM))
+#define AP_TYPE_PLAYITEM		(ap_playitem_get_type ())
+#define AP_PLAYITEM(playitem)		(G_TYPE_CHECK_INSTANCE_CAST ((playitem), AP_TYPE_PLAYITEM, ApPlayItem))
+#define AP_IS_PLAYITEM(playitem)	(G_TYPE_CHECK_INSTANCE_TYPE ((playitem), AP_TYPE_PLAYITEM))
     
 /* forward declaration to avoid excessive includes (and concurrent includes) */
-typedef struct _PlayItem   PlayItem;
-typedef struct _PlayItemClass   PlayItemClass;
+typedef struct _ApPlayItem	    ApPlayItem;
+typedef struct _ApPlayItemClass	    ApPlayItemClass;
 
-/*! \brief PlayItem object structure which represents one PlayList entry. */
-struct _PlayItem {
+/*! \brief This structure represents one PlayList entry. */
+struct _ApPlayItem {
     /*! \brief Parent object structure.
      * 
      *  The gobject structure needs to be the first
      *  element in the playitem structure in order for
      *  the object mechanism to work correctly. This
-     *  allows a PlayItem pointer to be cast to a
+     *  allows a ApPlayItem pointer to be cast to a
      *  GObject pointer.
      */
     GObject	    gobject;
@@ -80,47 +80,47 @@ struct _PlayItem {
     guint	    playtime;
 };
 
-struct _PlayItemClass {
+struct _ApPlayItemClass {
     /*! \brief Parent class structure.
      * 
      *  The gobject class structure needs to be the first
      *  element in the playitem class structure in order for
      *  the class mechanism to work correctly. This allows a
-     *  PlayItemClass pointer to be cast to a GObjectClass
+     *  ApPlayItemClass pointer to be cast to a GObjectClass
      *  pointer.
      */
     GObjectClass    gobject_class;
 };
 
-GType			    playitem_get_type		(void) G_GNUC_CONST;
-PlayItem*		    playitem_new		(const gchar	*filename);
-void			    playitem_set_filename	(PlayItem	*playitem,
+GType			    ap_playitem_get_type	(void) G_GNUC_CONST;
+ApPlayItem*		    ap_playitem_new		(const gchar	*filename);
+void			    ap_playitem_set_filename	(ApPlayItem	*playitem,
 							 const gchar    *filename);
-void			    playitem_set_title		(PlayItem	*playitem,
+void			    ap_playitem_set_title	(ApPlayItem	*playitem,
 							 const gchar    *title);
-void			    playitem_set_artist		(PlayItem	*playitem,
+void			    ap_playitem_set_artist	(ApPlayItem	*playitem,
 							 const gchar    *artist);
-void			    playitem_set_album		(PlayItem	*playitem,
+void			    ap_playitem_set_album	(ApPlayItem	*playitem,
 							 const gchar    *album);
-void			    playitem_set_genre		(PlayItem	*playitem,
+void			    ap_playitem_set_genre	(ApPlayItem	*playitem,
 							 const gchar    *genre);
-void			    playitem_set_comment	(PlayItem	*playitem,
+void			    ap_playitem_set_comment	(ApPlayItem	*playitem,
 							 const gchar    *comment);
-void			    playitem_set_year		(PlayItem	*playitem,
+void			    ap_playitem_set_year	(ApPlayItem	*playitem,
 							 guint		year);
-void			    playitem_set_track		(PlayItem	*playitem,
+void			    ap_playitem_set_track	(ApPlayItem	*playitem,
 							 guint		track);
-void			    playitem_set_playtime	(PlayItem	*playitem,
+void			    ap_playitem_set_playtime	(ApPlayItem	*playitem,
 							 guint		playtime);
-G_CONST_RETURN gchar*	    playitem_get_filename	(PlayItem	*playitem);
-G_CONST_RETURN gchar*	    playitem_get_title		(PlayItem	*playitem);
-G_CONST_RETURN gchar*	    playitem_get_artist		(PlayItem	*playitem);
-G_CONST_RETURN gchar*	    playitem_get_album		(PlayItem	*playitem);
-G_CONST_RETURN gchar*	    playitem_get_genre		(PlayItem	*playitem);
-G_CONST_RETURN gchar*	    playitem_get_comment	(PlayItem	*playitem);
-guint			    playitem_get_year		(PlayItem	*playitem);
-guint			    playitem_get_track		(PlayItem	*playitem);
-guint			    playitem_get_playtime	(PlayItem	*playitem);
+G_CONST_RETURN gchar*	    ap_playitem_get_filename	(ApPlayItem	*playitem);
+G_CONST_RETURN gchar*	    ap_playitem_get_title	(ApPlayItem	*playitem);
+G_CONST_RETURN gchar*	    ap_playitem_get_artist	(ApPlayItem	*playitem);
+G_CONST_RETURN gchar*	    ap_playitem_get_album	(ApPlayItem	*playitem);
+G_CONST_RETURN gchar*	    ap_playitem_get_genre	(ApPlayItem	*playitem);
+G_CONST_RETURN gchar*	    ap_playitem_get_comment	(ApPlayItem	*playitem);
+guint			    ap_playitem_get_year	(ApPlayItem	*playitem);
+guint			    ap_playitem_get_track	(ApPlayItem	*playitem);
+guint			    ap_playitem_get_playtime	(ApPlayItem	*playitem);
 
 #ifdef __cplusplus
 }

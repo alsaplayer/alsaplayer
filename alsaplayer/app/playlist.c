@@ -38,52 +38,52 @@ enum {
 };
 
 /* --- prototypes --- */
-static void	playlist_class_init	    (PlaylistClass	*class);
-static void	playlist_init		    (Playlist		*playlist);
-static void	playlist_set_property	    (GObject		*object,
+static void	ap_playlist_class_init	    (ApPlaylistClass	*class);
+static void	ap_playlist_init	    (ApPlaylist		*playlist);
+static void	ap_playlist_set_property    (GObject		*object,
 					     guint		prop_id,
 					     const GValue	*value,
 					     GParamSpec		*pspec);
-static void	playlist_get_property	    (GObject		*object,
+static void	ap_playlist_get_property    (GObject		*object,
 					     guint		prop_id,
 					     GValue		*value,
 					     GParamSpec		*pspec);
-static void	playlist_finalize	    (GObject		*object);
+static void	ap_playlist_finalize	    (GObject		*object);
 
 /* --- variables --- */
 static gpointer		parent_class = NULL;
 
 /* --- functions --- */
 GType
-playlist_get_type (void)
+ap_playlist_get_type (void)
 {
     static GType type = 0;
     static const GTypeInfo playlist_info = {
-	sizeof (PlaylistClass),
+	sizeof (ApPlaylistClass),
 	NULL,
         NULL,
-        (GClassInitFunc) playlist_class_init,
+        (GClassInitFunc) ap_playlist_class_init,
         NULL,
         NULL,
-        sizeof (Playlist),
+        sizeof (ApPlaylist),
         0,
-        (GInstanceInitFunc) playlist_init,
+        (GInstanceInitFunc) ap_playlist_init,
         NULL
     };
 
     if (!type) {
 	/* First time create */
 	type = g_type_register_static (G_TYPE_OBJECT,	/* Parent Type */
-				"Playlist",		/* Name */
+				"ApPlaylist",		/* Name */
 				&playlist_info,		/* Type Info */
 				0);			/* Flags */
     }
 
     return type;
-}; /* playlist_object_get_type */
+}; /* ap_playlist_object_get_type */
 
 static void
-playlist_class_init (PlaylistClass *class)
+ap_playlist_class_init (ApPlaylistClass *class)
 {
     /* Like aliases */
     GObjectClass *gobject_class = G_OBJECT_CLASS (class);
@@ -92,9 +92,9 @@ playlist_class_init (PlaylistClass *class)
     parent_class = g_type_class_peek_parent (class);
     
     /* Init GObject Class */
-    gobject_class->set_property = playlist_set_property;
-    gobject_class->get_property = playlist_get_property;
-    gobject_class->finalize = playlist_finalize;
+    gobject_class->set_property = ap_playlist_set_property;
+    gobject_class->get_property = ap_playlist_get_property;
+    gobject_class->finalize = ap_playlist_finalize;
 
     /* Install properties */
     g_object_class_install_property (gobject_class,
@@ -119,7 +119,7 @@ playlist_class_init (PlaylistClass *class)
     g_signal_new ("pause-toggled",
 		  G_OBJECT_CLASS_TYPE (class),
 		  G_SIGNAL_RUN_FIRST,
-		  G_STRUCT_OFFSET (PlaylistClass, pause_toggled_signal),
+		  G_STRUCT_OFFSET (ApPlaylistClass, pause_toggled_signal),
 		  NULL,
 		  NULL,
 		  g_cclosure_marshal_VOID__BOOLEAN,
@@ -129,60 +129,60 @@ playlist_class_init (PlaylistClass *class)
     g_signal_new ("looping-song-toggled",
 		  G_OBJECT_CLASS_TYPE (class),
 		  G_SIGNAL_RUN_FIRST,
-		  G_STRUCT_OFFSET (PlaylistClass, looping_song_toggled_signal),
+		  G_STRUCT_OFFSET (ApPlaylistClass, looping_song_toggled_signal),
 		  NULL,
 		  NULL,
 		  g_cclosure_marshal_VOID__BOOLEAN,
 		  G_TYPE_NONE,
 		  1, G_TYPE_BOOLEAN);
-} /* playlist_class_init */
+} /* ap_playlist_class_init */
 
 static void
-playlist_init (Playlist	*playlist)
+ap_playlist_init (ApPlaylist *playlist)
 {
     playlist->paused = FALSE;
     playlist->looping_song = FALSE;
-} /* playlist_init */
+} /* ap_playlist_init */
 
 static void
-playlist_finalize (GObject *object)
+ap_playlist_finalize (GObject *object)
 {
-    Playlist *playlist = PLAYLIST (object); 
+    ApPlaylist *playlist = AP_PLAYLIST (object); 
  
     G_OBJECT_CLASS (parent_class)->finalize (object);
-} /* playlist_finalize */
+} /* ap_playlist_finalize */
 
 static void
-playlist_set_property (GObject		*object,
-		       guint		prop_id,
-		       const GValue	*value,
-		       GParamSpec	*pspec)
+ap_playlist_set_property (GObject		*object,
+			  guint			prop_id,
+			  const GValue		*value,
+			  GParamSpec		*pspec)
 {
-    Playlist *playlist = PLAYLIST (object);
+    ApPlaylist *playlist = AP_PLAYLIST (object);
 
     switch (prop_id) {
 	case PROP_PAUSE:
 	    if (g_value_get_boolean (value))
-		playlist_pause (playlist);
+		ap_playlist_pause (playlist);
 	    else
-		playlist_unpause (playlist);
+		ap_playlist_unpause (playlist);
 	    break;
 	case PROP_LOOPING_SONG:
 	    if (g_value_get_boolean (value))
-		playlist_loop_song (playlist);
+		ap_playlist_loop_song (playlist);
 	    else
-		playlist_unloop_song (playlist);
+		ap_playlist_unloop_song (playlist);
 	    break;
     }
-} /* playlist_set_property */
+} /* ap_playlist_set_property */
 
 static void
-playlist_get_property (GObject		*object,
-		       guint		prop_id,
-		       GValue		*value,
-		       GParamSpec	*pspec)
+ap_playlist_get_property (GObject	*object,
+			  guint		prop_id,
+		          GValue	*value,
+		          GParamSpec	*pspec)
 {
-    Playlist *playlist = PLAYLIST (object);
+    ApPlaylist *playlist = AP_PLAYLIST (object);
 
     switch (prop_id) {
 	case PROP_PAUSE:
@@ -192,12 +192,12 @@ playlist_get_property (GObject		*object,
 	    g_value_set_boolean (value, playlist->looping_song);
 	    break;
     }
-} /* playlist_set_property */
+} /* ap_playlist_set_property */
 
 void
-playlist_pause (Playlist *playlist)
+ap_playlist_pause (ApPlaylist *playlist)
 {
-    g_return_if_fail (IS_PLAYLIST (playlist));
+    g_return_if_fail (AP_IS_PLAYLIST (playlist));
 
     if (!playlist->paused) {
 	playlist->paused = TRUE;
@@ -205,12 +205,12 @@ playlist_pause (Playlist *playlist)
 	/* Signal */
 	g_signal_emit_by_name (playlist, "pause-toggled", TRUE);
     }
-} /* playitem_set_playtime */
+} /* ap_playitem_set_playtime */
 
 void
-playlist_unpause (Playlist *playlist)
+ap_playlist_unpause (ApPlaylist *playlist)
 {
-    g_return_if_fail (IS_PLAYLIST (playlist));
+    g_return_if_fail (AP_IS_PLAYLIST (playlist));
 
     if (playlist->paused) {
 	playlist->paused = FALSE;
@@ -218,20 +218,20 @@ playlist_unpause (Playlist *playlist)
 	/* Signal */
 	g_signal_emit_by_name (playlist, "pause-toggled", FALSE);
     }
-} /* playitem_set_playtime */
+} /* ap_playitem_set_playtime */
 
 gboolean
-playlist_is_paused (Playlist *playlist)
+ap_playlist_is_paused (ApPlaylist *playlist)
 {
-    g_return_val_if_fail (IS_PLAYLIST (playlist), FALSE);
+    g_return_val_if_fail (AP_IS_PLAYLIST (playlist), FALSE);
 
     return playlist->paused;
-} /* playitem_set_playtime */
+} /* ap_playitem_set_playtime */
 
 void
-playlist_loop_song (Playlist *playlist)
+ap_playlist_loop_song (ApPlaylist *playlist)
 {
-    g_return_if_fail (IS_PLAYLIST (playlist));
+    g_return_if_fail (AP_IS_PLAYLIST (playlist));
 
     if (!playlist->looping_song) {
 	playlist->looping_song = TRUE;
@@ -239,12 +239,12 @@ playlist_loop_song (Playlist *playlist)
 	/* Signal */
 	g_signal_emit_by_name (playlist, "looping-song-toggled", TRUE);
     }
-} /* playitem_set_playtime */
+} /* ap_playitem_set_playtime */
 
 void
-playlist_unloop_song (Playlist *playlist)
+ap_playlist_unloop_song (ApPlaylist *playlist)
 {
-    g_return_if_fail (IS_PLAYLIST (playlist));
+    g_return_if_fail (AP_IS_PLAYLIST (playlist));
 
     if (playlist->looping_song) {
 	playlist->looping_song = FALSE;
@@ -252,12 +252,12 @@ playlist_unloop_song (Playlist *playlist)
 	/* Signal */
 	g_signal_emit_by_name (playlist, "looping-song-toggled", FALSE);
     }
-} /* playitem_set_playtime */
+} /* ap_playitem_set_playtime */
 
 gboolean
-playlist_is_looping_song (Playlist *playlist)
+ap_playlist_is_looping_song (ApPlaylist *playlist)
 {
-    g_return_val_if_fail (IS_PLAYLIST (playlist), FALSE);
+    g_return_val_if_fail (AP_IS_PLAYLIST (playlist), FALSE);
 
     return playlist->looping_song;
-} /* playitem_set_playtime */
+} /* ap_playitem_set_playtime */

@@ -34,21 +34,21 @@ extern "C" {
 /* TODO: Document it for gtkdoc */
    
 /* Macro for Playlist type. */
-#define TYPE_PLAYLIST			(playlist_get_type ())
-#define PLAYLIST(playlist)		(G_TYPE_CHECK_INSTANCE_CAST ((object), TYPE_PLAYLIST, Playlist))
-#define IS_PLAYLIST(playlist)		(G_TYPE_CHECK_INSTANCE_TYPE ((playlist), TYPE_PLAYLIST))
+#define AP_TYPE_PLAYLIST		(ap_playlist_get_type ())
+#define AP_PLAYLIST(playlist)		(G_TYPE_CHECK_INSTANCE_CAST ((playlist), AP_TYPE_PLAYLIST, ApPlaylist))
+#define AP_IS_PLAYLIST(playlist)	(G_TYPE_CHECK_INSTANCE_TYPE ((playlist), AP_TYPE_PLAYLIST))
     
 /* forward declaration to avoid excessive includes (and concurrent includes) */
-typedef struct _Playlist   Playlist;
-typedef struct _PlaylistClass   PlaylistClass;
+typedef struct _ApPlaylist		ApPlaylist;
+typedef struct _ApPlaylistClass		ApPlaylistClass;
 
-struct _Playlist {
+struct _ApPlaylist {
     /** Parent object structure.
      * 
      *  The gobject structure needs to be the first
      *  element in the playlist structure in order for
      *  the object mechanism to work correctly. This
-     *  allows a Playlist pointer to be cast to a
+     *  allows a ApPlaylist pointer to be cast to a
      *  GObject pointer.
      */
     GObject	    gobject;
@@ -57,36 +57,36 @@ struct _Playlist {
     gboolean	    looping_song;
 };
 
-struct _PlaylistClass {
+struct _ApPlaylistClass {
     /** Parent class structure.
      * 
      *  The gobject class structure needs to be the first
      *  element in the playlist class structure in order for
      *  the class mechanism to work correctly. This allows a
-     *  PlaylistClass pointer to be cast to a GObjectClass
+     *  ApPlaylistClass pointer to be cast to a GObjectClass
      *  pointer.
      */
     GObjectClass    gobject_class;
 
     /* signals */
-    void*   (*pause_toggled_signal)		(Playlist	*playlist,
+    void*   (*pause_toggled_signal)		(ApPlaylist	*playlist,
 						 gboolean	pause,
 						 gpointer	data);
     
-    void*   (*looping_song_toggled_signal)	(Playlist	*playlist,
+    void*   (*looping_song_toggled_signal)	(ApPlaylist	*playlist,
 						 gboolean	looping_song,
 						 gpointer	data);
 };
 
-GType			    playlist_get_type		(void) G_GNUC_CONST;
+GType			    ap_playlist_get_type	(void) G_GNUC_CONST;
 
-void			    playlist_pause		(Playlist	*playlist);
-void			    playlist_unpause		(Playlist	*playlist);
-gboolean		    playlist_is_paused		(Playlist	*playlist);
+void			    ap_playlist_pause		(ApPlaylist	*playlist);
+void			    ap_playlist_unpause		(ApPlaylist	*playlist);
+gboolean		    ap_playlist_is_paused	(ApPlaylist	*playlist);
 
-void			    playlist_loop_song		(Playlist	*playlist);
-void			    playlist_unloop_song	(Playlist	*playlist);
-gboolean		    playlist_is_looping_song	(Playlist	*playlist);
+void			    ap_playlist_loop_song	(ApPlaylist	*playlist);
+void			    ap_playlist_unloop_song	(ApPlaylist	*playlist);
+gboolean		    ap_playlist_is_looping_song	(ApPlaylist	*playlist);
 
 #ifdef __cplusplus
 }
