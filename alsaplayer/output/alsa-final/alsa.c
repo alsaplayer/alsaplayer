@@ -21,6 +21,8 @@
 #include <errno.h>
 #include <assert.h>
 #include <alsa/asoundlib.h>
+#include <sys/time.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include "output_plugin.h"
