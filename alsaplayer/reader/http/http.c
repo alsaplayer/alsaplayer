@@ -1,5 +1,6 @@
 /*   http.c
  *   Copyright (C) 2002 Evgeny Chukreev <codedj@echo.ru>
+ *   Copyright (C) 2002 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -45,6 +46,8 @@ typedef struct http_desc_t_ {
     int sock;
     long size, pos;
     void *buffer;
+    int icy_metaint;
+    int buffer_pos;
     int begin;			    /* Pos of first byte in the buffer. */
     int len;			    /* Length of the buffered data. */
     int direction;		    /* Reading direction. */
@@ -102,7 +105,7 @@ static int parse_uri (const char *uri, char **host, int *port, char **path)
 	
 	*port = (int)strtol (colon+1, &s, 10);
 	
-	/* Test, port should be digital */
+	/* Test, port should be digit */
 	if ((slash && s!=slash) || (!slash && *s!='\0')) {
 	    alsaplayer_error ("HTTP: Couldn't open %s: Port parse error.", uri);
 	    return -1;
@@ -120,15 +123,19 @@ static int parse_uri (const char *uri, char **host, int *port, char **path)
 	*port = 80;
     
     /* Split URI */
+    //if (*host) 
+    //	    free(*host);
     *host = malloc ((l+1) * sizeof(char));
     strncpy (*host, uri+7, l);
     (*host) [l] = '\0';
 
-    if (slash)
+    //if (*path)
+    //	    free(*path);
+    if (slash) {
 	*path = strdup (slash);
-    else
-	*path = strdup ("/index.html");
-
+    } else {
+	*path = strdup ("/");
+    }
     return 0;
 } /* end of: parse_uri */
 
@@ -189,13 +196,14 @@ static int read_data (int sock, void *ptr, size_t size)
     int len;
     
     /* wait for data */
-    if (sleep_for_data (sock))  return -1;
-
+    if (sleep_for_data (sock)) {
+	    return -1;
+    }
     len = recv (sock, ptr, size, 0);
-
-    if (len == -1 && errno == EAGAIN)
+    
+    if (len == -1 && errno == EAGAIN) {
 	return 0;
-
+    }	
     return len;
 } /* end of: read_data */
 
@@ -232,7 +240,7 @@ static void buffer_thread (http_desc_t *desc)
 	
 	/* read to internal buffer */
         readed = read_data (desc->sock, ibuffer, HTTP_BLOCK_SIZE);
-	
+
 	/* reasons to stop */
 	if (readed == 0) {
 	    desc->going = 0;
@@ -243,6 +251,11 @@ static void buffer_thread (http_desc_t *desc)
 	    going = 0;
 	}
 
+	if (desc->icy_metaint > 0 && 
+		((desc->buffer_pos+readed) % desc->icy_metaint) == 0) {
+		alsaplayer_error("Metadata block!");
+		desc->buffer_pos = 0;
+	}	
 	/* These operations are fast. -> doesn't break reader_read */
 	if (readed > 0) {
 	   /* ---------------- lock buffer ( */
@@ -283,7 +296,8 @@ static void buffer_thread (http_desc_t *desc)
 
 /* ******************************************************************* */
 /* close exist connection, and open new one                            */
-static int reconnect (http_desc_t *desc)
+/* follow redirect URLs if encountered                                 */
+static int reconnect (http_desc_t *desc, char *redirect)
 {
     char request [2048];
     char response [10240];
@@ -294,7 +308,7 @@ static int reconnect (http_desc_t *desc)
     fd_set set;
     struct timeval tv;
     int flags;
-    int rc;
+    int rc = 0;
 
     /* Clear error status */
     desc->error = 0;
@@ -373,10 +387,11 @@ static int reconnect (http_desc_t *desc)
 			     "Connection: close\r\n"
 			     "User-Agent: %s/%s\r\n"
 			     "Range: bytes=%ld-\r\n"
+			     "Icy-Metadata:0\r\n"
 			     "\r\n",
 			     desc->path, desc->host, PACKAGE, VERSION,
 			     desc->pos);
-
+    
     write (desc->sock, request, strlen (request));
     desc->begin = desc->pos;
  
@@ -389,14 +404,21 @@ static int reconnect (http_desc_t *desc)
 	desc->seekable = 0;
     } else if (!strncmp (response, "HTTP/1.1 ", 9)) {
         desc->seekable = 1;
-    } else {
+    } else if (!strncmp (response, "ICY 200 OK", 10)) {
+    	desc->seekable = 0;
+	/* alsaplayer_error("ICY server"); */
+	rc = 200;
+    } else {	    
 	alsaplayer_error ("HTTP: Wrong server protocol for http://%s:%u%s",
 		desc->host, desc->port, desc->path);
+	alsaplayer_error("ERROR:\n%s", response);
 	return 1;
     }
 
     /* Check return code */
-    rc = atoi (response + 9);
+    if (strstr(response, "HTTP"))
+    	rc = atoi (response + 9);
+    
     if (rc != 200 && rc != 206) {
 	/* Wrong code */
 	if (rc == 404) {
@@ -404,14 +426,28 @@ static int reconnect (http_desc_t *desc)
 	    alsaplayer_error ("HTTP: File not found: http://%s:%u%s",
 		desc->host, desc->port, desc->path);
 	    return 1;
+	} else if (rc == 302) {
+            s = strstr(response, "302");
+	    if (s) {
+		    //alsaplayer_error("%s", s);
+		    s = strstr(response, "Location: ");
+		    if (s && redirect) {
+			    /* Parse redirect */
+			    if (sscanf(s, "Location: %[^\r]", redirect)) {
+				    /* alsaplayer_error("Redirection: %s", redirect); */
+			    }		    
+		    }
+		    return 1;
+	    }	    
 	} else {
-	    /* unknown */
-	    alsaplayer_error ("HTTP: We don't support %d response code: http://%s:%u%s",
-		rc, desc->host, desc->port, desc->path);
-	    return 1;
+		/* unknown */
+		alsaplayer_error ("HTTP: We don't support %d response code: http://%s:%u%s",
+				rc, desc->host, desc->port, desc->path);
+		if (redirect) 
+			redirect[0] = 0;
+		return 1;
 	}
     }
-    
     /* Looking for size */
     s = strstr (response, "\r\nContent-Length: ");
     if (s) {
@@ -421,7 +457,15 @@ static int reconnect (http_desc_t *desc)
     } else {
 	desc->seekable = 0;
     }
-
+    /* Look for icy-metaint */
+    s = strstr (response, "\r\nicy-metaint:");
+    if (s) {
+	desc->icy_metaint = atoi(s+14);
+        alsaplayer_error("icy-metaint = %d", desc->icy_metaint);
+    } else {
+    	desc->icy_metaint = 0;
+    }	
+    
     /* Attach thread to fill a buffer */
     desc->going = 1;
     desc->fastmode = 0;
@@ -429,7 +473,8 @@ static int reconnect (http_desc_t *desc)
 
     /* Prebuffer if this is stream */
     if (!desc->seekable) {
-        dosleep (2000000);
+	alsaplayer_error("Prebuffering...");    
+        dosleep (4000000);
     }
     
     return 0;
@@ -464,6 +509,8 @@ static void http_close(void *d)
 static void *http_open(const char *uri)
 {
     http_desc_t *desc;
+    char redirect[1024];
+    int tries = 0;
     
     /* Alloc descripor and init members. */
     desc = malloc (sizeof (http_desc_t));
@@ -486,12 +533,22 @@ static void *http_open(const char *uri)
     }
 
     /* Connect */
-    if (reconnect (desc)) {
-	http_close (desc);
-	return NULL;
+    while (tries++ < 5) {
+	redirect[0] = 0;
+    	if (reconnect (desc, redirect)) {
+		if (*redirect) {
+			if (parse_uri (redirect, &desc->host, &desc->port, &desc->path)) {
+				http_close(desc);
+				return NULL;
+			}
+		}
+		continue;
+	} else { /* Success! */
+		return desc;
+	}
     }
-    
-    return desc;
+    http_close (desc);
+    return NULL;
 }
 
 /* ******************************************************************* */
@@ -536,7 +593,7 @@ static size_t http_read (void *ptr, size_t size, void *d)
 
     /* check for reopen */
     if (desc->begin > desc->pos || desc->begin + desc->len + 3*HTTP_BLOCK_SIZE < desc->pos)
-	reconnect (desc);
+	reconnect (desc, NULL);
  
     /* wait while the buffer will has entire block */
     while (1) {
