@@ -423,7 +423,7 @@ static char *genres[] = {
     "Drum & Bass", "Club House", "Hardcore", "Terror", "Indie", "BritPop",
     "NegerPunk", "Polsk Punk", "Beat", "Christian Gangsta", "Heavy Metal",
     "Black Metal", "Crossover", "Contemporary C", "Christian Rock", "Merengue",
-    "Salsa", "Thrash Metal", "Anime", "JPop", "SynthPop", ""};
+    "Salsa", "Thrash Metal", "Anime", "JPop", "SynthPop"};
 
 /* Trying to fill info from id3 tagged file */
 static void parse_id3 (const char *path, stream_info *info)
@@ -606,7 +606,9 @@ static void parse_id3 (const char *path, stream_info *info)
 
 	    /* genre */
 	    g = buf [127];
-	    if (sizeof (genres) <= g)
+	    if (g==255)
+		*info->genre = '\0';
+	    else if (sizeof (genres)/sizeof(char*) <= g)
 		snprintf (info->genre, sizeof (info->genre), "(%u)", g);
 	    else
 		snprintf (info->genre, sizeof (info->genre), "%s", genres[g]);
