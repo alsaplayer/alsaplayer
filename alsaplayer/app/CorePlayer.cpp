@@ -304,7 +304,8 @@ void CorePlayer::UnregisterPlugins()
 	input_plugin *tmp;
 
 	Stop();
-
+	Close();
+	
 	Lock();
 	for (int i = 0; i < plugin_count; i++) {
 		tmp = &plugins[i];
