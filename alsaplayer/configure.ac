@@ -284,7 +284,7 @@ dnl ==================
 
 have_sndfile=no
 
-PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.0, have_sndfile=yes)
+PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.0, have_sndfile=yes, have_sndfile=no)
 AC_SUBST(SNDFILE_LIBS)
 AC_SUBST(SNDFILE_CFLAGS)
 AM_CONDITIONAL(HAVE_SNDFILE, test "x$have_sndfile" = xyes)
