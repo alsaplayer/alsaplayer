@@ -116,6 +116,7 @@ int daemon_start(Playlist *playlist, int argc, char **argv)
 	notifier.position_notify = position_notify;
 	notifier.stop_notify = stop_notify;
 
+	playlist->Clear(); // Clear playlist
 	playlist->RegisterNotifier(&notifier, NULL);
 
 	pthread_mutex_lock(&finish_mutex);
