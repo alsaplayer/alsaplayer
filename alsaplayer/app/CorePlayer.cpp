@@ -23,7 +23,7 @@
 
 /*
 	Issues:
-		- None at the moment
+		- Things need to be cleaned up!
 
 */
 
@@ -198,9 +198,6 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	pthread_mutex_init(&player_mutex, NULL);
 
 	the_object = new input_object;
-#ifndef NEW_PLAY	
-	the_object->write_buffer = NULL;
-#endif
 	the_object->ready = 0;
 
 	pthread_mutex_init(&the_object->object_mutex, NULL);
@@ -262,8 +259,9 @@ void CorePlayer::UnregisterPlugins()
 int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 {
 	int version;
+	int error_count = 0;
 	input_plugin *tmp;
-	
+
 	Lock();
 	tmp = &plugins[plugin_count];
 	tmp->version = the_plugin->version;
@@ -276,8 +274,8 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 			return 0;
 		}
 	}
-	strncpy(tmp->name, the_plugin->name, 256);
-	strncpy(tmp->author, the_plugin->author, 256);
+	tmp->name = the_plugin->name;
+	tmp->author = the_plugin->author;
 	tmp->init = the_plugin->init;
 	tmp->can_handle = the_plugin->can_handle;
 	tmp->open = the_plugin->open;
@@ -293,6 +291,64 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	tmp->shutdown = the_plugin->shutdown;
 	tmp->nr_tracks = the_plugin->nr_tracks;
 	tmp->track_seek = the_plugin->track_seek;
+	if (tmp->name == NULL) {
+		alsaplayer_error("No name");
+		error_count++;
+	}
+	if (tmp->author == NULL) {
+		alsaplayer_error("No author");
+		error_count++;
+	}	
+	if (tmp->init == NULL) {
+		alsaplayer_error("No init function");
+		error_count++;
+	}
+	if (tmp->can_handle == NULL) {
+		alsaplayer_error("No can_handle function");
+		error_count++;
+	}
+	if (tmp->open == NULL) {
+		alsaplayer_error("No open function");
+		error_count++;
+	}
+	if (tmp->close == NULL) {
+		alsaplayer_error("No close function");
+		error_count++;
+	}
+	if (tmp->play_frame == NULL) {
+		alsaplayer_error("No play_frame function");
+		error_count++;
+	}	
+	if (tmp->frame_seek == NULL) {
+		alsaplayer_error("No frame_seek function");
+		error_count++;
+	}
+
+	if (tmp->nr_frames == NULL) {
+		alsaplayer_error("No nr_frames function");
+		error_count++;
+	}
+	if (tmp->frame_size == NULL) {
+		alsaplayer_error("No frame_size function");
+		error_count++;
+	}
+	if (tmp->channels == NULL) {
+		alsaplayer_error("No channels function");
+		error_count++;
+	}	
+	if (tmp->stream_info == NULL) {
+		alsaplayer_error("No stream_info function");
+		error_count++;
+	}
+	if (tmp->shutdown == NULL) {
+		alsaplayer_error("No shutdown function");
+		error_count++;
+	}
+	if (error_count) {
+	    	alsaplayer_error("At least %d error(s) were detected");
+		Unlock();
+		return 0;
+	}	
 	plugin_count++;
 	if (plugin_count == 1) { // First so assign plugin
 		plugin = tmp;
@@ -412,10 +468,9 @@ bool CorePlayer::Start(int reset)
 	}	
 
 	Lock();
-	Close();
 	
 	// First check if we have a filename to play
-	if (!Open()) {
+	if (!the_object->ready) {
 		Unlock();
 		return false;
 	}
@@ -494,7 +549,7 @@ void CorePlayer::Stop(int streamer)
 	//alsaplayer_error("producer_func is gone now...");
 	
 	ResetBuffer();
-	Close();
+	//Close();
 	Unlock();
 }
 
@@ -580,11 +635,22 @@ CorePlayer::GetPlayer(const char *path)
 	return best_plugin;
 }
 
-bool CorePlayer::Open(const char *path = NULL)
+
+void CorePlayer::Unload()
+{
+	Lock();
+	file_path[0] = 0;
+	Close();
+	Unlock();
+}
+
+bool CorePlayer::Load(const char *path = NULL)
 {
 	bool result = false;
 	input_plugin *best_plugin;
-	
+
+	Unload();
+
 	if (path == NULL && !strlen(file_path)) {
 		return false;
 	}
@@ -614,7 +680,7 @@ bool CorePlayer::Open(const char *path = NULL)
 	return result;	
 }
 
-
+#ifdef DEBUG
 void print_buf(sample_buf *start)
 {
 	sample_buf *c = start;
@@ -622,6 +688,7 @@ void print_buf(sample_buf *start)
 		alsaplayer_error("%d ", c->start);
 	}
 }
+#endif
 
 int CorePlayer::SetDirection(int direction)
 {
@@ -825,9 +892,6 @@ int CorePlayer::pcm_worker(sample_buf *dest, int start, int len)
 		if (start < 0) {
 			return -1;
 		}
-#ifndef NEW_PLAY		
-		the_object->write_buffer = dest->buf;
-#endif		
 		sample_buffer = (char *)dest->buf->buffer_data;
 		while (count > 0 && producing) {
 			if (!plugin->play_frame(the_object, sample_buffer + bytes_written)) {
@@ -857,9 +921,6 @@ void CorePlayer::producer_func(void *data)
 	CorePlayer *obj = (CorePlayer *)data;
 	int frames_read;
 
-#ifndef NEW_PLAY
-	obj->the_object->write_buffer = NULL;
-#endif	
 #ifdef DEBUG
 	alsaplayer_error("Starting new producer_func...");
 #endif	
@@ -909,6 +970,7 @@ void CorePlayer::producer_func(void *data)
 	pthread_exit(NULL);
 	return;
 }
+
 extern int global_bal;
 extern int global_vol_left;
 extern int global_vol_right;
