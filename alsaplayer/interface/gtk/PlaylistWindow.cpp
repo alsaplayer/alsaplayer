@@ -400,7 +400,7 @@ void dialog_popup(GtkWidget *widget, gpointer data)
 
 void key_press_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-	printf("Key down\n");
+	//printf("Key down\n");
 }
 
 
