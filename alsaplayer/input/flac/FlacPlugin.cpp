@@ -26,12 +26,15 @@
 #include <cmath>
 #include "input_plugin.h"
 #include "alsaplayer_error.h"
+#include "config.h"
 
 #include "FlacStream.h"
 #include "FlacEngine.h"
 #include "FlacSeekableStream.h"
 #include "FlacTag.h"
+#ifdef HAVE_LIBOGGFLC
 #include "OggFlacStream.h"
+#endif
 
 static int
 flac_channels (input_object * obj)
@@ -119,7 +122,7 @@ flac_open (input_object * obj, const char * name)
     if (!name)
 	return 0;
 
-    reader_type * rdr = reader_open (name);
+    reader_type * rdr = reader_open (name, NULL, NULL);
     if (!rdr)
     {
 	alsaplayer_error ("flac_open: reader_open failed");
@@ -140,10 +143,12 @@ flac_open (input_object * obj, const char * name)
 	    else
 		f = new Flac::FlacStream (name, rdr);
 	}
+#ifdef HAVE_LIBOGGFLC	
 	else
 	{
 	    f = new Flac::OggFlacStream (name, rdr);
 	}
+#endif	
     }
     catch (...)
     {
@@ -253,11 +258,17 @@ flac_stream_info (input_object * obj, stream_info * info)
 static float
 flac_can_handle (const char * name)
 {
+	float res = 0.0;
 	if (strncmp(name, "http://", 7) == 0) {
 		return 0.0;
-	}	    
-	return Flac::FlacStream::isFlacStream (name)    ? 1.0 :
-		Flac::OggFlacStream::isOggFlacStream (name) ? 1.0 : 0.0;
+	}
+	res = Flac::FlacStream::isFlacStream (name);
+#ifdef HAVE_LIBOGGFLC
+	if (res != 1.0) {
+		res = Flac::OggFlacStream::isOggFlacStream (name);
+	}
+#endif
+	return res;
 }
 
 

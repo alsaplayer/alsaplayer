@@ -56,7 +56,7 @@ FlacStream::apError (const char * fmt, const char * str)
 bool
 FlacStream::isFlacStream (const std::string & name)
 {
-    reader_type * rdr = reader_open (name.c_str ());
+    reader_type * rdr = reader_open (name.c_str (), NULL, NULL);
     if (!rdr)
         return false;
     FlacStream f (name, rdr, false);

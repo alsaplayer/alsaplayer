@@ -60,7 +60,7 @@ FlacId3Tag::hasId3 (const std::string & name)
 {
     static char tag[128];
 
-    reader_type * f = reader_open (name.c_str ());
+    reader_type * f = reader_open (name.c_str (), NULL, NULL);
     if (!f)
 	return false;
 
@@ -74,7 +74,7 @@ FlacId3Tag::hasId3 (const std::string & name)
 FlacId3Tag::FlacId3Tag (const std::string & name)
     : FlacTag (name)
 {
-    reader_type * f = reader_open (name.c_str ());
+    reader_type * f = reader_open (name.c_str (), NULL, NULL);
     if (!f)
 	return;
 

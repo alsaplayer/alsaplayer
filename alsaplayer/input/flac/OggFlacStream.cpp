@@ -36,7 +36,7 @@ namespace Flac
 bool
 OggFlacStream::isOggFlacStream (const string & name)
 {
-  reader_type * rdr = reader_open (name.c_str ());
+  reader_type * rdr = reader_open (name.c_str (), NULL, NULL);
   if (!rdr)
       return false;
 
