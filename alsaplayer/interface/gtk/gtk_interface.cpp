@@ -505,7 +505,7 @@ void forward_play_cb(GtkWidget *widget, gpointer data)
 	GtkAdjustment *adj;
 	int smooth_trans;
 
-	smooth_trans = prefs_get_bool(ap_prefs, "gtk_interface", "smooth_transition", 1);
+	smooth_trans = prefs_get_bool(ap_prefs, "gtk_interface", "smooth_transition", 0);
 	adj = GTK_RANGE(data)->adjustment;
 
 	if (smooth_trans) {
@@ -524,7 +524,7 @@ void reverse_play_cb(GtkWidget *widget, gpointer data)
 	GtkAdjustment *adj;
 	int smooth_trans;
 
-	smooth_trans = prefs_get_bool(ap_prefs, "gtk_interface", "smooth_transition", 1);
+	smooth_trans = prefs_get_bool(ap_prefs, "gtk_interface", "smooth_transition", 0);
 
 	adj = GTK_RANGE(data)->adjustment;
 
@@ -547,15 +547,20 @@ void pause_cb(GtkWidget *widget, gpointer data)
 
 	adj = GTK_RANGE(data)->adjustment;
 
-	smooth_trans = prefs_get_bool(ap_prefs, "gtk_interface", "smooth_transition", 1);
+	smooth_trans = prefs_get_bool(ap_prefs, "gtk_interface", "smooth_transition", 0);
 		
 	destination = 0.0;
 	if (smooth_trans) {
 		pthread_create(&smoother_thread, NULL,
 			(void * (*)(void *))smoother, adj);
 		pthread_detach(smoother_thread);
-	} else
-		gtk_adjustment_set_value(adj, 0.0);
+	} else {
+		if (adj->value != 0.0) {
+			gtk_adjustment_set_value(adj, 0.0);
+		} else {
+			gtk_adjustment_set_value(adj, 100.0);
+		}
+	}	
 }
 
 

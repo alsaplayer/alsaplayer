@@ -1,3 +1,8 @@
+- Unpause when going to Next/Prev song
+- Smooth speed transition, configurable with "gtk_interface.smooth_transition"
+  in ~/.alsaplayer/config
+- Found another subtle playlist locking bug
+- Fixed huuge stack leak!
 - ID3 tag support in mad plugin, using libid3tag!
 - gtk+ playlist marks active entry 
 - Renamed mad input plugin to mad_in

@@ -108,6 +108,16 @@ AC_ARG_ENABLE(debug,
 if test "$enable_debug" = yes; then
 DFLAGS="$DFLAGS -g"
 fi
+
+
+AC_ARG_ENABLE(profiling,
+[   --enable-profiling     Enable profiling (-pg)],, enable_profiling=no)
+
+if test "$enable_profiling" = yes; then
+DFLAGS="$DFLAGS -pg"
+fi
+
+
 AC_SUBST(DFLAGS)
 
 
