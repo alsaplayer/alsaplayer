@@ -88,7 +88,7 @@ void jack_shutdown (void *arg)
 
 int jack_get_latency()
 {
-	return latency;
+	return (latency << 2); // We need to return latency in bytes
 }
 
 int jack_prepare(void *arg)
