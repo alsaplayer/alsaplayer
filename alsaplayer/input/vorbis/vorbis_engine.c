@@ -230,7 +230,7 @@ static  long vorbis_frame_to_sec(input_object *obj, int frame)
 	if (!obj || !obj->local_data)
 		return 0;
 	data = (struct vorbis_local_data *)obj->local_data;
-	sec = (frame * BLOCK_SIZE ) / (44100 * 2 * 2 / 100); 
+	sec = (frame * BLOCK_SIZE ) / (vorbis_sample_rate(obj) * 2 * 2 / 100); 
 	return sec;
 }
 
