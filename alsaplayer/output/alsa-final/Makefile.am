@@ -1,5 +1,3 @@
-EXTRA_DIST = alsa.c
-
 if HAVE_ALSA_FINAL
 
 alsaltlibs = libalsa.la

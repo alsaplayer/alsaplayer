@@ -10,6 +10,682 @@ dnl but WITHOUT ANY WARRANTY, to the extent permitted by law; without
 dnl even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 dnl PARTICULAR PURPOSE.
 
+running cat m4/audiofile.m4 m4/esd.m4 m4/libmikmod.m4 m4/ogg.m4 m4/qt.m4 m4/vorbis.m4 ...
+# Configure paths for the Audio File Library
+# Bertrand Guiheneuf 98-10-21
+# stolen from esd.m4 in esound :
+# Manish Singh    98-9-30
+# stolen back from Frank Belew
+# stolen from Manish Singh
+# Shamelessly stolen from Owen Taylor
+
+dnl AM_PATH_AUDIOFILE([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
+dnl Test for Audio File Library, and define AUDIOFILE_CFLAGS and AUDIOFILE_LIBS.
+dnl
+AC_DEFUN(AM_PATH_AUDIOFILE,
+[dnl 
+dnl Get compiler flags and libraries from the audiofile-config script.
+dnl
+AC_ARG_WITH(audiofile-prefix,[  --with-audiofile-prefix=PFX   Prefix where Audio File Library is installed (optional)],
+            audiofile_prefix="$withval", audiofile_prefix="")
+AC_ARG_WITH(audiofile-exec-prefix,[  --with-audiofile-exec-prefix=PFX Exec prefix where Audio File Library is installed (optional)],
+            audiofile_exec_prefix="$withval", audiofile_exec_prefix="")
+AC_ARG_ENABLE(audiofiletest, [  --disable-audiofiletest       Do not try to compile and run a test Audio File Library program], , enable_audiofiletest=yes)
+
+  if test x$audiofile_exec_prefix != x ; then
+     audiofile_args="$audiofile_args --exec-prefix=$audiofile_exec_prefix"
+     if test x${AUDIOFILE_CONFIG+set} != xset ; then
+        AUDIOFILE_CONFIG=$audiofile_exec_prefix/bin/audiofile-config
+     fi
+  fi
+  if test x$audiofile_prefix != x ; then
+     audiofile_args="$audiofile_args --prefix=$audiofile_prefix"
+     if test x${AUDIOFILE_CONFIG+set} != xset ; then
+        AUDIOFILE_CONFIG=$audiofile_prefix/bin/audiofile-config
+     fi
+  fi
+
+  AC_PATH_PROG(AUDIOFILE_CONFIG, audiofile-config, no)
+  min_audiofile_version=ifelse([$1], ,0.2.5,$1)
+  AC_MSG_CHECKING(for Audio File Library - version >= $min_audiofile_version)
+  no_audiofile=""
+  if test "$AUDIOFILE_CONFIG" = "no" ; then
+    no_audiofile=yes
+  else
+    AUDIOFILE_LIBS=`$AUDIOFILE_CONFIG $audiofileconf_args --libs`
+    AUDIOFILE_CFLAGS=`$AUDIOFILE_CONFIG $audiofileconf_args --cflags`
+    audiofile_major_version=`$AUDIOFILE_CONFIG $audiofile_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
+    audiofile_minor_version=`$AUDIOFILE_CONFIG $audiofile_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
+    audiofile_micro_version=`$AUDIOFILE_CONFIG $audiofile_config_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
+    if test "x$enable_audiofiletest" = "xyes" ; then
+      AC_LANG_SAVE
+      AC_LANG_C
+      ac_save_CFLAGS="$CFLAGS"
+      ac_save_LIBS="$LIBS"
+      CFLAGS="$CFLAGS $AUDIOFILE_CFLAGS"
+      LIBS="$LIBS $AUDIOFILE_LIBS"
+dnl
+dnl Now check if the installed Audio File Library is sufficiently new. 
+dnl (Also checks the sanity of the results of audiofile-config to some extent.)
+dnl
+      rm -f conf.audiofiletest
+      AC_TRY_RUN([
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <audiofile.h>
+
+char*
+my_strdup (char *str)
+{
+  char *new_str;
+  
+  if (str)
+    {
+      new_str = malloc ((strlen (str) + 1) * sizeof(char));
+      strcpy (new_str, str);
+    }
+  else
+    new_str = NULL;
+  
+  return new_str;
+}
+
+int main ()
+{
+  int major, minor, micro;
+  char *tmp_version;
+
+  system ("touch conf.audiofiletest");
+
+  /* HP/UX 9 (%@#!) writes to sscanf strings */
+  tmp_version = my_strdup("$min_audiofile_version");
+  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
+     printf("%s, bad version string\n", "$min_audiofile_version");
+     exit(1);
+   }
+
+   if (($audiofile_major_version > major) ||
+      (($audiofile_major_version == major) && ($audiofile_minor_version > minor)) ||
+      (($audiofile_major_version == major) && ($audiofile_minor_version == minor) && ($audiofile_micro_version >= micro)))
+    {
+      return 0;
+    }
+  else
+    {
+      printf("\n*** 'audiofile-config --version' returned %d.%d.%d, but the minimum version\n", $audiofile_major_version, $audiofile_minor_version, $audiofile_micro_version);
+      printf("*** of the Audio File Library required is %d.%d.%d. If audiofile-config is correct, then it is\n", major, minor, micro);
+      printf("*** best to upgrade to the required version.\n");
+      printf("*** If audiofile-config was wrong, set the environment variable AUDIOFILE_CONFIG\n");
+      printf("*** to point to the correct copy of audiofile-config, and remove the file\n");
+      printf("*** config.cache before re-running configure\n");
+      return 1;
+    }
+}
+
+],, no_audiofile=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+       AC_LANG_RESTORE
+     fi
+  fi
+  if test "x$no_audiofile" = x ; then
+     AC_MSG_RESULT(yes)
+     ifelse([$2], , :, [$2])     
+  else
+     AC_MSG_RESULT(no)
+     if test "$AUDIOFILE_CONFIG" = "no" ; then
+       cat <<END
+*** The audiofile-config script installed by the Audio File Library could
+*** not be found.  If the Audio File Library was installed in PREFIX, make
+*** sure PREFIX/bin is in your path, or set the AUDIOFILE_CONFIG
+*** environment variable to the full path to audiofile-config.
+END
+     else
+       if test -f conf.audiofiletest ; then
+        :
+       else
+          echo "*** Could not run Audio File Library test program; checking why..."
+          AC_LANG_SAVE
+          AC_LANG_C
+          CFLAGS="$CFLAGS $AUDIOFILE_CFLAGS"
+          LIBS="$LIBS $AUDIOFILE_LIBS"
+          AC_TRY_LINK([
+#include <stdio.h>
+#include <audiofile.h>
+],      [ return 0; ],
+        [ cat <<END
+*** The test program compiled, but did not run.  This usually means that
+*** the run-time linker is not finding Audio File Library or finding the
+*** wrong version of Audio File Library.
+***
+*** If it is not finding Audio File Library, you'll need to set your
+*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point
+*** to the installed location.  Also, make sure you have run ldconfig if
+*** that is required on your system.
+***
+*** If you have an old version installed, it is best to remove it, although
+*** you may also be able to get things to work by modifying
+*** LD_LIBRARY_PATH.
+END
+        ],
+        [ echo "*** The test program failed to compile or link. See the file config.log"
+          echo "*** for the exact error that occured. This usually means the Audio File"
+          echo "*** Library was incorrectly installed or that you have moved the Audio"
+          echo "*** File Library since it was installed. In the latter case, you may want"
+          echo "*** to edit the audiofile-config script: $AUDIOFILE_CONFIG" ])
+          CFLAGS="$ac_save_CFLAGS"
+          LIBS="$ac_save_LIBS"
+          AC_LANG_RESTORE
+       fi
+     fi
+     AUDIOFILE_CFLAGS=""
+     AUDIOFILE_LIBS=""
+     ifelse([$3], , :, [$3])
+  fi
+  AC_SUBST(AUDIOFILE_CFLAGS)
+  AC_SUBST(AUDIOFILE_LIBS)
+  rm -f conf.audiofiletest
+])
+# Configure paths for ESD
+# Manish Singh    98-9-30
+# stolen back from Frank Belew
+# stolen from Manish Singh
+# Shamelessly stolen from Owen Taylor
+
+dnl AM_PATH_ESD([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
+dnl Test for ESD, and define ESD_CFLAGS and ESD_LIBS
+dnl
+AC_DEFUN(AM_PATH_ESD,
+[dnl 
+dnl Get the cflags and libraries from the esd-config script
+dnl
+AC_ARG_WITH(esd-prefix,[  --with-esd-prefix=PFX   Prefix where ESD is installed (optional)],
+            esd_prefix="$withval", esd_prefix="")
+AC_ARG_WITH(esd-exec-prefix,[  --with-esd-exec-prefix=PFX Exec prefix where ESD is installed (optional)],
+            esd_exec_prefix="$withval", esd_exec_prefix="")
+AC_ARG_ENABLE(esdtest, [  --disable-esdtest       Do not try to compile and run a test ESD program],
+		    , enable_esdtest=yes)
+
+  if test x$esd_exec_prefix != x ; then
+     esd_args="$esd_args --exec-prefix=$esd_exec_prefix"
+     if test x${ESD_CONFIG+set} != xset ; then
+        ESD_CONFIG=$esd_exec_prefix/bin/esd-config
+     fi
+  fi
+  if test x$esd_prefix != x ; then
+     esd_args="$esd_args --prefix=$esd_prefix"
+     if test x${ESD_CONFIG+set} != xset ; then
+        ESD_CONFIG=$esd_prefix/bin/esd-config
+     fi
+  fi
+
+  AC_PATH_PROG(ESD_CONFIG, esd-config, no)
+  min_esd_version=ifelse([$1], ,0.2.7,$1)
+  AC_MSG_CHECKING(for ESD - version >= $min_esd_version)
+  no_esd=""
+  if test "$ESD_CONFIG" = "no" ; then
+    no_esd=yes
+  else
+    AC_LANG_SAVE
+    AC_LANG_C
+    ESD_CFLAGS=`$ESD_CONFIG $esdconf_args --cflags`
+    ESD_LIBS=`$ESD_CONFIG $esdconf_args --libs`
+
+    esd_major_version=`$ESD_CONFIG $esd_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
+    esd_minor_version=`$ESD_CONFIG $esd_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
+    esd_micro_version=`$ESD_CONFIG $esd_config_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
+    if test "x$enable_esdtest" = "xyes" ; then
+      ac_save_CFLAGS="$CFLAGS"
+      ac_save_LIBS="$LIBS"
+      CFLAGS="$CFLAGS $ESD_CFLAGS"
+      LIBS="$LIBS $ESD_LIBS"
+dnl
+dnl Now check if the installed ESD is sufficiently new. (Also sanity
+dnl checks the results of esd-config to some extent
+dnl
+      rm -f conf.esdtest
+      AC_TRY_RUN([
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <esd.h>
+
+char*
+my_strdup (char *str)
+{
+  char *new_str;
+  
+  if (str)
+    {
+      new_str = malloc ((strlen (str) + 1) * sizeof(char));
+      strcpy (new_str, str);
+    }
+  else
+    new_str = NULL;
+  
+  return new_str;
+}
+
+int main ()
+{
+  int major, minor, micro;
+  char *tmp_version;
+
+  system ("touch conf.esdtest");
+
+  /* HP/UX 9 (%@#!) writes to sscanf strings */
+  tmp_version = my_strdup("$min_esd_version");
+  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
+     printf("%s, bad version string\n", "$min_esd_version");
+     exit(1);
+   }
+
+   if (($esd_major_version > major) ||
+      (($esd_major_version == major) && ($esd_minor_version > minor)) ||
+      (($esd_major_version == major) && ($esd_minor_version == minor) && ($esd_micro_version >= micro)))
+    {
+      return 0;
+    }
+  else
+    {
+      printf("\n*** 'esd-config --version' returned %d.%d.%d, but the minimum version\n", $esd_major_version, $esd_minor_version, $esd_micro_version);
+      printf("*** of ESD required is %d.%d.%d. If esd-config is correct, then it is\n", major, minor, micro);
+      printf("*** best to upgrade to the required version.\n");
+      printf("*** If esd-config was wrong, set the environment variable ESD_CONFIG\n");
+      printf("*** to point to the correct copy of esd-config, and remove the file\n");
+      printf("*** config.cache before re-running configure\n");
+      return 1;
+    }
+}
+
+],, no_esd=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+       AC_LANG_RESTORE
+     fi
+  fi
+  if test "x$no_esd" = x ; then
+     AC_MSG_RESULT(yes)
+     ifelse([$2], , :, [$2])     
+  else
+     AC_MSG_RESULT(no)
+     if test "$ESD_CONFIG" = "no" ; then
+       echo "*** The esd-config script installed by ESD could not be found"
+       echo "*** If ESD was installed in PREFIX, make sure PREFIX/bin is in"
+       echo "*** your path, or set the ESD_CONFIG environment variable to the"
+       echo "*** full path to esd-config."
+     else
+       if test -f conf.esdtest ; then
+        :
+       else
+          echo "*** Could not run ESD test program, checking why..."
+          CFLAGS="$CFLAGS $ESD_CFLAGS"
+          LIBS="$LIBS $ESD_LIBS"
+          AC_LANG_SAVE
+          AC_LANG_C
+          AC_TRY_LINK([
+#include <stdio.h>
+#include <esd.h>
+],      [ return 0; ],
+        [ echo "*** The test program compiled, but did not run. This usually means"
+          echo "*** that the run-time linker is not finding ESD or finding the wrong"
+          echo "*** version of ESD. If it is not finding ESD, you'll need to set your"
+          echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
+          echo "*** to the installed location  Also, make sure you have run ldconfig if that"
+          echo "*** is required on your system"
+	  echo "***"
+          echo "*** If you have an old version installed, it is best to remove it, although"
+          echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"],
+        [ echo "*** The test program failed to compile or link. See the file config.log for the"
+          echo "*** exact error that occured. This usually means ESD was incorrectly installed"
+          echo "*** or that you have moved ESD since it was installed. In the latter case, you"
+          echo "*** may want to edit the esd-config script: $ESD_CONFIG" ])
+          CFLAGS="$ac_save_CFLAGS"
+          LIBS="$ac_save_LIBS"
+          AC_LANG_RESTORE
+       fi
+     fi
+     ESD_CFLAGS=""
+     ESD_LIBS=""
+     ifelse([$3], , :, [$3])
+  fi
+  AC_SUBST(ESD_CFLAGS)
+  AC_SUBST(ESD_LIBS)
+  rm -f conf.esdtest
+])
+
+dnl AM_ESD_SUPPORTS_MULTIPLE_RECORD([ACTION-IF-SUPPORTS [, ACTION-IF-NOT-SUPPORTS]])
+dnl Test, whether esd supports multiple recording clients (version >=0.2.21)
+dnl
+AC_DEFUN(AM_ESD_SUPPORTS_MULTIPLE_RECORD,
+[dnl
+  AC_MSG_NOTICE([whether installed esd version supports multiple recording clients])
+  ac_save_ESD_CFLAGS="$ESD_CFLAGS"
+  ac_save_ESD_LIBS="$ESD_LIBS"
+  AM_PATH_ESD(0.2.21,
+    ifelse([$1], , [
+      AM_CONDITIONAL(ESD_SUPPORTS_MULTIPLE_RECORD, true)
+      AC_DEFINE(ESD_SUPPORTS_MULTIPLE_RECORD, 1,
+	[Define if you have esound with support of multiple recording clients.])],
+    [$1]),
+    ifelse([$2], , [AM_CONDITIONAL(ESD_SUPPORTS_MULTIPLE_RECORD, false)], [$2])
+    if test "x$ac_save_ESD_CFLAGS" != x ; then
+       ESD_CFLAGS="$ac_save_ESD_CFLAGS"
+    fi
+    if test "x$ac_save_ESD_LIBS" != x ; then
+       ESD_LIBS="$ac_save_ESD_LIBS"
+    fi
+  )
+])
+# Configure paths for libmikmod
+#
+# Derived from glib.m4 (Owen Taylor 97-11-3)
+# Improved by Chris Butler
+#
+
+dnl AM_PATH_LIBMIKMOD([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND ]]])
+dnl Test for libmikmod, and define LIBMIKMOD_CFLAGS, LIBMIKMOD_LIBS and
+dnl LIBMIKMOD_LDADD
+dnl
+AC_DEFUN(AM_PATH_LIBMIKMOD,
+[dnl 
+dnl Get the cflags and libraries from the libmikmod-config script
+dnl
+AC_ARG_WITH(libmikmod-prefix,[  --with-libmikmod-prefix=PFX   Prefix where libmikmod is installed (optional)],
+            libmikmod_config_prefix="$withval", libmikmod_config_prefix="")
+AC_ARG_WITH(libmikmod-exec-prefix,[  --with-libmikmod-exec-prefix=PFX Exec prefix where libmikmod is installed (optional)],
+            libmikmod_config_exec_prefix="$withval", libmikmod_config_exec_prefix="")
+AC_ARG_ENABLE(libmikmodtest, [  --disable-libmikmodtest       Do not try to compile and run a test libmikmod program],
+		    , enable_libmikmodtest=yes)
+
+  if test x$libmikmod_config_exec_prefix != x ; then
+     libmikmod_config_args="$libmikmod_config_args --exec-prefix=$libmikmod_config_exec_prefix"
+     if test x${LIBMIKMOD_CONFIG+set} != xset ; then
+        LIBMIKMOD_CONFIG=$libmikmod_config_exec_prefix/bin/libmikmod-config
+     fi
+  fi
+  if test x$libmikmod_config_prefix != x ; then
+     libmikmod_config_args="$libmikmod_config_args --prefix=$libmikmod_config_prefix"
+     if test x${LIBMIKMOD_CONFIG+set} != xset ; then
+        LIBMIKMOD_CONFIG=$libmikmod_config_prefix/bin/libmikmod-config
+     fi
+  fi
+
+  AC_PATH_PROG(LIBMIKMOD_CONFIG, libmikmod-config, no)
+  min_libmikmod_version=ifelse([$1], ,3.1.5,$1)
+  AC_MSG_CHECKING(for libmikmod - version >= $min_libmikmod_version)
+  no_libmikmod=""
+  if test "$LIBMIKMOD_CONFIG" = "no" ; then
+    no_libmikmod=yes
+  else
+    LIBMIKMOD_CFLAGS=`$LIBMIKMOD_CONFIG $libmikmod_config_args --cflags`
+    LIBMIKMOD_LIBS=`$LIBMIKMOD_CONFIG $libmikmod_config_args --libs`
+    LIBMIKMOD_LDADD=`$LIBMIKMOD_CONFIG $libmikmod_config_args --ldadd`
+    libmikmod_config_major_version=`$LIBMIKMOD_CONFIG $libmikmod_config_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\).*/\1/'`
+    libmikmod_config_minor_version=`$LIBMIKMOD_CONFIG $libmikmod_config_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\).*/\2/'`
+    libmikmod_config_micro_version=`$LIBMIKMOD_CONFIG $libmikmod_config_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\).*/\3/'`
+    if test "x$enable_libmikmodtest" = "xyes" ; then
+      ac_save_CFLAGS="$CFLAGS"
+      ac_save_LIBS="$LIBS"
+	  AC_LANG_SAVE
+	  AC_LANG_C
+      CFLAGS="$CFLAGS $LIBMIKMOD_CFLAGS $LIBMIKMOD_LDADD"
+      LIBS="$LIBMIKMOD_LIBS $LIBS"
+dnl
+dnl Now check if the installed libmikmod is sufficiently new. (Also sanity
+dnl checks the results of libmikmod-config to some extent
+dnl
+      rm -f conf.mikmodtest
+      AC_TRY_RUN([
+#include <mikmod.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+char* my_strdup (char *str)
+{
+  char *new_str;
+
+  if (str) {
+    new_str = malloc ((strlen (str) + 1) * sizeof(char));
+    strcpy (new_str, str);
+  } else
+    new_str = NULL;
+
+  return new_str;
+}
+
+int main()
+{
+  int major,minor,micro;
+  int libmikmod_major_version,libmikmod_minor_version,libmikmod_micro_version;
+  char *tmp_version;
+
+  system("touch conf.mikmodtest");
+
+  /* HP/UX 9 (%@#!) writes to sscanf strings */
+  tmp_version = my_strdup("$min_libmikmod_version");
+  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
+     printf("%s, bad version string\n", "$min_libmikmod_version");
+     exit(1);
+   }
+
+  libmikmod_major_version=(MikMod_GetVersion() >> 16) & 255;
+  libmikmod_minor_version=(MikMod_GetVersion() >>  8) & 255;
+  libmikmod_micro_version=(MikMod_GetVersion()      ) & 255;
+
+  if ((libmikmod_major_version != $libmikmod_config_major_version) ||
+      (libmikmod_minor_version != $libmikmod_config_minor_version) ||
+      (libmikmod_micro_version != $libmikmod_config_micro_version))
+    {
+      printf("\n*** 'libmikmod-config --version' returned %d.%d.%d, but libmikmod (%d.%d.%d)\n", 
+             $libmikmod_config_major_version, $libmikmod_config_minor_version, $libmikmod_config_micro_version,
+             libmikmod_major_version, libmikmod_minor_version, libmikmod_micro_version);
+      printf ("*** was found! If libmikmod-config was correct, then it is best\n");
+      printf ("*** to remove the old version of libmikmod. You may also be able to fix the error\n");
+      printf("*** by modifying your LD_LIBRARY_PATH enviroment variable, or by editing\n");
+      printf("*** /etc/ld.so.conf. Make sure you have run ldconfig if that is\n");
+      printf("*** required on your system.\n");
+      printf("*** If libmikmod-config was wrong, set the environment variable LIBMIKMOD_CONFIG\n");
+      printf("*** to point to the correct copy of libmikmod-config, and remove the file config.cache\n");
+      printf("*** before re-running configure\n");
+    } 
+  else if ((libmikmod_major_version != LIBMIKMOD_VERSION_MAJOR) ||
+	   (libmikmod_minor_version != LIBMIKMOD_VERSION_MINOR) ||
+           (libmikmod_micro_version != LIBMIKMOD_REVISION))
+    {
+      printf("*** libmikmod header files (version %d.%d.%d) do not match\n",
+	     LIBMIKMOD_VERSION_MAJOR, LIBMIKMOD_VERSION_MINOR, LIBMIKMOD_REVISION);
+      printf("*** library (version %d.%d.%d)\n",
+	     libmikmod_major_version, libmikmod_minor_version, libmikmod_micro_version);
+    }
+  else
+    {
+      if ((libmikmod_major_version > major) ||
+        ((libmikmod_major_version == major) && (libmikmod_minor_version > minor)) ||
+        ((libmikmod_major_version == major) && (libmikmod_minor_version == minor) && (libmikmod_micro_version >= micro)))
+      {
+        return 0;
+       }
+     else
+      {
+        printf("\n*** An old version of libmikmod (%d.%d.%d) was found.\n",
+               libmikmod_major_version, libmikmod_minor_version, libmikmod_micro_version);
+        printf("*** You need a version of libmikmod newer than %d.%d.%d.\n",
+	       major, minor, micro);
+        printf("***\n");
+        printf("*** If you have already installed a sufficiently new version, this error\n");
+        printf("*** probably means that the wrong copy of the libmikmod-config shell script is\n");
+        printf("*** being found. The easiest way to fix this is to remove the old version\n");
+        printf("*** of libmikmod, but you can also set the LIBMIKMOD_CONFIG environment to point to the\n");
+        printf("*** correct copy of libmikmod-config. (In this case, you will have to\n");
+        printf("*** modify your LD_LIBRARY_PATH enviroment variable, or edit /etc/ld.so.conf\n");
+        printf("*** so that the correct libraries are found at run-time))\n");
+      }
+    }
+  return 1;
+}
+],, no_libmikmod=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+	   AC_LANG_RESTORE
+     fi
+  fi
+  if test "x$no_libmikmod" = x ; then
+     AC_MSG_RESULT([yes, `$LIBMIKMOD_CONFIG --version`])
+     ifelse([$2], , :, [$2])     
+  else
+     AC_MSG_RESULT(no)
+     if test "$LIBMIKMOD_CONFIG" = "no" ; then
+       echo "*** The libmikmod-config script installed by libmikmod could not be found"
+       echo "*** If libmikmod was installed in PREFIX, make sure PREFIX/bin is in"
+       echo "*** your path, or set the LIBMIKMOD_CONFIG environment variable to the"
+       echo "*** full path to libmikmod-config."
+     else
+       if test -f conf.mikmodtest ; then
+        :
+       else
+          echo "*** Could not run libmikmod test program, checking why..."
+          CFLAGS="$CFLAGS $LIBMIKMOD_CFLAGS"
+          LIBS="$LIBS $LIBMIKMOD_LIBS"
+		  AC_LANG_SAVE
+		  AC_LANG_C
+          AC_TRY_LINK([
+#include <mikmod.h>
+#include <stdio.h>
+],      [ return (MikMod_GetVersion()!=0); ],
+        [ echo "*** The test program compiled, but did not run. This usually means"
+          echo "*** that the run-time linker is not finding libmikmod or finding the wrong"
+          echo "*** version of libmikmod. If it is not finding libmikmod, you'll need to set your"
+          echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
+          echo "*** to the installed location. Also, make sure you have run ldconfig if that"
+          echo "*** is required on your system."
+	  echo "***"
+          echo "*** If you have an old version installed, it is best to remove it, although"
+          echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"],
+        [ echo "*** The test program failed to compile or link. See the file config.log for the"
+          echo "*** exact error that occured. This usually means libmikmod was incorrectly installed"
+          echo "*** or that you have moved libmikmod since it was installed. In the latter case, you"
+          echo "*** may want to edit the libmikmod-config script: $LIBMIKMOD_CONFIG" ])
+          CFLAGS="$ac_save_CFLAGS"
+          LIBS="$ac_save_LIBS"
+		  AC_LANG_RESTORE
+       fi
+     fi
+     LIBMIKMOD_CFLAGS=""
+     LIBMIKMOD_LIBS=""
+     LIBMIKMOD_LDADD=""
+     ifelse([$3], , :, [$3])
+  fi
+  AC_SUBST(LIBMIKMOD_CFLAGS)
+  AC_SUBST(LIBMIKMOD_LIBS)
+  AC_SUBST(LIBMIKMOD_LDADD)
+  rm -f conf.mikmodtest
+])
+# Configure paths for libogg
+# Jack Moffitt <jack@icecast.org> 10-21-2000
+# Shamelessly stolen from Owen Taylor and Manish Singh
+
+dnl AM_PATH_OGG([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
+dnl Test for libogg, and define OGG_CFLAGS and OGG_LIBS
+dnl
+AC_DEFUN(AM_PATH_OGG,
+[dnl 
+dnl Get the cflags and libraries
+dnl
+AC_ARG_WITH(ogg-prefix,[  --with-ogg-prefix=PFX   Prefix where libogg is installed (optional)], ogg_prefix="$withval", ogg_prefix="")
+AC_ARG_ENABLE(oggtest, [  --disable-oggtest       Do not try to compile and run a test Ogg program],, enable_oggtest=yes)
+
+  if test "x$ogg_prefix" != "xNONE" ; then
+    ogg_args="$ogg_args --prefix=$ogg_prefix"
+    OGG_CFLAGS="-I$ogg_prefix/include"
+    OGG_LIBS="-L$ogg_prefix/lib"
+  elif test "$prefix" != ""; then
+    ogg_args="$ogg_args --prefix=$prefix"
+    OGG_CFLAGS="-I$prefix/include"
+    OGG_LIBS="-L$prefix/lib"
+  fi
+
+  OGG_LIBS="$OGG_LIBS -logg"
+
+  AC_MSG_CHECKING(for Ogg)
+  no_ogg=""
+
+
+  if test "x$enable_oggtest" = "xyes" ; then
+    ac_save_CFLAGS="$CFLAGS"
+    ac_save_LIBS="$LIBS"
+    CFLAGS="$CFLAGS $OGG_CFLAGS"
+    LIBS="$LIBS $OGG_LIBS"
+dnl
+dnl Now check if the installed Ogg is sufficiently new.
+dnl
+      rm -f conf.oggtest
+      AC_TRY_RUN([
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ogg/ogg.h>
+
+int main ()
+{
+  system("touch conf.oggtest");
+  return 0;
+}
+
+],, no_ogg=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+  fi
+
+  if test "x$no_ogg" = "x" ; then
+     AC_MSG_RESULT(yes)
+     ifelse([$1], , :, [$1])     
+  else
+     AC_MSG_RESULT(no)
+     if test -f conf.oggtest ; then
+       :
+     else
+       echo "*** Could not run Ogg test program, checking why..."
+       CFLAGS="$CFLAGS $OGG_CFLAGS"
+       LIBS="$LIBS $OGG_LIBS"
+       AC_TRY_LINK([
+#include <stdio.h>
+#include <ogg/ogg.h>
+],     [ return 0; ],
+       [ echo "*** The test program compiled, but did not run. This usually means"
+       echo "*** that the run-time linker is not finding Ogg or finding the wrong"
+       echo "*** version of Ogg. If it is not finding Ogg, you'll need to set your"
+       echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
+       echo "*** to the installed location  Also, make sure you have run ldconfig if that"
+       echo "*** is required on your system"
+       echo "***"
+       echo "*** If you have an old version installed, it is best to remove it, although"
+       echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"],
+       [ echo "*** The test program failed to compile or link. See the file config.log for the"
+       echo "*** exact error that occured. This usually means Ogg was incorrectly installed"
+       echo "*** or that you have moved Ogg since it was installed. In the latter case, you"
+       echo "*** may want to edit the ogg-config script: $OGG_CONFIG" ])
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+     fi
+     OGG_CFLAGS=""
+     OGG_LIBS=""
+     ifelse([$2], , :, [$2])
+  fi
+  AC_SUBST(OGG_CFLAGS)
+  AC_SUBST(OGG_LIBS)
+  rm -f conf.oggtest
+])
 dnl qt.m4
 dnl Copyright (C) 2001 Rik Hemsley (rikkus) <rik@kde.org>
 
@@ -180,6 +856,119 @@ CXXFLAGS="$saved_CXXFLAGS"
 LDFLAGS="$saved_LDFLAGS"
 LIBS="$saved_LIBS"
 ])
+# Configure paths for libvorbis
+# Jack Moffitt <jack@icecast.org> 10-21-2000
+# Shamelessly stolen from Owen Taylor and Manish Singh
+
+dnl AM_PATH_VORBIS([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
+dnl Test for libvorbis, and define VORBIS_CFLAGS and VORBIS_LIBS
+dnl
+AC_DEFUN(AM_PATH_VORBIS,
+[dnl 
+dnl Get the cflags and libraries
+dnl
+AC_ARG_WITH(vorbis-prefix,[  --with-vorbis-prefix=PFX   Prefix where libvorbis is installed (optional)], vorbis_prefix="$withval", vorbis_prefix="")
+AC_ARG_ENABLE(vorbistest, [  --disable-vorbistest       Do not try to compile and run a test Vorbis program],, enable_vorbistest=yes)
+
+  if test "x$vorbis_prefix" != "xNONE" ; then
+    vorbis_args="$vorbis_args --prefix=$vorbis_prefix"
+    VORBIS_CFLAGS="-I$vorbis_prefix/include"
+    VORBIS_LIBDIR="-L$vorbis_prefix/lib"
+  elif test "$prefix" != ""; then
+    vorbis_args="$vorbis_args --prefix=$prefix"
+    VORBIS_CFLAGS="-I$prefix/include"
+    VORBIS_LIBDIR="-L$prefix/lib"
+  fi
+
+  VORBIS_LIBS="$VORBIS_LIBDIR -lvorbis -lm"
+  VORBISFILE_LIBS="-lvorbisfile"
+  VORBISENC_LIBS="-lvorbisenc"
+
+  AC_MSG_CHECKING(for Vorbis)
+  no_vorbis=""
+
+
+  if test "x$enable_vorbistest" = "xyes" ; then
+    ac_save_CFLAGS="$CFLAGS"
+    ac_save_LIBS="$LIBS"
+    CFLAGS="$CFLAGS $VORBIS_CFLAGS"
+    LIBS="$LIBS $VORBIS_LIBS $OGG_LIBS"
+dnl
+dnl Now check if the installed Vorbis is sufficiently new.
+dnl
+      rm -f conf.vorbistest
+      AC_TRY_RUN([
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <vorbis/codec.h>
+
+int main ()
+{
+  system("touch conf.vorbistest");
+  return 0;
+}
+
+],, no_vorbis=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+  fi
+
+  if test "x$no_vorbis" = "x" ; then
+     AC_MSG_RESULT(yes)
+     ifelse([$1], , :, [$1])     
+  else
+     AC_MSG_RESULT(no)
+     if test -f conf.vorbistest ; then
+       :
+     else
+       echo "*** Could not run Vorbis test program, checking why..."
+       CFLAGS="$CFLAGS $VORBIS_CFLAGS"
+       LIBS="$LIBS $VORBIS_LIBS $OGG_LIBS"
+       AC_TRY_LINK([
+#include <stdio.h>
+#include <vorbis/codec.h>
+],     [ return 0; ],
+       [ echo "*** The test program compiled, but did not run. This usually means"
+       echo "*** that the run-time linker is not finding Vorbis or finding the wrong"
+       echo "*** version of Vorbis. If it is not finding Vorbis, you'll need to set your"
+       echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
+       echo "*** to the installed location  Also, make sure you have run ldconfig if that"
+       echo "*** is required on your system"
+       echo "***"
+       echo "*** If you have an old version installed, it is best to remove it, although"
+       echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"],
+       [ echo "*** The test program failed to compile or link. See the file config.log for the"
+       echo "*** exact error that occured. This usually means Vorbis was incorrectly installed"
+       echo "*** or that you have moved Vorbis since it was installed." ])
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+     fi
+     VORBIS_CFLAGS=""
+     VORBIS_LIBS=""
+     VORBISFILE_LIBS=""
+     VORBISENC_LIBS=""
+     ifelse([$2], , :, [$2])
+  fi
+  AC_SUBST(VORBIS_CFLAGS)
+  AC_SUBST(VORBIS_LIBS)
+  AC_SUBST(VORBISFILE_LIBS)
+  AC_SUBST(VORBISENC_LIBS)
+  rm -f conf.vorbistest
+])
+
+# Define a conditional.
+
+AC_DEFUN(AM_CONDITIONAL,
+[AC_SUBST($1_TRUE)
+AC_SUBST($1_FALSE)
+if $2; then
+  $1_TRUE=
+  $1_FALSE='#'
+else
+  $1_TRUE='#'
+  $1_FALSE=
+fi])
 
 # Do all the work for Automake.  This macro actually does too much --
 # some checks are only needed if your package does certain things.
@@ -315,19 +1104,6 @@ AC_DEFUN(AM_MAINTAINER_MODE,
   AC_SUBST(MAINT)dnl
 ]
 )
-
-# Define a conditional.
-
-AC_DEFUN(AM_CONDITIONAL,
-[AC_SUBST($1_TRUE)
-AC_SUBST($1_FALSE)
-if $2; then
-  $1_TRUE=
-  $1_FALSE='#'
-else
-  $1_TRUE='#'
-  $1_FALSE=
-fi])
 
 # libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
 
@@ -5865,785 +6641,5 @@ main ()
   AC_SUBST(GLIB_CFLAGS)
   AC_SUBST(GLIB_LIBS)
   rm -f conf.glibtest
-])
-
-# Configure paths for libmikmod
-#
-# Derived from glib.m4 (Owen Taylor 97-11-3)
-# Improved by Chris Butler
-#
-
-dnl AM_PATH_LIBMIKMOD([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND ]]])
-dnl Test for libmikmod, and define LIBMIKMOD_CFLAGS, LIBMIKMOD_LIBS and
-dnl LIBMIKMOD_LDADD
-dnl
-AC_DEFUN(AM_PATH_LIBMIKMOD,
-[dnl 
-dnl Get the cflags and libraries from the libmikmod-config script
-dnl
-AC_ARG_WITH(libmikmod-prefix,[  --with-libmikmod-prefix=PFX   Prefix where libmikmod is installed (optional)],
-            libmikmod_config_prefix="$withval", libmikmod_config_prefix="")
-AC_ARG_WITH(libmikmod-exec-prefix,[  --with-libmikmod-exec-prefix=PFX Exec prefix where libmikmod is installed (optional)],
-            libmikmod_config_exec_prefix="$withval", libmikmod_config_exec_prefix="")
-AC_ARG_ENABLE(libmikmodtest, [  --disable-libmikmodtest       Do not try to compile and run a test libmikmod program],
-		    , enable_libmikmodtest=yes)
-
-  if test x$libmikmod_config_exec_prefix != x ; then
-     libmikmod_config_args="$libmikmod_config_args --exec-prefix=$libmikmod_config_exec_prefix"
-     if test x${LIBMIKMOD_CONFIG+set} != xset ; then
-        LIBMIKMOD_CONFIG=$libmikmod_config_exec_prefix/bin/libmikmod-config
-     fi
-  fi
-  if test x$libmikmod_config_prefix != x ; then
-     libmikmod_config_args="$libmikmod_config_args --prefix=$libmikmod_config_prefix"
-     if test x${LIBMIKMOD_CONFIG+set} != xset ; then
-        LIBMIKMOD_CONFIG=$libmikmod_config_prefix/bin/libmikmod-config
-     fi
-  fi
-
-  AC_PATH_PROG(LIBMIKMOD_CONFIG, libmikmod-config, no)
-  min_libmikmod_version=ifelse([$1], ,3.1.5,$1)
-  AC_MSG_CHECKING(for libmikmod - version >= $min_libmikmod_version)
-  no_libmikmod=""
-  if test "$LIBMIKMOD_CONFIG" = "no" ; then
-    no_libmikmod=yes
-  else
-    LIBMIKMOD_CFLAGS=`$LIBMIKMOD_CONFIG $libmikmod_config_args --cflags`
-    LIBMIKMOD_LIBS=`$LIBMIKMOD_CONFIG $libmikmod_config_args --libs`
-    LIBMIKMOD_LDADD=`$LIBMIKMOD_CONFIG $libmikmod_config_args --ldadd`
-    libmikmod_config_major_version=`$LIBMIKMOD_CONFIG $libmikmod_config_args --version | \
-           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\).*/\1/'`
-    libmikmod_config_minor_version=`$LIBMIKMOD_CONFIG $libmikmod_config_args --version | \
-           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\).*/\2/'`
-    libmikmod_config_micro_version=`$LIBMIKMOD_CONFIG $libmikmod_config_args --version | \
-           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\).*/\3/'`
-    if test "x$enable_libmikmodtest" = "xyes" ; then
-      ac_save_CFLAGS="$CFLAGS"
-      ac_save_LIBS="$LIBS"
-	  AC_LANG_SAVE
-	  AC_LANG_C
-      CFLAGS="$CFLAGS $LIBMIKMOD_CFLAGS $LIBMIKMOD_LDADD"
-      LIBS="$LIBMIKMOD_LIBS $LIBS"
-dnl
-dnl Now check if the installed libmikmod is sufficiently new. (Also sanity
-dnl checks the results of libmikmod-config to some extent
-dnl
-      rm -f conf.mikmodtest
-      AC_TRY_RUN([
-#include <mikmod.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-char* my_strdup (char *str)
-{
-  char *new_str;
-
-  if (str) {
-    new_str = malloc ((strlen (str) + 1) * sizeof(char));
-    strcpy (new_str, str);
-  } else
-    new_str = NULL;
-
-  return new_str;
-}
-
-int main()
-{
-  int major,minor,micro;
-  int libmikmod_major_version,libmikmod_minor_version,libmikmod_micro_version;
-  char *tmp_version;
-
-  system("touch conf.mikmodtest");
-
-  /* HP/UX 9 (%@#!) writes to sscanf strings */
-  tmp_version = my_strdup("$min_libmikmod_version");
-  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
-     printf("%s, bad version string\n", "$min_libmikmod_version");
-     exit(1);
-   }
-
-  libmikmod_major_version=(MikMod_GetVersion() >> 16) & 255;
-  libmikmod_minor_version=(MikMod_GetVersion() >>  8) & 255;
-  libmikmod_micro_version=(MikMod_GetVersion()      ) & 255;
-
-  if ((libmikmod_major_version != $libmikmod_config_major_version) ||
-      (libmikmod_minor_version != $libmikmod_config_minor_version) ||
-      (libmikmod_micro_version != $libmikmod_config_micro_version))
-    {
-      printf("\n*** 'libmikmod-config --version' returned %d.%d.%d, but libmikmod (%d.%d.%d)\n", 
-             $libmikmod_config_major_version, $libmikmod_config_minor_version, $libmikmod_config_micro_version,
-             libmikmod_major_version, libmikmod_minor_version, libmikmod_micro_version);
-      printf ("*** was found! If libmikmod-config was correct, then it is best\n");
-      printf ("*** to remove the old version of libmikmod. You may also be able to fix the error\n");
-      printf("*** by modifying your LD_LIBRARY_PATH enviroment variable, or by editing\n");
-      printf("*** /etc/ld.so.conf. Make sure you have run ldconfig if that is\n");
-      printf("*** required on your system.\n");
-      printf("*** If libmikmod-config was wrong, set the environment variable LIBMIKMOD_CONFIG\n");
-      printf("*** to point to the correct copy of libmikmod-config, and remove the file config.cache\n");
-      printf("*** before re-running configure\n");
-    } 
-  else if ((libmikmod_major_version != LIBMIKMOD_VERSION_MAJOR) ||
-	   (libmikmod_minor_version != LIBMIKMOD_VERSION_MINOR) ||
-           (libmikmod_micro_version != LIBMIKMOD_REVISION))
-    {
-      printf("*** libmikmod header files (version %d.%d.%d) do not match\n",
-	     LIBMIKMOD_VERSION_MAJOR, LIBMIKMOD_VERSION_MINOR, LIBMIKMOD_REVISION);
-      printf("*** library (version %d.%d.%d)\n",
-	     libmikmod_major_version, libmikmod_minor_version, libmikmod_micro_version);
-    }
-  else
-    {
-      if ((libmikmod_major_version > major) ||
-        ((libmikmod_major_version == major) && (libmikmod_minor_version > minor)) ||
-        ((libmikmod_major_version == major) && (libmikmod_minor_version == minor) && (libmikmod_micro_version >= micro)))
-      {
-        return 0;
-       }
-     else
-      {
-        printf("\n*** An old version of libmikmod (%d.%d.%d) was found.\n",
-               libmikmod_major_version, libmikmod_minor_version, libmikmod_micro_version);
-        printf("*** You need a version of libmikmod newer than %d.%d.%d.\n",
-	       major, minor, micro);
-        printf("***\n");
-        printf("*** If you have already installed a sufficiently new version, this error\n");
-        printf("*** probably means that the wrong copy of the libmikmod-config shell script is\n");
-        printf("*** being found. The easiest way to fix this is to remove the old version\n");
-        printf("*** of libmikmod, but you can also set the LIBMIKMOD_CONFIG environment to point to the\n");
-        printf("*** correct copy of libmikmod-config. (In this case, you will have to\n");
-        printf("*** modify your LD_LIBRARY_PATH enviroment variable, or edit /etc/ld.so.conf\n");
-        printf("*** so that the correct libraries are found at run-time))\n");
-      }
-    }
-  return 1;
-}
-],, no_libmikmod=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
-       CFLAGS="$ac_save_CFLAGS"
-       LIBS="$ac_save_LIBS"
-	   AC_LANG_RESTORE
-     fi
-  fi
-  if test "x$no_libmikmod" = x ; then
-     AC_MSG_RESULT([yes, `$LIBMIKMOD_CONFIG --version`])
-     ifelse([$2], , :, [$2])     
-  else
-     AC_MSG_RESULT(no)
-     if test "$LIBMIKMOD_CONFIG" = "no" ; then
-       echo "*** The libmikmod-config script installed by libmikmod could not be found"
-       echo "*** If libmikmod was installed in PREFIX, make sure PREFIX/bin is in"
-       echo "*** your path, or set the LIBMIKMOD_CONFIG environment variable to the"
-       echo "*** full path to libmikmod-config."
-     else
-       if test -f conf.mikmodtest ; then
-        :
-       else
-          echo "*** Could not run libmikmod test program, checking why..."
-          CFLAGS="$CFLAGS $LIBMIKMOD_CFLAGS"
-          LIBS="$LIBS $LIBMIKMOD_LIBS"
-		  AC_LANG_SAVE
-		  AC_LANG_C
-          AC_TRY_LINK([
-#include <mikmod.h>
-#include <stdio.h>
-],      [ return (MikMod_GetVersion()!=0); ],
-        [ echo "*** The test program compiled, but did not run. This usually means"
-          echo "*** that the run-time linker is not finding libmikmod or finding the wrong"
-          echo "*** version of libmikmod. If it is not finding libmikmod, you'll need to set your"
-          echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
-          echo "*** to the installed location. Also, make sure you have run ldconfig if that"
-          echo "*** is required on your system."
-	  echo "***"
-          echo "*** If you have an old version installed, it is best to remove it, although"
-          echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"],
-        [ echo "*** The test program failed to compile or link. See the file config.log for the"
-          echo "*** exact error that occured. This usually means libmikmod was incorrectly installed"
-          echo "*** or that you have moved libmikmod since it was installed. In the latter case, you"
-          echo "*** may want to edit the libmikmod-config script: $LIBMIKMOD_CONFIG" ])
-          CFLAGS="$ac_save_CFLAGS"
-          LIBS="$ac_save_LIBS"
-		  AC_LANG_RESTORE
-       fi
-     fi
-     LIBMIKMOD_CFLAGS=""
-     LIBMIKMOD_LIBS=""
-     LIBMIKMOD_LDADD=""
-     ifelse([$3], , :, [$3])
-  fi
-  AC_SUBST(LIBMIKMOD_CFLAGS)
-  AC_SUBST(LIBMIKMOD_LIBS)
-  AC_SUBST(LIBMIKMOD_LDADD)
-  rm -f conf.mikmodtest
-])
-
-# Configure paths for libogg
-# Jack Moffitt <jack@icecast.org> 10-21-2000
-# Shamelessly stolen from Owen Taylor and Manish Singh
-
-dnl AM_PATH_OGG([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for libogg, and define OGG_CFLAGS and OGG_LIBS
-dnl
-AC_DEFUN(AM_PATH_OGG,
-[dnl 
-dnl Get the cflags and libraries
-dnl
-AC_ARG_WITH(ogg-prefix,[  --with-ogg-prefix=PFX   Prefix where libogg is installed (optional)], ogg_prefix="$withval", ogg_prefix="")
-AC_ARG_ENABLE(oggtest, [  --disable-oggtest       Do not try to compile and run a test Ogg program],, enable_oggtest=yes)
-
-  if test "x$ogg_prefix" != "xNONE" ; then
-    ogg_args="$ogg_args --prefix=$ogg_prefix"
-    OGG_CFLAGS="-I$ogg_prefix/include"
-    OGG_LIBS="-L$ogg_prefix/lib"
-  elif test "$prefix" != ""; then
-    ogg_args="$ogg_args --prefix=$prefix"
-    OGG_CFLAGS="-I$prefix/include"
-    OGG_LIBS="-L$prefix/lib"
-  fi
-
-  OGG_LIBS="$OGG_LIBS -logg"
-
-  AC_MSG_CHECKING(for Ogg)
-  no_ogg=""
-
-
-  if test "x$enable_oggtest" = "xyes" ; then
-    ac_save_CFLAGS="$CFLAGS"
-    ac_save_LIBS="$LIBS"
-    CFLAGS="$CFLAGS $OGG_CFLAGS"
-    LIBS="$LIBS $OGG_LIBS"
-dnl
-dnl Now check if the installed Ogg is sufficiently new.
-dnl
-      rm -f conf.oggtest
-      AC_TRY_RUN([
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ogg/ogg.h>
-
-int main ()
-{
-  system("touch conf.oggtest");
-  return 0;
-}
-
-],, no_ogg=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
-       CFLAGS="$ac_save_CFLAGS"
-       LIBS="$ac_save_LIBS"
-  fi
-
-  if test "x$no_ogg" = "x" ; then
-     AC_MSG_RESULT(yes)
-     ifelse([$1], , :, [$1])     
-  else
-     AC_MSG_RESULT(no)
-     if test -f conf.oggtest ; then
-       :
-     else
-       echo "*** Could not run Ogg test program, checking why..."
-       CFLAGS="$CFLAGS $OGG_CFLAGS"
-       LIBS="$LIBS $OGG_LIBS"
-       AC_TRY_LINK([
-#include <stdio.h>
-#include <ogg/ogg.h>
-],     [ return 0; ],
-       [ echo "*** The test program compiled, but did not run. This usually means"
-       echo "*** that the run-time linker is not finding Ogg or finding the wrong"
-       echo "*** version of Ogg. If it is not finding Ogg, you'll need to set your"
-       echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
-       echo "*** to the installed location  Also, make sure you have run ldconfig if that"
-       echo "*** is required on your system"
-       echo "***"
-       echo "*** If you have an old version installed, it is best to remove it, although"
-       echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"],
-       [ echo "*** The test program failed to compile or link. See the file config.log for the"
-       echo "*** exact error that occured. This usually means Ogg was incorrectly installed"
-       echo "*** or that you have moved Ogg since it was installed. In the latter case, you"
-       echo "*** may want to edit the ogg-config script: $OGG_CONFIG" ])
-       CFLAGS="$ac_save_CFLAGS"
-       LIBS="$ac_save_LIBS"
-     fi
-     OGG_CFLAGS=""
-     OGG_LIBS=""
-     ifelse([$2], , :, [$2])
-  fi
-  AC_SUBST(OGG_CFLAGS)
-  AC_SUBST(OGG_LIBS)
-  rm -f conf.oggtest
-])
-
-# Configure paths for libvorbis
-# Jack Moffitt <jack@icecast.org> 10-21-2000
-# Shamelessly stolen from Owen Taylor and Manish Singh
-
-dnl AM_PATH_VORBIS([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-dnl Test for libvorbis, and define VORBIS_CFLAGS and VORBIS_LIBS
-dnl
-AC_DEFUN(AM_PATH_VORBIS,
-[dnl 
-dnl Get the cflags and libraries
-dnl
-AC_ARG_WITH(vorbis-prefix,[  --with-vorbis-prefix=PFX   Prefix where libvorbis is installed (optional)], vorbis_prefix="$withval", vorbis_prefix="")
-AC_ARG_ENABLE(vorbistest, [  --disable-vorbistest       Do not try to compile and run a test Vorbis program],, enable_vorbistest=yes)
-
-  if test "x$vorbis_prefix" != "xNONE" ; then
-    vorbis_args="$vorbis_args --prefix=$vorbis_prefix"
-    VORBIS_CFLAGS="-I$vorbis_prefix/include"
-    VORBIS_LIBDIR="-L$vorbis_prefix/lib"
-  elif test "$prefix" != ""; then
-    vorbis_args="$vorbis_args --prefix=$prefix"
-    VORBIS_CFLAGS="-I$prefix/include"
-    VORBIS_LIBDIR="-L$prefix/lib"
-  fi
-
-  VORBIS_LIBS="$VORBIS_LIBDIR -lvorbis -lm"
-  VORBISFILE_LIBS="-lvorbisfile"
-  VORBISENC_LIBS="-lvorbisenc"
-
-  AC_MSG_CHECKING(for Vorbis)
-  no_vorbis=""
-
-
-  if test "x$enable_vorbistest" = "xyes" ; then
-    ac_save_CFLAGS="$CFLAGS"
-    ac_save_LIBS="$LIBS"
-    CFLAGS="$CFLAGS $VORBIS_CFLAGS"
-    LIBS="$LIBS $VORBIS_LIBS $OGG_LIBS"
-dnl
-dnl Now check if the installed Vorbis is sufficiently new.
-dnl
-      rm -f conf.vorbistest
-      AC_TRY_RUN([
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <vorbis/codec.h>
-
-int main ()
-{
-  system("touch conf.vorbistest");
-  return 0;
-}
-
-],, no_vorbis=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
-       CFLAGS="$ac_save_CFLAGS"
-       LIBS="$ac_save_LIBS"
-  fi
-
-  if test "x$no_vorbis" = "x" ; then
-     AC_MSG_RESULT(yes)
-     ifelse([$1], , :, [$1])     
-  else
-     AC_MSG_RESULT(no)
-     if test -f conf.vorbistest ; then
-       :
-     else
-       echo "*** Could not run Vorbis test program, checking why..."
-       CFLAGS="$CFLAGS $VORBIS_CFLAGS"
-       LIBS="$LIBS $VORBIS_LIBS $OGG_LIBS"
-       AC_TRY_LINK([
-#include <stdio.h>
-#include <vorbis/codec.h>
-],     [ return 0; ],
-       [ echo "*** The test program compiled, but did not run. This usually means"
-       echo "*** that the run-time linker is not finding Vorbis or finding the wrong"
-       echo "*** version of Vorbis. If it is not finding Vorbis, you'll need to set your"
-       echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
-       echo "*** to the installed location  Also, make sure you have run ldconfig if that"
-       echo "*** is required on your system"
-       echo "***"
-       echo "*** If you have an old version installed, it is best to remove it, although"
-       echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"],
-       [ echo "*** The test program failed to compile or link. See the file config.log for the"
-       echo "*** exact error that occured. This usually means Vorbis was incorrectly installed"
-       echo "*** or that you have moved Vorbis since it was installed." ])
-       CFLAGS="$ac_save_CFLAGS"
-       LIBS="$ac_save_LIBS"
-     fi
-     VORBIS_CFLAGS=""
-     VORBIS_LIBS=""
-     VORBISFILE_LIBS=""
-     VORBISENC_LIBS=""
-     ifelse([$2], , :, [$2])
-  fi
-  AC_SUBST(VORBIS_CFLAGS)
-  AC_SUBST(VORBIS_LIBS)
-  AC_SUBST(VORBISFILE_LIBS)
-  AC_SUBST(VORBISENC_LIBS)
-  rm -f conf.vorbistest
-])
-
-# Configure paths for the Audio File Library
-# Bertrand Guiheneuf 98-10-21
-# stolen from esd.m4 in esound :
-# Manish Singh    98-9-30
-# stolen back from Frank Belew
-# stolen from Manish Singh
-# Shamelessly stolen from Owen Taylor
-
-dnl AM_PATH_AUDIOFILE([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
-dnl Test for Audio File Library, and define AUDIOFILE_CFLAGS and AUDIOFILE_LIBS.
-dnl
-AC_DEFUN(AM_PATH_AUDIOFILE,
-[dnl 
-dnl Get compiler flags and libraries from the audiofile-config script.
-dnl
-AC_ARG_WITH(audiofile-prefix,[  --with-audiofile-prefix=PFX   Prefix where Audio File Library is installed (optional)],
-            audiofile_prefix="$withval", audiofile_prefix="")
-AC_ARG_WITH(audiofile-exec-prefix,[  --with-audiofile-exec-prefix=PFX Exec prefix where Audio File Library is installed (optional)],
-            audiofile_exec_prefix="$withval", audiofile_exec_prefix="")
-AC_ARG_ENABLE(audiofiletest, [  --disable-audiofiletest       Do not try to compile and run a test Audio File Library program], , enable_audiofiletest=yes)
-
-  if test x$audiofile_exec_prefix != x ; then
-     audiofile_args="$audiofile_args --exec-prefix=$audiofile_exec_prefix"
-     if test x${AUDIOFILE_CONFIG+set} != xset ; then
-        AUDIOFILE_CONFIG=$audiofile_exec_prefix/bin/audiofile-config
-     fi
-  fi
-  if test x$audiofile_prefix != x ; then
-     audiofile_args="$audiofile_args --prefix=$audiofile_prefix"
-     if test x${AUDIOFILE_CONFIG+set} != xset ; then
-        AUDIOFILE_CONFIG=$audiofile_prefix/bin/audiofile-config
-     fi
-  fi
-
-  AC_PATH_PROG(AUDIOFILE_CONFIG, audiofile-config, no)
-  min_audiofile_version=ifelse([$1], ,0.2.5,$1)
-  AC_MSG_CHECKING(for Audio File Library - version >= $min_audiofile_version)
-  no_audiofile=""
-  if test "$AUDIOFILE_CONFIG" = "no" ; then
-    no_audiofile=yes
-  else
-    AUDIOFILE_LIBS=`$AUDIOFILE_CONFIG $audiofileconf_args --libs`
-    AUDIOFILE_CFLAGS=`$AUDIOFILE_CONFIG $audiofileconf_args --cflags`
-    audiofile_major_version=`$AUDIOFILE_CONFIG $audiofile_args --version | \
-           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
-    audiofile_minor_version=`$AUDIOFILE_CONFIG $audiofile_args --version | \
-           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
-    audiofile_micro_version=`$AUDIOFILE_CONFIG $audiofile_config_args --version | \
-           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
-    if test "x$enable_audiofiletest" = "xyes" ; then
-      AC_LANG_SAVE
-      AC_LANG_C
-      ac_save_CFLAGS="$CFLAGS"
-      ac_save_LIBS="$LIBS"
-      CFLAGS="$CFLAGS $AUDIOFILE_CFLAGS"
-      LIBS="$LIBS $AUDIOFILE_LIBS"
-dnl
-dnl Now check if the installed Audio File Library is sufficiently new. 
-dnl (Also checks the sanity of the results of audiofile-config to some extent.)
-dnl
-      rm -f conf.audiofiletest
-      AC_TRY_RUN([
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <audiofile.h>
-
-char*
-my_strdup (char *str)
-{
-  char *new_str;
-  
-  if (str)
-    {
-      new_str = malloc ((strlen (str) + 1) * sizeof(char));
-      strcpy (new_str, str);
-    }
-  else
-    new_str = NULL;
-  
-  return new_str;
-}
-
-int main ()
-{
-  int major, minor, micro;
-  char *tmp_version;
-
-  system ("touch conf.audiofiletest");
-
-  /* HP/UX 9 (%@#!) writes to sscanf strings */
-  tmp_version = my_strdup("$min_audiofile_version");
-  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
-     printf("%s, bad version string\n", "$min_audiofile_version");
-     exit(1);
-   }
-
-   if (($audiofile_major_version > major) ||
-      (($audiofile_major_version == major) && ($audiofile_minor_version > minor)) ||
-      (($audiofile_major_version == major) && ($audiofile_minor_version == minor) && ($audiofile_micro_version >= micro)))
-    {
-      return 0;
-    }
-  else
-    {
-      printf("\n*** 'audiofile-config --version' returned %d.%d.%d, but the minimum version\n", $audiofile_major_version, $audiofile_minor_version, $audiofile_micro_version);
-      printf("*** of the Audio File Library required is %d.%d.%d. If audiofile-config is correct, then it is\n", major, minor, micro);
-      printf("*** best to upgrade to the required version.\n");
-      printf("*** If audiofile-config was wrong, set the environment variable AUDIOFILE_CONFIG\n");
-      printf("*** to point to the correct copy of audiofile-config, and remove the file\n");
-      printf("*** config.cache before re-running configure\n");
-      return 1;
-    }
-}
-
-],, no_audiofile=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
-       CFLAGS="$ac_save_CFLAGS"
-       LIBS="$ac_save_LIBS"
-       AC_LANG_RESTORE
-     fi
-  fi
-  if test "x$no_audiofile" = x ; then
-     AC_MSG_RESULT(yes)
-     ifelse([$2], , :, [$2])     
-  else
-     AC_MSG_RESULT(no)
-     if test "$AUDIOFILE_CONFIG" = "no" ; then
-       cat <<END
-*** The audiofile-config script installed by the Audio File Library could
-*** not be found.  If the Audio File Library was installed in PREFIX, make
-*** sure PREFIX/bin is in your path, or set the AUDIOFILE_CONFIG
-*** environment variable to the full path to audiofile-config.
-END
-     else
-       if test -f conf.audiofiletest ; then
-        :
-       else
-          echo "*** Could not run Audio File Library test program; checking why..."
-          AC_LANG_SAVE
-          AC_LANG_C
-          CFLAGS="$CFLAGS $AUDIOFILE_CFLAGS"
-          LIBS="$LIBS $AUDIOFILE_LIBS"
-          AC_TRY_LINK([
-#include <stdio.h>
-#include <audiofile.h>
-],      [ return 0; ],
-        [ cat <<END
-*** The test program compiled, but did not run.  This usually means that
-*** the run-time linker is not finding Audio File Library or finding the
-*** wrong version of Audio File Library.
-***
-*** If it is not finding Audio File Library, you'll need to set your
-*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point
-*** to the installed location.  Also, make sure you have run ldconfig if
-*** that is required on your system.
-***
-*** If you have an old version installed, it is best to remove it, although
-*** you may also be able to get things to work by modifying
-*** LD_LIBRARY_PATH.
-END
-        ],
-        [ echo "*** The test program failed to compile or link. See the file config.log"
-          echo "*** for the exact error that occured. This usually means the Audio File"
-          echo "*** Library was incorrectly installed or that you have moved the Audio"
-          echo "*** File Library since it was installed. In the latter case, you may want"
-          echo "*** to edit the audiofile-config script: $AUDIOFILE_CONFIG" ])
-          CFLAGS="$ac_save_CFLAGS"
-          LIBS="$ac_save_LIBS"
-          AC_LANG_RESTORE
-       fi
-     fi
-     AUDIOFILE_CFLAGS=""
-     AUDIOFILE_LIBS=""
-     ifelse([$3], , :, [$3])
-  fi
-  AC_SUBST(AUDIOFILE_CFLAGS)
-  AC_SUBST(AUDIOFILE_LIBS)
-  rm -f conf.audiofiletest
-])
-
-# Configure paths for ESD
-# Manish Singh    98-9-30
-# stolen back from Frank Belew
-# stolen from Manish Singh
-# Shamelessly stolen from Owen Taylor
-
-dnl AM_PATH_ESD([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
-dnl Test for ESD, and define ESD_CFLAGS and ESD_LIBS
-dnl
-AC_DEFUN(AM_PATH_ESD,
-[dnl 
-dnl Get the cflags and libraries from the esd-config script
-dnl
-AC_ARG_WITH(esd-prefix,[  --with-esd-prefix=PFX   Prefix where ESD is installed (optional)],
-            esd_prefix="$withval", esd_prefix="")
-AC_ARG_WITH(esd-exec-prefix,[  --with-esd-exec-prefix=PFX Exec prefix where ESD is installed (optional)],
-            esd_exec_prefix="$withval", esd_exec_prefix="")
-AC_ARG_ENABLE(esdtest, [  --disable-esdtest       Do not try to compile and run a test ESD program],
-		    , enable_esdtest=yes)
-
-  if test x$esd_exec_prefix != x ; then
-     esd_args="$esd_args --exec-prefix=$esd_exec_prefix"
-     if test x${ESD_CONFIG+set} != xset ; then
-        ESD_CONFIG=$esd_exec_prefix/bin/esd-config
-     fi
-  fi
-  if test x$esd_prefix != x ; then
-     esd_args="$esd_args --prefix=$esd_prefix"
-     if test x${ESD_CONFIG+set} != xset ; then
-        ESD_CONFIG=$esd_prefix/bin/esd-config
-     fi
-  fi
-
-  AC_PATH_PROG(ESD_CONFIG, esd-config, no)
-  min_esd_version=ifelse([$1], ,0.2.7,$1)
-  AC_MSG_CHECKING(for ESD - version >= $min_esd_version)
-  no_esd=""
-  if test "$ESD_CONFIG" = "no" ; then
-    no_esd=yes
-  else
-    AC_LANG_SAVE
-    AC_LANG_C
-    ESD_CFLAGS=`$ESD_CONFIG $esdconf_args --cflags`
-    ESD_LIBS=`$ESD_CONFIG $esdconf_args --libs`
-
-    esd_major_version=`$ESD_CONFIG $esd_args --version | \
-           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
-    esd_minor_version=`$ESD_CONFIG $esd_args --version | \
-           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
-    esd_micro_version=`$ESD_CONFIG $esd_config_args --version | \
-           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
-    if test "x$enable_esdtest" = "xyes" ; then
-      ac_save_CFLAGS="$CFLAGS"
-      ac_save_LIBS="$LIBS"
-      CFLAGS="$CFLAGS $ESD_CFLAGS"
-      LIBS="$LIBS $ESD_LIBS"
-dnl
-dnl Now check if the installed ESD is sufficiently new. (Also sanity
-dnl checks the results of esd-config to some extent
-dnl
-      rm -f conf.esdtest
-      AC_TRY_RUN([
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <esd.h>
-
-char*
-my_strdup (char *str)
-{
-  char *new_str;
-  
-  if (str)
-    {
-      new_str = malloc ((strlen (str) + 1) * sizeof(char));
-      strcpy (new_str, str);
-    }
-  else
-    new_str = NULL;
-  
-  return new_str;
-}
-
-int main ()
-{
-  int major, minor, micro;
-  char *tmp_version;
-
-  system ("touch conf.esdtest");
-
-  /* HP/UX 9 (%@#!) writes to sscanf strings */
-  tmp_version = my_strdup("$min_esd_version");
-  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
-     printf("%s, bad version string\n", "$min_esd_version");
-     exit(1);
-   }
-
-   if (($esd_major_version > major) ||
-      (($esd_major_version == major) && ($esd_minor_version > minor)) ||
-      (($esd_major_version == major) && ($esd_minor_version == minor) && ($esd_micro_version >= micro)))
-    {
-      return 0;
-    }
-  else
-    {
-      printf("\n*** 'esd-config --version' returned %d.%d.%d, but the minimum version\n", $esd_major_version, $esd_minor_version, $esd_micro_version);
-      printf("*** of ESD required is %d.%d.%d. If esd-config is correct, then it is\n", major, minor, micro);
-      printf("*** best to upgrade to the required version.\n");
-      printf("*** If esd-config was wrong, set the environment variable ESD_CONFIG\n");
-      printf("*** to point to the correct copy of esd-config, and remove the file\n");
-      printf("*** config.cache before re-running configure\n");
-      return 1;
-    }
-}
-
-],, no_esd=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
-       CFLAGS="$ac_save_CFLAGS"
-       LIBS="$ac_save_LIBS"
-       AC_LANG_RESTORE
-     fi
-  fi
-  if test "x$no_esd" = x ; then
-     AC_MSG_RESULT(yes)
-     ifelse([$2], , :, [$2])     
-  else
-     AC_MSG_RESULT(no)
-     if test "$ESD_CONFIG" = "no" ; then
-       echo "*** The esd-config script installed by ESD could not be found"
-       echo "*** If ESD was installed in PREFIX, make sure PREFIX/bin is in"
-       echo "*** your path, or set the ESD_CONFIG environment variable to the"
-       echo "*** full path to esd-config."
-     else
-       if test -f conf.esdtest ; then
-        :
-       else
-          echo "*** Could not run ESD test program, checking why..."
-          CFLAGS="$CFLAGS $ESD_CFLAGS"
-          LIBS="$LIBS $ESD_LIBS"
-          AC_LANG_SAVE
-          AC_LANG_C
-          AC_TRY_LINK([
-#include <stdio.h>
-#include <esd.h>
-],      [ return 0; ],
-        [ echo "*** The test program compiled, but did not run. This usually means"
-          echo "*** that the run-time linker is not finding ESD or finding the wrong"
-          echo "*** version of ESD. If it is not finding ESD, you'll need to set your"
-          echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
-          echo "*** to the installed location  Also, make sure you have run ldconfig if that"
-          echo "*** is required on your system"
-	  echo "***"
-          echo "*** If you have an old version installed, it is best to remove it, although"
-          echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"],
-        [ echo "*** The test program failed to compile or link. See the file config.log for the"
-          echo "*** exact error that occured. This usually means ESD was incorrectly installed"
-          echo "*** or that you have moved ESD since it was installed. In the latter case, you"
-          echo "*** may want to edit the esd-config script: $ESD_CONFIG" ])
-          CFLAGS="$ac_save_CFLAGS"
-          LIBS="$ac_save_LIBS"
-          AC_LANG_RESTORE
-       fi
-     fi
-     ESD_CFLAGS=""
-     ESD_LIBS=""
-     ifelse([$3], , :, [$3])
-  fi
-  AC_SUBST(ESD_CFLAGS)
-  AC_SUBST(ESD_LIBS)
-  rm -f conf.esdtest
-])
-
-dnl AM_ESD_SUPPORTS_MULTIPLE_RECORD([ACTION-IF-SUPPORTS [, ACTION-IF-NOT-SUPPORTS]])
-dnl Test, whether esd supports multiple recording clients (version >=0.2.21)
-dnl
-AC_DEFUN(AM_ESD_SUPPORTS_MULTIPLE_RECORD,
-[dnl
-  AC_MSG_NOTICE([whether installed esd version supports multiple recording clients])
-  ac_save_ESD_CFLAGS="$ESD_CFLAGS"
-  ac_save_ESD_LIBS="$ESD_LIBS"
-  AM_PATH_ESD(0.2.21,
-    ifelse([$1], , [
-      AM_CONDITIONAL(ESD_SUPPORTS_MULTIPLE_RECORD, true)
-      AC_DEFINE(ESD_SUPPORTS_MULTIPLE_RECORD, 1,
-	[Define if you have esound with support of multiple recording clients.])],
-    [$1]),
-    ifelse([$2], , [AM_CONDITIONAL(ESD_SUPPORTS_MULTIPLE_RECORD, false)], [$2])
-    if test "x$ac_save_ESD_CFLAGS" != x ; then
-       ESD_CFLAGS="$ac_save_ESD_CFLAGS"
-    fi
-    if test "x$ac_save_ESD_LIBS" != x ; then
-       ESD_LIBS="$ac_save_ESD_LIBS"
-    fi
-  )
 ])
 

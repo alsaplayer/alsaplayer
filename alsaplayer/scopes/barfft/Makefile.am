@@ -13,6 +13,11 @@ CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
 
 else
 
+gtk_barfft =
+barfftltlibs =
+barfftldflags =
+barfftsources =
+
 endif
 
 EXTRA_DIST = gtk_barfft.c

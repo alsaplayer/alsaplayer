@@ -12,6 +12,10 @@ CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
 
 else
 
+logbarfftltlibs =
+logbarfftldflags =
+logbarfftsources =
+
 endif
 
 libdir = $(ADDON_DIR)/scopes

@@ -11,6 +11,10 @@ CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
 
 else
 
+monoscopeltlibs =
+monoscopeldflags =
+monoscopesources =
+
 endif
 
 libdir = $(ADDON_DIR)/scopes

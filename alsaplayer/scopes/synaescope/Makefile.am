@@ -11,6 +11,10 @@ CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
 
 else
 
+synaescopeltlibs =
+synaescopeldflags =
+synaescopesources =
+
 endif
 
 libdir = $(ADDON_DIR)/scopes

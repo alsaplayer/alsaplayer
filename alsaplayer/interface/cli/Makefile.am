@@ -4,11 +4,11 @@ clisources = cli.cpp
 
 lib_LTLIBRARIES = $(cliltlibs)
 
-CXXFLAGS += @DFLAGS@ $(COMMON_FLAGS) $(EXTRA_CFLAGS) \
+CXXFLAGS = @DFLAGS@ $(COMMON_FLAGS) $(EXTRA_CFLAGS) \
 		-D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
 		-DADDON_DIR=\"$(ADDON_DIR)\"
 
-CFLAGS += $(CXXFLAGS)
+CFLAGS = $(CXXFLAGS)
 
 libdir = $(ADDON_DIR)/interface
 
