@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/stat.h>
+#include <assert.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtkdnd.h>
