@@ -17,9 +17,11 @@
  */
 
 #include "AlsaPlayer.h"
+#include "config.h"
+#include "prefs.h"
+#include "error.h"
 #include <unistd.h>
 #include <sys/types.h>
-#include "config.h"
 //#define NEW_SCALE
 //#define TESTING
 //#define SUBSECOND_DISPLAY 
@@ -745,7 +747,9 @@ void play_file_ok(GtkWidget *widget, gpointer data)
 		int marker = strlen(current_dir)-1;
 		while (marker > 0 && current_dir[marker] != '/')
 			current_dir[marker--] = '\0';
-
+		// Write default_play_path
+		prefs_set_string(ap_prefs, "default_play_path", current_dir);
+		
 		// Get the selections
 		std::vector<std::string> paths;
 		while (next) {
@@ -768,6 +772,7 @@ void play_file_ok(GtkWidget *widget, gpointer data)
 		gtk_clist_unselect_all(file_list);
 		g_free(current_dir);
 	}
+	// Save path
 	gtk_widget_hide(GTK_WIDGET(play_dialog));
 }
 
@@ -947,6 +952,8 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	gtk_signal_connect(GTK_OBJECT(
 								  GTK_FILE_SELECTION(play_dialog)->ok_button),
 					   "clicked", GTK_SIGNAL_FUNC(play_file_ok), playlist);
+	gtk_file_selection_set_filename(GTK_FILE_SELECTION(play_dialog), 
+		prefs_get_string(ap_prefs, "default_play_path", "~/")); 
 
 
 	gtk_signal_connect (GTK_OBJECT (main_window), "expose_event",
