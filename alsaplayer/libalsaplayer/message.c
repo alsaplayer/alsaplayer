@@ -20,6 +20,7 @@
  *
  */ 
 #include "message.h"
+#include "control.h"
 #include <sys/un.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -34,7 +35,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-	
+
+
 int ap_connect_session (int session)
 {
 	int socket_fd;
@@ -205,93 +207,6 @@ ap_message_t *ap_message_receive(int fd)
 }
 
 
-int32_t ap_ping(int session)
-{
-	int fd;
-	int32_t *pong;
-	int32_t ret_val;
-	ap_message_t *msg, *reply;
-	
-	fd = ap_connect_session(session);
-
-	msg = ap_message_new();
-
-	msg->header.cmd = AP_PING;
-	
-	ap_message_send(fd, msg);
-	reply = ap_message_receive(fd);
-
-	if ((pong = ap_message_find_int32(reply, "pong"))) {
-		ret_val = *pong;
-		ap_message_delete(reply);
-		//printf("returning ping value %d\n", ret_val);
-		return ret_val;
-	}
-	ap_message_delete(reply);
-	close(fd);
-	return 0;
-}
-
-
-int ap_add_path(int session, char *path)
-{
-	int fd;
-	int32_t *result, ret_val;
-
-	ap_message_t *msg, *reply;
-
-	fd = ap_connect_session(session);
-
-	msg = ap_message_new();
-
-	msg->header.cmd = AP_ADD_PATH;
-	
-	ap_message_add_string(msg, "path1", path);
-
-	ap_message_send(fd, msg);
-
-	reply = ap_message_receive(fd);
-
-	if ((result = ap_message_find_int32(reply, "ack"))) {
-		ret_val = *result;
-		ap_message_delete(reply);
-		return 1;
-	}
-
-	printf("ap_add_path() failed for some reason\n");
-	
-	ap_message_delete(reply);
-	close(fd);
-	return 0;
-	
-}
-
-
-char *ap_get_session_name(int session)
-{
-	int fd;
-	ap_message_t *msg, *reply;
-	char *result, *ret;
-
-	fd = ap_connect_session(session);
-	msg = ap_message_new();
-
-	msg->header.cmd = AP_GET_SESSION_NAME;
-	
-	ap_message_send(fd, msg);
-	reply = ap_message_receive(fd);
-	close(fd);
-	if ((result = ap_message_find_string(reply, "session_name"))) {
-		ret = (char *)malloc(strlen(result) + 1);
-		strcpy(ret, result);
-		ap_message_delete(reply);
-		return ret;
-	}
-	ap_message_delete(reply);
-	return NULL;
-}
-
-
 int ap_message_add_float(ap_message_t *msg, char *key, float val)
 {
 	ap_key_t *new_key;
@@ -344,7 +259,8 @@ ap_key_t *ap_message_find_key(ap_message_t *msg, char *key, int32_t key_type)
 	return NULL;
 }
 
-float*  ap_message_find_float(ap_message_t *msg, char *key_id)
+
+float *ap_message_find_float(ap_message_t *msg, char *key_id)
 {
 	ap_key_t *key;
 
@@ -355,7 +271,7 @@ float*  ap_message_find_float(ap_message_t *msg, char *key_id)
 }
 
 
-int32_t* ap_message_find_int32(ap_message_t *msg, char *key_id)
+int32_t *ap_message_find_int32(ap_message_t *msg, char *key_id)
 {
 	ap_key_t *key;
 
@@ -494,9 +410,143 @@ int ap_find_session(char *session_name)
 }
 
 
+/* Implementation of public function starts here */
+
+
 int ap_version()
 {
 	return AP_CONTROL_VERSION;
+}
+
+
+char *ap_get_session_name(int session)
+{
+	int fd;
+	ap_message_t *msg, *reply;
+	char *result, *ret;
+
+	fd = ap_connect_session(session);
+	msg = ap_message_new();
+
+	msg->header.cmd = AP_GET_SESSION_NAME;
+	
+	ap_message_send(fd, msg);
+	ap_message_delete(msg);
+	msg = NULL;
+
+	reply = ap_message_receive(fd);
+	
+	close(fd);
+	
+	if ((result = ap_message_find_string(reply, "session_name"))) {
+		ret = (char *)malloc(strlen(result) + 1);
+		strcpy(ret, result);
+		ap_message_delete(reply);
+		return ret;
+	}
+	ap_message_delete(reply);
+	return NULL;
+}
+
+
+int32_t ap_ping(int session)
+{
+	int fd;
+	int32_t *pong;
+	int32_t ret_val;
+	ap_message_t *msg, *reply;
+	
+	fd = ap_connect_session(session);
+
+	msg = ap_message_new();
+
+	msg->header.cmd = AP_PING;
+	
+	ap_message_send(fd, msg);
+	ap_message_delete(msg);
+	msg = NULL;
+	
+	reply = ap_message_receive(fd);
+
+	close(fd);
+		
+	if ((pong = ap_message_find_int32(reply, "pong"))) {
+		ret_val = *pong;
+		ap_message_delete(reply);
+		return ret_val;
+	}
+	ap_message_delete(reply);
+	return 0;
+}
+
+
+int ap_add_path(int session, char *path)
+{
+	int fd;
+	int32_t *result, ret_val;
+
+	ap_message_t *msg, *reply;
+
+	fd = ap_connect_session(session);
+
+	msg = ap_message_new();
+
+	msg->header.cmd = AP_ADD_PATH;
+	
+	ap_message_add_string(msg, "path1", path);
+
+	ap_message_send(fd, msg);
+	ap_message_delete(msg);
+	msg = NULL;
+	
+	reply = ap_message_receive(fd);
+
+	close(fd);
+	
+	if ((result = ap_message_find_int32(reply, "ack"))) {
+		ret_val = *result;
+		ap_message_delete(reply);
+		return 1;
+	}
+
+	printf("ap_add_path() failed for some reason\n");
+	
+	ap_message_delete(reply);
+	return 0;
+	
+}
+
+
+int ap_play(int session)
+{
+	int fd;
+	int32_t *result, ret_val;
+	
+	ap_message_t *msg, *reply;
+
+	fd = ap_connect_session(session);
+
+	if (fd < 0)
+		return 0;
+
+	msg->header.cmd = AP_PLAY;
+
+	ap_message_send(fd, msg);
+	ap_message_delete(msg);
+	msg = NULL;
+	
+	reply = ap_message_receive(fd);
+
+	close(fd);	
+	
+	if ((result = ap_message_find_int32(reply, "ack"))) {
+		ret_val = *result;
+		ap_message_delete(reply);
+		return 1;
+	}
+	ap_message_delete(reply);
+	return 0;
+		
 }
 
 #ifdef __cplusplus
