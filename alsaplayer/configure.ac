@@ -752,7 +752,7 @@ Configuration:
   Build mikmod input plugin:          ${have_mikmod}
   Build audiofile input plugin:       ${have_audiofile}
   Build flac input plugin:            ${have_flac}
-  Build sndfile input plugin:         ${have_sndfile}
+  Build sndfile input plugin:         ${have_sndfile}"
 echo
 
 if test $have_jack = "no" -a $have_sparc = "no" -a $have_alsa_05x = "no" -a $have_alsa_final = "no" -a $have_oss = "no" -a $have_esd = "no" -a $have_sgi = "no" -a $have_nas = "no"
