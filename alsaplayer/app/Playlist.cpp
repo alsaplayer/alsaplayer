@@ -67,9 +67,9 @@ static const char *sort_seq;
 
 #define DESCENDING	0
 #define ASCENDING	1
-#define COMPARE(what,direction)	{ int rc = a.##what##.compare(b.##what##); \
+#define COMPARE(WHAT,DIRECTION)	{ int rc = a.WHAT.compare(b.WHAT); \
                                   if (rc == 0)  continue; \
-                                  return (direction == DESCENDING) ? rc > 0 : rc < 0; }
+                                  return (DIRECTION == DESCENDING) ? rc > 0 : rc < 0; }
 
 // Function is similar to strcmp, but this is for PlayItem type.
 // This function uses sort_seq variable. Also this function should 
