@@ -577,12 +577,15 @@ bool CorePlayer::Start()
 	pthread_create(&producer_thread, NULL,
 		(void * (*)(void *))producer_func, this);
 
+	// allow producer to actually start producing
+	dosleep(20000);
+
 	//alsaplayer_error("Prebuffering...");
-	// Wait for up to 5 seconds
-	tries = 500;
-	while (--tries && !AvailableBuffers() && producing) { 
+	// Wait for up to 4 seconds
+	tries = 100;
+	while (--tries && (AvailableBuffers() < 4) && producing) { 
 		//alsaplayer_error("Waiting for buffers...");
-		dosleep(10000);
+		dosleep(40000);
 	}
 
 	sub = new AlsaSubscriber();
@@ -762,7 +765,9 @@ input_plugin *
 CorePlayer::GetPlayer(const char *path)
 {
 	// Check we've got a path
-	if (!*path) return NULL;
+	if (!*path) {
+		return NULL;
+	}
 
 	float best_support = 0.0;
 	input_plugin *best_plugin = NULL;
@@ -1126,9 +1131,7 @@ void CorePlayer::producer_func(void *data)
 			//alsaplayer_error("producer: waiting for free buffer");
 			pthread_mutex_lock(&obj->counter_mutex);
 			//alsaplayer_error("producer: unblocked");
-#ifdef TOP_HACK			
-			dosleep(10000);
-#endif			
+			dosleep(800000);
 		}	
 	}
 	//alsaplayer_error("Exitting producer_func (producing = %d)", obj->producing);

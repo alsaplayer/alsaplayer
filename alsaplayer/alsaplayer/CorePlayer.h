@@ -34,9 +34,10 @@
 
 // Tunable parameters
 
-#define BUF_SIZE (10240) // Size of a single ringbuffer partition
-#define NR_BUF 20	// Number of partitions in ringbuffer
-#define NR_CBUF 10	// Number of partition to read ahead
+#define BUF_SIZE (25600)	// Size of a single ringbuffer partition
+#define NR_BUF 20		// Number of partitions in ringbuffer
+#define NR_CBUF 18		// Number of partitions to read ahead
+				// (equals 2.6 seconds)
 
 #define MAX_PLUGINS 16
 
