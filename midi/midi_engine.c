@@ -694,10 +694,16 @@ fprintf(stderr,"midi_stream_info\n");
 	sprintf(info->stream_type, "%s midi: %d track%s, %d events",
 		d->XG_System_On? "XG" : ( d->GS_System_On? "GS" : "GM"),
 		d->track_info, (d->track_info > 1)? "s" : "", d->event_count);
+
 	if (d->author[0]) snprintf(info->author, 80, "%s", d->author);
-	else info->author[0] = '\0';
+	else {
+		if (!d->is_open && d->title[0]) sprintf(info->author,"*");
+		else info->author[0] = '\0';
+	}
+
 	sprintf(info->status, "notes: %3d", d->current_polyphony);
-	if (d->title[0]) snprintf(info->title, 80, "%s", d->title);
+
+	if (d->title[0]) sprintf(info->title, "%s", d->title);
 	else strcpy(info->title, d->midi_name);	
 	
 	return 1;

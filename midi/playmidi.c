@@ -67,7 +67,7 @@ int opt_volume_curve = 1;
 int opt_stereo_surround = 1;
 int dont_filter_melodic=1;
 int dont_filter_drums=1;
-int config_interpolation=DO_CSPLINE_INTERPOLATION;
+int config_interpolation=DO_LAGRANGE_INTERPOLATION;
 
 int32 control_ratio=0;
 
@@ -1349,43 +1349,12 @@ static void kill_note(int i, struct md *d)
   ctl->note(i);
 }
 
-#if 0
-static int reduce_polyphony_by_one(struct md *d)
-{
-  int i=d->voices, lowest=-1; 
-  int32 lv=0x7FFFFFFF, v;
-
-  /* Look for the decaying note with the lowest volume */
-  i=d->voices;
-  while (i--)
-    {
-      if (d->voice[i].status==VOICE_FREE || !d->voice[i].sample->sample_rate) /* idea from Eric Welsh */
-	    continue;
-      if (d->voice[i].status & ~(VOICE_ON | VOICE_DIE))
-	{
-	  v=d->voice[i].left_mix;
-	  if ((d->voice[i].panned==PANNED_MYSTERY) && (d->voice[i].right_mix>v))
-	    v=d->voice[i].right_mix;
-	  if (v<lv)
-	    {
-	      lv=v;
-	      lowest=i;
-	    }
-	}
-    }
-
-  if (lowest != -1) {
-	kill_note(lowest, d);
-	return 1;
-  }
-  return 0;
-}
-#else
 
 static int reduce_polyphony_by_one(struct md *d)
 {
   int i=d->voices, lowest=-1; 
-  int32 lv=0x7FFFFFFF, v;
+  int32 lv=0x7FFFFFFF, v, vr;
+  int32 duration;
 
   /* Look for the decaying note with the lowest volume */
 /* Leave drums, sustains. */
@@ -1438,7 +1407,7 @@ static int reduce_polyphony_by_one(struct md *d)
 	kill_note(lowest, d);
 	return 1;
   }
-/* Kill drums. */
+/* Kill short (variation on code from Eric Welsh). */
   i=d->voices;
   while (i--)
     {
@@ -1446,11 +1415,14 @@ static int reduce_polyphony_by_one(struct md *d)
 	 !d->voice[i].sample->sample_rate /* idea from Eric Welsh */ ||
 	  d->voice[i].sample->note_to_use)
 	    continue;
-      if (d->voice[i].status & ~(VOICE_ON | VOICE_DIE))
+      if (d->voice[i].status & ~(VOICE_ON | VOICE_DIE | VOICE_SUSTAINED))
 	{
-	  v=d->voice[i].left_mix;
-	  if ((d->voice[i].panned==PANNED_MYSTERY) && (d->voice[i].right_mix>v))
-	    v=d->voice[i].right_mix;
+	    /* Choose note with longest decay time remaining */
+	    /* This frees more CPU than choosing lowest volume */
+	    if (!d->voice[i].envelope_increment) duration = 0;
+	    else duration =
+	    	(d->voice[i].envelope_target - d->voice[i].envelope_volume) /
+	    	d->voice[i].envelope_increment;
 	  if (v<lv)
 	    {
 	      lv=v;
@@ -1463,19 +1435,23 @@ static int reduce_polyphony_by_one(struct md *d)
 	kill_note(lowest, d);
 	return 1;
   }
-/* Kill ON. */
+/* Kill ON (also based on Eric Welsh's code). */
   i=d->voices;
   while (i--)
     {
-      if (d->voice[i].status==VOICE_FREE ||
-	 !d->voice[i].sample->sample_rate /* idea from Eric Welsh */ ||
-	  d->voice[i].sample->note_to_use)
+      if (d->voice[i].status & (VOICE_FREE | VOICE_DIE))
 	    continue;
-      if (d->voice[i].status & ~VOICE_DIE)
-	{
-	  v=d->voice[i].left_mix;
-	  if ((d->voice[i].panned==PANNED_MYSTERY) && (d->voice[i].right_mix>v))
-	    v=d->voice[i].right_mix;
+      if(d->voice[i].sample->modes & ~MODES_LOOPING)
+      {
+	/* score notes based on both volume AND duration */
+	/* this scoring function needs some more tweaking... */
+	duration = d->voice[i].sample_offset;
+	if (d->voice[i].sample_increment > 0)
+	    duration /= d->voice[i].sample_increment;
+	v = d->voice[i].left_mix * duration;
+	vr = d->voice[i].right_mix * duration;
+	if(d->voice[i].panned == PANNED_MYSTERY && vr > v)
+	    v = vr;
 	  if (v<lv)
 	    {
 	      lv=v;
@@ -1492,19 +1468,24 @@ static int reduce_polyphony_by_one(struct md *d)
   i=d->voices;
   while (i--)
     {
-      if (d->voice[i].status==VOICE_FREE)
+      if (d->voice[i].status & (VOICE_FREE | VOICE_DIE))
 	    continue;
-      if (d->voice[i].status & ~VOICE_DIE)
-	{
-	  v=d->voice[i].left_mix;
-	  if ((d->voice[i].panned==PANNED_MYSTERY) && (d->voice[i].right_mix>v))
-	    v=d->voice[i].right_mix;
+      if(d->voice[i].sample->modes & ~MODES_LOOPING)
+	    continue;
+	/* score notes based on both volume AND duration */
+	/* this scoring function needs some more tweaking... */
+	duration = d->voice[i].sample_offset;
+	if (d->voice[i].sample_increment > 0)
+	    duration /= d->voice[i].sample_increment;
+	v = d->voice[i].left_mix * duration;
+	vr = d->voice[i].right_mix * duration;
+	if(d->voice[i].panned == PANNED_MYSTERY && vr > v)
+	    v = vr;
 	  if (v<lv)
 	    {
 	      lv=v;
 	      lowest=i;
 	    }
-	}
     }
 
   if (lowest != -1) {
@@ -1513,8 +1494,6 @@ static int reduce_polyphony_by_one(struct md *d)
   }
   return 0;
 }
-
-#endif
 
 static int reduce_polyphony(int by, struct md *d)
 { int ret = 0;

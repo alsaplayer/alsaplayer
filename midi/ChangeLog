@@ -1,3 +1,8 @@
+
+Mon Apr 29 09:34:41 HST 2002
+	playmidi.c: return to LaGrange interpolation;
+		fix up polyphony reduction
+	midi_engine.c: put title in Queue list
 Mon Apr 29 07:15:46 HST 2002
 	readmidi.c: improve title detection
 	midi_in.1: work on man page
