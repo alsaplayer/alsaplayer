@@ -33,3 +33,4 @@ INCLUDES = -I$(ROOT_DIR)/app $(GLIB_CFLAGS)
 libmad_in_la_SOURCES = $(mad_insources)
 libmad_in_la_LDFLAGS = $(mad_inldflags) @MAD_LDADD@
 
+CLEANFILES = libmad.la
