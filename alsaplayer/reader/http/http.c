@@ -58,7 +58,7 @@ typedef struct http_desc_t_ {
 #define  HTTP_BLOCK_SIZE  (32*1024)
 
 /* How long should be buffer? (bytes) */
-#define  HTTP_BUFFER_SIZE  (20000*1024)
+#define  HTTP_BUFFER_SIZE  (1*1024*1024)
 
 /* --------------------------------------------------------------- */
 /* ---------------------- NETWORK RELATED FUNCTIONS -------------- */
@@ -200,7 +200,9 @@ static void buffer_thread (http_desc_t *desc)
 	printf ("%p]] len0 = %u\n", desc, desc->len);
 
 	/* check for overflow */
+	going = desc->going;
 	if (desc->len > HTTP_BUFFER_SIZE) {
+	    printf ("%p]] Overflow\n", desc);
 	    dosleep (250000);
 	    continue;
 	}
@@ -209,7 +211,6 @@ static void buffer_thread (http_desc_t *desc)
         readed = read_data (desc->sock, ibuffer, HTTP_BLOCK_SIZE);
 	
 	/* reasons to stop */
-	going = desc->going;
 	if (readed == 0) {
 	    printf ("set going to 0! for %p\n", desc);
 	    desc->going = 0;
@@ -525,8 +526,25 @@ static size_t http_read (void *ptr, size_t size, void *d)
 
     /* If there are data to copy */
     if (tocopy) {
+	/* copy result */
 	memcpy (ptr, desc->buffer + desc->pos - desc->begin, tocopy);
 	desc->pos += tocopy;
+
+	/* trying to shrink buffer */
+	if (desc->len + HTTP_BLOCK_SIZE > HTTP_BUFFER_SIZE && desc->pos - desc->begin > HTTP_BUFFER_SIZE/2) {
+	    void *newbuf;
+	    
+	    desc->len -= tocopy;
+	    desc->begin += tocopy;
+	    
+	    /* allocate new buffer with the part of old one */
+	    newbuf = malloc (desc->len);    
+	    memcpy (newbuf, desc->buffer + tocopy, desc->len);
+
+	    /* replace old buffer */
+	    free (desc->buffer);
+	    desc->buffer = newbuf;
+	}
     }
     
     /* Allow buffer_thread to use buffer. */
