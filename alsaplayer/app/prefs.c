@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "alsaplayer_error.h"
 
 prefs_handle_t *prefs_load(char *filename)
 {
@@ -30,6 +30,7 @@ prefs_handle_t *prefs_load(char *filename)
 	prefs_handle_t *prefs;
 	char buf[1024];
 	char *val;
+	char *key;
 	int error_count = 0;
 	
 	if (!filename)
@@ -59,9 +60,16 @@ prefs_handle_t *prefs_load(char *filename)
 		if (buf[0] == '#')
 			continue;
 		if ((val = strchr(buf, '='))) {
-			*val = 0; /* replace separator with 0 */
+			*val = 0; /* replace value separator with 0 */
 			val++;
-			prefs_set_string(prefs, buf, val);
+			if ((key = strchr(buf, '.'))) {
+				*key = 0; /* replace section separator with 0 */
+				key++;	
+				prefs_set_string(prefs, buf, key, val);
+			} else {
+				alsaplayer_error("Found old prefs format (%s), ignoring", buf);
+				continue;
+			}	
 		} else {
 			error_count++;
 		}	
@@ -81,66 +89,78 @@ prefs_handle_t *prefs_load(char *filename)
 	return prefs;
 }
 
-void prefs_set_int(prefs_handle_t *prefs, char *key, int val)
+void prefs_set_int(prefs_handle_t *prefs, char *section, char *key, int val)
 {
 	char str[1024];
 	
-	if (!prefs || !key)
+	if (!prefs || !key || !section)
 		return;
 	sprintf(str, "%d", val);
-	prefs_set_string(prefs, key, str);
+	prefs_set_string(prefs, section, key, str);
 }
 
 
-void prefs_set_bool(prefs_handle_t *prefs, char *key, int val)
+void prefs_set_bool(prefs_handle_t *prefs, char *section, char *key, int val)
 {
 	char str[1024];
 
-	if (!prefs || !key)
+	if (!prefs || !key || !section)
 		return;
 	sprintf(str, "%s", val ? "true" : "false");
-	prefs_set_string(prefs, key, str);
+	prefs_set_string(prefs, section, key, str);
 }
 
 
-static prefs_key_t *prefs_find_key(prefs_handle_t *prefs, char *key)
+static prefs_key_t *prefs_find_key(prefs_handle_t *prefs, char *section, char *key)
 {
 	prefs_key_t *entry;
 
-	if (!prefs || !key)
+	if (!prefs || !key || !section)
 		return NULL;
 	entry = prefs->keys;
-	while (entry && strcmp(entry->key, key))
+	while (entry) {
+		if (strcmp(entry->section, section)==0 && strcmp(entry->key, key)==0)
+			return entry;
 		entry = entry->next;
-	return entry;	
+	}	
+	return NULL;
 }
 
-void prefs_set_string(prefs_handle_t *prefs, char *key, char *val)
+void prefs_set_string(prefs_handle_t *prefs, char *section, char *key, char *val)
 {
 	prefs_key_t *entry;
 	int len;
 
-	if (!prefs || !key)
+	if (!prefs || !key || !section)
 		return;
 
-	if ((entry = prefs_find_key(prefs, key))) { /* Already in prefs, replace */
+	if ((entry = prefs_find_key(prefs, section, key))) { /* Already in prefs, replace */
 		free(entry->value);
 		len = strlen(val);
 		entry->value = (char *)malloc(len+1);
 		if (entry->value)
 			strncpy(entry->value, val, len+1);
 	} else { /* New entry */
-		len = strlen(key);
 		entry = (prefs_key_t *)malloc(sizeof(prefs_key_t));
 		if (!entry)
 			return;
 		
 		/* Set all field to NULL */
 		memset(entry, 0, sizeof(prefs_key_t));
+
+		len = strlen(section);
+		entry->section = (char *)malloc(len+1);
+		if (!entry->section) {
+				free(entry);
+				return;
+		}
+		strncpy(entry->section, section, len+1);
+		
 		
 		len = strlen(key);
 		entry->key = (char *)malloc(len+1);
 		if (!entry->key) {
+			free(entry->section);
 			free(entry);
 			return;
 		}
@@ -149,6 +169,7 @@ void prefs_set_string(prefs_handle_t *prefs, char *key, char *val)
 		len = strlen(val);
 		entry->value = (char *)malloc(len+1);
 		if (!entry->value) {
+			free(entry->section);
 			free(entry->key);
 			free(entry);
 			return;
@@ -165,27 +186,27 @@ void prefs_set_string(prefs_handle_t *prefs, char *key, char *val)
 	}		
 }
 
-void prefs_set_float(prefs_handle_t *prefs, char *key, float val)
+void prefs_set_float(prefs_handle_t *prefs, char *section, char *key, float val)
 {
 	char str[1024];
 	
-	if (!prefs || !key)
+	if (!prefs || !key || !section)
 		return;
 	sprintf(str, "%.6f", val);
-	prefs_set_string(prefs, key, str);
+	prefs_set_string(prefs, section, key, str);
 }
 
 
-int prefs_get_bool(prefs_handle_t *prefs, char *key, int default_val)
+int prefs_get_bool(prefs_handle_t *prefs, char *section, char *key, int default_val)
 {
 	char str[1024];
 	char *res;
 	int val;
 	
-	if (!prefs || !key)
+	if (!prefs || !key || !section)
 		return -1;
 	sprintf(str, "%s", default_val ? "true" : "false");
-	res = prefs_get_string(prefs, key, str);
+	res = prefs_get_string(prefs, section, key, str);
 	if (strncasecmp(str, "true", 4) == 0 ||
 			strncasecmp(str, "yes", 3) == 0 ||
 			strncasecmp(str, "1", 1) == 0) {
@@ -195,7 +216,7 @@ int prefs_get_bool(prefs_handle_t *prefs, char *key, int default_val)
 }
 
 
-int prefs_get_int(prefs_handle_t *prefs, char *key, int default_val)
+int prefs_get_int(prefs_handle_t *prefs, char *section, char *key, int default_val)
 {
 	char str[1024];
 	char *res;
@@ -204,29 +225,29 @@ int prefs_get_int(prefs_handle_t *prefs, char *key, int default_val)
 	if (!prefs || !key)
 		return -1;
 	sprintf(str, "%d", default_val);
-	res = prefs_get_string(prefs, key, str);
+	res = prefs_get_string(prefs, section, key, str);
 	if (sscanf(str, "%d", &val) != 1)
 		return default_val;
 	return val;
 }
 
-char *prefs_get_string(prefs_handle_t *prefs, char *key, char *default_val)
+char *prefs_get_string(prefs_handle_t *prefs, char *section, char *key, char *default_val)
 {
 	prefs_key_t *entry;
 
-	if (!prefs || !key)
+	if (!prefs || !key || !section)
 		return default_val;
 
-	if ((entry = prefs_find_key(prefs, key))) {
+	if ((entry = prefs_find_key(prefs, section, key))) {
 		return entry->value;
 	} else {
-		prefs_set_string(prefs, key, default_val);
+		prefs_set_string(prefs, section, key, default_val);
 	}	
 	return default_val;
 }
 
 
-float prefs_get_float(prefs_handle_t *prefs, char *key, float default_val)
+float prefs_get_float(prefs_handle_t *prefs, char *section, char *key, float default_val)
 {
 	char str[1024];
 	char *res;
@@ -235,7 +256,7 @@ float prefs_get_float(prefs_handle_t *prefs, char *key, float default_val)
 	if (!prefs || !key)
 		return default_val;
 	sprintf(str, "%.6f", default_val);
-	res = prefs_get_string(prefs, key, str);
+	res = prefs_get_string(prefs, section, key, str);
 	if (sscanf(str, "%f", &val) != 1)
 		return default_val;
 	return val;
@@ -262,7 +283,7 @@ int prefs_save(prefs_handle_t *prefs)
 							"#\n");
 			
 	while (entry) {
-		fprintf(fd, "%s=%s\n", entry->key, entry->value);
+		fprintf(fd, "%s.%s=%s\n", entry->section, entry->key, entry->value);
 		entry = entry->next;
 	}
 	fclose(fd);

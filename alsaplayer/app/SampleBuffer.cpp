@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include "alsaplayer_error.h"
 
 // NOTE: THIS IS FOR STEREO 16-BIT SAMPLES ONLY
 
@@ -36,22 +37,14 @@ SampleBuffer::SampleBuffer(int mode, int size)
 		sample_size = 4;
 		break;
 	 default:
-#ifdef USE_EXCEPTIONS	 
-		throw("Unsupported SAMPLE size");
-#else
-		printf("Unsupported SAMPLE size\n");
+		alsaplayer_error("Unsupported SAMPLE size");
 		exit(1);
-#endif		
 	}
 	
 	// Allocate buffer data
 	if ((buffer_data = new char[size]) == NULL) {
-#ifdef USE_EXCEPTIONS
-		throw("Out of memory");
-#else
-		printf("Out of memory in SampleBuffer::SampleBuffer()\n");
+		alsaplayer_error("Out of memory in SampleBuffer::SampleBuffer()");
 		exit(1);
-#endif		
 }
 
 	// Init other stuff
@@ -76,7 +69,7 @@ void SampleBuffer::Clear()
 int SampleBuffer::Seek(int index)
 {
 	if (index < 0 || index > write_index) {
-	  printf("index out of range (%d)\n", index);
+	  /* alsaplayer_error("index out of range (%d)\n", index); */
 	  return -1;
 	}
 	read_index = index;
@@ -141,7 +134,7 @@ int SampleBuffer::ReadSamples(void *data, int nr)
 		}
 		break;
 	 case DIR_BACK:
-		//printf("Backwards....");
+		//alsaplayer_error("Backwards....");
 		int *s, *d;
 		//if (read_index > GetFreeSamples())
 		//  read_index = GetFreeSamples();
@@ -149,7 +142,7 @@ int SampleBuffer::ReadSamples(void *data, int nr)
 		        nr = read_index;
 		s = (int *)(buffer_data) + (read_index * sample_size);
 		d = (int *)data;
-		//printf("From %d to %d\n", read_index, read_index-nr);
+		//alsaplayer_error("From %d to %d", read_index, read_index-nr);
 		for (int i=0; i < nr; i++) {
 			*(d++) = *(s--);
 		}
@@ -229,7 +222,7 @@ void SampleBuffer::ResetRead()
 
 int SampleBuffer::GetAvailableSamples()
 {
-	//printf("read = %d, write = %d\n", read_index, write_index);
+	//alsaplayer_error("read = %d, write = %d", read_index, write_index);
 	switch(GetReadDirection()) {
 	 case DIR_FORWARD:
 		if (write_index < read_index) {

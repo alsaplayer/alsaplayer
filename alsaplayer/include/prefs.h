@@ -30,6 +30,7 @@ extern "C" {
 #endif
 
 struct _prefs_key {
+	char *section;
 	char *key;
 	char *value;
 	struct _prefs_key *next;
@@ -48,15 +49,15 @@ typedef struct _prefs_handle prefs_handle_t;
 
 prefs_handle_t *prefs_load(char *filename);
 
-void prefs_set_int(prefs_handle_t *prefs, char *key, int val);
-void prefs_set_string(prefs_handle_t *prefs, char *key, char *val);
-void prefs_set_float(prefs_handle_t *prefs, char *key, float val);
-void prefs_set_bool(prefs_handle_t *prefs, char *key, int val);
+void prefs_set_int(prefs_handle_t *prefs, char *section, char *key, int val);
+void prefs_set_string(prefs_handle_t *prefs, char *section, char *key, char *val);
+void prefs_set_float(prefs_handle_t *prefs, char *section, char *key, float val);
+void prefs_set_bool(prefs_handle_t *prefs, char *section, char *key, int val);
 
-int prefs_get_int(prefs_handle_t *prefs, char *key, int default_val);
-char *prefs_get_string(prefs_handle_t *prefs, char *key, char *default_val);
-float prefs_get_float(prefs_handle_t *prefs, char *key, float default_val);
-int prefs_get_bool(prefs_handle_t *prefs, char *key, int default_val);
+int prefs_get_int(prefs_handle_t *prefs, char *section, char *key, int default_val);
+char *prefs_get_string(prefs_handle_t *prefs, char *section, char *key, char *default_val);
+float prefs_get_float(prefs_handle_t *prefs, char *section, char *key, float default_val);
+int prefs_get_bool(prefs_handle_t *prefs, char *section, char *key, int default_val);
 
 int prefs_save(prefs_handle_t *prefs);
 

@@ -261,7 +261,7 @@ static int cdda_open(input_object *obj, char *name)
 		fname = name;
 	
 	if (ap_prefs) {
-		strcpy(device_name, prefs_get_string(ap_prefs, "cdda.device", DEFAULT_DEVICE));
+		strcpy(device_name, prefs_get_string(ap_prefs, "cdda", "device", DEFAULT_DEVICE));
 	} else {
 		strcpy(device_name, DEFAULT_DEVICE);
 	}	

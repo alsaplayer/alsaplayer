@@ -1,5 +1,5 @@
 /*  gtk_interface.cpp - gtk+ callbacks, etc
- *  Copyright (C) 1998 Andy Lo A Foe <andy@alsa-project.org>
+ *  Copyright (C) 2002 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -745,7 +745,7 @@ void play_file_ok(GtkWidget *widget, gpointer data)
 		while (marker > 0 && current_dir[marker] != '/')
 			current_dir[marker--] = '\0';
 		// Write default_play_path
-		prefs_set_string(ap_prefs, "default_play_path", current_dir);
+		prefs_set_string(ap_prefs, "gtk_interface", "default_play_path", current_dir);
 		
 		// Get the selections
 		std::vector<std::string> paths;
@@ -950,7 +950,7 @@ void init_main_window(Playlist *pl, GtkFunction f)
 								  GTK_FILE_SELECTION(play_dialog)->ok_button),
 					   "clicked", GTK_SIGNAL_FUNC(play_file_ok), playlist);
 	gtk_file_selection_set_filename(GTK_FILE_SELECTION(play_dialog), 
-		prefs_get_string(ap_prefs, "default_play_path", "~/")); 
+		prefs_get_string(ap_prefs, "gtk_interface", "default_play_path", "~/")); 
 
 
 	gtk_signal_connect (GTK_OBJECT (main_window), "expose_event",

@@ -341,7 +341,7 @@ void add_file_ok(GtkWidget *widget, gpointer data)
 	int marker = strlen(current_dir)-1;
 	while (marker > 0 && current_dir[marker] != '/') // Get rid of the filename
 		current_dir[marker--] = '\0';
-	prefs_set_string(ap_prefs, "default_playlist_add_path", current_dir);
+	prefs_set_string(ap_prefs, "gtk_interface", "default_playlist_add_path", current_dir);
 
 	std::vector<std::string> paths;
 		
@@ -381,7 +381,7 @@ void load_list_ok(GtkWidget *widget, gpointer data)
 	int marker = strlen(current_dir)-1;
 	while (marker > 0 && current_dir[marker] != '/') // Get rid of the filename
 		current_dir[marker--] = '\0';
-	prefs_set_string(ap_prefs, "default_playlist_load_path", current_dir);
+	prefs_set_string(ap_prefs, "gtk_interface", "default_playlist_load_path", current_dir);
 	g_free(current_dir);
 
 	std::string file(gtk_file_selection_get_filename(
@@ -411,7 +411,7 @@ void save_list_ok(GtkWidget *widget, gpointer data)
 	int marker = strlen(current_dir)-1;
 	while (marker > 0 && current_dir[marker] != '/') // Get rid of the filename
 		current_dir[marker--] = '\0';
-	prefs_set_string(ap_prefs, "default_playlist_save_path", current_dir);
+	prefs_set_string(ap_prefs, "gtk_interface", "default_playlist_save_path", current_dir);
 
 	std::string file(gtk_file_selection_get_filename(
 			GTK_FILE_SELECTION(playlist_window_gtk->save_list)));
@@ -514,13 +514,13 @@ static GtkWidget *init_playlist_window(PlaylistWindowGTK *playlist_window_gtk, P
 		GTK_SIGNAL_FUNC(playlist_delete_event), (gpointer)playlist_window_gtk);
 
 	playlist_window_gtk->add_file = gtk_file_selection_new("Add file(s)");
-	gtk_file_selection_set_filename(GTK_FILE_SELECTION(playlist_window_gtk->add_file), prefs_get_string(ap_prefs, "default_playlist_add_path", "/"));
+	gtk_file_selection_set_filename(GTK_FILE_SELECTION(playlist_window_gtk->add_file), prefs_get_string(ap_prefs, "gtk_interface", "default_playlist_add_path", "/"));
 
 playlist_window_gtk->load_list = gtk_file_selection_new("Load Playlist");
-	gtk_file_selection_set_filename(GTK_FILE_SELECTION(playlist_window_gtk->load_list), prefs_get_string(ap_prefs, "default_playlist_load_path", "/"));
+	gtk_file_selection_set_filename(GTK_FILE_SELECTION(playlist_window_gtk->load_list), prefs_get_string(ap_prefs, "gtk_interface", "default_playlist_load_path", "/"));
 
 	playlist_window_gtk->save_list = gtk_file_selection_new("Save Playlist");
-	gtk_file_selection_set_filename(GTK_FILE_SELECTION(playlist_window_gtk->save_list), prefs_get_string(ap_prefs, "default_playlist_save_path", "/"));
+	gtk_file_selection_set_filename(GTK_FILE_SELECTION(playlist_window_gtk->save_list), prefs_get_string(ap_prefs, "gtk_interface", "default_playlist_save_path", "/"));
 
 	GtkCList *file_list = GTK_CLIST(GTK_FILE_SELECTION(playlist_window_gtk->add_file)->file_list);
 	gtk_clist_set_selection_mode(file_list, GTK_SELECTION_EXTENDED);

@@ -148,8 +148,8 @@ AlsaNode::AlsaNode(char *name, int realtime)
 		sprintf(client_name, "alsaplayer-%d", getpid());
 #ifdef USE_JACK		
 	if (strncmp(name, "jack", 4) == 0) { // Use JACK
-		strcpy(dest_port1, prefs_get_string(ap_prefs, "jack.output1", "alsa_pcm:out_1"));
-		strcpy(dest_port2, prefs_get_string(ap_prefs, "jack.output2", "alsa_pcm:out_2"));
+		strcpy(dest_port1, prefs_get_string(ap_prefs, "jack", "output1", "alsa_pcm:out_1"));
+		strcpy(dest_port2, prefs_get_string(ap_prefs, "jack", "output2", "alsa_pcm:out_2"));
 		if (sscanf(name, "jack %31s %31s", dest_port1, dest_port2) == 1) {
 		  strcpy(dest_port2, dest_port1);
 		}

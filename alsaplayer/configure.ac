@@ -616,6 +616,7 @@ Configuration:
   Prefer MAD over mpg123 plugin:      ${prefer_mad}
   Build gtk interface:                ${have_gtk}
   Build with JACK support:            ${have_jack}
+  Build OpenGL based visual plugins:  ${have_opengl}
   Build alsa 0.5.x output plugin:     ${have_alsa_05x}
   Build alsa LATEST output plugin:    ${have_alsa_final}
   Build oss output plugin:            ${have_oss}

@@ -341,8 +341,8 @@ int main(int argc, char **argv)
 
 	/* Initialize some settings (and populate the prefs system if needed */
 
-	use_fragsize = prefs_get_int(ap_prefs, "period_size", 2048);
-	use_fragcount = prefs_get_int(ap_prefs, "period_count", 12);
+	use_fragsize = prefs_get_int(ap_prefs, "main", "period_size", 2048);
+	use_fragcount = prefs_get_int(ap_prefs, "main", "period_count", 12);
 
 	for (arg_pos=1; arg_pos < argc; arg_pos++) {
 		if (strcmp(argv[arg_pos], "--help") == 0 ||
@@ -658,10 +658,12 @@ int main(int argc, char **argv)
 		}	
 	} else {
 		if (!(interface_plugin_info = 
-				load_interface(prefs_get_string(ap_prefs, "default_interface","gtk")))) {
+				load_interface(prefs_get_string(ap_prefs, "main", "default_interface","gtk")))) {
 			if (!(interface_plugin_info = 
-				load_interface(prefs_get_string(ap_prefs, "fallback_interface","text")))) {
-				alsaplayer_error("Failed to load text interface. This is bad\n");
+				load_interface(prefs_get_string(ap_prefs, "main", "fallback_interface","text")))) {
+				alsaplayer_error("Failed to load text interface. This is bad (%s,%s)",
+						prefs_get_string(ap_prefs, "main", "default_interface", "gtk"),
+						prefs_get_string(ap_prefs, "main", "default_interface", "gtk"));
 				goto _fatal_err;
 			}
 		}	
