@@ -40,6 +40,8 @@
 #include "utilities.h"
 #include "interface_plugin.h"
 
+#define NR_BLOCKS		30
+
 static char addon_dir[1024];
 
 
@@ -86,24 +88,34 @@ int interface_cli_start(CorePlayer *coreplayer, Playlist *playlist, int argc, ch
 			unsigned long secs, t_min, t_sec, c_min, c_sec;
 			t_min = t_sec = c_min = c_sec = 0;
 			while (coreplayer->IsActive() || coreplayer->IsPlaying()) {
+					int cur_val, block_val, i;
 					coreplayer->GetStreamInfo(&info);
 					if (strcmp(info.title, old_info.title) != 0) {
 							fprintf(stdout, "\nPlaying: %s\n", info.title);
 							memcpy(&old_info, &info, sizeof(stream_info));
 					}		
-					secs = coreplayer->GetCurrentTime(coreplayer->GetFrames());
+					block_val = secs = coreplayer->GetCurrentTime(coreplayer->GetFrames());
 					t_min = secs / 6000;
 					t_sec = (secs % 6000) / 100;
-					secs = coreplayer->GetCurrentTime();
+					cur_val = secs = coreplayer->GetCurrentTime();
 					c_min = secs / 6000;
 					c_sec = (secs % 6000) / 100;	
-					fprintf(stdout, "\r[%02ld:%02ld/%02ld:%02ld]       ",
+					fprintf(stdout, "\r   Time: %02ld:%02ld (%02ld:%02ld) ",
 									c_min, c_sec, t_min, t_sec);
+					// Draw nice indicator
+					block_val /= NR_BLOCKS; 
+					cur_val /= block_val;
+					//printf("%d - %d\n", block_val, cur_val);
+					fprintf(stdout, "[");
+					for (i = 0; i < NR_BLOCKS; i++) {
+							fprintf(stdout, "%c", cur_val >= i ? '*':' ');
+					}
+					fprintf(stdout,"]   ");
 					fflush(stdout);
 					dosleep(100000);
 			}
 			dosleep(1000000);
-			fprintf(stdout, "\n");
+			fprintf(stdout, "\n\n");
 	}		
 	fprintf(stdout, "...done playing\n");
 	return 0;
