@@ -473,6 +473,99 @@ int ap_get_speed(int session, float *val)
 }
 
 
+/* Convenience function for commands that take a single int */
+int ap_cmd_set_int(int session, int32_t cmd, int val)
+{
+	int fd;
+	ap_message_t *msg, *reply;
+	int32_t *result;
+	
+	fd = ap_connect_session(session);
+	if (fd < 0)
+		return 0;
+	msg = ap_message_new();
+	msg->header.cmd = cmd;
+	ap_message_add_int32(msg, "int", val);
+
+	ap_message_send(fd, msg);
+	ap_message_delete(msg);
+	msg = NULL;
+
+	reply = ap_message_receive(fd);
+	close(fd);
+
+	if ((result = ap_message_find_int32(reply, "ack"))) {
+		ap_message_delete(reply);
+		return 1;
+	}
+	ap_message_delete(reply);
+	return 0;
+}
+
+
+
+/* Convenience function for commands that return a single int */
+int ap_cmd_get_int(int session, int32_t cmd, int *val)
+{
+	int fd;
+	ap_message_t *msg, *reply;
+	int32_t *result;
+	
+	fd = ap_connect_session(session);
+	if (fd < 0)
+		return 0;
+	msg = ap_message_new();
+	msg->header.cmd = cmd;
+
+	ap_message_send(fd, msg);
+	ap_message_delete(msg);
+	msg = NULL;
+
+	reply = ap_message_receive(fd);
+	close(fd);
+
+	if ((result = ap_message_find_int32(reply, "int"))) {
+		*val = *result;
+		ap_message_delete(reply);
+		return 1;
+	}
+	ap_message_delete(reply);
+	return 0;
+}
+
+
+int ap_set_position(int session, int pos)
+{
+	return (ap_cmd_set_int(session, AP_SET_POS_SECOND, pos));
+}
+
+int ap_get_position(int session, int *val)
+{
+	return (ap_cmd_get_int(session, AP_GET_POS_SECOND, val));
+}
+
+int ap_get_length(int session, int *length)
+{
+	return (ap_cmd_get_int(session, AP_GET_SONG_LENGTH_SECOND, length));
+}
+
+int ap_set_frame(int session, int frame)
+{
+	return (ap_cmd_set_int(session, AP_SET_POS_FRAME, frame));
+}
+
+int ap_get_frame(int session, int *val)
+{
+	return (ap_cmd_get_int(session, AP_GET_POS_FRAME, val));
+}
+
+
+int ap_get_frames(int session, int *val)
+{
+	return (ap_cmd_get_int(session, AP_GET_SONG_LENGTH_FRAME, val));
+}
+
+
 /* Convenience function for commands that return a single string */
 int ap_get_single_string_command(int session, int32_t cmd, char *str, int maxlen)
 {

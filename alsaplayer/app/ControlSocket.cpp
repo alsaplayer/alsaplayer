@@ -247,14 +247,14 @@ void socket_looper(void *arg)
 				break;
 			case AP_GET_POS_SECOND:	
 				if (player) {
-					ap_message_add_int32(msg, "pos", 
+					ap_message_add_int32(reply, "int", 
 						player->GetCurrentTime() / 100);
 					ap_message_add_int32(reply, "ack", 1);
 				}	
 				break;
 			case AP_SET_POS_SECOND:
 				if (player) {
-					if ((int_val = ap_message_find_int32(msg, "pos"))) {
+					if ((int_val = ap_message_find_int32(msg, "int"))) {
 						*int_val *= player->GetSampleRate();
 						*int_val /= player->GetFrameSize();
 						*int_val *= player->GetChannels();
@@ -267,25 +267,25 @@ void socket_looper(void *arg)
 			case AP_GET_SONG_LENGTH_SECOND:
 				if (player) {
 					total_time = player->GetCurrentTime(player->GetFrames());
-					ap_message_add_int32(reply, "pos", (int32_t)(total_time / 100));
+					ap_message_add_int32(reply, "int", (int32_t)(total_time / 100));
 					ap_message_add_int32(reply, "ack", 1);
 				}
 				break;
 			case AP_GET_SONG_LENGTH_FRAME:
 				if (player) {
-					ap_message_add_int32(reply, "frames", player->GetFrames());
+					ap_message_add_int32(reply, "int", player->GetFrames());
 					ap_message_add_int32(reply, "ack", 1);
 				}
 				break;
 			case AP_GET_POS_FRAME:
 				if (player) {
-					ap_message_add_int32(reply, "frame", player->GetPosition());
+					ap_message_add_int32(reply, "int", player->GetPosition());
 					ap_message_add_int32(reply, "ack", 1);
 				}
 				break;
 			case AP_SET_POS_FRAME:
 				if (player) {
-					if ((int_val = ap_message_find_int32(msg, "pos"))) {
+					if ((int_val = ap_message_find_int32(msg, "int"))) {
 						player->Seek(*int_val);
 						ap_message_add_int32(reply, "ack", 1);
 					}

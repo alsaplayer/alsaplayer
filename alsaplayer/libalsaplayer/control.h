@@ -53,6 +53,13 @@ int ap_get_artist(int session, char *str);
 int ap_get_album(int session, char *str);
 int ap_get_genre(int session, char *str);
 
+int ap_set_position(int session, int pos);
+int ap_get_position(int session, int *val);
+int ap_get_length(int session, int *length);
+int ap_set_frame(int session, int frame);
+int ap_get_frame(int session, int *val);
+int ap_get_frames(int session, int *val);
+
 
 #ifdef __cplusplus
 }
