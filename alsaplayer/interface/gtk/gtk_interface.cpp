@@ -75,7 +75,6 @@ Playlist *playlist = NULL;
 
 // Global variables (get rid of these too... ;-) )
 static int global_update = 1;
-static int global_speed = 100;
 
 static int global_draw_volume = 1;
 static GtkWidget *play_pix;
@@ -442,7 +441,6 @@ void speed_cb(GtkWidget *widget, gpointer data)
 	Playlist *pl = (Playlist *)data;
 	CorePlayer *p = pl->GetCorePlayer();
 	float val =  GTK_ADJUSTMENT(widget)->value;
-	global_speed = (gint) val;	
 	if (val < ZERO_PITCH_TRESH && val > -ZERO_PITCH_TRESH)
 		val = 0;
 	p->SetSpeed(  (float) val / 100.0 );
@@ -1230,10 +1228,10 @@ void init_main_window(Playlist *pl, GtkFunction f)
 						GTK_SIGNAL_FUNC(speed_move_event), &global_ustr);
 
 	adj = GTK_RANGE(speed_scale)->adjustment;
+	//gtk_adjustment_set_value(adj, 100.0);
 	gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
 						GTK_SIGNAL_FUNC(speed_cb), playlist);
-	gtk_adjustment_set_value(adj, 100.0);
-#endif
+	#endif
 	gtk_signal_connect(GTK_OBJECT(main_window), "delete_event", GTK_SIGNAL_FUNC(main_window_delete), (void *)f);
 
 	// Create root menu
