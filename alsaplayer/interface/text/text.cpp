@@ -208,7 +208,6 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 			fflush(stdout);
 			dosleep(1000000);
 		}
-		dosleep(1000000);
 		fprintf(stdout, "\n\n");
 	}
 	fprintf(stdout, "...done playing\n");
