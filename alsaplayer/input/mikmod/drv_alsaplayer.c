@@ -20,73 +20,60 @@
 
 #include "mikmod.h"
 
-#define MIKMOD_FRAME_SIZE	4608
-SBYTE *audio_buffer;
-
-static BOOL 
-alsaplayer_Init ()
+static BOOL alsaplayer_Init ()
 {
-  if (!(audio_buffer = (SBYTE *) malloc (MIKMOD_FRAME_SIZE)))
-    return 1;
-
-  return VC_Init ();
+	return VC_Init ();
 }
 
-static void 
-alsaplayer_Exit ()
+static void alsaplayer_Exit ()
 {
-  VC_Exit();
-  
-  if (audio_buffer)
-    free (audio_buffer);
+	VC_Exit();
 }
 
-static void
-alsaplayer_Update ()
+static void alsaplayer_Update ()
 {
-  /* 
-     No need to use this extra level of indirection;
-     we handle all audio_buffer updating in mikmod_play_frame ()
-  */
+	/* 
+	   No need to use this extra level of indirection;
+	   we handle all audio_buffer updating in mikmod_play_frame ()
+	 */
 }
 
-static BOOL 
-alsaplayer_IsThere ()
+static BOOL alsaplayer_IsThere ()
 {
-  return 1;
+	return 1;
 }
 
 MDRIVER drv_alsaplayer =
 {
-  NULL,
-  "AlsaPlayer",
-  "AlsaPlayer Output Driver v1.0",
-  0, 255,
-  "alsaplayer",
+	NULL,
+	"AlsaPlayer",
+	"AlsaPlayer Output Driver v1.0",
+	0, 255,
+	"alsaplayer",
 
-  NULL,
-  alsaplayer_IsThere,
-  VC_SampleLoad,
-  VC_SampleUnload,
-  VC_SampleSpace,
-  VC_SampleLength,
-  alsaplayer_Init,
-  alsaplayer_Exit,
-  NULL,
-  VC_SetNumVoices,
-  VC_PlayStart,
-  VC_PlayStop,
-  alsaplayer_Update,
-  NULL,
-  VC_VoiceSetVolume,
-  VC_VoiceGetVolume,
-  VC_VoiceSetFrequency,
-  VC_VoiceGetFrequency,
-  VC_VoiceSetPanning,
-  VC_VoiceGetPanning,
-  VC_VoicePlay,
-  VC_VoiceStop,
-  VC_VoiceStopped,
-  VC_VoiceGetPosition,
-  VC_VoiceRealVolume
+	NULL,
+	alsaplayer_IsThere,
+	VC_SampleLoad,
+	VC_SampleUnload,
+	VC_SampleSpace,
+	VC_SampleLength,
+	alsaplayer_Init,
+	alsaplayer_Exit,
+	NULL,
+	VC_SetNumVoices,
+	VC_PlayStart,
+	VC_PlayStop,
+	alsaplayer_Update,
+	NULL,
+	VC_VoiceSetVolume,
+	VC_VoiceGetVolume,
+	VC_VoiceSetFrequency,
+	VC_VoiceGetFrequency,
+	VC_VoiceSetPanning,
+	VC_VoiceGetPanning,
+	VC_VoicePlay,
+	VC_VoiceStop,
+	VC_VoiceStopped,
+	VC_VoiceGetPosition,
+	VC_VoiceRealVolume
 };
