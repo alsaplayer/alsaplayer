@@ -37,7 +37,7 @@
  */
 
 #define INPUT_PLUGIN_BASE_VERSION	0x1000
-#define INPUT_PLUGIN_VERSION	INPUT_PLUGIN_BASE_VERSION + 5
+#define INPUT_PLUGIN_VERSION	INPUT_PLUGIN_BASE_VERSION + 6
 
 typedef struct _input_object
 {
@@ -83,7 +83,7 @@ typedef int(*input_frame_size_type)(input_object *);
 									/* Returns the frame size in bytes */
 typedef int(*input_nr_frames_type)(input_object *);
 									/* Number of frames */
-typedef unsigned long(*input_frame_to_sec_type)(input_object *,int);
+typedef  long(*input_frame_to_sec_type)(input_object *,int);
 									/* Frame to 100th of a second conversion */
 typedef int(*input_sample_rate_type)(input_object *);
 									/* Returns the sample rate */
