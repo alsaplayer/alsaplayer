@@ -1,3 +1,4 @@
+- Fix MAD playback on big-endian machines.
 - Doubled the set_data and set_fft rate for smoother scope output
 - Changed fft data output slightly
 - Retired fftscope and logfftscope scope plugins. They were just (bad) copies

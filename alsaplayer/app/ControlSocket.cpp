@@ -27,7 +27,7 @@
 #include "control.h"
 #include "packet.h"
 #include "Playlist.h"
-#include "error.h"
+#include "alsaplayer_error.h"
 
 #define MAX_AP_SESSIONS 1024
 

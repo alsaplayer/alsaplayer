@@ -33,7 +33,6 @@
 #include "scope_plugin.h"
 #include "utilities.h"
 
-
 static GtkWidget *window = NULL,*area;
 static GdkPixmap *bg_pixmap = NULL;
 static pthread_t bscope_thread;

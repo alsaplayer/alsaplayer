@@ -47,7 +47,7 @@
 #include <math.h>
 #include "Effects.h"
 #include "utilities.h"
-#include "error.h"
+#include "alsaplayer_error.h"
 
 #define MAX_FRAGS	16
 #define LOW_FRAGS	4	

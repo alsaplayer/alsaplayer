@@ -42,7 +42,7 @@
 #include "gtk_interface.h"
 #include "utilities.h"
 #include "interface_plugin.h"
-#include "error.h"
+#include "alsaplayer_error.h"
 
 static char addon_dir[1024];
 static AlsaSubscriber *scopes = NULL;

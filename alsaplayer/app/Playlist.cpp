@@ -33,7 +33,7 @@
 #include "CorePlayer.h"
 #include "utilities.h"
 #include "config.h"
-#include "error.h"
+#include "alsaplayer_error.h"
 
 #define READBUFSIZE 1024
 #define MAXLOADFAILURES 100

@@ -34,7 +34,7 @@
 #include <unistd.h>
 #include "AlsaNode.h"
 #include "utilities.h"
-#include "error.h"
+#include "alsaplayer_error.h"
 #ifdef USE_JACK
 #include <jack/jack.h>
 #endif

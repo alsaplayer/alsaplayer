@@ -25,7 +25,7 @@
 #include "gladesrc.h"
 #include "gtk_interface.h"
 #include "pixmaps/note.xpm"
-#include "error.h"
+#include "alsaplayer_error.h"
 #include "fft.h"
 #include <pthread.h>
 #include <dlfcn.h>

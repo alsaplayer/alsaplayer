@@ -48,7 +48,7 @@
 #include "interface_plugin.h"
 #include "utilities.h"
 #include "prefs.h"
-#include "error.h"
+#include "alsaplayer_error.h"
 #include "external.cpp" /* This is a dirty hack */
 
 Playlist *playlist = NULL;
@@ -81,6 +81,7 @@ const char *default_output_addons[] = {
 	{ "null" },
 	NULL };
 
+extern "C" {
 
 /* This code was swiped from Paul Davis' JACK */
 
@@ -94,8 +95,10 @@ static void default_alsaplayer_error (const char *fmt, ...)
         fputc ('\n', stderr);
 }
 
+
 void (*alsaplayer_error)(const char *fmt, ...) = &default_alsaplayer_error;
 
+};
 
 void exit_sighandler(int x)
 {
@@ -233,9 +236,9 @@ static void help()
 "\n"
 "  -d,--device string      select card and device [default=\"default\"]\n"
 "  -e,--enqueue file(s)    queue files in running alsaplayer\n"
-"  -f,--fragsize #         fragment size in bytes [default=4096]\n"
+"  -f,--fragsize #         fragment size in bytes [default=2048]\n"
 "  -F,--frequency #        output frequency [default=%d]\n"
-"  -g,--fragcount #        fragment count [default=8]\n"
+"  -g,--fragcount #        fragment count [default=12]\n"
 "  -h,--help               print this help message\n"
 "  -i,--interface iface    load in the iface interface [default=gtk]\n"
 "  -l,--volume #           set software volume [0-100]\n"
@@ -338,8 +341,8 @@ int main(int argc, char **argv)
 
 	/* Initialize some settings (and populate the prefs system if needed */
 
-	use_fragsize = prefs_get_int(ap_prefs, "period_size", 4096);
-	use_fragcount = prefs_get_int(ap_prefs, "period_count", 8);
+	use_fragsize = prefs_get_int(ap_prefs, "period_size", 2048);
+	use_fragcount = prefs_get_int(ap_prefs, "period_count", 12);
 
 	for (arg_pos=1; arg_pos < argc; arg_pos++) {
 		if (strcmp(argv[arg_pos], "--help") == 0 ||
