@@ -61,11 +61,6 @@ void info_looper(void *data)
 	//alsaplayer_error("new info_looper()");
 
 	playlist->Lock();
-	for(i = playlist->interfaces.begin();
-			i != playlist->interfaces.end(); i++) {
-		(*i)->CbLock();
-	}
-
 	//alsaplayer_error("locked()");
 	std::vector<PlayItem>::iterator p = playlist->queue.begin();
 	count = 0;
@@ -73,7 +68,7 @@ void info_looper(void *data)
 		//printf("Looping...\n");
 		if (!(*p).Parsed()) {
 			
-			if (myplayer->Open((*p).filename.c_str())) { // Examine file
+			if (myplayer->Load((*p).filename.c_str())) { // Examine file
 				t_sec = myplayer->GetCurrentTime(myplayer->GetFrames());
 				if (t_sec) {
 					t_sec /= 100;
@@ -84,32 +79,23 @@ void info_looper(void *data)
 				if (myplayer->GetStreamInfo(&info)) {
 					(*p).title = info.title;
 					(*p).author = info.author;
-					/*
-					sprintf(tmp, "%s - %s - %2d:%02d", 
-						strlen(info.author) ? info.author : "No author",
-						strlen(info.title) ? info.title : "No title",
-						((*p).playtime > 0) ? t_sec / 60 : 0,
-						((*p).playtime > 0) ? t_sec % 60 : 0);
-					alsaplayer_error("Found: %s", tmp);
-					*/
 				}
-				myplayer->Close();	
+				myplayer->Unload();	
 			}
 			(*p).SetParsed();
 			// Notify interface of update
 			for(i = playlist->interfaces.begin();
 			i != playlist->interfaces.end(); i++) {
+				(*i)->CbLock();
 				(*i)->CbUpdated((*p), count);
+				(*i)->CbUnlock();
 			}
+
 		}	
 		p++;
 		count++;
 	}	
 
-	for(i = playlist->interfaces.begin();
-			i != playlist->interfaces.end(); i++) {
-			(*i)->CbUnlock();
-	}
 	playlist->Unlock();
 
 	delete myplayer;
@@ -153,7 +139,7 @@ void playlist_looper(void *data)
 				}
 			}
 		}	
-		dosleep(50000);
+		dosleep(100000);
 	}
 }
 
@@ -180,10 +166,6 @@ void insert_looper(void *data) {
 
 	// Stop the list being changed while we add these items
 	playlist->Lock();
-	for(i = playlist->interfaces.begin();
-			i != playlist->interfaces.end(); i++) {
-			(*i)->CbLock();
-		}	
 
   // First vetting of the list, and recurse through directories
 	std::vector<std::string> vetted_items;
@@ -237,17 +219,15 @@ void insert_looper(void *data) {
 		std::set<PlaylistInterface *>::const_iterator i;
 		for(i = playlist->interfaces.begin();
 			i != playlist->interfaces.end(); i++) {
+			(*i)->CbLock();
 			(*i)->CbInsert(newitems, items->position);
 			(*i)->CbSetCurrent(playlist->curritem);
+			(*i)->CbUnlock();
 		}	
 	}
 
 	// Free the list again
 #endif	
-	for(i = playlist->interfaces.begin();
-			i != playlist->interfaces.end(); i++) {
-			(*i)->CbUnlock();
-	}
 	playlist->Unlock();
 	delete items;
 
@@ -519,18 +499,28 @@ void Playlist::AddAndPlay(std::vector<std::string> const &paths) {
 }
 
 // Remove tracks from position start to end inclusive
-void Playlist::Remove(unsigned start, unsigned end) {
+void Playlist::Remove(unsigned start, unsigned end, int locking) {
+	std::set<PlaylistInterface *>::const_iterator i;
+
 	if(start > end) {
 		unsigned tmp = end;
 		end = start;
 		start = tmp;
 	}
+	if (!locking) {
+		for(i = interfaces.begin(); i != interfaces.end(); i++) {
+			(*i)->CbUnlock();
+		}
+	}	
+	Lock();
+	for(i = interfaces.begin(); i != interfaces.end(); i++) {
+		(*i)->CbLock();
+	}
+						
 	if(start < 1) start = 1;
 	if(start > queue.size()) start = queue.size();
 	if(end < 1) end = 1;
 	if(end > queue.size()) end = queue.size();
-
-	Lock();
 
 	queue.erase(queue.begin() + start - 1, queue.begin() + end);
 
@@ -556,6 +546,11 @@ void Playlist::Remove(unsigned start, unsigned end) {
 			(*i)->CbSetCurrent(curritem);
 		}
 	}
+	if (locking) {
+		for(i = interfaces.begin(); i != interfaces.end(); i++) {
+			(*i)->CbUnlock();
+		}
+	}	
 	Unlock();
 }
 
@@ -811,7 +806,7 @@ bool Playlist::PlayFile(PlayItem const & item) {
 	bool result;
 
 	coreplayer->Stop();
-	result = coreplayer->Open(item.filename.c_str());
+	result = coreplayer->Load(item.filename.c_str());
 	if (result) {
 		result = coreplayer->Start();
 		if (coreplayer->GetSpeed() == 0.0) { // Unpause
