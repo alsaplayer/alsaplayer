@@ -21,7 +21,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include "ControlSocket.h"
+#include "control.h"
+#include "packet.h"
 #include "Playlist.h"
 #include "error.h"
 
@@ -37,8 +38,10 @@ void socket_looper(void *arg)
 		fd_set set;
 		struct timeval tv;
 		struct sockaddr_un saddr;
+		stream_info info;
 		void *data;
 		float float_val;
+		char *char_val;
 		socklen_t len;
 		int fd;
 		ap_pkt_t pkt;
@@ -77,8 +80,10 @@ void socket_looper(void *arg)
 			// So we have a connection
 			read(fd, &pkt, sizeof(ap_pkt_t));
 			// Read the data blurb 
-			if (pkt.pld_length && ((data = malloc(pkt.pld_length)) != NULL)) {
+			if (pkt.pld_length && ((data = malloc(pkt.pld_length+1)) != NULL)) {
 				read(fd, data, pkt.pld_length);
+			} else {
+				data = NULL;
 			}	
 			switch(pkt.cmd) {
 				case AP_DO_PLAY: 
@@ -101,6 +106,9 @@ void socket_looper(void *arg)
 					player = playlist->GetCorePlayer();
 					if (player)
 						player->SetSpeed(0.0);
+					break;
+				case AP_DO_CLEAR_PLAYLIST:
+					playlist->Clear();
 					break;
 				case AP_SET_FLOAT_SPEED:
 					player = playlist->GetCorePlayer();
@@ -129,6 +137,28 @@ void socket_looper(void *arg)
 						write (fd, &pkt, sizeof(ap_pkt_t));
 						write(fd, &float_val, pkt.pld_length);
 					}
+					break;
+				case AP_GET_STRING_SONG_NAME:
+					player = playlist->GetCorePlayer();
+					if (player) {
+						player->GetStreamInfo(&info);
+						pkt.pld_length = strlen(info.title);
+						write (fd, &pkt, sizeof(ap_pkt_t));
+						write(fd, info.title, sizeof(info.title));
+					}	
+					break;
+				case AP_GET_STRING_SESSION_NAME:
+					// Hackery
+					pkt.pld_length = strlen("AlsaPlayer");
+					write (fd, &pkt, pkt.pld_length);
+					write (fd, "AlsaPayer", pkt.pld_length);
+					break;
+				case AP_SET_STRING_ADD_FILE:
+					if (pkt.pld_length && data) {
+						char_val = (char *)data;
+						char_val[pkt.pld_length] = 0; // Null terminate string
+						playlist->Insert(char_val, playlist->Length());
+					}	
 					break;
 				default: alsaplayer_error("CMD = %x\n", pkt.cmd);
 					break;

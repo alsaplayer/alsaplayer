@@ -47,7 +47,7 @@
 #include "interface_plugin.h"
 #include "utilities.h"
 #include "error.h"
-#include "ControlSocket.h"
+#include "external.cpp" /* This is a dirty hack */
 
 Playlist *playlist = NULL;
 
@@ -222,6 +222,7 @@ static void help()
 "Available options:\n"
 "\n"
 "  -d,--device string      select card and device [default=\"default\"]\n"
+"  -e,--enqueue file(s)    queue files in running alsaplayer\n"
 "  -f,--fragsize #         fragment size in bytes [default=4096]\n"
 "  -F,--frequency #        output frequency [default=%d]\n"
 "  -g,--fragcount #        fragment count [default=8]\n"
@@ -260,6 +261,7 @@ int main(int argc, char **argv)
 	int use_loopSong = 0; 
 	int use_loopList = 0;
 	int be_quiet = 0;
+	int do_enqueue = 0;
 	int use_realtime = 0;
 	int use_freq = OUTPUT_RATE;
 	int use_alsa = 1;
@@ -324,6 +326,11 @@ int main(int argc, char **argv)
 				   strcmp(argv[arg_pos], "-v") == 0) {
 			version();
 			return 0;
+		} else if (strcmp(argv[arg_pos], "--enqueue") == 0 ||
+						strcmp(argv[arg_pos], "-e") == 0) {
+						do_enqueue = 1;
+						arg_pos++;
+						last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--crossfade") == 0 ||
 						strcmp(argv[arg_pos], "-x") == 0) {
 						use_crossfade = 1;
@@ -440,6 +447,18 @@ int main(int argc, char **argv)
 	if (!be_quiet)
 		fprintf(stdout, "%s\n", copyright_string);	
 
+	// Check if we need to enqueue the files
+	if (do_enqueue) {
+		int ap_result = 0;
+		while (last_arg < argc && ap_result == 0) {
+			if (ap_set_string(0, AP_SET_STRING_ADD_FILE, argv[last_arg++]) == -1) {
+				last_arg--;
+				ap_result = -1;
+			}
+		}
+		if (ap_result != -1)
+			return 0;
+	}
 
 	AlsaNode *node;
 
@@ -496,23 +515,6 @@ int main(int argc, char **argv)
 		return 1;
 	}	
 	
-	//p = new CorePlayer(node);
-
-	//if (!p)  {
-	//	alsaplayer_error("failed to create CorePlayer object...");
-	//	return 1;
-	//}
-
-	// Reverb effect
-	/*
-	AlsaSubscriber *reverb = NULL;
-	if (use_reverb) {
-		init_reverb();
-		reverb = new AlsaSubscriber();
-		reverb->Subscribe(node);
-		reverb->EnterStream(reverb_func, p);
-	}
-	*/
 	// Initialise playlist - must be done before things try to register with it
 	playlist = new Playlist(node);
 
@@ -521,7 +523,7 @@ int main(int argc, char **argv)
 		return 1;
 	}	
 	// Add any command line arguments to the playlist
-	if (++last_arg < argc) {
+	if (last_arg < argc) {
 		std::vector<std::string> newitems;
 		while (last_arg < argc) {
 			newitems.push_back(std::string(argv[last_arg++]));

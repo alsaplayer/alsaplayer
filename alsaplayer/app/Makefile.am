@@ -26,8 +26,9 @@ endif
 LIBS = -lpthread -ldl $(SUN_LIBS) @JACK_LIB@
 
 COMMON_FLAGS = @DFLAGS@ -D_REENTRANT \
-		-I$(top_srcdir)/include \
 		-DADDON_DIR=\"$(ADDON_DIR)\" @ARCH_CFLAGS@ $(JACK_FLAGS)
+
+INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/libalsaplayer
 
 CXXFLAGS = $(COMMON_FLAGS) $(EXTRA_CFLAGS)
 
