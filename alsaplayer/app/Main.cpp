@@ -59,12 +59,12 @@ int global_reverb_feedback = 0;
 
 int global_verbose = 0;
 
+void control_socket_start(Playlist *);
+void control_socket_stop();
+
 static char addon_dir[1024];
 
 static char *default_pcm_device = "default";
-static pthread_t socket_thread;
-static int socket_fd = 0;
-static int socket_thread_running = 0;
 
 const char *default_output_addons[] = {
 	{ "alsa" },
@@ -91,103 +91,6 @@ static void default_alsaplayer_error (const char *fmt, ...)
 
 void (*alsaplayer_error)(const char *fmt, ...) = &default_alsaplayer_error;
 
-
-void socket_looper(void *arg)
-{
-		Playlist *playlist = (Playlist *)arg;
-		CorePlayer *player;
-		fd_set set;
-		struct timeval tv;
-		struct sockaddr_un saddr;
-		char *data;
-		float *float_val;
-		socklen_t len;
-		int fd;
-		ap_msg_t msg;
-		
-		socket_thread_running = 1;
-	
-		if (!playlist) {
-			alsaplayer_error("No playlist for control socket\n");
-			return;
-		}
-		unlink("/tmp/alsaplayer_0");
-		if ((socket_fd = socket(AF_UNIX, SOCK_STREAM, 0)) != -1) {
-			saddr.sun_family = AF_UNIX;
-			sprintf(saddr.sun_path, "/tmp/alsaplayer_%d", 0);
-			if (bind(socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
-				listen(socket_fd, 100);
-			} else {
-				alsaplayer_error("Error listening on control socket\n");
-				return;
-			}
-		} else {
-			alsaplayer_error("Error setting up control socket\n");
-			return;
-		}	
-		while (socket_thread_running) {
-			FD_ZERO(&set);
-			FD_SET(socket_fd, &set);
-			tv.tv_sec = 0;
-			tv.tv_usec = 100000;
-			len = sizeof (saddr);
-
-			if ((select(socket_fd + 1, &set, NULL, NULL, &tv) <= 0) ||
-					((fd = accept(socket_fd, (struct sockaddr *) &saddr, &len)) == -1))
-					continue;
-			// So we have a connection
-			read(fd, &msg, sizeof(ap_msg_t));
-			if (msg.length && ((data = (char *)malloc(msg.length)) != NULL)) {
-				read(fd, data, msg.length);
-			}	
-			switch(msg.cmd_type) {
-				case CMD_PLAY: 
-					player = playlist->GetCorePlayer();
-					if (player)
-						player->Start();
-					break;
-				case CMD_NEXT: 
-					playlist->Next(1);
-					break;
-				case CMD_PREV:
-					playlist->Prev(1);
-					break;
-				case CMD_STOP:
-					player = playlist->GetCorePlayer();
-					if (player)
-						player->Stop();
-					break;
-				case CMD_PAUSE:
-					player = playlist->GetCorePlayer();
-					if (player)
-						player->SetSpeed(0.0);
-					break;
-				case CMD_SET_SPEED:
-					float_val = (float *)data;
-					//printf("Setting speed to %.2f\n", *float_val);
-					player = playlist->GetCorePlayer();
-					if (player)
-						player->SetSpeed(*float_val);
-					break;
-				case CMD_SET_VOLUME:
-					float_val = (float *)data;
-					//printf("Setting volume to %.2f\n", *float_val);
-					player = playlist->GetCorePlayer();
-					if (player)
-						player->SetVolume((int)*float_val);
-					break;
-				case CMD_PING: 
-					alsaplayer_error("PING...\n");
-					break;
-				default: alsaplayer_error("CMD = %x\n", msg.cmd_type);
-					break;
-			}
-			if (msg.length)
-				free(data);
-			close(fd);	
-		}
-		unlink("/tmp/alsaplayer_0");
-}
 
 void exit_sighandler(int x)
 {
@@ -231,7 +134,7 @@ void load_output_addons(AlsaNode *node, char *module = NULL)
 				return;
 			}
 		} else {
-			printf("%s\n", dlerror());
+			alsaplayer_error("%s\n", dlerror());
 		}
 	}
 
@@ -245,7 +148,7 @@ void load_output_addons(AlsaNode *node, char *module = NULL)
 			output_plugin_info = (output_plugin_info_type) dlsym(handle, "output_plugin_info");
 			if (output_plugin_info) {
 #ifdef DEBUG
-				printf("Loading output plugin: %s\n", path);	
+				alsaplayer_error("Loading output plugin: %s\n", path);	
 #endif
 				if (node->RegisterPlugin(output_plugin_info())) {
 					if (!node->ReadyToRun()) {
@@ -261,7 +164,7 @@ void load_output_addons(AlsaNode *node, char *module = NULL)
 				dlclose(handle);
 			}
 		} else {
-			printf("%s\n", dlerror());
+			alsaplayer_error("%s\n", dlerror());
 		}
 	}
 	// If we arrive here it means we haven't found any suitable output-addons
@@ -282,7 +185,7 @@ interface_plugin_info_type load_interface(char *name)
 	if (name) {
 		sprintf(path, "%s/interface/lib%s.so", addon_dir, name);
 #ifdef DEBUG
-		printf("Loading output plugin: %s\n", path);
+		alsaplayer_error("Loading output plugin: %s\n", path);
 #endif
 		if (stat(path, &statbuf) != 0) // Error reading object
 			return NULL;		
@@ -299,7 +202,7 @@ interface_plugin_info_type load_interface(char *name)
 				return NULL;
 			}
 		} else {
-			printf("%s\n", dlerror());
+			alsaplayer_error("%s\n", dlerror());
 		}
 	}
 	return NULL;
@@ -653,13 +556,13 @@ int main(int argc, char **argv)
 	}	
 	if (strlen(use_interface)) {
 		if (!(interface_plugin_info = load_interface(use_interface))) {
-			printf("Failed to load interface %s\n", use_interface);
+			alsaplayer_error("Failed to load interface %s\n", use_interface);
 			goto _fatal_err;
 		}	
 	} else {
 		if (!(interface_plugin_info = load_interface("gtk"))) {
 			if (!(interface_plugin_info = load_interface("cli"))) {
-				printf("Failed to load cli interface. This is bad\n");
+				alsaplayer_error("Failed to load cli interface. This is bad\n");
 				goto _fatal_err;
 			}
 		}	
@@ -667,18 +570,16 @@ int main(int argc, char **argv)
 	if (interface_plugin_info) {
 		ui = interface_plugin_info();
 		// Load socket interface first
-		pthread_create(&socket_thread, NULL, (void * (*)(void *))socket_looper,
-				playlist);
+		control_socket_start(playlist);
 		printf("Loading Interface plugin: %s\n", ui->name); 
 		if (!ui->init()) {
-			printf("Failed to load gtk+ interface. Should fall back to cli\n");
+			alsaplayer_error("Failed to load gtk+ interface. Should fall back to cli\n");
 		} else {	
 			ui->start(playlist, argc, argv);
 			ui->close();
 			//dlclose(ui->handle);
-		}	
-		socket_thread_running = 0;
-		pthread_join(socket_thread, NULL);
+		}
+		control_socket_stop();
 	}	
 _fatal_err:	
 	delete playlist;
@@ -686,5 +587,3 @@ _fatal_err:
 	delete node;
 	return 0;	
 }
-
-// Last Edited: <27 Aug 2001 19:21:40 (Andy)>
