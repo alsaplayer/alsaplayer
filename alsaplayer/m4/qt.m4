@@ -4,7 +4,7 @@ dnl Copyright (C) 2001 Rik Hemsley (rikkus) <rik@kde.org>
 dnl AM_PATH_QT([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 AC_DEFUN(AM_PATH_QT,
 [
-AC_CHECKING([for Qt ...])
+AC_CHECKING([for Qt 3.0, built with -thread ...])
 
 AC_LANG_SAVE
 AC_LANG_CPLUSPLUS
@@ -72,10 +72,10 @@ else
 
   for dir in $GUESS_QT_LIB_DIRS
   do
-    if test -e $dir/libqt.so
+    if test -e $dir/libqt-mt.so
     then
       qt_libdir=$dir
-      AC_MSG_RESULT([assuming $dir/libqt.so])
+      AC_MSG_RESULT([assuming $dir/libqt-mt.so])
       break
     fi
   done
@@ -123,7 +123,7 @@ else
   found_qt="no"
 
   LDFLAGS="$LDFLAGS -L$qt_libdir"
-  LIBS="$LIBS -lqt"
+  LIBS="$LIBS -lqt-mt"
   CXXFLAGS="$CXXFLAGS -I$qt_incdir"
   LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$qt_libdir"
 
@@ -131,7 +131,7 @@ else
 #include <qstring.h>
   ],
   [
-#if QT_VERSION < 231
+#if QT_VERSION < 300
 #error Qt version too old
 #endif
   QString s("Hello, world!");
@@ -145,7 +145,7 @@ else
   if test "x$found_qt" = "xyes"
   then
     QT_CXXFLAGS="-I$qt_incdir"
-    QT_LIBS="-L$qt_libdir -lqt"
+    QT_LIBS="-L$qt_libdir -lqt-mt"
     MOC="$qt_bindir/moc"
     UIC="$qt_bindir/uic"
     ifelse([$1], , :, [$1])
