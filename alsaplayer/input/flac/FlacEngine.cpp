@@ -91,7 +91,6 @@ FlacEngine::init ()
     }
     if (tryme <= 32)
     {
-	std::cerr << "apfpff is " << tryme << std::endl;
 	_apFramesPerFlacFrame = tryme;
     }
     else
