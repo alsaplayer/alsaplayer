@@ -1,27 +1,27 @@
 if HAVE_NAS
 
-nasltlibs = libnas.la
-nasldflags = -export-dynamic -avoid-version
-nassources = nas.c
+nas_outltlibs = libnas_out.la
+nas_outldflags = -export-dynamic -avoid-version
+nas_outsources = nas.c
 
 else
 
-nasltlibs =
-nasldflags =
-nassources =
+nas_outltlibs =
+nas_outldflags =
+nas_outsources =
 
 endif
 
 EXTRA_DIST = nas.c
 
-lib_LTLIBRARIES = $(nasltlibs)
+lib_LTLIBRARIES = $(nas_outltlibs)
 
 CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
 			@ARCH_CFLAGS@	
 
 libdir = $(ADDON_DIR)/output
 
-libnas_la_LDFLAGS = $(nasldflags)
+libnas_out_la_LDFLAGS = $(nas_outldflags)
 LIBS = @NAS_LIB@
 
-libnas_la_SOURCES= $(nassources)
+libnas_out_la_SOURCES= $(nas_outsources)

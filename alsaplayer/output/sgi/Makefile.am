@@ -2,26 +2,26 @@ EXTRA_DIST= sgi.c
 
 if HAVE_SGI
 
-sgiltlibs = libsgi.la
-sgildflags = -export-dynamic -avoid-version
-sgisources = sgi.c
+sgi_outltlibs = libsgi_out.la
+sgi_outldflags = -export-dynamic -avoid-version
+sgi_outsources = sgi.c
 
 else
 
-sgiltlibs =
-sgildflags =
-sgisources =
+sgi_outltlibs =
+sgi_outldflags =
+sgi_outsources =
 
 endif
 
 
-lib_LTLIBRARIES = $(sgiltlibs)
+lib_LTLIBRARIES = $(sgi_outltlibs)
 
 CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include @ARCH_CFLAGS@ 
 
 libdir = $(ADDON_DIR)/output
 
-libsgi_la_LDFLAGS = $(sgildflags)
+libsgi_out_la_LDFLAGS = $(sgi_outldflags)
 LIBS = @SGI_LIBS@
 
-libsgi_la_SOURCES= $(sgisources)
+libsgi_out_la_SOURCES= $(sgi_outsources)

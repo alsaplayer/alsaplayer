@@ -103,22 +103,20 @@ static int esound_get_latency()
 	return ((256*256));	// Hardcoded, but esd sucks ass
 }
 
-output_plugin esd_output = {
-	OUTPUT_PLUGIN_VERSION,
-	"ESD output v1.0 (broken for mono output)",
-	"Andy Lo A Foe",
-	esound_init,
-	esound_open,
-	esound_close,
-	esound_write,
-	esound_set_buffer,
-	esound_set_sample_rate,
-	NULL,
-	esound_get_latency
-};
-
+output_plugin esound_output;
 
 output_plugin *output_plugin_info(void)
 {
-	return &esd_output;
+	memset(&esound_output, 0, sizeof(output_plugin));
+	esound_output.version = OUTPUT_PLUGIN_VERSION;
+	esound_output.name = "ESD output v1.0 (broken for mono output)";
+	esound_output.author = "Andy Lo A Foe";
+	esound_output.init = esound_init;
+	esound_output.open = esound_open;
+	esound_output.close = esound_close;
+	esound_output.write = esound_write;
+	esound_output.set_buffer = esound_set_buffer;
+	esound_output.set_sample_rate = esound_set_sample_rate;
+	esound_output.get_latency = esound_get_latency;
+	return &esound_output;
 }

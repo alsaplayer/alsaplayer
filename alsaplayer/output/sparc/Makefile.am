@@ -1,26 +1,26 @@
 if HAVE_SPARC
 
-sparcltlibs = libsparc.la
-sparcldflags = -export-dynamic -avoid-version
-sparcsources = sparc.c
+sparc_outltlibs = libsparc_out.la
+sparc_outldflags = -export-dynamic -avoid-version
+sparc_outsources = sparc_out.c
 
 else
 
-sparclitlibs =
-sparcldflags =
-sparcsources =
+sparc_outlitlibs =
+sparc_outldflags =
+sparc_outsources =
 
 endif
 
 EXTRA_DIST = sparc.c
 
-lib_LTLIBRARIES = $(sparcltlibs)
+lib_LTLIBRARIES = $(sparc_outltlibs)
 
 CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer @ARCH_CFLAGS@ 
 
 libdir = $(ADDON_DIR)/output
 
-libsparc_la_LDFLAGS = $(sparcldflags)
+libsparc_out_la_LDFLAGS = $(sparc_outldflags)
 LIBS =
 
-libsparc_la_SOURCES= $(sparcsources)
+libsparc_out_la_SOURCES= $(sparc_outsources)

@@ -103,21 +103,20 @@ static int sgi_get_latency ()
 	return ((256*256));
 }
 
-output_plugin sgi_output = {
-	OUTPUT_PLUGIN_VERSION,
-	"SGI Audio Library output v1.0 (broken for mono output)",
-	"Michael Pruett",
-	sgi_init,
-	sgi_open,
-	sgi_close,
-	sgi_write,
-	sgi_set_buffer,
-	sgi_set_sample_rate,
-	NULL,
-	sgi_get_latency
-};
+output_plugin sgi_output;
 
 output_plugin *output_plugin_info(void)
 {
+	memset(&sgi_output, 0, sizeof(output_plugin));
+	sgi_output.version = OUTPUT_PLUGIN_VERSION;
+	sgi_output.name = "SGI Audio Library output v1.0 (broken for mono output)";
+	sgi_output.author = "Michael Pruett";
+	sgi_output.init = sgi_init;
+	sgi_output.open = sgi_open;
+	sgi_output.close = sgi_close;
+	sgi_output.write = sgi_write;
+	sgi_output.set_buffer = sgi_set_buffer;
+	sgi_output.set_sample_rate = sgi_set_sample_rate;
+	sgi_output.get_latency = sgi_get_latency;
 	return &sgi_output;
 }

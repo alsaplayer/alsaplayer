@@ -1,24 +1,24 @@
 if HAVE_OSS
 
-ossltlibs = liboss.la
-ossldflags = -export-dynamic -avoid-version
-osssources = oss.c
+oss_outltlibs = liboss_out.la
+oss_outldflags = -export-dynamic -avoid-version
+oss_outsources = oss.c
 
 else
 
-osslitlibs =
-ossldflags =
-osssources =
+oss_outlitlibs =
+oss_outldflags =
+oss_outsources =
 
 endif
 
-lib_LTLIBRARIES = $(ossltlibs)
+lib_LTLIBRARIES = $(oss_outltlibs)
 
 CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer @ARCH_CFLAGS@ 
 
 libdir = $(ADDON_DIR)/output
 
-liboss_la_LDFLAGS = $(ossldflags)
+liboss_out_la_LDFLAGS = $(oss_outldflags)
 LIBS =
 
-liboss_la_SOURCES= $(osssources)
+liboss_out_la_SOURCES= $(oss_outsources)

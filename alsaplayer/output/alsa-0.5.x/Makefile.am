@@ -1,27 +1,27 @@
 if HAVE_ALSA_05X
 
-alsaltlibs = libalsa.la
-alsaldflags = -export-dynamic -avoid-version
-alsasources = alsa.c
+alsa_outltlibs = libalsa_out.la
+alsa_outldflags = -export-dynamic -avoid-version
+alsa_outsources = alsa_out.c
 
 else
 
-alsaltlibs =
-alsaldflags =
-alsasources =
+alsa_outltlibs =
+alsa_outldflags =
+alsa_outsources =
 
 endif
 
 EXTRA_DIST= alsa.c
 
-lib_LTLIBRARIES = $(alsaltlibs)
+lib_LTLIBRARIES = $(alsa_outltlibs)
 
 CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
 			@ARCH_CFLAGS@	
 
 libdir = $(ADDON_DIR)/output
 
-libalsa_la_LDFLAGS = $(alsaldflags)
+libalsa_out_la_LDFLAGS = $(alsa_outldflags)
 LIBS = @ALSA_LIB@
 
-libalsa_la_SOURCES= $(alsasources)
+libalsa_out_la_SOURCES= $(alsa_outsources)

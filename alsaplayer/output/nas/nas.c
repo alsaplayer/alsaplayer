@@ -289,22 +289,20 @@ static int nas_set_sample_rate(int rate)
 }
 
 
-output_plugin nas_output = {
-	OUTPUT_PLUGIN_VERSION,
-	"NAS output v0.2 (30-Mar-2000)",
-	"Erik Inge Bolsø",
-	nas_init,
-	nas_open,
-	nas_close,
-	nas_write,
-	nas_set_buffer,
-	nas_set_sample_rate,
-	NULL,
-	NULL
-};
+output_plugin nas_output;
 
 
 output_plugin *output_plugin_info(void)
 {
+	memset(&nas_output, 0, sizeof(output_plugin));
+	nas_output.version = OUTPUT_PLUGIN_VERSION;
+	nas_output.name = "NAS output v0.2 (30-Mar-2000)";
+	nas_output.author = "Erik Inge Bolsø";
+	nas_output.init = nas_init;
+	nas_output.open = nas_open;
+	nas_output.close = nas_close;
+	nas_output.write = nas_write;
+	nas_output.set_buffer = nas_set_buffer;
+	nas_output.set_sample_rate = nas_set_sample_rate;
 	return &nas_output;
 }

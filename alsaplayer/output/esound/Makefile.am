@@ -2,27 +2,27 @@ EXTRA_DIST = esound.c
 
 if HAVE_ESD
 
-esoundltlibs = libesound.la
-esoundldflags = -export-dynamic -avoid-version
-esoundsources = esound.c
+esound_outltlibs = libesound_out.la
+esound_outldflags = -export-dynamic -avoid-version
+esound_outsources = esound.c
 
 else
 
-esoundltlibs =
-esoundldflags =
-esoundsources =
+esound_outltlibs =
+esound_outldflags =
+esound_outsources =
 
 endif
 
 
-lib_LTLIBRARIES = $(esoundltlibs)
+lib_LTLIBRARIES = $(esound_outltlibs)
 
 CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
 			@ARCH_CFLAGS@ @ESD_CFLAGS@
 
 libdir = $(ADDON_DIR)/output
 
-libesound_la_LDFLAGS = $(esoundldflags)
+libesound_out_la_LDFLAGS = $(esound_outldflags)
 LIBS = @ESD_LIBS@
 
-libesound_la_SOURCES= $(esoundsources)
+libesound_out_la_SOURCES= $(esound_outsources)

@@ -15,7 +15,7 @@ static int sparc_open(int card, int dev)
 {
 	audio_info_t ainfo;
 	struct audio_device ad;
-	
+
 	sparc_audio = open("/dev/audio", O_WRONLY);
 
 	if (sparc_audio < 0) {
@@ -34,8 +34,8 @@ static int sparc_open(int card, int dev)
 	ainfo.play.port |= AUDIO_SPEAKER;
 
 	if(ioctl(sparc_audio, AUDIO_SETINFO, &ainfo) == -1) {
-			close(sparc_audio);
-			return 0;
+		close(sparc_audio);
+		return 0;
 	}		
 	return 1;	
 }	
@@ -66,36 +66,34 @@ static int sparc_set_buffer(int fragment_size, int fragment_count, int channels)
 
 static int sparc_set_sample_rate(int rate)
 {
-		audio_info_t ainfo;
-	
-		AUDIO_INITINFO(&ainfo);
-		ainfo.play.sample_rate = rate;
-		ainfo.play.channels = 2;
-		ainfo.play.encoding = AUDIO_ENCODING_LINEAR;
-		ainfo.play.precision = 16;
-		ainfo.play.buffer_size = 20480;
-		if(ioctl(sparc_audio, AUDIO_SETINFO, &ainfo) == -1)
-			return 0;
-		return rate;
+	audio_info_t ainfo;
+
+	AUDIO_INITINFO(&ainfo);
+	ainfo.play.sample_rate = rate;
+	ainfo.play.channels = 2;
+	ainfo.play.encoding = AUDIO_ENCODING_LINEAR;
+	ainfo.play.precision = 16;
+	ainfo.play.buffer_size = 20480;
+	if(ioctl(sparc_audio, AUDIO_SETINFO, &ainfo) == -1)
+		return 0;
+	return rate;
 }
 
 
-output_plugin sparc_output = {
-		OUTPUT_PLUGIN_VERSION,
-		"SPARC output v1.0",
-		"The 5 minute hack dept.",
-		sparc_init,
-		sparc_open,
-		sparc_close,
-		sparc_write,
-		sparc_set_buffer,
-		sparc_set_sample_rate,
-		NULL,
-		NULL
-};
+output_plugin sparc_output;
 
 output_plugin *output_plugin_info(void)
 {
-		return &sparc_output;
+	memset(&sparc_output, 0, sizeof(output_plugin));
+	sparc_output.version = OUTPUT_PLUGIN_VERSION;
+	sparc_output.name = "SPARC output v1.0";
+	sparc_output.author = "The 5 minute hack dept.";
+	sparc_output.init = sparc_init;
+	sparc_output.open = sparc_open;
+	sparc_output.close = sparc_close;
+	sparc_output.write = sparc_write;
+	sparc_output.set_buffer = sparc_set_buffer;
+	sparc_output.set_sample_rate = sparc_set_sample_rate;
+	return &sparc_output;
 }		
-		
+

@@ -72,22 +72,20 @@ static int null_get_latency()
 	return 4096;
 }
 
-output_plugin null_output = {
-	OUTPUT_PLUGIN_VERSION,
-	{ "NULL output v1.0" },
-	{ "Andy Lo A Foe" },
-	null_init,
-	null_open,
-	null_close,
-	null_write,
-	null_set_buffer,
-	null_set_sample_rate,
-	NULL,
-	null_get_latency
-};
-
+output_plugin null_output;
 
 output_plugin *output_plugin_info(void)
 {
+	memset(&null_output, 0, sizeof(output_plugin));
+	null_output.version = OUTPUT_PLUGIN_VERSION;
+	null_output.name = "NULL output v1.0";
+	null_output.author = "Andy Lo A Foe";
+	null_output.init = null_init;
+	null_output.open = null_open;
+	null_output.close = null_close;
+	null_output.write = null_write;
+	null_output.set_buffer = null_set_buffer;
+	null_output.set_sample_rate = null_set_sample_rate;
+	null_output.get_latency = null_get_latency;
 	return &null_output;
 }

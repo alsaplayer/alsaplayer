@@ -223,28 +223,32 @@ static int alsa_get_latency()
 	return (frag_size * frag_count);
 }
 
-output_plugin alsa_output = {
-	OUTPUT_PLUGIN_VERSION,
-	"ALSA output v1.9.0beta12",
-	"Andy Lo A Foe",
-	alsa_init,
-	alsa_open,
-	alsa_close,
-	alsa_write,
-	alsa_set_buffer,
-	alsa_set_sample_rate,
-#ifdef QUEUE_COUNT
-	alsa_get_queue_count,
-#else
-	NULL,
-#endif	
-	alsa_get_latency,
-};
+output_plugin alsa_output;
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+	
 output_plugin *output_plugin_info(void)
 {
+	memset(&alsa_output, 0, sizeof(output_plugin));
+	alsa_output.version = OUTPUT_PLUGIN_VERSION;
+	alsa_output.name = "ALSA output v1.9.0beta12";
+	alsa_output.author = "Andy Lo A Foe";
+	alsa_output.init = alsa_init;
+	alsa_output.open = alsa_open;
+	alsa_output.close = alsa_close;
+	alsa_output.write = alsa_write;
+	alsa_output.set_buffer = alsa_set_buffer;
+	alsa_output.set_sample_rate = alsa_set_sample_rate;
+#ifdef QUEUE_COUNT
+	alsa_output.get_queue_count = alsa_get_queue_count;
+#endif
+	alsa_output.get_latency = alsa_get_latency;
+	
 	return &alsa_output;
 }
 
-
+#ifdef __cplusplus
+}
+#endif

@@ -102,22 +102,28 @@ static int oss_set_sample_rate(int rate)
 }
 
 
-output_plugin oss_output = {
-	OUTPUT_PLUGIN_VERSION,
-	"OSS output v1.0",
-	"Andy Lo A Foe",
-	oss_init,
-	oss_open,
-	oss_close,
-	oss_write,
-	oss_set_buffer,
-	oss_set_sample_rate,
-	NULL,
-	NULL
-};
+output_plugin oss_output;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 output_plugin *output_plugin_info(void)
 {
+	memset(&oss_output, 0, sizeof(output_plugin));
+	oss_output.version = OUTPUT_PLUGIN_VERSION;
+	oss_output.name = "OSS output v1.0";
+	oss_output.author = "Andy Lo A Foe";
+	oss_output.init = oss_init;
+	oss_output.open = oss_open;
+	oss_output.close = oss_close;
+	oss_output.write = oss_write;
+	oss_output.set_buffer = oss_set_buffer;
+	oss_output.set_sample_rate = oss_set_sample_rate;
 	return &oss_output;
 }
+
+#ifdef __cplusplus
+}
+#endif
+
