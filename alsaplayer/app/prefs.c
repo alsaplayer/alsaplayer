@@ -93,7 +93,7 @@ prefs_handle_t *prefs_load(const char *filename)
 	return prefs;
 }
 
-void prefs_set_int(prefs_handle_t *prefs, char *section, char *key, int val)
+void prefs_set_int(prefs_handle_t *prefs, const char *section, char *key, int val)
 {
 	char str[1024];
 	
@@ -104,7 +104,7 @@ void prefs_set_int(prefs_handle_t *prefs, char *section, char *key, int val)
 }
 
 
-void prefs_set_bool(prefs_handle_t *prefs, char *section, char *key, int val)
+void prefs_set_bool(prefs_handle_t *prefs, const char *section, char *key, int val)
 {
 	char str[1024];
 
@@ -115,7 +115,7 @@ void prefs_set_bool(prefs_handle_t *prefs, char *section, char *key, int val)
 }
 
 
-static prefs_key_t *prefs_find_key(prefs_handle_t *prefs, char *section, char *key)
+static prefs_key_t *prefs_find_key(prefs_handle_t *prefs, const char *section, char *key)
 {
 	prefs_key_t *entry;
 
@@ -130,20 +130,16 @@ static prefs_key_t *prefs_find_key(prefs_handle_t *prefs, char *section, char *k
 	return NULL;
 }
 
-void prefs_set_string(prefs_handle_t *prefs, char *section, char *key, char *val)
+void prefs_set_string(prefs_handle_t *prefs, const char *section, char *key, char *val)
 {
 	prefs_key_t *entry;
-	int len;
 
 	if (!prefs || !key || !section)
 		return;
 
 	if ((entry = prefs_find_key(prefs, section, key))) { /* Already in prefs, replace */
 		free(entry->value);
-		len = strlen(val);
-		entry->value = (char *)malloc(len+1);
-		if (entry->value)
-			strncpy(entry->value, val, len+1);
+		entry->value = strdup(val);
 	} else { /* New entry */
 		entry = (prefs_key_t *)malloc(sizeof(prefs_key_t));
 		if (!entry)
@@ -152,34 +148,27 @@ void prefs_set_string(prefs_handle_t *prefs, char *section, char *key, char *val
 		/* Set all field to NULL */
 		memset(entry, 0, sizeof(prefs_key_t));
 
-		len = strlen(section);
-		entry->section = (char *)malloc(len+1);
+		entry->section = strdup(section);
 		if (!entry->section) {
 				free(entry);
 				return;
 		}
-		strncpy(entry->section, section, len+1);
-		
-		
-		len = strlen(key);
-		entry->key = (char *)malloc(len+1);
+
+		entry->key = strdup(key);
 		if (!entry->key) {
 			free(entry->section);
 			free(entry);
 			return;
 		}
-		strncpy(entry->key, key, len+1);
-		
-		len = strlen(val);
-		entry->value = (char *)malloc(len+1);
+
+		entry->value = strdup(val);
 		if (!entry->value) {
 			free(entry->section);
 			free(entry->key);
 			free(entry);
 			return;
 		}	
-		strncpy(entry->value, val, len+1);
-		
+
 		/* XXX Need to protect the following with a mutex */	
 		if (prefs->last) {
 			prefs->last->next = entry;
@@ -190,7 +179,7 @@ void prefs_set_string(prefs_handle_t *prefs, char *section, char *key, char *val
 	}		
 }
 
-void prefs_set_float(prefs_handle_t *prefs, char *section, char *key, float val)
+void prefs_set_float(prefs_handle_t *prefs, const char *section, char *key, float val)
 {
 	char str[1024];
 	
@@ -201,7 +190,7 @@ void prefs_set_float(prefs_handle_t *prefs, char *section, char *key, float val)
 }
 
 
-int prefs_get_bool(prefs_handle_t *prefs, char *section, char *key, int default_val)
+int prefs_get_bool(prefs_handle_t *prefs, const char *section, char *key, int default_val)
 {
 	char str[1024];
 	char *res;
@@ -219,7 +208,7 @@ int prefs_get_bool(prefs_handle_t *prefs, char *section, char *key, int default_
 }
 
 
-int prefs_get_int(prefs_handle_t *prefs, char *section, char *key, int default_val)
+int prefs_get_int(prefs_handle_t *prefs, const char *section, char *key, int default_val)
 {
 	char str[1024];
 	char *res;
@@ -234,7 +223,7 @@ int prefs_get_int(prefs_handle_t *prefs, char *section, char *key, int default_v
 	return val;
 }
 
-char *prefs_get_string(prefs_handle_t *prefs, char *section, char *key, char *default_val)
+char *prefs_get_string(prefs_handle_t *prefs, const char *section, char *key, char *default_val)
 {
 	prefs_key_t *entry;
 
@@ -250,7 +239,7 @@ char *prefs_get_string(prefs_handle_t *prefs, char *section, char *key, char *de
 }
 
 
-float prefs_get_float(prefs_handle_t *prefs, char *section, char *key, float default_val)
+float prefs_get_float(prefs_handle_t *prefs, const char *section, char *key, float default_val)
 {
 	char str[1024];
 	char *res;
