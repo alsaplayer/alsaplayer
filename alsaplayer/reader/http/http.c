@@ -667,9 +667,9 @@ static size_t http_metadata (void *d, size_t size, void *data)
 	msize = strlen(desc->metadata);
 	if (msize > size)
 		msize = size;
-	memcpy(data, desc->metadata, size);
+	memcpy(data, desc->metadata, msize);
 	pthread_mutex_unlock (&desc->meta_lock);
-	return size;
+	return msize;
 }
 
 
