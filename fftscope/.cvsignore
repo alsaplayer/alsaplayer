@@ -11,5 +11,9 @@ stamp-h
 aclocal.m4
 acinclude.m4
 autom4te.cache
+stamp-h.in
+*.la
+*.lo
+.libs
 .xvpics
 .deps
