@@ -22,50 +22,21 @@
 extern "C" {
 #endif
 
-#define AP_CONTROL_BASE_VERSION	0x1000
-#define AP_CONTROL_VERSION	(AP_CONTROL_BASE_VERSION + 4)
-	
-typedef enum  {
-	AP_DO_PLAY = 0x1,
-	AP_DO_STOP,
-	AP_DO_NEXT,
-	AP_DO_PREV,
-	AP_DO_PAUSE,
-	AP_DO_UNPAUSE,
-	AP_DO_CLEAR_PLAYLIST,
-	AP_DO_QUIT,
-	AP_GET_FLOAT_PING,
-	AP_SET_FLOAT_VOLUME,
-	AP_GET_FLOAT_VOLUME,
-	AP_SET_FLOAT_SPEED,
-	AP_GET_FLOAT_SPEED,
-	AP_GET_STRING_SESSION_NAME,
-	AP_GET_STRING_SONG_NAME,
-	AP_GET_STRING_TITLE,
-	AP_GET_STRING_ARTIST,
-	AP_GET_STRING_ALBUM,
-	AP_GET_STRING_GENRE,
-	AP_GET_INT_TRACK_NUMBER,
-	AP_GET_INT_YEAR,
-	AP_SET_STRING_ADD_FILE,
-	AP_GET_INT_SONG_LENGTH_SECOND,
-	AP_GET_INT_SONG_LENGTH_FRAME,
-	AP_SET_INT_POS_SECOND,
-	AP_GET_INT_POS_SECOND,
-	AP_SET_INT_POS_FRAME,
-	AP_GET_INT_POS_FRAME
-} ap_cmd_t;	
-
-int ap_do(int session, ap_cmd_t cmd);
-int ap_get_int(int session, ap_cmd_t cmd, int *val);
-int ap_set_int(int session ,ap_cmd_t cmd, int val);
-int ap_get_float(int session, ap_cmd_t cmd, float *val);
-int ap_set_float(int session, ap_cmd_t cmd, float val);
-int ap_get_string(int session, ap_cmd_t cmd, char *val);
-int ap_set_string(int session, ap_cmd_t cmd, char *val);
 int ap_find_session(char *session_name);
 int ap_session_running(int session);
 int ap_version();
+
+int ap_play(int session);
+int ap_stop(int session);
+int ap_pause(int session);
+int ap_next(int session);
+int ap_prev(int session);
+int ap_ping(int session);
+int ap_clear_playlist(int session);
+int ap_get_session_name(int session, char *name);
+int ap_set_speed(int session, float speed);
+int ap_get_speed(int session, float *speed);
+int ap_add_path(int session, char *path);
 
 #ifdef __cplusplus
 }
