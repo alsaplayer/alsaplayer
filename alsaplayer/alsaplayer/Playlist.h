@@ -44,6 +44,7 @@ class PlayItem
 			filename = filename_new;
 			playtime = 0;
 			parsed = false;
+			marked_to_keep_curritem = 0;
 		}
 		bool Parsed() { return parsed; }
 		void SetParsed() { parsed = true; }
@@ -56,6 +57,8 @@ class PlayItem
 		std::string track;
 		std::string comment;
 		int playtime;
+		
+		bool marked_to_keep_curritem;	    // Don't use it if you don't what is it!
 };
 
 // C interface for the playlist

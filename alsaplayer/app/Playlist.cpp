@@ -730,10 +730,24 @@ void Playlist::Remove(unsigned start, unsigned end) {
 void Playlist::Shuffle() {
 	std::set<PlaylistInterface *>::const_iterator i;
 	std::set<playlist_interface *>::const_iterator j;
-
+	std::vector<PlayItem>::iterator p;
+	
+	if (!queue.size ())  return;
+	
 	Lock();
 
+	// Mark curritem
+	(*(queue.begin() + curritem - 1)).marked_to_keep_curritem = 1;
+	
+	// Shuffle
 	random_shuffle(queue.begin(), queue.end());
+
+	// Search new location of the playing song
+	for (p = queue.begin (), curritem = 1; p != queue.end (); p++, curritem++)
+	    if ((*p).marked_to_keep_curritem == 1)
+		break;
+	
+	(*(queue.begin() + curritem - 1)).marked_to_keep_curritem = 0;
 	
 	// Tell the subscribing interfaces about the change
 	if(interfaces.size() > 0) {
@@ -741,7 +755,6 @@ void Playlist::Shuffle() {
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
 			(*i)->CbClear();
 			(*i)->CbInsert(queue, 0);
-			curritem = 0;
 			(*i)->CbSetCurrent(curritem);
 		}
 	}
@@ -749,11 +762,11 @@ void Playlist::Shuffle() {
 		for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
 			(*j)->cbclear((*j)->data);
 			(*j)->cbinsert((*j)->data, queue, 0);
-			curritem = 0;
 			(*j)->cbsetcurrent((*j)->data, curritem);
 		}
 
 	}
+
 	Unlock();
 }
 
@@ -1005,7 +1018,10 @@ bool Playlist::CanPlay(std::string const & path) {
 void Playlist::Sort (std::string const &seq) {
 	std::set<PlaylistInterface *>::const_iterator i;
 	std::set<playlist_interface *>::const_iterator j;
+	std::vector<PlayItem>::iterator p;
 
+	if (!queue.size ())  return;
+	
 	Lock();
 
 	// We will use global sort_seq variable, so lock it
@@ -1014,19 +1030,28 @@ void Playlist::Sort (std::string const &seq) {
 	// Let the sort_comparator function to know seq value
 	sort_seq = seq.c_str ();
 
+	// Mark curritem
+	(*(queue.begin() + curritem - 1)).marked_to_keep_curritem = 1;
+
 	// Sort
 	sort (queue.begin(), queue.end(), sort_comparator);
 
 	// Lets other playlists use sort_seq variable
 	pthread_mutex_unlock(&playlist_sort_seq_mutex);
+
+	// Search new location of the playing song
+	for (p = queue.begin (), curritem = 1; p != queue.end (); p++, curritem++)
+	    if ((*p).marked_to_keep_curritem == 1)
+		break;
+	
+	(*(queue.begin() + curritem - 1)).marked_to_keep_curritem = 0;
 	
 	// Tell the subscribing interfaces about the change
-	if(interfaces.size() > 0) {
+	if (interfaces.size() > 0) {
 		// Clear and repopulate
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
 			(*i)->CbClear();
 			(*i)->CbInsert(queue, 0);
-			curritem = 0;
 			(*i)->CbSetCurrent(curritem);
 		}
 	}
@@ -1034,7 +1059,6 @@ void Playlist::Sort (std::string const &seq) {
 		for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
 			(*j)->cbclear((*j)->data);
 			(*j)->cbinsert((*j)->data, queue, 0);
-			curritem = 0;
 			(*j)->cbsetcurrent((*j)->data, curritem);
 		}
 
