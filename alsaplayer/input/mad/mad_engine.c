@@ -642,7 +642,9 @@ static void parse_id3 (const char *path, stream_info *info)
 static int mad_stream_info(input_object *obj, stream_info *info)
 {
 	struct mad_local_data *data;	
-
+	unsigned len;
+	char *s;
+	
 	if (!obj || !info)
 		return 0;
 
@@ -650,8 +652,19 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 
 	if (data) {
 		if (!data->parsed_id3) {
-	            if (reader_seekable(data->mad_fd))
+	            if (reader_seekable(data->mad_fd)) {
 			    parse_id3 (data->path, &data->sinfo);
+			    if ((len = strlen(data->sinfo.title))) {
+				    s = data->sinfo.title + (len - 1);
+				    while (s != data->sinfo.title && *s == ' ')
+					    *(s--) = '\0';
+			    }
+			    if ((len = strlen(data->sinfo.artist))) {
+				    s = data->sinfo.artist + (len - 1);
+				    while (s != data->sinfo.artist && *s == ' ')
+					    *(s--) = '\0';
+			    }
+		    }
 		    strncpy (data->sinfo.path, data->path, sizeof(data->sinfo.path));
 		    data->parsed_id3 = 1;
 		}
