@@ -464,9 +464,20 @@ int main(int argc, char **argv)
 
 	// Check if we need to enqueue the files
 	if (do_enqueue) {
+		char queue_name[2048];
 		int ap_result = 0;
 		while (last_arg < argc && ap_result == 0) {
-			if (ap_set_string(0, AP_SET_STRING_ADD_FILE, argv[last_arg++]) == -1) {
+			if (argv[last_arg][0] != '/') { // Not absolute so append cwd
+				if (getcwd(queue_name, 1024) == NULL) {
+					alsaplayer_error("error getting cwd\n");
+					return 1;
+				}
+				strcat(queue_name, "/");
+				strcat(queue_name, argv[last_arg]);
+			} else
+				strcpy(queue_name, argv[last_arg]);
+			last_arg++;	
+			if (ap_set_string(0, AP_SET_STRING_ADD_FILE, queue_name) == -1) {
 				last_arg--;
 				ap_result = -1;
 			}

@@ -20,6 +20,7 @@
  *
 */ 
 
+#include "AlsaPlayer.h"
 #include "config.h"
 #include <sys/mman.h>
 #include <sys/types.h>
@@ -75,7 +76,10 @@ AlsaNode::AlsaNode(char *name, int realtime)
 		memset(&subs[i], 0, sizeof(subscriber));
 	}	
 #ifdef USE_JACK
-	sprintf(client_name, "alsaplayer-%d", getpid());
+	if (global_session_name)
+		sprintf(client_name, "%s", global_session_name);
+	else	
+		sprintf(client_name, "alsaplayer-%d", getpid());
 	if (strncmp(name, "jack", 4) == 0) { // Use JACK
 		if ((client = jack_client_new(client_name)) == 0) {
 			alsaplayer_error("jack server not running?");
