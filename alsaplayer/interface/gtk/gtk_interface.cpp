@@ -22,6 +22,7 @@
 #include "alsaplayer_error.h"
 #include <unistd.h>
 #include <sys/types.h>
+#include <assert.h>
 //#define NEW_SCALE
 //#define SUBSECOND_DISPLAY 
 
