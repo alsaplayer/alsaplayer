@@ -243,7 +243,7 @@ fprintf(stderr,"%08lx ",newhead);
 #endif
 		   goto read_again;
       }
-      if (1) { // param.tryresync) {
+      if (1) { /* param.tryresync) { */
         int s_try = 0;
             /* Read more bytes until we find something that looks
                reasonably like a valid header.  This is not a
@@ -260,7 +260,7 @@ fprintf(stderr,"%08lx ",newhead);
         } while ((newhead & HDRCMPMASK) != (oldhead & HDRCMPMASK)
               && (newhead & HDRCMPMASK) != (firsthead & HDRCMPMASK));
 #ifdef DEBUG
-		//if (!param.quiet)
+		/* if (!param.quiet) */
           fprintf (stderr, "Skipped %d bytes in input.\n", s_try);
 #endif
 	  }
@@ -356,7 +356,7 @@ static int decode_header(struct frame *fr,unsigned long newhead)
       fr->mpeg25 = 1;
     }
     
-    //if (!param.tryresync || !oldhead) {
+    /* if (!param.tryresync || !oldhead) { */
     if (!oldhead) { 
 		/* If "tryresync" is true, assume that certain
              parameters do not change within the stream! */
