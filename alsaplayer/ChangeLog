@@ -1,3 +1,4 @@
+* extended API; complete playlists may be loaded now
 * removed --enable-tophack. It just hid internal problems from the developers.
 * MAD plugin converted to new reader plugin API. This also means we don't use
   mmap() any longer. Now also handles files with large ID3 tags better.
