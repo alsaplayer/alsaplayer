@@ -57,6 +57,7 @@
 #define BLEN 255
 
 struct cdda_local_data {
+	char device_path[1024];
 	int cdrom_fd;
 	int samplerate;
 	int track_length;
@@ -248,36 +249,33 @@ static float cdda_can_handle(const char *name)
 static int cdda_open(input_object *obj, char *name)
 {
 	struct cdda_local_data *data;	
-	char *fname;	
+	char *fname;
+	char device_name[1024];
 	int cdrom_fd;
 
 	if (!obj)
 			return 0;
-
 	
 	fname = strrchr(name, '/');
-	if (fname) {
-		*fname = '\0';
-		do {
-			fname++;
-		} while (*fname == '/');
-	} else {
-		if (ap_prefs) {
-			name = prefs_get_string(ap_prefs, "cdda.device", DEFAULT_DEVICE);
-		} else {
-			name = DEFAULT_DEVICE;
-		}	
-		fname = "Track 01.cdda";
-	}
+	if (!fname)
+		fname = name;
 	
-	if(cd_getinfo(&cdrom_fd, name, &tl)) {
+	if (ap_prefs) {
+		strcpy(device_name, prefs_get_string(ap_prefs, "cdda.device", DEFAULT_DEVICE));
+	} else {
+		strcpy(device_name, DEFAULT_DEVICE);
+	}	
+#ifdef DEBUG
+	printf("device = %s, name = %s\n", device_name, fname);
+#endif
+	if(cd_getinfo(&cdrom_fd, device_name, &tl)) {
 		return 0;
 	}
 
 #ifdef DEBUG	
 	cd_disp_TOC(&tl);	
+	printf("IFRAMESIZE = %d\n", IFRAMESIZE);
 #endif
-	//printf("IFRAMESIZE = %d\n", IFRAMESIZE);
 
 	obj->local_data = malloc(sizeof(struct cdda_local_data));
 	if (!obj->local_data) {
@@ -292,9 +290,10 @@ static int cdda_open(input_object *obj, char *name)
 	data->rel_pos = 0;
 	data->track_nr = 0;
 	data->cdrom_fd = cdrom_fd;
-	
+	strcpy(data->device_path, device_name);
+
 	if (strcmp(fname, "CD.cdda") == 0) {
-			data->track_start = tl.starts[tl.min-1]; // + CD_MSF_OFFSET;
+			data->track_start = tl.starts[tl.min-1]; /* + CD_MSF_OFFSET; */
 			data->track_length = tl.starts[tl.max] - data->track_start;
 			data->rel_pos = 0;
 			data->track_nr = 1;
@@ -311,7 +310,7 @@ static int cdda_open(input_object *obj, char *name)
 			return 0;
 	} else  {
 #ifdef DEBUG
-		printf("Found track number %d\n", data->track_nr);
+		printf("Found track number %d (%s)\n", data->track_nr, fname);
 #endif
 		data->track_start = tl.starts[data->track_nr-1];
 		data->track_length = tl.starts[data->track_nr] - tl.starts[data->track_nr-1];
@@ -357,7 +356,6 @@ static int cdda_play_frame(input_object *obj, char *buf)
 	if (!data) {
 			return 0;
 	}		
-	//printf("cdda_play_frame()\n");
 	if (!data->track_length || 
 		(data->rel_pos > data->track_length)) {
 		printf("rel_pos = %d, start = %d, end = %d\n",
@@ -416,8 +414,8 @@ static  long cdda_frame_to_sec(input_object *obj, int frame)
 {
 	unsigned long byte_count = FRAME_LEN * frame * CD_FRAMESIZE_RAW;
 
-	return (byte_count / 1764); // 44Khz stereo 16 bit, fixed
-	// 1764 = 176400 / 100 voor de 100ste seconden representatie
+	return (byte_count / 1764); /* 44Khz stereo 16 bit, fixed */
+	/* 1764 = 176400 / 100 voor de 100ste seconden representatie */
 }
 
 
