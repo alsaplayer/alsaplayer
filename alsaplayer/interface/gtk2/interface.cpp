@@ -196,7 +196,6 @@ create_root_window (void)
   format_label = gtk_label_new ("");
   gtk_widget_show (format_label);
   gtk_box_pack_start (GTK_BOX (vbox7), format_label, FALSE, FALSE, 0);
-  gtk_label_set_justify (GTK_LABEL (format_label), GTK_JUSTIFY_LEFT);
   gtk_misc_set_alignment (GTK_MISC (format_label), 0, 0.5);
 
   vbox10 = gtk_vbox_new (FALSE, 0);

@@ -1,11 +1,11 @@
-SUBDIRS = pixmaps
+SUBDIRS = pixmaps glade
 
 if HAVE_GTK2
 
 gtk2_interfaceltlibs = libgtk2_interface.la
 gtk2_interfaceldflags = -export-dynamic -avoid-version
 gtk2_interfacesources = support.cpp main.cpp interface.cpp callbacks.cpp \
-	scopes.cpp scopes.h alsaplayer_fft.h \
+	scopes.cpp scopes.h \
 	internal_scope.cpp internal_scope.h \
 	support.h interface.h callbacks.h
 

@@ -1,8 +1,0 @@
-#!/bin/sh
-if [ -f glade/src/interface.cpp ];then
-	sed s/_with_mnemonic' ("")'/' ()'/ glade/src/interface.cpp > glade/src/interface.tmp
-	mv glade/src/interface.tmp glade/src/interface.cpp
-	echo fixup done...OK
-else
-	echo interface.cpp not found...ERROR
-fi
