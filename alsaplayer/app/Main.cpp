@@ -624,7 +624,7 @@ int main(int argc, char **argv)
 	prefsdir = get_prefsdir();
 	
 	mkdir(prefsdir, 0700);	/* XXX We don't do any error checking here */
-	snprintf(thefile, sizeof(prefsdir)-21, "%s/config", prefsdir);
+	snprintf(thefile, sizeof(thefile)-21, "%s/config", prefsdir);
 	if (use_config) 
 		ap_prefs = prefs_load(use_config);
 	else
