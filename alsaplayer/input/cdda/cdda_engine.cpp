@@ -249,7 +249,6 @@ static int cdda_open(input_object *obj, char *name)
 {
 	struct cdda_local_data *data;	
 	char *fname;	
-	char device[1024];
 	int cdrom_fd;
 
 	if (!obj)
