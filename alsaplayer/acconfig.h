@@ -37,6 +37,7 @@
 #undef HAVE_QT
 /* Define one of these to select libmad fixed point arithmetic implementation */
 #undef FPM_INTEL
+#undef FPM_DEFAULT
 #undef FPM_64BIT
 #undef FPM_PPC
 #undef FPM_SPARC
