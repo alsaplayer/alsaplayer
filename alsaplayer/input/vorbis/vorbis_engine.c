@@ -182,11 +182,11 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 	}
 	if (mono2stereo) {
 		char pcmout[BLOCK_SIZE];
-
-		memcpy(pcmout, buf, sizeof(pcmout) / 2);	
 		int16_t *src, *dest;
 		int count = sizeof(pcmout) / 4;
 		int c;
+
+		memcpy(pcmout, buf, sizeof(pcmout) / 2);	
 		src = (int16_t *)pcmout;
 		dest = (int16_t *)buf;
 		for (c = 0; c < count; c++) {
