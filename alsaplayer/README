@@ -1,6 +1,6 @@
 AlsaPlayer - PCM audio player for Linux and compatible OSes
 
-Written by Andy Lo A Foe (andy@alsa-project.org)
+Written by Andy Lo A Foe (andy@alsaplayer.org)
 
 See the file COPYING for license details.
 
@@ -15,6 +15,15 @@ place to excercise the new ALSA (Advanced Linux Sound Architecture) driver and
 library system. 
 
 
+INTERFACE PLUGINS
+-----------------
+
+This cool feature allows you to completely customize your user interface.
+I.e. the core of AlsaPlayer is decoupled from the user interface. The default
+GTK+ interface is the best supported one. There is also a text interface if
+you just want to use AlsaPlayer in a text enviroment. 
+
+
 INPUT PLUGINS
 -------------
 The program is very much plugin based. New file formats can be added simply 
@@ -23,12 +32,14 @@ presented in PCM audio format. There are currently no plans to support
 video or midi data formats (future projects will address this).
 The following plugins are in various states of usability:
 
-- MPEG audio plugin, based on mpg123 0.59r, works quite well
+- MPEG audio plugin, based on mpg123 0.59r, works quite well, being phased out
+  however for:
+- MAD based audio plugin, based on the new MAD MPEG decoder library, uses a 
+  tiny bit more CPU, but has much better output quality then mpg123.
 - CDDA plugin, play back audio CD's by ripping the data digitally of the disk
 - MikMod plugin, play back all MikMod supported module formats, no random
   seeking in modules yet
 - Audiofile library plugin, this one needs a bit of work still
-- Sockmon plugin, not in the current source tree but work is progressing 
 
 
 OUTPUT PLUGINS
@@ -42,6 +53,9 @@ systems map quite well on to it however. Supported output plugins include:
 - Esound
 - Sparc (tested on UltraSparc)
 - SGI
+- JACK, http://jackit.sf.net, this plugin is actually built-in since its
+  differs radically from all the oters. It is callback based. This is my
+	preferred output method these days. The underlying audio driver is ALSA.
 
 
 SCOPE PLUGINS
@@ -68,15 +82,19 @@ EFFECTS PLUGINS
 Work in progress...
 
 
-CONTROLS
---------
-Work in progress...
+SCOKET CONTROL
+---------------
+
+AlsAPlayer can now be controlled from an external program. You only need to
+link your application against the supplied libalsaplayer.so and in order
+to control AlsaPlayer from your own applications. Seeking, speed control and
+playlist advancement are only a few of the commands available to you.
 
 
 INSTALLATION
 ------------
 
-Installing alsaplayer from source should be as easy as executing the configure
+Installing AlsaPlayer from source should be as easy as executing the configure
 script and then make. The configure script will try to detect all input and
 output plugins for your system.
 ** IMPORTANT**: Make sure you run 'make install' after the compilation is
@@ -110,29 +128,36 @@ Address		: mailto:alsaplayer-devel-request@lists.tartarus.org
 			  with subject "subscribe"
 			 
 Name		: alsaplayer-commits
-Description	: keep up to dat on the CVS commits
-Address		: mailto:alsaplayer-commits-request@lists.tartarus.org
-			  with subject "subscribe"
+Description	: keep up to date on the CVS commits
+Address		:  http://lists.sourceforge.net/lists/listinfo/alsaplayer-commits
+
 
 More information on these mailing lists and online archives can be found at
 http://lists.tartarus.org/mailman/listinfo/
 
 
-CVS REPOSITORY (broken for now)
--------------------------------
+CVS REPOSITORY
+--------------
 
-You can always check out the latest version of alsaplayer. Execute the
+You can always check out the latest version of AlsAplayer. Execute the
 following commands in the directory you want the sources in:
 
-cvs -d :pserver:anonymous@cvs.alsa-project.org:/home/cvsroot/alsaplayer login
-(Password: guest)
+cvs \
+-d:pserver:anonymous@cvs.alsaplayer.sourceforge.net:/cvsroot/alsaplayer \
+login
 
-cvs -d :pserver:anonymous@cvs.alsa-project.org:/home/cvsroot/alsaplayer \
-	co alsaplayer
+cvs -z3 \
+-d:pserver:anonymous@cvs.alsaplayer.sourceforge.net:/cvsroot/alsaplayer \
+co alsaplayer
+
+A browsable CVS repositary is also available at:
+http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/alsaplayer/
+
+Thanks to the folks at SourceForge.net for providing these resources.
 
 
 OTHER INFO
 ----------
 
-WWW Page: http://www.alsa-project.org/~andy
-Email	: <andy@alsa-project.org>
+WWW Page: http://www.alsaplayer.org/
+Email	: <andy@alsaplayer.org>
