@@ -4,9 +4,9 @@ AC_INIT(app/CorePlayer.cpp)
 
 ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
-ALSAPLAYER_MICRO_VERSION=59
+ALSAPLAYER_MICRO_VERSION=60
 
-BETA=
+BETA=-pre1
 
 ALSAPLAYER_VERSION=$ALSAPLAYER_MAJOR_VERSION.$ALSAPLAYER_MINOR_VERSION.${ALSAPLAYER_MICRO_VERSION}${BETA}
 
@@ -517,6 +517,17 @@ then
 	use_libid3tag=no
 fi	
 
+
+dnl =======
+dnl DOXYGEN
+dnl =======
+AC_CHECK_PROG(HAVE_DOXYGEN, doxygen, true, false)
+if test $HAVE_DOXYGEN = "false"; then
+	AC_MSG_WARN([*** doxygen not found, docs will not be built])
+fi
+
+
+AM_CONDITIONAL(HAVE_DOXYGEN, $HAVE_DOXYGEN)
 AM_CONDITIONAL(USE_LIBMAD,test "x$use_libmad" = xyes)
 AM_CONDITIONAL(USE_LIBID3TAG, test "x$use_libid3tag" = xyes)
 AM_CONDITIONAL(HAVE_JACK,	test "x$have_jack" = xyes)
@@ -694,10 +705,11 @@ input/wav/Makefile
 input/vorbis/Makefile
 input/audiofile/Makefile
 alsaplayer/Makefile
-docs/Makefile
+libalsaplayer/Makefile
 extra/Makefile
 m4/Makefile
-libalsaplayer/Makefile
+docs/Makefile
+docs/reference.doxygen
 ])
 
 echo "

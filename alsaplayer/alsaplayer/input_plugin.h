@@ -25,12 +25,30 @@
 
 #include <pthread.h>
 
+/**
+ * Set this flag if your plugin is able to seek in the stream
+ */
 #define	P_SEEK		1
+
+/** Set this flag if your plugin is able to do sample accurate seeking
+ * in the stream. This is required for reverse speed playback.
+ */
 #define P_PERFECTSEEK	2
+
+/**
+ * Set this flag if your plugin is reentrant.
+ */
 #define	P_REENTRANT 	4
-#define P_TRACKS	8
-#define P_FILEBASED	16
-#define P_STREAMBASED	32
+
+/**
+ * Set this flag if the stream is file based (local disk file)
+ */
+#define P_FILEBASED	8
+
+/**
+ * Set this is the stream is a real stream e.g. HTTP or UDP based
+ */
+#define P_STREAMBASED	16
 
 /*
  * Format of version number is 0x1000 + version
@@ -38,7 +56,16 @@
  * THE VERSION NUMBER IS *NOT* A USER SERVICABLE PART!
  */
 
+/**
+ * The base version number of the scope plugin. Set at 0x1000.
+ */
 #define INPUT_PLUGIN_BASE_VERSION	0x1000
+
+/**
+ *  The version of the input plugin API. This should be incremented
+ *  whenever structural changes are made to the API. This value should
+ *  only be changed by the maintainers.
+ */
 #define INPUT_PLUGIN_VERSION	(INPUT_PLUGIN_BASE_VERSION + 11)
 
 /**
@@ -48,13 +75,44 @@
  */ 
 typedef struct _input_object
 {
-	int ready;			
+	/**
+	 * Flag that should be set to 1 if your plugin is ready to accept
+	 * play_frame() callback
+	 */
+	int ready;
+	/**
+	 * Stream specific flags that should be set in the open() call.
+	 * Read the description of the P_* definitions for details.
+	 */
 	int flags;
+	/**
+	 * The total number of frames in the stream. Should be set in the
+	 * open() call.
+	 */
 	int nr_frames;
+	/**
+	 * The number of tracks, if any, in the stream. Should be set in
+	 * the open() call.
+	 */
 	int nr_tracks;
+	/**
+	 * The number of PCM channels in the stream. Should always be 2
+	 * at this time.
+	 */
 	int nr_channels;
+	/**
+	 * The frame size in bytes. play_frame() will be called with this
+	 * value.
+	 */
 	int frame_size;
+	/** If you plugin needs extra space for its own variables assign the
+	 * allocated data structure to this pointer
+	 */
 	void *local_data;
+	/**
+	 * The object mutex. Used to lock and unlock the data structures.
+	 * Initialized and called from the HOST.
+	 */
 	pthread_mutex_t	object_mutex;
 } input_object;
 
@@ -65,77 +123,174 @@ typedef struct _input_object
  */
 typedef struct _stream_info
 {
+	/**
+	 * Should describe what type of stream this is (MP3, OGG, etc). May
+	 * also contain format data and things like sample rate. Text
+	 */
 	char	stream_type[128];
+	/** 
+	 * Author of the stream. Usually the name of the Artist or Band
+	 */
 	char	author[128];
+	/**
+	 * The song title.
+	 */
 	char	title[128];
+	/**
+	 * The status of the plugin. Can have something like "Seeking..."
+	 * or perhaps "Buffering" depending on what the plugin instance is
+	 * doing.
+	 */
 	char	status[32];
 } stream_info;
 
-/* plugin binary version */
+/** 
+ * input plugin binary version. Must be set to INPUT_PLUGIN_VERSION 
+ */
 typedef int input_version_type;
 
-/* capability flags for this plugin */
+/**
+ * Capability flags for this plugin
+ **/
 typedef int input_flags_type;
 
-/* Init plugin */
+/**
+ * Init plugin 
+ */
 typedef int(*input_init_type)();
 
-/* Prepare the plugin for removal */
+/**
+ * Prepare the plugin for removal
+ */
 typedef void(*input_shutdown_type)();
 
-/* Handle for plugin. Filled in by the host */
+/**
+ * Handle for plugin. Filled in by the host
+ */
 typedef void* input_plugin_handle_type;
 
-/* Returns a rating between 0.0 and 1.0 for how
+/**
+ * @param path Path to stream
+ *
+ * Returns a rating between 0.0 and 1.0 for how
  * well this plugin can handle the given path
  * 1.0 = Excellent
  * 0.0 = Huh?
  */
-typedef float(*input_can_handle_type)(const char *);
+typedef float(*input_can_handle_type)(const char *path);
 
-/* Open a source object */
-typedef int(*input_open_type)(input_object *, char *);
+/**
+ * @param obj input object
+ * @param path path of stream to open
+ *
+ * Open stream */
+typedef int(*input_open_type)(input_object *obj, char *path);
 
-/* Close, doh! */
-typedef void(*input_close_type)(input_object *);
+/**
+ * @param obj input object
+ * 
+ * Close stream */
+typedef void(*input_close_type)(input_object *obj);
 
-/* Play a single frame */
-typedef int(*input_play_frame_type)(input_object *, char *buffer);
+/**
+ * @param obj input object
+ * @param buffer buffer where we should write the frame to
+ *
+ * Play/decode a single frame. This function should write exactly one frame
+ * to the buffer. If there is not enough PCM data to fill the frame
+ * it should be padded with zeros (silence).
+ */
+typedef int(*input_play_frame_type)(input_object *obj, char *buffer);
 
-/* Seek to a specific frame number */
-typedef int(*input_frame_seek_type)(input_object *,int);
+/**
+ * @param obj input object
+ * @param frame
+ *
+ * Seek to a specific frame number
+ */
+typedef int(*input_frame_seek_type)(input_object *obj, int frame);
 
-/* Returns the frame size in bytes */
-typedef int(*input_frame_size_type)(input_object *);
+/**
+ * @param obj input object
+ *
+ * Returns the frame size in bytes
+ */
+typedef int(*input_frame_size_type)(input_object *obj);
 
-/* Number of frames */
-typedef int(*input_nr_frames_type)(input_object *);
+/**
+ * @param obj input object
+ *
+ * Returns the total number of frames in the stream */
+typedef int(*input_nr_frames_type)(input_object *obj);
 
-/* Frame to 100th of a second conversion (centiseconds) */
-typedef  long(*input_frame_to_sec_type)(input_object *,int);
+/**
+ * @param obj input object
+ * @param frame frame number
+ *
+ * Returns the offset from the start time in centiseconds (100th of a second)
+ * for the frame given.  
+ */
+typedef  long(*input_frame_to_sec_type)(input_object *obj ,int frame);
 
-/* Returns the sample rate */
-typedef int(*input_sample_rate_type)(input_object *);
+/**
+ * @param obj input object
+ *
+ * Returns the sample rate of the stream
+ */
+typedef int(*input_sample_rate_type)(input_object *obj);
 
-/* Returns number of channels */
-typedef int(*input_channels_type)(input_object *);
+/**
+ * @param obj input object
+ *
+ * Returns number of channels in the stream
+ */
+typedef int(*input_channels_type)(input_object *obj);
 
-/* Return stream info */
-typedef int(*input_stream_info_type)(input_object *,stream_info *);
+/**
+ * @param obj input object
+ * @param info pointer to stream_info structure
+ *
+ * Return stream info of the current stream. You should not allocate
+ * space for the stream_info structure. The HOST will take care of that.
+ */
+typedef int(*input_stream_info_type)(input_object *obj,stream_info *info);
 
-/* Return number of tracks. Optional */
-typedef int(*input_nr_tracks_type)(input_object *);
+/**
+ * @param obj input object
+ *
+ * Return number of tracks. Optional */
+typedef int(*input_nr_tracks_type)(input_object *obj);
 
-/* Seek to a track. Optional */
-typedef int(*input_track_seek_type)(input_object *, int);
+/* @param obj input object
+ * @param track track to seek to
+ * 
+ * Seek to a track. Optional
+ */
+typedef int(*input_track_seek_type)(input_object *obj, int track);
 
 
 typedef struct _input_plugin
 {
-	input_version_type version;	
+	/**
+	 * Must be set to INPUT_PLUGIN_VERSION
+	 */
+	input_version_type version;
+	/**
+	 * Fixed flags for the plugin (P_*)
+	 */
 	input_flags_type	flags;
+	/**
+	 * Should point the a character array containing the name of this plugin
+	 */
 	char *name;
+	/** 
+	 * Should point to a character array containing the nae of the 
+	 * author(s) of this plugin.
+	 */
 	char *author;
+	/**
+	 * dlopen() handle of this plugin. Filled in by the HOST.
+	 */
 	void *handle;
 	input_init_type init;
 	input_shutdown_type shutdown;
@@ -155,6 +310,11 @@ typedef struct _input_plugin
 	input_track_seek_type track_seek;
 } input_plugin;
 
+/**
+ * Every input plugin should have an input_plugin_info() function that
+ * returns a pointer to an input_plugin structure that is set up with
+ * pointers to your implementations.
+ */
 typedef input_plugin*(*input_plugin_info_type)();
 
 #endif
