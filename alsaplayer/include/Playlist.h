@@ -72,6 +72,10 @@ class Playlist
 friend void playlist_looper(void *data);
 friend void insert_thread(void *);
 private:
+		CorePlayer *player1;
+		CorePlayer *player2;
+
+
    // Mutex to stop moving onto next song while we're modifying the playlist
 	pthread_mutex_t playlist_mutex;
 	
@@ -87,7 +91,7 @@ private:
 	// Flags used by thread to exit neatly
 	bool active;    // True until set to false by destructor
 	bool paused;	// Playlist is paused
-     	bool loopingSong;	//  Loop the current song
+	bool loopingSong;	//  Loop the current song
 	bool loopingPlaylist;	// Loop the Playlist
 
 	CorePlayer *coreplayer; // Core player - set this
@@ -103,6 +107,7 @@ private:
 	bool CanPlay(std::string const &);
 public:
 	Playlist(CorePlayer *);
+	Playlist(AlsaNode *);
 	~Playlist();
 
 

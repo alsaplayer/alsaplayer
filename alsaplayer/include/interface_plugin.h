@@ -28,11 +28,11 @@
  * THE VERSION NUMBER IS *NOT* A USER SERVICABLE PART!
  */
 
-#define INTERFACE_PLUGIN_VERSION    0x1002
+#define INTERFACE_PLUGIN_VERSION    0x1003
 
 typedef int interface_version_type;
 typedef int(*interface_init_type)();
-typedef int(*interface_start_type)(CorePlayer *, Playlist *, int,  char **);
+typedef int(*interface_start_type)(Playlist *, int,  char **);
 typedef int(*interface_running_type)();
 typedef int(*interface_stop_type)();
 typedef void(*interface_close_type)();
