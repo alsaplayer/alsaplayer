@@ -1,5 +1,8 @@
 EXTRA_DIST = TODO sockmon.txt wishlist.txt
 
+clean-local:
+	rm -f *~ *.bak $(DOC_STAMPS) || true
+
 if HAVE_DOXYGEN
 
 DOX=reference.doxygen
@@ -15,10 +18,6 @@ doxygen-build.stamp: $(DOX)
 	doxygen $(DOX)
 	touch doxygen-build.stamp
 			
-clean-local:
-	rm -f *~ *.bak $(DOC_STAMPS) || true
-
-
 distclean-local: clean
 	rm -f *.stamp || true
 	if test -d reference; then rm -rf reference; fi
