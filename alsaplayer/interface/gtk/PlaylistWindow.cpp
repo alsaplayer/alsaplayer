@@ -49,6 +49,8 @@ static int current_entry = -1;
 
 PlaylistWindowGTK::PlaylistWindowGTK(Playlist * pl) {
 	playlist = pl;
+	
+	alsaplayer_error("PlaylistWindowGTK constructor entered");
 
 	playlist_window = init_playlist_window(this, pl);
 	playlist_list = get_widget(playlist_window, "playlist");
@@ -99,6 +101,9 @@ void PlaylistWindowGTK::CbSetCurrent(void *data, unsigned current) {
 	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 	GtkWidget *working;
 	GtkStyle *style;
+	
+	alsaplayer_error("In CbSetCurrent()");
+	
 	if (!current_play_pix) {
 		style = gtk_widget_get_style(GTK_WIDGET(gtkpl->playlist_list));
 		if (!GTK_WIDGET(gtkpl->playlist_window)->window) {
@@ -144,6 +149,8 @@ void PlaylistWindowGTK::CbUpdated(void *data,PlayItem & item, unsigned position)
 	char tmp[1024];
 	int secs;
 
+	alsaplayer_error("In CbUpdated()");
+
 	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
 
 	gtk_clist_freeze(GTK_CLIST(gtkpl->playlist_list));
@@ -166,7 +173,8 @@ void PlaylistWindowGTK::CbUpdated(void *data,PlayItem & item, unsigned position)
 // Insert new items into the displayed list
 void PlaylistWindowGTK::CbInsert(void *data,std::vector<PlayItem> & items, unsigned position) {
 	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
-	//alsaplayer_error("CbInsert(`%d items', %d)", items.size(), position);
+	
+	alsaplayer_error("CbInsert(`%d items', %d)", items.size(), position);
 
 	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
 
