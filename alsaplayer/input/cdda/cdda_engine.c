@@ -451,6 +451,7 @@ int cddb_sum (int n)
 char * cddb_save_to_disk(char *subdir, int cdID, char *message)
 {
   FILE *destination;
+  DIR *thedir; 
   char *path, *retval;
   char new[strlen (message)], filename[strlen (message) + 9];
   int i = 0, j = 0;
@@ -459,11 +460,22 @@ char * cddb_save_to_disk(char *subdir, int cdID, char *message)
   path = (char *) malloc ((strlen (subdir) + strlen (REAL_PATH)) * sizeof (char));
 
   /* print the message sent to the server */
+  sprintf(path, "%s", REAL_PATH);
+  if (! (thedir=opendir(path))) { /* No cddb directory yet! */
+	  if ((mkdir(path, 0744)) < 0) {
+		  perror("mkdir");
+		  return (NULL);
+	  } else {
+		  closedir(thedir);
+	  }
+  } 
+  /* cddb directory should be there at this point */	 
+  
   sprintf (path, "%s/%s", REAL_PATH, subdir);
-  alsaplayer_error("path = %s", path);	
+  if (global_verbose)
+	  alsaplayer_error("path = %s", path);	
   /* check if we have the directory in the disk */
-  if (! (opendir (path))) 
-    {
+  if (! (thedir = opendir (path))) {
       /* given directory doesn't exist */
       if (global_verbose)
 	printf ("directory %s doesn't exist, trying to create it.\n", path);
@@ -476,7 +488,9 @@ char * cddb_save_to_disk(char *subdir, int cdID, char *message)
 	if (global_verbose)
 	  printf ("directory created successfully\n");
       }
-    }
+    } else {
+	    closedir(thedir);
+    } 
 	
   while (message[i] != '\n')
     i++;
@@ -488,8 +502,8 @@ char * cddb_save_to_disk(char *subdir, int cdID, char *message)
   /* save it into the disc */
   sprintf (filename, "%s/%s/%08x", REAL_PATH, subdir, cdID);
   retval = strdup (filename);
-
-  alsaplayer_error("filename = %s", filename);
+  if (global_verbose)
+	  alsaplayer_error("filename = %s", filename);
   /* create the file */
   destination = fopen (filename, "w");
   if (! destination)
@@ -523,12 +537,11 @@ char * cddb_local_lookup (char *path, unsigned int cd_id)
   struct dirent	**directory;
 	
   if (global_verbose)
-    printf ("Searching for CDDB entries on %s ... \n", path);
+    alsaplayer_error ("Searching for CDDB entries on %s ... ", path);
 	
   /* try to open the given directory */
   if (! (opendir (path))) 
     {
-      alsaplayer_error("directory not found, check your config file!\n");
       return (NULL);
     }
 	
@@ -586,7 +599,7 @@ char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_li
 	
   /* try to create a socket to the server */
   if (global_verbose)
-    printf ("Opening Connection to %s:%d ... \n", address, port);
+    alsaplayer_error ("Opening Connection to %s:%d ... ", address, port);
 
   /* get the server fd from the create_socket function */
   server_fd = create_socket ((unchar *) address, port);
@@ -610,7 +623,7 @@ char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_li
   if ((gethostname (hostname, sizeof (hostname))) < 0)
     snprintf (hostname, sizeof (hostname), "unknown");
 	
-  snprintf (msg, sizeof (msg), "cddb hello %s %s alsaplayer 0.99.74\r\n", username, hostname);
+  snprintf (msg, sizeof (msg), "cddb hello %s %s %s %s\r\n", username, hostname,PACKAGE, VERSION);
   answer = send_to_server (server_fd, msg);
   if (! answer)
     {
@@ -833,7 +846,8 @@ void cddb_update_info(struct cd_trk_list *tl)
       /* if could not, try to get it from the internet connection.. */
       cddb_servername = prefs_get_string(ap_prefs, "cdda", "cddb_servername", "freedb.freedb.org");
       cddb_serverport = prefs_get_string(ap_prefs, "cdda", "cddb_serverport", "888"); 
-	alsaplayer_error("CDDB server: %s:%s", cddb_servername, cddb_serverport);	    
+      if (global_verbose)
+	      alsaplayer_error("CDDB server: %s:%s", cddb_servername, cddb_serverport);	    
       file_name = cddb_lookup(cddb_servername, cddb_serverport, cd_id, tl);
       if (file_name)
 	{
