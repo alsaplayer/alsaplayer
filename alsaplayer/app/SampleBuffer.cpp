@@ -1,5 +1,5 @@
 /*  SampleBuffer.cpp - SampleBuffer object, used in the ringbuffer
- *  Copyright (C) 1998 Andy Lo A Foe <andy@alsa-project.org>
+ *  Copyright (C) 1998-2002 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

@@ -56,7 +56,7 @@ void AlsaNode::jack_restarter(void *arg)
 	if (node && node->client)
 		jack_client_close(node->client);
 	if (jack_prepare(arg) < 0) {
-		alsaplayer_error("Failed reconnecting to jack...exitting");
+		alsaplayer_error("failed reconnecting to jack...exitting");
 		kill(0, SIGTERM);
 	}	
 }
