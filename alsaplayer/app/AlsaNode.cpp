@@ -34,7 +34,6 @@
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include "AlsaNode.h"
 #include "utilities.h"
 #include "alsaplayer_error.h"
