@@ -395,14 +395,14 @@ static int vorbis_open(input_object *obj, char *path)
 	memcpy(&data->vf, &vf_temp, sizeof(vf_temp));
 	memcpy(data->path, path, sizeof(data->path)-1);
 
-	if (strncmp(path, "http", 4) == 0) {
+/*	if (strncmp(path, "http", 4) == 0) {
 		alsaplayer_error("No seeking allowed");
 		data->is_local = 0;
 		obj->flags = 0;
-	} else {
+	} else {*/
 		data->is_local = 1;
 		obj->flags = P_SEEK;
-	}	
+/*	}	*/
 
 	return 1;
 }
