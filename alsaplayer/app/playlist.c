@@ -267,7 +267,7 @@ ap_playlist_info_thread (gpointer data)
 	    /* This is the last item.
 	     * It signals us to exit thread.
 	     */
-	    g_object_unref (playitem);
+	    ap_playitem_unref (playitem);
 	    break;
 	}
 
@@ -275,7 +275,7 @@ ap_playlist_info_thread (gpointer data)
 	    /* Thread is going to shutdown.
 	     * So skip real updating.
 	     */
-	    g_object_unref (playitem);
+	    ap_playitem_unref (playitem);
 	    continue;
 	}
 	
@@ -288,13 +288,11 @@ ap_playlist_info_thread (gpointer data)
 	ap_playitem_set_title (playitem, "Updated");
 	ap_playitem_unlock (playitem);
 	
-	g_usleep (500000);
-
 	/* Emit "playitem-updated" signal */
 	g_signal_emit_by_name (playlist, "playitem-updated", playitem);
 
 	/* it was refed in ap_playlist_update_playitem */
-	g_object_unref (playitem);
+	ap_playitem_unref (playitem);
     }
 
     /* Unref queue before exit. */
@@ -459,6 +457,6 @@ ap_playlist_update_playitem (ApPlaylist	    *playlist,
     g_return_if_fail (AP_IS_PLAYLIST (playlist));
     g_return_if_fail (AP_IS_PLAYITEM (playitem));
 
-    g_object_ref (playitem);
+    ap_playitem_ref (playitem);
     g_async_queue_push (playlist->info_queue, playitem);
 }

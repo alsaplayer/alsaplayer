@@ -56,7 +56,8 @@ static void	ap_playitem_get_property    (GObject		*object,
 static void	ap_playitem_finalize	    (GObject		*object);
 
 /* --- variables --- */
-static gpointer		parent_class = NULL;
+static gpointer			    parent_class = NULL;
+static GStaticMutex		    ref_mutex = G_STATIC_MUTEX_INIT;
 
 /* --- functions --- */
 static void
@@ -774,3 +775,37 @@ ap_playitem_unlock (ApPlayItem *playitem)
 
     g_mutex_unlock (playitem->mutex);
 } /* ap_playitem_lock */
+
+/**
+ * ap_playitem_ref:
+ * @playitem: an #ApPlayItem
+ * 
+ * Adds a reference to a playitem.
+ * This functions is the thread safe version of the g_object_ref(),
+ **/
+void
+ap_playitem_ref (ApPlayItem *playitem)
+{
+    g_return_if_fail (AP_IS_PLAYITEM (playitem));
+
+    g_static_mutex_lock (&ref_mutex);
+    g_object_ref (playitem);
+    g_static_mutex_unlock (&ref_mutex);
+}
+
+/**
+ * ap_playitem_unref:
+ * @playitem: an #AnPlayItem
+ *
+ * Inverse of ap_playitem_unref().
+ * This functions is the thread safe version of the g_object_unref(),
+ **/
+void
+ap_playitem_unref (ApPlayItem *playitem)
+{
+    g_return_if_fail (AP_IS_PLAYITEM (playitem));
+
+    g_static_mutex_lock (&ref_mutex);
+    g_object_unref (playitem);
+    g_static_mutex_unlock (&ref_mutex);
+}

@@ -126,6 +126,8 @@ guint			    ap_playitem_get_playtime	(ApPlayItem	*playitem);
 
 void			    ap_playitem_lock		(ApPlayItem	*playitem);
 void			    ap_playitem_unlock		(ApPlayItem	*playitem);
+void			    ap_playitem_ref		(ApPlayItem	*playitem);
+void			    ap_playitem_unref		(ApPlayItem	*playitem);
 
 #ifdef __cplusplus
 }
