@@ -38,8 +38,8 @@ create_main_window (void)
   GtkWidget *audio_control_box;
   GtkWidget *hbox34;
   GtkWidget *hbox36;
-  GtkWidget *pause_button;
   GtkWidget *reverse_button;
+  GtkWidget *pause_button;
   GtkWidget *forward_button;
   GtkWidget *pitch_scale;
   GtkWidget *bal_vol_box;
@@ -179,14 +179,6 @@ create_main_window (void)
   gtk_widget_show (hbox36);
   gtk_box_pack_start (GTK_BOX (hbox34), hbox36, FALSE, FALSE, 0);
 
-  pause_button = gtk_button_new ();
-  gtk_widget_ref (pause_button);
-  gtk_object_set_data_full (GTK_OBJECT (main_window), "pause_button", pause_button,
-                            (GtkDestroyNotify) gtk_widget_unref);
-  gtk_widget_show (pause_button);
-  gtk_box_pack_start (GTK_BOX (hbox36), pause_button, TRUE, TRUE, 0);
-  gtk_widget_set_usize (pause_button, 22, 20);
-
   reverse_button = gtk_button_new ();
   gtk_widget_ref (reverse_button);
   gtk_object_set_data_full (GTK_OBJECT (main_window), "reverse_button", reverse_button,
@@ -194,6 +186,14 @@ create_main_window (void)
   gtk_widget_show (reverse_button);
   gtk_box_pack_start (GTK_BOX (hbox36), reverse_button, TRUE, TRUE, 0);
   gtk_widget_set_usize (reverse_button, 22, 20);
+
+  pause_button = gtk_button_new ();
+  gtk_widget_ref (pause_button);
+  gtk_object_set_data_full (GTK_OBJECT (main_window), "pause_button", pause_button,
+                            (GtkDestroyNotify) gtk_widget_unref);
+  gtk_widget_show (pause_button);
+  gtk_box_pack_start (GTK_BOX (hbox36), pause_button, TRUE, TRUE, 0);
+  gtk_widget_set_usize (pause_button, 22, 20);
 
   forward_button = gtk_button_new ();
   gtk_widget_ref (forward_button);
