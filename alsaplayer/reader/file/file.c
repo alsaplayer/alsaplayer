@@ -28,6 +28,7 @@
 
 #include "reader.h"
 #include "string.h"
+#include "alsaplayer_error.h"
 
 static void decode_uri(const char *src, char *dst, int len)
 {
@@ -61,10 +62,14 @@ static void decode_uri(const char *src, char *dst, int len)
 static void *file_open(const char *uri)
 {
     char decoded_uri[1024];
+    int offset = 0;
     
     decode_uri (uri, decoded_uri, 1020);
+    if (strncmp(decoded_uri, "file:", 5) == 0) {
+	    offset = 5;
+    }	    
     
-    return fopen (&decoded_uri[5], "r");
+    return fopen (&decoded_uri[offset], "r");
 }
 
 /* close stream */
@@ -78,13 +83,15 @@ static float file_can_handle(const char *uri)
 {
     struct stat buf;
     char decoded_uri[1024];
+    int offset = 0;
 
     decode_uri (uri, decoded_uri, 1020);
-    
+
     /* Check for prefix */
-    if (strncmp (decoded_uri, "file:", 5))  return 0.0;
+    if (strncmp (decoded_uri, "file:", 5) == 0)
+	  offset = 5;
     
-    if (stat(&decoded_uri[5], &buf))   return 0.0;
+    if (stat(&decoded_uri[offset], &buf))   return 0.0;
     
     /* Is it a type we might have a chance of reading?
      * (Some plugins may cope with playing special devices, eg, a /dev/scd) */

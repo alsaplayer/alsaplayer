@@ -807,9 +807,9 @@ Playlist::Load(std::string const &uri, unsigned position, bool force)
 		    // Comment... skip it for now
 		    continue;
 		} else if (*path=='/') {
-		     newfile = std::string("file://") + std::string(path);    
+		     newfile = std::string(path); /* These 2 */
 		} else if (reader_can_handle (path)) {
-		    newfile = std::string(path);
+		    newfile = std::string(path); /* Should be one */
 		} else if (*path == '\0') {
 		    // No path
 		    failures++;
