@@ -345,11 +345,20 @@ ap_playitem_new (const gchar *filename)
     return playitem;
 } /* ap_playitem_new */
 
+/**
+ * ap_playitem_set_filename:
+ * @playitem: an #ApPlayItem
+ * @filename: the new filename
+ *
+ * Sets the new @filename for @playitem.
+ * This function is only useful inside info looper
+ * which is in #ApPlaylist object.
+ *
+ **/
 void
 ap_playitem_set_filename (ApPlayItem *playitem, const gchar *filename)
 {
     g_return_if_fail (AP_IS_PLAYITEM (playitem));
-    g_return_if_fail (!filename);
 
     if (playitem->filename)
 	g_free (playitem->filename);
@@ -357,6 +366,14 @@ ap_playitem_set_filename (ApPlayItem *playitem, const gchar *filename)
     playitem->filename = g_strdup (filename);
 } /* ap_playitem_set_filename */
 
+/**
+ * ap_playitem_get_filename:
+ * @playitem: an #ApPlayItem
+ *
+ * Gets the value set by ap_playitem_set_filename().
+ *
+ * Return value: pointer to a filename string.
+ **/
 G_CONST_RETURN gchar *
 ap_playitem_get_filename (ApPlayItem *playitem)
 {
@@ -365,6 +382,16 @@ ap_playitem_get_filename (ApPlayItem *playitem)
     return playitem->filename;
 } /* playitem_get_filename */
 
+/**
+ * ap_playitem_set_title:
+ * @playitem: an #ApPlayItem
+ * @title: the new title name
+ *
+ * Sets the new @title for @playitem.
+ * This function is only useful inside info looper
+ * which is in #ApPlaylist object.
+ *
+ **/
 void
 ap_playitem_set_title (ApPlayItem *playitem, const gchar *title)
 {
@@ -376,6 +403,14 @@ ap_playitem_set_title (ApPlayItem *playitem, const gchar *title)
     playitem->title = g_strdup (title);
 } /* ap_playitem_set_title */
 
+/**
+ * ap_playitem_get_title:
+ * @playitem: an #ApPlayItem
+ *
+ * Gets the value set by ap_playitem_set_title().
+ *
+ * Return value: pointer to a title string.
+ **/
 G_CONST_RETURN gchar *
 ap_playitem_get_title (ApPlayItem *playitem)
 {
@@ -384,6 +419,15 @@ ap_playitem_get_title (ApPlayItem *playitem)
     return playitem->title;
 } /* playitem_get_title */
 
+/**
+ * ap_playitem_set_artist:
+ * @playitem: an #ApPlayItem
+ * @artist: the new artist
+ *
+ * Sets the new @artist for @playitem.
+ * This function is only useful inside info looper 
+ * which is in #ApPlaylist object.
+ **/
 void
 ap_playitem_set_artist (ApPlayItem *playitem, const gchar *artist)
 {
@@ -395,6 +439,14 @@ ap_playitem_set_artist (ApPlayItem *playitem, const gchar *artist)
     playitem->artist = g_strdup (artist);
 } /* ap_playitem_set_artist */
 
+/**
+ * ap_playitem_get_artist:
+ * @playitem: an #ApPlayItem
+ *
+ * Gets the value set by ap_playitem_set_artist().
+ *
+ * Return value: pointer to an artist string.
+ **/
 G_CONST_RETURN gchar *
 ap_playitem_get_artist (ApPlayItem *playitem)
 {
@@ -403,6 +455,15 @@ ap_playitem_get_artist (ApPlayItem *playitem)
     return playitem->artist;
 } /* ap_playitem_get_artist */
 
+/**
+ * ap_playitem_set_album:
+ * @playitem: an #ApPlayItem
+ * @album: the new album
+ *
+ * Sets the new @album name for @playitem.
+ * This function is only useful inside info looper 
+ * which is in #ApPlaylist object.
+ **/
 void
 ap_playitem_set_album (ApPlayItem *playitem, const gchar *album)
 {
@@ -414,6 +475,14 @@ ap_playitem_set_album (ApPlayItem *playitem, const gchar *album)
     playitem->album = g_strdup (album);
 } /* ap_playitem_set_album */
 
+/**
+ * ap_playitem_get_album:
+ * @playitem: an #ApPlayItem
+ *
+ * Gets the value set by ap_playitem_set_album().
+ *
+ * Return value: pointer to an album string.
+ **/
 G_CONST_RETURN gchar *
 ap_playitem_get_album (ApPlayItem *playitem)
 {
