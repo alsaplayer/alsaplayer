@@ -1,6 +1,13 @@
 
-This directory holds timidity's patches.  The patchset actually here is just
-a toy which you can't expect much from.  I'll figure out something better
-later.
+This tar file contains Jim Roe's "Personal Copy" soundfont PC42b.sf2.  It is
+required for alsaplayer's midi plugin midi_in.  To use it with midi_in,
+either place it in the .alsaplayer subdirectory of your home directory
+or put it in the directory that is midi_in's default path, which is
+ordinarily /usr/local/share/timidity (but can be changed when you run
+./configure during installation of midi_in).
 
-Greg
+The file www.personalcopy.html points to Jim Roe's website, where you'll
+find possible updates to the soundfont, other sound fonts, and other
+information.
+
+Greg Lee
