@@ -260,7 +260,11 @@ void playlist_looper(void *data)
 			
 			if (!coreplayer->IsActive()) {
 				if (pl->Length()) {
-					pl->Next();
+					if (pl->LoopingSong()) {
+						pl->Play(pl->GetCurrent());
+					} else {	
+						pl->Next();
+					}	
 					// TODO? set a flag to skip the dosleep()
 				}	
 			}
@@ -480,15 +484,8 @@ void Playlist::Next() {
 	unsigned olditem = curritem;
 	if(queue.size() > 0) {
 	  if(curritem < queue.size()) {
-	    if (LoopingSong()){
-	      PlayFile(queue[curritem]);
-	      /*     } else if (LoopingPlaylist()){
 	      curritem++;
-	      PlayFile(queue[curritem - 1]); */
-	    } else {
-	      curritem++;
-	      PlayFile(queue[curritem - 1]); 
-	    }
+	      PlayFile(queue[curritem - 1]);
 	  } else if (curritem == queue.size()){
 	    if (LoopingPlaylist()){
 	      curritem = 1;
