@@ -1,0 +1,32 @@
+adapt the include and library paths in Makefile.ap-control, then
+build the binary with:
+
+make -f Makefile.ap-control
+
+
+Attention:
+Non-obvious feature (not a bug) of alsaplayer:
+
+Even if the last title already finished playing, a "title" request
+still returns information about that title.
+Therefore one should use "query" first to obtain the playing status.
+
+
+TODO:
+implement point-resume, like:
+
+"player off":
+if playing
+	ap-control time > /tmp/playlist-position
+	ap-control save /tmp/playlist-lsm.m3u
+else
+	rm /tmp/playlist-position
+	ap-control save /tmp/playlist-lsm.m3u
+
+"player on":
+ap-control playlist /tmp/playlist-lsm.m3u
+ap-control seek < /tmp/playlist-position
+ap-control play
+
+Frank Baumgart
+

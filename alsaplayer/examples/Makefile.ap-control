@@ -1,0 +1,9 @@
+CC=gcc
+CFLAGS=-Os -Wall -fomit-frame-pointer -I/opt/alsaplayer/include
+LDFLAGS=-L/opt/alsaplayer/lib -lalsaplayer -s
+
+ap-control:
+
+clean:
+	rm -f ap-control
+
