@@ -155,9 +155,11 @@ AlsaNode::AlsaNode(char *name, int realtime)
 		}
 		if (jack_prepare(this) < 0) {
 			alsaplayer_error("Failed initial connect attempt to jack\n");
-			kill(0, SIGTERM);
+			init = false;
+		}	else {
+			init = true;
 		}	
-	}	
+	}
 #endif
 	pthread_mutex_init(&thread_mutex, NULL);
 	pthread_mutex_init(&queue_mutex, NULL);

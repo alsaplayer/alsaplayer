@@ -244,7 +244,7 @@ static void help()
 "\n"
 "Testing options:\n"
 "\n"
-"  --reverb      	         use reverb function (CPU intensive!)\n"
+"  --reverb                use reverb function (CPU intensive!)\n"
 "  -S,--loopsong           loop file\n"
 "  -P,--looplist           loop Playlist\n"
 "  -x,--crossfade          crossfade between playlist entries (experimental)\n"
