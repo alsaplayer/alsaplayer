@@ -383,6 +383,30 @@ static void rstrip (char *s) {
 	}
 }
 
+/* Convert from synchsafe integer */
+static unsigned int from_synchsafe4 (unsigned char *buf)
+{
+    return (buf [3]) + (buf [2] << 7) + (buf [1] << 14) + (buf [0] << 21);
+}
+
+static unsigned int from_synchsafe3 (unsigned char *buf)
+{
+    return (buf [3]) + (buf [2] << 7) + (buf [1] << 14);
+}
+
+/* Fill filed */
+static void fill_from_id3v2 (char *dst, char *src, int max, int size)
+{
+    /* FIXME: UTF8 internal support */
+    
+    int min = size-1 > max ? max : size-1;
+    
+    if (*src == 0) {
+	/* ISO-8859-1 */
+	strncpy (dst, src+1, min);
+    }
+}
+
 static char *genres[] = {
     "Blues", "Classic Rock", "Country", "Dance", "Disco", "Funk", "Grunge",
     "Hip-Hop", "Jazz", "Metal", "New Age", "Oldies", "Other", "Pop", "R&B",
@@ -414,7 +438,7 @@ static char *genres[] = {
 static void parse_id3 (const char *path, stream_info *info)
 {
 	void *fd;
-	char id3v1 [128];
+	unsigned char buf [2024];
 	unsigned char g;
 
 	/* Open stream */
@@ -422,51 +446,182 @@ static void parse_id3 (const char *path, stream_info *info)
 	if (!fd)  return;
 
 	/* --------------------------------------------------- */
+	/* Trying to load id3v2 tags                           */
+	if (reader_read (buf, 10, fd) != 10) {
+	    reader_close (fd);
+	    return;
+	}
+
+	if (memcmp(buf, "ID3", 3) == 0) {
+	    /* Parse id3v2 tags */
+
+	    /* Header */
+	    unsigned char major_version = buf [3];
+	    unsigned char minor_version = buf [4];
+	    int f_unsynchronization = buf [5] & (1<<7);
+	    int f_extended_header = buf [5] & (1<<6);
+	    int f_experimental = buf [5] & (1<<5);
+	    int f_footer = buf [5] & (1<<4);
+	    unsigned int header_size = from_synchsafe4 (buf + 6);
+	    int name_size = buf [3] == 2 ? 3 : 4;
+
+	    if (f_extended_header) {
+		alsaplayer_error ("FIXME: Extended header founded in mp3."
+				  "Please contact alsaplayer team.\n");
+		return;
+	    }
+
+	    if (f_unsynchronization) {
+		alsaplayer_error ("FIXME: f_unsynchronization is set."
+				  "Please contact alsaplayer team.\n");
+		return;
+	    }
+
+	    if (f_experimental) {
+		alsaplayer_error ("FIXME: f_experimental is set."
+				  "Please contact alsaplayer team.\n");
+		return;
+	    }
+
+	    /* -- -- read frames -- -- */
+	    while (reader_tell (fd) <= header_size + 10) {
+		unsigned int size;
+		
+		/* Get name of this frame */
+		if (reader_read (buf, name_size, fd) != name_size) {
+		    reader_close (fd);
+		    return;
+		}
+
+		if (buf [0] == '\0')  break;
+		if (buf [0] < 'A')  break;
+		if (buf [0] > 'Z')  break;
+
+		/* Get size */
+		if (major_version == 2) {
+		    char sb [3];
+		    
+		    if (reader_read (sb, 3, fd) != 3) {
+			reader_close (fd);
+			return;
+		    }
+
+		    size = from_synchsafe3 (sb);
+		} else {
+		    char sb [4];
+		    
+		    if (reader_read (sb, 4, fd) != 4) {
+			reader_close (fd);
+			return;
+		    }
+
+		    size = from_synchsafe4 (sb);
+		}
+
+		/* skip frame flags */
+		if (reader_seek (fd, 2, SEEK_CUR) == -1) {
+		    reader_close (fd);
+		    return;
+		}
+		
+		if (size>=1024) {
+		    /* I will not support such long tags...
+		     * Only if someone ask for it...
+		     * not now... */
+		    
+		    if (reader_seek (fd, size, SEEK_CUR) == -1) {
+			reader_close (fd);
+			return;
+		    }
+
+		    continue;
+		}
+		
+		/* read info */
+		if (reader_read (buf + name_size, size, fd) != size) {
+		    reader_close (fd);
+		    return;
+		}
+		
+		/* !!! Ok. There we have frame name and data. */
+		/* Lets use it. */
+		if (name_size == 4) {
+		    if (memcmp (buf, "TIT2", 4)==0)
+			fill_from_id3v2 (info->title, buf + name_size,
+					 sizeof (info->title), size);
+		    else if (memcmp (buf, "TPE1", 4)==0)
+			fill_from_id3v2 (info->artist, buf + name_size,
+					 sizeof (info->artist), size);
+		    else if (memcmp (buf, "TALB", 4)==0)
+			fill_from_id3v2 (info->album, buf + name_size,
+					 sizeof (info->album), size);
+		    else if (memcmp (buf, "TYER", 4)==0)
+			fill_from_id3v2 (info->year, buf + name_size,
+					 sizeof (info->year), size);
+		    else if (memcmp (buf, "COMM", 4)==0)
+			fill_from_id3v2 (info->comment, buf + name_size,
+					 sizeof (info->comment), size);
+		    else if (memcmp (buf, "TRCK", 4)==0)
+			fill_from_id3v2 (info->track, buf + name_size,
+					 sizeof (info->track), size);
+		    else if (memcmp (buf, "TCON", 4)==0)
+			fill_from_id3v2 (info->genre, buf + name_size,
+					 sizeof (info->genre), size);
+
+		} /* end of 'if name_size == 4' */
+		
+	    } /* end of frames read */
+	    
+	    /* end parsing */
+	    return;
+	} /* end of id3v2 parsing */
+	
+	/* --------------------------------------------------- */
 	/* Trying to load id3v1 tags                           */
 	if (reader_seek (fd, -128, SEEK_END) == -1) {
 	    reader_close (fd);
 	    return;
 	}
 
-	if (reader_read (id3v1, 128, fd) != 128) {
+	if (reader_read (buf, 128, fd) != 128) {
 	    reader_close (fd);
 	    return;
 	}
 
-	if (memcmp(id3v1, "TAG", 3)==0) {
+	if (memcmp(buf, "TAG", 3) == 0) {
 	    /* ID3v1 frame found */
 
 	    /* title */
-	    strncpy (info->title, id3v1 + 3, 30);
+	    strncpy (info->title, buf + 3, 30);
 	    rstrip (info->title);
 
 	    /* artist */
-	    strncpy (info->artist, id3v1 + 33, 30);
+	    strncpy (info->artist, buf + 33, 30);
 	    rstrip (info->artist);
 
 	    /* album */
-	    strncpy (info->album, id3v1 + 63, 30);
+	    strncpy (info->album, buf + 63, 30);
 	    rstrip (info->album);
 
 	    /* year */
-	    strncpy (info->year, id3v1 + 93, 4);
+	    strncpy (info->year, buf + 93, 4);
 	    rstrip (info->year);
 
 	    /* comment */
-	    strncpy (info->comment, id3v1 + 97, 28);
+	    strncpy (info->comment, buf + 97, 28);
 	    rstrip (info->comment);
 
 	    /* track number */
-	    if (id3v1[125] == '\0')
-		snprintf (info->track, sizeof (info->track), "%u", id3v1[126]);
+	    if (buf [125] == '\0')
+		snprintf (info->track, sizeof (info->track), "%u", buf [126]);
 
 	    /* genre */
-	    g = id3v1 [127];
-	    if (sizeof (genres) <= id3v1[127])
+	    g = buf [127];
+	    if (sizeof (genres) <= g)
 		snprintf (info->genre, sizeof (info->genre), "(%u)", g);
 	    else
 		snprintf (info->genre, sizeof (info->genre), "%s", genres[g]);
-	}
+	} /* end of id3v1 parsing */
 	
 	reader_close (fd);
 }
