@@ -105,6 +105,9 @@ struct cdda_local_data {
 typedef unsigned short Word;
 typedef unsigned char  unchar;
 
+int cddb_sum (int n);
+	
+
 static int cd_get_tochdr(int cdrom_fd, struct cdrom_tochdr *Th)
 {
 	return ioctl(cdrom_fd, CDROMREADTOCHDR,Th);
@@ -591,7 +594,7 @@ char * cddb_local_lookup (char *path, unsigned int cd_id)
 char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_list *tl)
 {
   int port = atoi (char_port);
-  int server_fd, i, j, n, backup, key;
+  int server_fd, i, j, n;
   int total_secs = 0, counter = 0;
   char *answer = NULL, *username, *filename, categ[20], newID[9];
   char msg[BUFFER_SIZE], offsets[BUFFER_SIZE], tmpbuf[BUFFER_SIZE];

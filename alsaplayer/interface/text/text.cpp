@@ -115,8 +115,6 @@ void interface_text_close()
 int interface_text_start(Playlist *playlist, int argc, char **argv)
 {
 	CorePlayer *coreplayer;
-	char path[256];
-	char *home;
 	stream_info info;
 	stream_info old_info;
 	bool streamInfoRequested = false;

@@ -60,12 +60,10 @@ void scope_entry_destroy_notify(gpointer data)
 bool  scope_feeder_func(void *arg, void *data, int size) 
 {
 	static char buf[32768];
-	static char *latency_buffer = NULL;
 	static int latency = -1;
 	static int fft_buf[512];
 	static int fill = 0;
 	static int left = 0;
-	static int warn = 0;
 	static int init = 0;
 	static int buf_size = 0;
 	static AlsaNode *the_node = NULL;
@@ -169,8 +167,6 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 void apUnregiserScopePlugins()
 {
 	scope_entry *current = root_scope;
-	GtkWidget *list;
-	void *handle;
 	
 	pthread_mutex_lock(&sl_mutex);
 	while (current && current->sp) {
@@ -239,7 +235,6 @@ static void close_all_cb(GtkWidget *widget, gpointer data)
 
 	if (list) {
 		scope_entry *current = root_scope;
-		scope_entry *exclusive_one = NULL;
 
 		while (current) {
 			GDK_THREADS_LEAVE();

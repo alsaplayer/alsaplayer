@@ -132,7 +132,6 @@ static int nas_init()
 
 static int nas_open(const char *device)
 {
-	int err;
 	char *server = NULL;
 
 	server = getenv("AUDIOSERVER");
@@ -288,7 +287,7 @@ static int nas_set_buffer(int fragment_size, int fragment_count, int channels)
 	return 1;	
 }
 
-static int nas_set_sample_rate(int rate)
+static unsigned int nas_set_sample_rate(unsigned int rate)
 {
 	/* alsaplayer_error("nas_set_sample_rate(%d)", rate); */
 	/* Must be called before nas_set_buffer, or rate change will be ignored */

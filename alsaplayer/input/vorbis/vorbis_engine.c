@@ -115,6 +115,24 @@ static ov_callbacks vorbis_stream_callbacks =
 	NULL
 };		
 
+static int vorbis_sample_rate(input_object *obj)
+{
+	struct vorbis_local_data *data;
+	vorbis_info *vi;
+
+	if (!obj)
+		return 44100;
+	data = (struct vorbis_local_data *)obj->local_data;
+	if (data) {
+		vi = ov_info(&data->vf, -1);
+		if (vi)
+			return vi->rate;
+		else
+			return 44100;	
+	}		
+	return 44100;
+}
+
 
 static int vorbis_frame_seek(input_object *obj, int frame)
 {
@@ -309,24 +327,6 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 	return 1;
 }
 
-
-static int vorbis_sample_rate(input_object *obj)
-{
-	struct vorbis_local_data *data;
-	vorbis_info *vi;
-
-	if (!obj)
-		return 44100;
-	data = (struct vorbis_local_data *)obj->local_data;
-	if (data) {
-		vi = ov_info(&data->vf, -1);
-		if (vi)
-			return vi->rate;
-		else
-			return 44100;	
-	}		
-	return 44100;
-}
 
 static int vorbis_init() 
 {

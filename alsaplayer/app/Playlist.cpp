@@ -446,7 +446,7 @@ Playlist::~Playlist() {
 }
 
 // Return number of items in playlist
-unsigned Playlist::Length() {
+int Playlist::Length() {
 	return queue.size();
 }
 

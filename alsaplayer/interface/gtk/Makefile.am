@@ -19,9 +19,10 @@ endif
 
 lib_LTLIBRARIES = $(gtkltlibs)
 
+COMMON_FLAGS = @DFLAGS@ @ARCH_CFLAGS@
+
 AM_CXXFLAGS = -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
-		@GLIB_CFLAGS@ @GTK_CFLAGS@ @DFLAGS@ $(COMMON_FLAGS) \
-		$(EXTRA_CFLAGS) \
+		@GLIB_CFLAGS@ @GTK_CFLAGS@ $(COMMON_FLAGS) \
 		-D_REENTRANT -DADDON_DIR=\"$(ADDON_DIR)\"
 
 AM_CFLAGS = $(CXXFLAGS)

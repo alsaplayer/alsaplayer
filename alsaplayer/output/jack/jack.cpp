@@ -174,7 +174,7 @@ static int jack_init()
 
 static int jack_open(const char *name)
 {
-	int err, done = 0;
+	int done = 0;
 	char *c, *n, *t, *s;
 	char *token = NULL;
 
@@ -244,13 +244,11 @@ static void jack_close()
 
 static int jack_set_buffer(int fragment_size, int fragment_count, int channels)
 {
-	static int val;
-	
 	return 1;
 }
 
 
-static int jack_set_sample_rate(int rate)
+static unsigned int jack_set_sample_rate(unsigned int rate)
 {
 	/* Ignore any rate change! */
 	if (rate != sample_rate) {
@@ -286,7 +284,6 @@ int process(jack_nframes_t nframes, void *arg)
 	if (subs) {
 		subscriber *i;
 		int c;
-		bool status;
 		sample_t *out1 = (sample_t *) jack_port_get_buffer(my_output_port1, nframes);
 		sample_t *out2 = (sample_t *) jack_port_get_buffer(my_output_port2, nframes);
 

@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include "output_plugin.h"
 #include "alsaplayer_error.h"
+#include "utilities.h"
 
 static int null_init()
 {
@@ -56,7 +57,7 @@ static int null_set_buffer(int fragment_size, int fragment_count, int channels)
 }
 
 
-static int null_set_sample_rate(int rate)
+static unsigned int null_set_sample_rate(unsigned int rate)
 {
 	return rate;
 }

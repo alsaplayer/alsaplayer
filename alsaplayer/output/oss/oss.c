@@ -45,8 +45,6 @@ static int oss_init()
 
 static int oss_open(const char *name)
 {
-	int err;
-
 	if (name[0] != '/') {
 		name = "/dev/dsp";
 		}
@@ -90,7 +88,7 @@ static int oss_set_buffer(int fragment_size, int fragment_count, int channels)
 }
 
 
-static int oss_set_sample_rate(int rate)
+static unsigned int oss_set_sample_rate(unsigned int rate)
 {
 	if (ioctl(oss_fd,SNDCTL_DSP_SPEED,&rate) < 0) {
 					alsaplayer_error("error setting sample_rate");

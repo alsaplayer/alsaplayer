@@ -220,7 +220,6 @@ GtkWidget *init_monoscope_window()
 
 	colors[0] = 0;
 	for (i = 1; i < 32; i++) {
-		GdkColor color;
 		colors[i] = (i*8 << 16) +(255 << 8);
 		colors[i+31] = (255 << 16) + (((31 - i) * 8) << 8);
   	}

@@ -37,7 +37,6 @@ static GtkWidget *area = NULL;
 static GdkRgbCmap *color_map = NULL;
 static int fft_buf[512];
 static int maxbar[BARS];
-static GdkImage *image = NULL;
 static GtkWidget *scope_win = NULL;
 static int ready_state = 0;
 static pthread_t fftscope_thread;
@@ -65,8 +64,6 @@ static const int default_colors[] = {
 
 void logscope_set_fft(void *fft_data, int samples, int channels)
 {
-	int i;
-	
 	if (!fft_data) {
 			memset(fft_buf, 0, sizeof(fft_buf));
 			return;
@@ -79,46 +76,45 @@ static void the_fftscope()
 	guchar *loc;
 	guchar bits [256 * 129];
 	int i, h;
-	
+
 	running = 1;
 
 	while (running) {
-    guint val;
-    gint j;
-    gint k;
-		gint w;
-   
+		guint val;
+		gint j;
+		gint k;
+
 		memset(bits, 0, 256 * 128);
-		
+
 		for (i=0; i < BARS; i++) { 
-				val = 0;
-				for (j = xranges[i]; j < xranges[i + 1]; j++) {
-					/* k = (guint)(sqrt(fftout[j]) * fftmult); */
-					k = (fft_buf[j] + fft_buf[256+j]) / 256;
-					val += k;
+			val = 0;
+			for (j = xranges[i]; j < xranges[i + 1]; j++) {
+				/* k = (guint)(sqrt(fftout[j]) * fftmult); */
+				k = (fft_buf[j] + fft_buf[256+j]) / 256;
+				val += k;
+			}
+			if(val > 127) val = 127;
+			if (val > maxbar[ i ]) 
+				maxbar[ i ] = val;
+			else {
+				k = maxbar[ i ] - (4 + (8 / (128 - maxbar[ i ])));
+				val = k > 0 ? k : 0;
+				maxbar[ i ] = val;
+			}
+			loc = bits + 256 * 128;
+			for (h = val; h > 0; h--) {
+				for (j = (256 / BARS) * i + 0; j < (256 / BARS) * i + ((256 / BARS) - 1); j++) {
+					*(loc + j) = val-h;
 				}
-				if(val > 127) val = 127;
-				if (val > maxbar[ i ]) 
-					maxbar[ i ] = val;
-				else {
-					k = maxbar[ i ] - (4 + (8 / (128 - maxbar[ i ])));
-					val = k > 0 ? k : 0;
-					maxbar[ i ] = val;
-				}
-				loc = bits + 256 * 128;
-				for (h = val; h > 0; h--) {
-	    		for (j = (256 / BARS) * i + 0; j < (256 / BARS) * i + ((256 / BARS) - 1); j++) {
-						*(loc + j) = val-h;
-	    		}
-	    		loc -=256;
-				}
-    	}
-    	GDK_THREADS_ENTER();
-			gdk_draw_indexed_image(area->window, area->style->white_gc,
-												0,0,256,128, GDK_RGB_DITHER_NONE, bits, 256, color_map);
-    	gdk_flush();
-    	GDK_THREADS_LEAVE();
-    	dosleep(SCOPE_SLEEP);
+				loc -=256;
+			}
+		}
+		GDK_THREADS_ENTER();
+		gdk_draw_indexed_image(area->window, area->style->white_gc,
+				0,0,256,128, GDK_RGB_DITHER_NONE, bits, 256, color_map);
+		gdk_flush();
+		GDK_THREADS_LEAVE();
+		dosleep(SCOPE_SLEEP);
 	}	
 	GDK_THREADS_ENTER();
 	fftscope_hide();

@@ -1,3 +1,5 @@
+* Remove deprecated JACK function call, requires jack 0.50.0 or higher now
+
 Thu Feb  6 06:49:35 CET 2003
 ----------------------------
 * New: Initial CDDB parsing for CDDA plugin (Anders)

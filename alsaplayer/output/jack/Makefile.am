@@ -18,11 +18,11 @@ EXTRA_DIST = $(SOURCE_FILES)
 
 lib_LTLIBRARIES = $(jack_outltlibs)
 
-COMMON_CFLAGS = -D_REENTRANT -I$(top_builddir) \
+COMMON_FLAGS = -D_REENTRANT -I$(top_builddir) \
 	-I$(top_srcdir)/alsaplayer \
 	@ARCH_CFLAGS@ 
 
-AM_CXXFLAGS = $(COMMON_CFLAGS) $(EXTRA_CFLAGS) $(JACK_CFLAGS)
+AM_CXXFLAGS = $(COMMON_FLAGS) $(JACK_CFLAGS)
 
 AM_CFLAGS = $(AM_CXXFLAGS)
 

@@ -44,10 +44,7 @@
 // Forward declarations
 
 static GtkWidget *init_playlist_window(PlaylistWindowGTK *, Playlist *pl);
-static void destroy_notify(gpointer data);
 static void new_list_item(const PlayItem *item, gchar **list_item);
-static GdkColor *select_color = NULL;
-static GdkColor *default_color = NULL;
 static int current_entry = -1;
 void playlist_play_current(Playlist *playlist, GtkWidget *gtklist);
 void dialog_popup(GtkWidget *widget, gpointer data);
@@ -109,7 +106,6 @@ static GdkBitmap *current_stop_mask = (GdkBitmap *)NULL;
 // Set item currently playing
 void PlaylistWindowGTK::CbSetCurrent(void *data, unsigned current) {
 	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
-	GtkWidget *working;
 	GtkStyle *style;
 
 	GDK_THREADS_ENTER();
@@ -144,7 +140,6 @@ void PlaylistWindowGTK::CbSetCurrent(void *data, unsigned current) {
 void PlaylistWindowGTK::CbUpdated(void *data,PlayItem & item, unsigned position) {
 	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 	char tmp[1024];
-	int secs;
 
 	//alsaplayer_error("About to lock list");
 	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
@@ -187,7 +182,6 @@ void PlaylistWindowGTK::CbInsert(void *data,std::vector<PlayItem> & items, unsig
 	gtk_clist_freeze(GTK_CLIST(gtkpl->playlist_list));
 
 	if(items.size() > 0) {
-		int index = position;
 		std::vector<PlayItem>::const_iterator item;
 		for(item = items.begin(); item != items.end(); item++, position++) {
 			// Make a new item
@@ -390,7 +384,7 @@ void playlist_remove(GtkWidget *widget, gpointer data)
 				playlist->Stop();
 				playlist->Next();
 			}
-			if (playlist->Length() == selected+1) {
+			if (playlist->Length() == (selected+1)) {
 				gtk_clist_unselect_row(GTK_CLIST(list), 
 						selected, 0);
 				//alsaplayer_error("Early trigger");
@@ -757,6 +751,7 @@ gint dnd_drop_event(GtkWidget *widget,
 			alsaplayer_error("Unkown drop!");
 			break;
 	}               
+	return 0;
 }
 
 

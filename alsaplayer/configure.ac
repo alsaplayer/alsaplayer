@@ -563,14 +563,14 @@ AM_CONDITIONAL(ARCH_ULTRA,test "$ARCH_TYPE" = "sun4u")
 
 AC_MSG_CHECKING(for gcc optimization flags)
 old_cflags=$CFLAGS
-CFLAGS="$CFLAGS -O2 -fexpensive-optimizations -funroll-loops -finline-functions -ffast-math"
+CFLAGS="$CFLAGS -O2 -fexpensive-optimizations -funroll-loops -finline-functions -ffast-math -Wall"
 AC_TRY_COMPILE([#include <stdio.h>],
 [ printf ("hello, world"); ],
-[ EXTRA_OPT_CFLAGS="-O2 -fexpensive-optimizations -funroll-loops -finline-functions -ffast-math"],[ EXTRA_OPT_CFLAGS=""])
+[ EXTRA_OPT_CFLAGS="-O2 -fexpensive-optimizations -funroll-loops -finline-functions -ffast-math -Wall"],[ EXTRA_OPT_CFLAGS=""])
 CFLAGS=$old_cflags
 AC_MSG_RESULT([$EXTRA_OPT_CFLAGS])
 
-ARCH_CFLAGS="$CFLAGS $EXTRA_OPT_CFLAGS"
+ARCH_CFLAGS="$EXTRA_OPT_CFLAGS $CFLAGS"
 
 if test "$ARCH_TYPE" = "i486" || test "$ARCH_TYPE" = "i586" || test "$ARCH_TYPE" = "i686"
 then

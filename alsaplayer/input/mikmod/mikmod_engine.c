@@ -116,7 +116,7 @@ static int mikmod_open (input_object *obj, const char *name)
 		return 0;
 	}		
 
-	if (!(mf = Player_Load (name, 255, 0))) {
+	if (!(mf = Player_Load ((char *)name, 255, 0))) {
 		printf ("error loading module: %s\n", name);
 		obj->local_data = NULL;
 		pthread_mutex_unlock(&mikmod_mutex);
@@ -140,7 +140,7 @@ static int mikmod_open (input_object *obj, const char *name)
 	}	
 
 	data->fname = strrchr(name, '/');
-	data->fname = (data->fname) ? data->fname + 1 : name;
+	data->fname = (data->fname) ? data->fname + 1 : (char *)name;
 	data->mf = mf;
 	Player_Start (data->mf);
 

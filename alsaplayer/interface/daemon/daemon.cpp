@@ -114,7 +114,6 @@ void daemon_close()
 int daemon_start(Playlist *playlist, int argc, char **argv)
 {
 	char session_name[AP_SESSION_MAX];
-	int session_id = -1;
 
 	playlist->Clear();
 	playlist->UnPause();

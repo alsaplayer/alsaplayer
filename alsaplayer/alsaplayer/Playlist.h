@@ -178,7 +178,7 @@ public:
 	CorePlayer *GetCorePlayer() { return coreplayer; }
 
 	// Get the number of items in the playlist (0 if playlist is empty)
-	unsigned Length();
+	int Length();
 
 	// Move to specified item in playlist and play from there
 	// Position 1 is first item, n is last item where n is length of list

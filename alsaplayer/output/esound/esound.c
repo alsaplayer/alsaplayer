@@ -96,10 +96,10 @@ static int esound_set_buffer(int fragment_size, int fragment_count, int channels
 }
 
 
-static int esound_set_sample_rate(int rate)
+static unsigned int esound_set_sample_rate(unsigned int rate)
 {
 	printf("ESD: rate fixed at 44100Hz\n");
-	return 44100;
+	return rate;
 }
 
 static int esound_get_latency()

@@ -48,17 +48,17 @@ FlacStream::isFlacStream (const string & name)
 
 
 FlacStream::FlacStream (const string & name, reader_type * f)
-    : _decoder (0),
-      _datasource (f),
-      _engine (0),
-      _tag (0),
-      _name (name),
+     : _engine (0),
       _mcbSuccess (false),
+      _datasource (f),
       _channels (0),
       _bps (0),
       _sampleRate (1),
       _sampPerBlock (0),
-      _totalSamp (0)
+      _totalSamp (0),
+      _decoder (0),
+      _tag (0),
+      _name (name)
 {
 } // FlacStream::FlacStream
 

@@ -47,7 +47,7 @@
 #endif
 #include "pixmaps/play.xpm"
 #include "pixmaps/playlist.xpm"
-#include "pixmaps/cd.xpm"
+//#include "pixmaps/cd.xpm"
 #include "pixmaps/menu.xpm"
 
 #include "PlaylistWindow.h"
@@ -292,8 +292,6 @@ void draw_volume(int vol)
 {
 	update_struct *ustr = &global_ustr;
 	GtkAdjustment *adj;
-	Playlist *pl = (Playlist *)ustr->data;
-	CorePlayer *p = pl->GetCorePlayer();
 	GdkRectangle update_rect;
 	char str[60];
 
@@ -339,10 +337,8 @@ void draw_pan(int val)
 {
 	update_struct *ustr = &global_ustr;
 	GdkRectangle update_rect;
-	Playlist *pl = (Playlist *)ustr->data;
-	CorePlayer *p = pl->GetCorePlayer();
 	char str[60];
-	int pan, left, right;
+	int pan;
 
 	pan = val;
 	if (pan < 0) {
@@ -563,7 +559,6 @@ void reverse_play_cb(GtkWidget *widget, gpointer data)
 void pause_cb(GtkWidget *widget, gpointer data)
 {
 	GtkAdjustment *adj;
-	float new_val, temp;
 	int smooth_trans;
 
 	adj = GTK_RANGE(data)->adjustment;
@@ -679,10 +674,10 @@ gint indicator_callback(gpointer data, int locking)
 	stream_info info;
 	char title_string[256];
 	char str[60];
-	long slider_val, t_min, t_sec;
-	long c_hsec, secs, c_min, c_sec;
-	long sr;
-	int nr_frames;
+	long slider_val=0, t_min=0, t_sec=0;
+	long c_hsec=0, secs=0, c_min=0, c_sec=0;
+	long sr=0;
+	int nr_frames=0;
 	static char old_str[60] = "";
 
 	ustr = &global_ustr;
@@ -900,7 +895,6 @@ void play_file_ok(GtkWidget *widget, gpointer data)
 	CorePlayer *p = playlist->GetCorePlayer();
 
 	if (p) {
-		char *selected;
 		GtkCList *file_list = GTK_CLIST(GTK_FILE_SELECTION(play_dialog)->file_list);
 		GList *next = file_list->selection;
 		std::vector<std::string> paths;
@@ -1082,14 +1076,12 @@ void init_main_window(Playlist *pl)
 	GtkWidget *effects_window;
 	GtkWidget *scopes_window;
 	GtkWidget *working;
-	GtkWidget *toplevel;
 	GtkWidget *speed_scale;
 	GtkWidget *pix;
 	GtkWidget *val_area;
 	GtkStyle *style;
 	GdkFont *smallfont;
 	GtkAdjustment *adj;
-	GdkGeometry geom;
 
 	// Dirty trick
 	playlist = pl;

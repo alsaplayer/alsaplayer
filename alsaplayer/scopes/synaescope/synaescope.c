@@ -106,11 +106,8 @@ static void synaescope_set_data(void *audio_buffer, int size)
 
 #define SYNAESCOPE_DOLOOP() \
 while (running) { \
-    gint bar; \
-    guint val; \
-    gint val2; \
-    unsigned char *outptr = output; \
-	int w; \
+    outptr = output; \
+	    int w; \
 \
     synaescope_coreGo(); \
 \
@@ -181,11 +178,11 @@ static void synaescope_coreGo(void) {
   end = (unsigned long*)(output + syn_width * syn_height * 2);
   do {
     /* Bytewize version was: *(ptr++) -= *ptr+(*ptr>>1)>>4; */
-    if (*ptr)
+    if (*ptr) {
 
-      if (*ptr & 0xf0f0f0f0)
+      if (*ptr & 0xf0f0f0f0) {
         *ptr = *ptr - ((*ptr & 0xf0f0f0f0) >> 4) - ((*ptr & 0xe0e0e0e0) >> 5);
-      else {
+      } else {
         *ptr = (*ptr * 14 >> 4) & 0x0f0f0f0f;
             /* Should be 29/32 to be consistent. Who cares. This is totally */
             /* hacked anyway.  */
@@ -197,12 +194,13 @@ static void synaescope_coreGo(void) {
         subptr[3] = (int)subptr[0] * 29 / 32;
 	*/
       }
+    } 
     ptr++;
   } while(ptr < end);
 
   heightFactor = FFT_BUFFER_SIZE/2 / syn_height + 1;
   actualHeight = FFT_BUFFER_SIZE/2 / heightFactor;
-  heightAdd = syn_height + actualHeight >> 1;
+  heightAdd = (syn_height + actualHeight) >> 1;
 
   /* Correct for window size */
   brightFactor2 = (brightFactor/65536.0/FFT_BUFFER_SIZE)*
@@ -279,7 +277,7 @@ static void synaescope32(void *data)
 	unsigned char *outptr;
 	guint32 *bits;
 	guint32 colEq[256];
-	int i, h;
+	int i;
 	GdkWindow *win;
 	GdkColormap *c;
 	GdkVisual *v;
@@ -333,13 +331,14 @@ static void synaescope16(void *data)
 {
 	guint16 *bits;
 	guint16 colEq[256];
-	int i, h;
+	int i;
 	GdkWindow *win;
 	GdkColormap *c;
 	GdkVisual *v;
 	GdkGC *gc;
 	GdkColor bg_color;
-
+	unsigned char *outptr;
+	
 	win = (GdkWindow *)data;
 	GDK_THREADS_ENTER();
 	c = gdk_colormap_get_system();
@@ -387,7 +386,7 @@ static void synaescope8(void *data)
 	unsigned char *outptr;
 	guint8 *bits;
 	guint8 colEq[256];
-	int i, h;
+	int i;
 	GdkWindow *win;
 	GdkColormap *c;
 	GdkVisual *v;
@@ -611,7 +610,6 @@ static int init_synaescope()
 static void synaes_fft(double *x, double *y) {
 	int n2 = FFT_BUFFER_SIZE;
 	int n1;
-	int k;
 	int twoToTheK;
 	int j;
 	for(twoToTheK = 1; twoToTheK < FFT_BUFFER_SIZE; twoToTheK *= 2) {

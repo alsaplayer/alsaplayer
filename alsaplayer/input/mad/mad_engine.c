@@ -671,7 +671,7 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 		}
 		memset(metadata, 0, sizeof(metadata));
 		if ((len = reader_metadata(data->mad_fd, sizeof(metadata), metadata))) {
-			if (s = strstr(metadata, "StreamTitle='")) {
+			if ((s = strstr(metadata, "StreamTitle='"))) {
 				s += 13;
 				if ((p = strstr(s, "'"))) {
 					*p = '\0';

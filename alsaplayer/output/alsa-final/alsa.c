@@ -36,7 +36,7 @@ static snd_pcm_stream_t stream = SND_PCM_STREAM_PLAYBACK;
 static int frag_size = 2048;
 static int frag_count = 16;
 static int nr_channels = 2;
-static int output_rate = 44100;
+static unsigned int output_rate = 44100;
 
 static int alsa_init()
 {
@@ -207,7 +207,7 @@ static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
 }
 
 
-static int alsa_set_sample_rate(int rate)
+static unsigned int alsa_set_sample_rate(unsigned int rate)
 {
 	output_rate = rate;
 	alsa_set_buffer(frag_size, frag_count, nr_channels);
@@ -226,7 +226,6 @@ static int alsa_get_queue_count()
 		return 0;
 	}	
 	avail = snd_pcm_status_get_avail(status);				
-	printf("available = %d\n", avail);
 	return ((int)avail);
 }
 

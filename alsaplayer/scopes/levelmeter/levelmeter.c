@@ -193,7 +193,7 @@ static GtkWidget *init_levelmeter_window()
 	gc = gdk_gc_new(levelmeter_win->window);
 	
 	if (!gc)
-		exit(1);
+		return NULL;
 	color.red = SCOPE_BG_RED << 8;
 	color.blue = SCOPE_BG_BLUE << 8;
 	color.green = SCOPE_BG_GREEN << 8;
@@ -283,8 +283,10 @@ static void run_levelmeter(void *data)
 static void start_levelmeter()
 {
     if (!is_init) {
-		is_init = 1;
 		scope_win = init_levelmeter_window();
+		if (!scope_win)
+			return;
+		is_init = 1;
 	}
 	if (pthread_mutex_trylock(&levelmeter_mutex) != 0) {
 			printf("levelmeter already running\n");
