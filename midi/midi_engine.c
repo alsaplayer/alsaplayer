@@ -255,7 +255,7 @@ static int midi_open(input_object *obj, char *name)
 	d->amplification = config_amplification;
 	d->drumchannels = DEFAULT_DRUMCHANNELS;
 	d->adjust_panning_immediately = 1;
-	d->voice_reserve = 0;
+	d->voice_reserve = 7 * config_voices / 8;
 	d->dont_chorus = 0;
 	d->dont_reverb = 0;
 	d->dont_cspline = 0;
@@ -278,7 +278,6 @@ static int midi_open(input_object *obj, char *name)
 	d->trouble_ahead = 0;
 	d->calc_window = 1000;
 	d->output_buffer_full = 10;
-	d->stat_max_buf_full = 10;
 	d->flushing_output_device = FALSE;
 #ifdef PLAYLOCK
 	if (sem_init(&d->play_lock, 0, 1)) fprintf(stderr,"no semaphore\n");
@@ -360,7 +359,6 @@ void midi_close(input_object *obj)
 	sem_destroy(&d->play_lock);
 #endif
 	if (d->bbuf) free(d->bbuf);
-/*fprintf(stderr,"Max buffer %d percent.\n", d->stat_max_buf_full);*/
 	free(obj->local_data);
 	obj->local_data = NULL;
 #ifdef PLUGDEBUG
@@ -428,6 +426,7 @@ fprintf(stderr,"midi_play_frame to %x\n", buf);
 	if (!d->is_playing) {
 		time_sync(0,1,d);
 	       	midi_truly_open(d);
+		d->last_slack = 0;
        	}
 
 	if (!d->is_playing) return 0;
@@ -439,9 +438,14 @@ fprintf(stderr,"midi_play_frame to %x\n", buf);
 	slacktime = req_interval - d->last_calc;
 
 	if (slacktime) {
-		if (d->trouble_ahead) d->trouble_ahead--;
+		if (d->last_slack) d->trouble_ahead = 0;
+		else if (d->trouble_ahead) d->trouble_ahead--;
 	}
-	else d->trouble_ahead++;
+	else {
+		d->trouble_ahead++;
+		if (!d->last_slack) d->trouble_ahead += 2;
+	}
+	d->last_slack = slacktime;
 
 /* Adjust the window. */
 	if (!slacktime) /*d->calc_window -= d->calc_window / 4*/;
@@ -458,20 +462,21 @@ fprintf(stderr,"midi_play_frame to %x\n", buf);
 	obfp = d->bbcount * 100 / BB_SIZE;
 
 /*
-	fprintf(stderr,"mpf: slack=%d req int=%d cwindow=%d poly=%d vperm=%d obfp=%d trouble=%d\n",
-	     slacktime,
-	     req_interval, d->calc_window, d->current_polyphony, d->voices - d->voice_reserve,
-	     obfp, d->trouble_ahead);
+fprintf(stderr,"mpf: slack=%d lc=%d req int=%d cwindow=%d poly=%d rp=%d dv=%d vperm=%d obfp=%d trouble=%d lost=%d\n",
+	     slacktime, d->last_calc,
+	     req_interval, d->calc_window,
+	     d->current_polyphony, d->voices - d->current_free_voices, d->current_dying_voices,
+	     d->voices - d->voice_reserve,
+	     obfp, d->trouble_ahead, d->lost_notes);
 */
 	d->output_buffer_full = obfp - d->trouble_ahead;
-
-	if (obfp > d->stat_max_buf_full) d->stat_max_buf_full = obfp;
 
 	need_more = TRUE;
 	if (d->bbcount < output_fragsize) {
 		need_more = TRUE;
 	}
 	else if (!slacktime) need_more = FALSE;
+	/*else if (d->last_calc > d->calc_window) need_more = FALSE;*/
 	else if (d->bbcount > BB_SIZE - 3 * output_fragsize) {
 		need_more = FALSE;
 	}

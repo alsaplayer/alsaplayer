@@ -29,10 +29,9 @@ struct md
 	unsigned last_time_expired;
 	unsigned last_req_time;
 	unsigned calc_window;
-	unsigned calc_overshoot;
 	unsigned last_calc;
+	unsigned last_slack;
 	unsigned trouble_ahead;
-	int stat_max_buf_full;
 	MidiEvent *event;
 	MidiEvent *current_event;
 	MidiEventList *evlist;
@@ -48,7 +47,10 @@ struct md
 	int voice_reserve;
 	int32 amplification;
 	FLOAT_T master_volume;
-	int current_polyphony;
+	unsigned lost_notes;
+	unsigned current_polyphony;
+	unsigned current_free_voices;
+	unsigned current_dying_voices;
 #ifdef POLYPHONY_COUNT
 	int future_polyphony;
 #endif

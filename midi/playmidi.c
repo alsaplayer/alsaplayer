@@ -23,9 +23,7 @@
 */
 
 #include <stdio.h>
-#ifndef __WIN32__
 #include <unistd.h>
-#endif
 #include <stdlib.h>
 
 #ifndef NO_STRING_H
@@ -63,74 +61,17 @@ int opt_effect_reverb = FALSE;
 #define PORTAMENTO_CONTROL_RATIO	256	/* controls per sec */
 #endif
 
-#ifdef __WIN32__
-extern int intr;
-#endif
-
-
-#ifdef tplus
-/*int dont_cspline=0;*/
-#endif
-/*int opt_dry = 1;*/
 int opt_dry = 0;
 int opt_expression_curve = 1;
 int opt_volume_curve = 1;
 int opt_stereo_surround = 1;
 int dont_filter_melodic=1;
 int dont_filter_drums=1;
-/*int dont_chorus=0;*/
-/*int dont_reverb=0;*/
-/*int current_interpolation=1; cspline*/
 int config_interpolation=2;
-/*int dont_keep_looping=0;*/
-/*static int voice_reserve=0;*/
-
-/*Channel channel[MAXCHAN];*/
-/*signed char drumvolume[MAXCHAN][MAXNOTE];*/
-/*signed char drumpanpot[MAXCHAN][MAXNOTE];*/
-/*signed char drumreverberation[MAXCHAN][MAXNOTE];*/
-/*signed char drumchorusdepth[MAXCHAN][MAXNOTE];*/
-
-/*Voice voice[MAX_VOICES];*/
-
-/* int voices=DEFAULT_VOICES; */
 
 int32 control_ratio=0;
-/*int32 amplification=DEFAULT_AMPLIFICATION;*/
 
-/*FLOAT_T d->master_volume;*/
-
-/*int32 drumchannels=DEFAULT_DRUMCHANNELS;*/
-/*int adjust_panning_immediately=1;*/
-
-/*int GM_System_On=0;*/
-/*int XG_System_On=0;*/
-/*int GS_System_On=0;*/
-
-/*int XG_System_reverb_type;*/
-/*int XG_System_chorus_type;*/
-/*int XG_System_variation_type;*/
-
-static int32 lost_notes, cut_notes, played_notes;
-
-#if 0
-#ifdef CHANNEL_EFFECT
-int32 common_buffer[AUDIO_BUFFER_SIZE*2], /* stereo samples */
-             *buffer_pointer;
-static uint32 buffered_count;
-
-MidiEvent *event_list=0, *current_event=0;
-uint32 sample_count;
-uint32 current_sample;
-#else
-static int32 common_buffer[AUDIO_BUFFER_SIZE*2], /* stereo samples */
-             *buffer_pointer;
-static uint32 buffered_count;
-
-static MidiEvent *event_list=0, *current_event=0;
-static uint32 sample_count, current_sample;
-#endif
-#endif
+static int32 /*lost_notes,*/ cut_notes, played_notes;
 
 #ifdef tplus
 static void update_portamento_controls(int ch, struct md *d);
@@ -558,12 +499,6 @@ static void recompute_amp(int v, struct md *d)
     }
 }
 
-
-/*static int current_polyphony = 0;*/
-/*#ifdef POLYPHONY_COUNT*/
-/*static int future_polyphony = 0;*/
-/*#endif*/
-
 #define NOT_CLONE 0
 #define STEREO_CLONE 1
 #define REVERB_CLONE 2
@@ -579,12 +514,12 @@ static int vc_alloc(int j, int clone_type, struct md *d)
   while (i--)
     {
       if (i == j) continue;
-      if (d->voice[i].status == VOICE_FREE) {
+      if (d->voice[i].status & VOICE_FREE) {
 	vc_ret = i;
       }
-      else cpoly++;
+      else if (d->voice[i].status & ~VOICE_DIE) cpoly++;
     }
-  if (cpoly < d->voices - d->voice_reserve /* || clone_type == STEREO_CLONE*/) return vc_ret;
+  /*if (cpoly < d->voices - d->voice_reserve  || clone_type == STEREO_CLONE)*/ return vc_ret;
   return -1;
 }
 
@@ -1363,7 +1298,7 @@ fprintf(stderr,"NOT_CLONE v%d vol%f pan%d\n", i, d->voice[i].volume, d->voice[i]
 }
 
 /* changed from VOICE_DIE: the trouble with ramping out dying
-   d->voices in mix.c is that the dying time is just a coincidence
+   voices in mix.c is that the dying time is just a coincidence
    of how near a buffer end we happen to be.
 */
 static void kill_note(int i, struct md *d)
@@ -1374,7 +1309,7 @@ static void kill_note(int i, struct md *d)
   ctl->note(i);
 }
 
-static void reduce_polyphony_by_one(struct md *d)
+static int reduce_polyphony_by_one(struct md *d)
 {
   int i=d->voices, lowest=-1; 
   int32 lv=0x7FFFFFFF, v;
@@ -1385,7 +1320,7 @@ static void reduce_polyphony_by_one(struct md *d)
     {
       if (d->voice[i].status==VOICE_FREE || !d->voice[i].sample->sample_rate) /* idea from Eric Welsh */
 	    continue;
-      if (d->voice[i].status & ~(VOICE_OFF | VOICE_DIE))
+      if (d->voice[i].status & ~(VOICE_ON | VOICE_DIE))
 	{
 	  v=d->voice[i].left_mix;
 	  if ((d->voice[i].panned==PANNED_MYSTERY) && (d->voice[i].right_mix>v))
@@ -1399,14 +1334,16 @@ static void reduce_polyphony_by_one(struct md *d)
     }
 
   if (lowest != -1) {
-	kill_note(i, d);
+	kill_note(lowest, d);
+	return 1;
   }
-
+  return 0;
 }
 
-static void reduce_polyphony(int by, struct md *d)
-{
-  while (by--) reduce_polyphony_by_one(d);
+static int reduce_polyphony(int by, struct md *d)
+{ int ret = 0;
+  while (by--) if (reduce_polyphony_by_one(d)) ret++; else break;
+  return ret;
 }
 
 static int check_quality(struct md *d)
@@ -1416,7 +1353,8 @@ static int check_quality(struct md *d)
 #endif
   int obf = d->output_buffer_full, retvalue = 1;
   int vcs = d->voices;
-  int rsv = 0, permitted;
+  int cpoly = d->current_polyphony;
+  int rsv = 0, permitted, polyreduction;
 
 #ifdef QUALITY_DEBUG
 if (!debug_count) {
@@ -1434,23 +1372,10 @@ debug_count--;
   permitted = vcs - 16;
   if (permitted < 0) permitted = 0;
   if (obf > 0) permitted = permitted * obf / 100;
+  else permitted = 0;
   permitted += 16;
+
   rsv = vcs - permitted;
-
-#if 0
-  permitted = 16 + (256-16) * obf / 100;
-
-  if (obf < 1) rsv = (6*vcs) / 7;	1/7 36  16
-  else if (obf <  5) rsv = 5*vcs / 6;	1/6 42  16+12 = 28
-  else if (obf < 10) rsv = 4*vcs / 5;	1/5 55  16+24 = 40
-  else if (obf < 20) rsv = 3*vcs / 4;	1/4 66  15+48 = 63
-  else if (obf < 30) rsv = 2*vcs / 3;	1/3 85
-  else if (obf < 40) rsv = vcs / 2;	   128
-  else if (obf < 50) rsv = vcs / 3;
-  else if (obf < 60) rsv = vcs / 4;
-  /* else rsv = 0; */
-  else rsv = vcs / 10; /* to be able to find a stereo clone */
-#endif
 
   d->voice_reserve = rsv;
 
@@ -1471,37 +1396,36 @@ debug_count--;
   if (obf < 20) dont_filter = 1;
   else if (obf > 80) dont_filter = 0;
 */
-  if (obf < 60) {
-	reduce_polyphony(vcs/10, d);
-  }
-  if (obf < 50) {
-	reduce_polyphony(vcs/10, d);
-  }
-  if (obf < 40) {
-	reduce_polyphony(vcs/9, d);
-  }
-  if (obf < 30) {
-	reduce_polyphony(vcs/8, d);
-  }
-  if (obf < 20) {
-	reduce_polyphony(vcs/6, d);
-  }
-  if (obf < 10) {
-	reduce_polyphony(vcs/5, d);
-  }
-  if (obf < 8) {
-	reduce_polyphony(vcs/4, d);
-  }
-  if (obf < 5) {
-	reduce_polyphony(vcs/4, d);
-  }
-  if (obf < 4) {
-	reduce_polyphony(vcs/4, d);
-  }
-  if (obf < 2) {
-	reduce_polyphony(vcs/4, d);
-	retvalue = 0;
-  }
+/* pool should be permitted/10
+ * present pool is permitted - cpoly
+ * reduction = permitted/10 - (permitted - cpoly)
+ */
+
+  polyreduction = cpoly - permitted;
+  polyreduction += permitted / 5;
+
+/*
+fprintf(stderr,"\tred %d = cpoly %d - permitted %d + p/4 %d\n", polyreduction, cpoly, permitted,
+		permitted / 4);
+*/
+/*
+  polyreduction = permitted / 4 - (permitted - cpoly);
+  if (polyreduction < 0) polyreduction = 0;
+*/
+/*
+ * extra reduction if buffer is too low
+ * (100 - obf)% of cpoly
+ */
+/*
+  polyreduction += cpoly * (100 - obf) / 100;
+*/
+
+  if (polyreduction>0) retvalue = reduce_polyphony(polyreduction, d);
+
+/*
+if (polyreduction>0) fprintf(stderr,"\tcpoly=%d: red ?%d->%d\n", cpoly, polyreduction, retvalue);
+*/
+  retvalue = 1;
 
   if (command_cutoff_allowed) dont_filter_melodic = 0;
   else dont_filter_melodic = 1;
@@ -1515,28 +1439,27 @@ static void note_on(MidiEvent *e, struct md *d)
 {
   int i=d->voices, lowest=-1; 
   int32 lv=0x7FFFFFFF, v;
-  int cpoly = 0;
+  int cpoly = 0, cdie = 0, cfree = 0;
 
   while (i--)
     {
-      if (d->voice[i].status == VOICE_FREE)
+      if (d->voice[i].status == VOICE_FREE) {
 	lowest=i; /* Can't get a lower volume than silence */
-	else cpoly++;
+	cfree++;
+      }
+      else if (d->voice[i].status == VOICE_DIE) cdie++;
+      else cpoly++;
     }
 
   d->current_polyphony = cpoly;
+  d->current_free_voices = cfree;
+  d->current_dying_voices = cdie;
 
   if (!check_quality(d))
     {
-      lost_notes++;
+      d->lost_notes++;
       return;
     }
-
-
-  /*if (d->voices - cpoly <= d->voice_reserve)*/
-  if (cpoly >= d->voices - d->voice_reserve)
-    lowest = -1;
-
   if (lowest != -1)
     {
       /* Found a free voice. */
@@ -1602,7 +1525,7 @@ static void note_on(MidiEvent *e, struct md *d)
       start_note(e,lowest, d);
     }
   else
-    lost_notes++;
+    d->lost_notes++;
 }
 
 static void finish_note(int i, struct md *d)
@@ -2316,7 +2239,7 @@ static int play_midi(struct md *d)
 {
 
   adjust_amplification(d);
-  lost_notes=cut_notes=played_notes=output_clips=0;
+  d->lost_notes=cut_notes=played_notes=output_clips=0;
   skip_to(0, d);
   return 0;
 }
@@ -2621,7 +2544,7 @@ d->current_event->channel);
 	      ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		   "Notes cut: %d", cut_notes);
 	      ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
-		   "Notes lost totally: %d", lost_notes);
+		   "Notes lost totally: %d", d->lost_notes);
 	      ctl->cmsg(CMSG_INFO, VERB_VERBOSE,
 		   "Current memory used: %d", current_patch_memory);
 	      /*

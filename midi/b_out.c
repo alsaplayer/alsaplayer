@@ -78,6 +78,11 @@ void b_out(char id, int fd, int *buf, int ocount, struct md *d)
   uint32 ucount;
 
   if (ocount < 0) {
+	if (d->bbuf && d->bbcount >= output_fragsize) {
+		if (d->bbcount > 2 * output_fragsize) d->bbcount = 2 * output_fragsize;
+		else d->bbcount = output_fragsize;
+		return;
+	}
 	d->out_count = d->bboffset = d->bbcount = d->outchunk = 0;
 	d->starting_up = 1;
 	d->flushing = 0;
@@ -106,24 +111,6 @@ void b_out(char id, int fd, int *buf, int ocount, struct md *d)
   if (d->starting_up && ucount + d->bboffset + d->bbcount >= BB_SIZE) d->starting_up = 0;
   if (!ucount) { d->starting_up = 0; d->flushing = 1; }
   else d->flushing = 0;
-
-#if 0
-  if (d->starting_up || d->flushing) d->output_buffer_full = PRESUMED_FULLNESS;
-  else {
-	int samples_queued;
-#ifdef AU_OSS
-#ifdef SNDCTL_DSP_GETODELAY
-        if ( (id == 'd' || id == 'D') &&
-	     (ioctl(fd, SNDCTL_DSP_GETODELAY, &samples_queued) == -1))
-#endif
-#endif
-	    samples_queued = 0;
-
-	if (!samples_queued) d->output_buffer_full = PRESUMED_FULLNESS;
-	else d->output_buffer_full = ((d->bbcount+samples_queued) * 100) / (BB_SIZE + d->total_bytes);
-/* fprintf(stderr," %d",d->output_buffer_full); */
-  }
-#endif
 
   ret = 0;
 

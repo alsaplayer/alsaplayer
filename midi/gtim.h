@@ -147,7 +147,7 @@ typedef double FLOAT_T;
    You should probably use a larger number for improved performance.
 
 */
-#define AUDIO_BUFFER_BITS 11
+#define AUDIO_BUFFER_BITS 10
 
 /* 1000 here will give a control ratio of 22:1 with 22 kHz output.
    Higher CONTROLS_PER_SECOND values allow more accurate rendering
