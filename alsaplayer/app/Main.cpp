@@ -376,7 +376,7 @@ static void help()
 		"\n"
 		"  -S,--loopsong           loop file\n"
 		"  -P,--looplist           loop playlist\n"
-		"  -x,--crossfade          crossfade between playlist entries (experimental)\n"
+		"  -x,--crossfade          crossfade playlist entries (experimental)\n"
 		"\n");
 }
 
@@ -549,11 +549,7 @@ int main(int argc, char **argv)
 				use_session = atoi(optarg);
 				break;
 			case 'p':
-				if (strlen(optarg) < 512) {
-					global_pluginroot = (char *)
-						malloc(strlen(optarg) + 1 );
-					strcpy(global_pluginroot, optarg);
-				}	
+				global_pluginroot = strdup(optarg);
 				break;
 			case 'q':
 				global_quiet = 1;
@@ -628,8 +624,7 @@ int main(int argc, char **argv)
 				strncmp(argv[count], "ftp://", 6) != 0) {
 				// Not absolute so append cwd
 				if (getcwd(queue_name, 1024) == NULL) {
-					alsaplayer_error
-						("error getting cwd\n");
+					alsaplayer_error("error getting cwd");
 					return 1;
 				}
 				strcat(queue_name, "/");
@@ -735,11 +730,9 @@ int main(int argc, char **argv)
 	if (get_interface_from_argv0 (argv[0], str))
 		use_interface = str;
 	
-	if (use_interface && strlen(use_interface)) {
-		if (!(interface_plugin_info =
-					load_interface(use_interface))) {
-			alsaplayer_error("Failed to load interface %s\n",
-					use_interface);
+	if (use_interface && *use_interface) {
+		if (!(interface_plugin_info = load_interface(use_interface))) {
+			alsaplayer_error("Failed to load interface %s\n", use_interface);
 			goto _fatal_err;
 		}
 	} else {
