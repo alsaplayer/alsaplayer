@@ -60,6 +60,7 @@ int ap_set_volume(int session, int volume);
 int ap_get_volume(int session, int *volume);
 int ap_set_pan(int session, int pan);
 int ap_get_pan(int session, int *pan);
+int ap_get_tracks(int session, int *nr_tracks);
 
 int ap_get_session_name(int session, char *str);
 
