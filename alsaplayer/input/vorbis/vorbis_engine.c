@@ -133,8 +133,6 @@ static int vorbis_frame_size(input_object *obj)
 
 static int vorbis_play_frame(input_object *obj, char *buf)
 {
-	char pcmout[BLOCK_SIZE];
-	char pcmout2[BLOCK_SIZE];
 	int pcm_index;
 	int ret;
 	int bytes_needed;
@@ -147,29 +145,26 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 	data = (struct vorbis_local_data *)obj->local_data;
 	if (!data)
 		return 0;
-	memset(pcmout,0,sizeof(pcmout));
 
-	bytes_needed = sizeof(pcmout);
+	bytes_needed = BLOCK_SIZE;
 	if (obj->nr_channels == 1) { /* mono stream */
 		bytes_needed >>= 1;
 		mono2stereo = 1;
 	}		
 	pcm_index = 0;
-	while (bytes_needed > 0) {	
-		ret = ov_read(&data->vf, pcmout + pcm_index, bytes_needed, 
+	while (bytes_needed > 0) {
+		ret = ov_read(&data->vf, buf + pcm_index, bytes_needed, 
 				data->bigendianp, 2, 1, &data->current_section);
-		switch (ret) {
-			case 0:
-				return 0;
-			case -1:
-				return 0;
-		}
+		if (ret <= 0)
+			return 0;
+
 		pcm_index += ret;
 		bytes_needed -= ret;
-	}	
+	}
+	// this is only true if bytes_needed is negative, which seems unlikely; FB
 	if (bytes_needed != 0) {
-		printf("Incomplete frame! (%d)\n", sizeof(pcmout) - bytes_needed);
-	}	
+		printf("Incomplete frame! (%d)\n", BLOCK_SIZE - bytes_needed);
+	}
 	if (data->current_section != data->last_section) {
 		/*
 		 * The info struct is different in each section.  vf
@@ -186,18 +181,18 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 		data->last_section = data->current_section;
 	}
 	if (mono2stereo) {
+		char pcmout[BLOCK_SIZE];
+
+		memcpy(pcmout, buf, sizeof(pcmout) / 2);	
 		int16_t *src, *dest;
 		int count = sizeof(pcmout) / 4;
 		int c;
 		src = (int16_t *)pcmout;
-		dest = (int16_t *)pcmout2;
+		dest = (int16_t *)buf;
 		for (c = 0; c < count; c++) {
 			*dest++ = *src;
 			*dest++ = *src++;
 		}
-		memcpy(buf, pcmout2, sizeof(pcmout));
-	} else {		
-		memcpy(buf, pcmout, sizeof(pcmout));	
 	}	
 	return 1;
 }
@@ -460,7 +455,7 @@ input_plugin *input_plugin_info (void)
 {
 	memset(&vorbis_plugin, 0, sizeof(input_plugin));
 	vorbis_plugin.version = INPUT_PLUGIN_VERSION;
-	vorbis_plugin.name = "Ogg Vorbis player v1.1";
+	vorbis_plugin.name = "Ogg Vorbis player v1.2";
 	vorbis_plugin.author = "Andy Lo A Foe";
 	vorbis_plugin.init = vorbis_init;
 	vorbis_plugin.shutdown = vorbis_shutdown;
