@@ -2,6 +2,7 @@ ChangeLog
 Makefile
 Makefile.in
 alsaplayer.1
+config.h.in
 config.h
 config.log
 config.status
