@@ -174,6 +174,7 @@ public:
 	void Next();    // Start playing next item in playlist
 	void Prev();    // Start playing previous item in playlist
 	int GetCurrent() { return curritem; } // Return current item
+	void SetCurrent(unsigned pos);	// Set current item
 
 	// Insert items at position - 0 = beginning, 1 = after first item, etc
 	void Insert(std::vector<std::string> const &, unsigned, bool wait_for_insert=false);

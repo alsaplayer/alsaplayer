@@ -23,6 +23,7 @@
 #include <pthread.h>
 #include <sys/stat.h>
 #include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
 
 #include <vector>
 #include <algorithm>
@@ -44,6 +45,7 @@ static void new_list_item(const PlayItem *item, gchar **list_item);
 static GdkColor *select_color = NULL;
 static GdkColor *default_color = NULL;
 static int current_entry = -1;
+void playlist_play_current(Playlist *playlist, GtkWidget *gtklist);
 
 // Member functions
 
@@ -118,7 +120,7 @@ void PlaylistWindowGTK::CbSetCurrent(void *data, unsigned current) {
 	
 	gtk_clist_set_pixmap(GTK_CLIST(gtkpl->playlist_list), current_entry - 1,
 		0, current_play_pix, current_play_mask);
-
+	
 	GDK_THREADS_LEAVE();
 }
 
@@ -212,7 +214,7 @@ void PlaylistWindowGTK::CbRemove(void *data, unsigned start, unsigned end)
 		gtk_clist_remove(GTK_CLIST(gtkpl->playlist_list), start - 1);
 		i++;
 	}
-
+	//gtk_clist_select_row(GTK_CLIST(gtkpl->playlist_list), start-1, 0);
 	//std::string msg = inttostring(end + 1 - start) + " file";
 	//if(end != start) msg += "s";
 	//msg += " removed";
@@ -294,7 +296,8 @@ extern void playlist_window_gtk_prev(GtkWidget *widget, gpointer data) {
 }
 
 // Called when "next" button is pressed
-extern void playlist_window_gtk_next(GtkWidget *widget, gpointer data) {
+void playlist_window_gtk_next(GtkWidget *widget, gpointer data)
+{
 	Playlist * playlist = (Playlist *) data;
 	if(playlist) {
 		playlist->Pause();
@@ -305,6 +308,8 @@ extern void playlist_window_gtk_next(GtkWidget *widget, gpointer data) {
 	}
 }
 
+
+
 // Called when playlist is clicked to select an item
 void playlist_click(GtkWidget *widget, gint row, gint column, 
 					GdkEvent *bevent, gpointer data)
@@ -313,14 +318,20 @@ void playlist_click(GtkWidget *widget, gint row, gint column,
 	GtkWidget *win = (GtkWidget *)gtk_object_get_data(GTK_OBJECT(widget), "window");
 	if (win && (bevent && bevent->type == GDK_2BUTTON_PRESS)) {
 		// Double click - play from the clicked item
-		int selected;
-		selected = GPOINTER_TO_INT(GTK_CLIST(widget)->selection->data);
-		playlist->Pause();
-		GDK_THREADS_LEAVE();
-		playlist->Play(selected + 1);
-		GDK_THREADS_ENTER();
-		playlist->UnPause();
+		playlist_play_current(playlist, widget);
 	}
+}
+
+
+void playlist_play_current(Playlist *playlist, GtkWidget *list)
+{
+		int selected;
+		selected = GPOINTER_TO_INT(GTK_CLIST(list)->selection->data);
+		GDK_THREADS_LEAVE();
+		playlist->Pause();
+		playlist->Play(selected + 1);
+		playlist->UnPause();
+		GDK_THREADS_ENTER();
 }
 
 // Called when remove button is clicked
@@ -357,6 +368,10 @@ void playlist_remove(GtkWidget *widget, gpointer data)
 			GDK_THREADS_ENTER();
 			next = next->prev;	
 		}
+		if (playlist->Length() == selected) {
+			selected--;
+		}	
+		gtk_clist_select_row(GTK_CLIST(list), selected, 0);
 	}
 }
 
@@ -590,9 +605,27 @@ void dialog_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 }
 
 
-void playlist_window_keypress(GtkWidget *widget, GdkEvent *event, gpointer data)
+void playlist_window_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
-	alsaplayer_error("Key pressed!");
+	PlaylistWindowGTK *playlist_window_gtk = (PlaylistWindowGTK *) data;
+	Playlist *playlist = NULL;
+	GtkWidget *list = NULL;
+
+	playlist = playlist_window_gtk->GetPlaylist();
+	list = playlist_window_gtk->GetPlaylist_list();
+	
+
+	//alsaplayer_error("Key pressed!");
+	switch(event->keyval) {
+		case GDK_Delete:
+			playlist_remove(widget, data);
+			break;
+		case GDK_Return:
+			playlist_play_current(playlist, list);
+			break;
+		default:
+			break;
+	}		
 }
 
 
@@ -699,7 +732,8 @@ playlist_window_gtk->load_list = gtk_file_selection_new("Load Playlist");
 
 	// Shortcut keys
 	gtk_signal_connect(GTK_OBJECT(playlist_window), "key-press-event",
-		GTK_SIGNAL_FUNC(playlist_window_keypress), NULL);	
+		GTK_SIGNAL_FUNC(playlist_window_keypress), 
+		(gpointer)playlist_window_gtk);	
 
 	// Modify button text of add_file dialog
 	gtk_object_set(GTK_OBJECT(

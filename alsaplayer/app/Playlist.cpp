@@ -474,6 +474,28 @@ void Playlist::AddAndPlay(std::vector<std::string> const &paths) {
 	Play(next_pos);
 }
 
+
+void Playlist::SetCurrent(unsigned pos)
+{
+	std::set<PlaylistInterface *>::const_iterator i;
+	std::set<playlist_interface *>::const_iterator j;
+		
+	Lock();
+	curritem = pos;
+	// Tell the subscribing interfaces about the change
+	if(interfaces.size() > 0) {
+		for(i = interfaces.begin(); i != interfaces.end(); i++) {
+			(*i)->CbSetCurrent(curritem);
+		}
+	}
+	if(cinterfaces.size() > 0) {
+		for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
+			(*j)->cbsetcurrent((*j)->data, curritem);
+		}
+	}
+	Unlock();
+}
+
 // Remove tracks from position start to end inclusive
 void Playlist::Remove(unsigned start, unsigned end) {
 	std::set<PlaylistInterface *>::const_iterator i;
