@@ -1,5 +1,5 @@
 /*
- *  cdda_engine.c (C) 1999 by Andy Lo A Foe
+ *  cdda_engine.c (C) 1999-2001 by Andy Lo A Foe
  *	
  *	Based on code from dagrab 0.3 by Marcello Urbani <murbani@numerica.it>
  *
@@ -7,8 +7,6 @@
  *  quality playback of CD audio. It is used in the alsaplayer project
  *  by Andy Lo A Foe. If you use use this please be so kind as to put a
  *  pointer to the web page at http://www.alsa-project.org/~andy
- *
- *  Linux rocks! Alsa rulez!
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -400,7 +398,7 @@ static int cdda_nr_frames(input_object *obj)
 }
 
 
-static unsigned long cdda_frame_to_sec(input_object *obj, int frame)
+static  long cdda_frame_to_sec(input_object *obj, int frame)
 {
 	unsigned long byte_count = FRAME_LEN * frame * CD_FRAMESIZE_RAW;
 
@@ -483,8 +481,15 @@ input_plugin cdda_plugin = {
 		cdda_track_seek
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 input_plugin *input_plugin_info()
 {
 	return &cdda_plugin;
 }
+
+#ifdef __cplusplus
+}
+#endif
