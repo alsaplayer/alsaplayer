@@ -219,16 +219,17 @@ static int alsa_get_queue_count()
 
 	snd_pcm_status_alloca(&status);
 	if ((err = snd_pcm_status(sound_handle, status))<0) {
-		alsaplayer_error("can't determine statis");
+		alsaplayer_error("can't determine status");
 		return 0;
 	}	
 	avail = snd_pcm_status_get_avail(status);				
-	//printf("available = %d\n", avail);
+	printf("available = %d\n", avail);
 	return ((int)avail);
 }
 
 static int alsa_get_latency()
 {
+	//alsaplayer_error("frag_size = %d, frag_count = %d", frag_size, frag_count);
 	return (frag_size * frag_count);
 }
 
@@ -251,7 +252,7 @@ output_plugin *output_plugin_info(void)
 	alsa_output.set_buffer = alsa_set_buffer;
 	alsa_output.set_sample_rate = alsa_set_sample_rate;
 #ifdef QUEUE_COUNT
-	alsa_output.get_queue_count = alsa_get_queue_count;
+	//alsa_output.get_queue_count = alsa_get_queue_count;
 #endif
 	alsa_output.get_latency = alsa_get_latency;
 	
