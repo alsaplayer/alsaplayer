@@ -796,8 +796,10 @@ gint indicator_callback(gpointer data, int locking)
 	if (strlen(info.artist)) {
 		sprintf(title_string, "%s - %s", info.title, info.artist);
 		draw_title(title_string);
+	} else if (strlen(info.title)) {
+		sprintf(title_string, "%s", info.title);
+		draw_title(title_string);
 	} else {
-		//alsaplayer_error("path = %s", info.path);
 		char *p = strrchr(info.path, '/');
 		if (p) {
 			p++;
