@@ -227,7 +227,7 @@ static int mad_frame_seek(input_object *obj, int frame)
 		mad_stream_buffer(&data->stream, data->mad_map,
 				data->bytes_avail);
 		while (data->highest_frame < frame) {
-			if (data->bytes_avail < 1024) {
+			if (data->bytes_avail < 2048) {
 				fill_buffer(data, data->map_offset + MAD_BUFSIZE - data->bytes_avail);
 				mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
 			}	
@@ -298,7 +298,7 @@ static int mad_play_frame(input_object *obj, char *buf)
 	data = (struct mad_local_data *)obj->local_data;
 	if (!data)
 		return 0;
-	if (data->bytes_avail < 1024) {
+	if (data->bytes_avail < 2048) {
 		//alsaplayer_error("Filling buffer = %d,%d",
 		//		data->bytes_avail,
 		//		data->map_offset + MAD_BUFSIZE - data->bytes_avail);
@@ -309,7 +309,9 @@ static int mad_play_frame(input_object *obj, char *buf)
 	}	
 	if (mad_frame_decode(&data->frame, &data->stream) == -1) {
 		if (!MAD_RECOVERABLE(data->stream.error)) {
-			/* alsaplayer_error("MAD error: %s", error_str(data->stream.error, data->str)); */
+			alsaplayer_error("MAD error: %s (%d)", 
+				error_str(data->stream.error, data->str),
+				data->bytes_avail);
 			mad_frame_mute(&data->frame);
 			return 0;
 		}	else {
@@ -324,7 +326,7 @@ static int mad_play_frame(input_object *obj, char *buf)
 		if (data->current_frame > 3 && 
 				(data->frames[data->current_frame] -
 				 data->frames[data->current_frame-3]) < 6) {
-			/* alsaplayer_error("EOF reached"); */
+			alsaplayer_error("EOF reached");
 			return 0;
 		}		
 		if (data->highest_frame < data->current_frame)
