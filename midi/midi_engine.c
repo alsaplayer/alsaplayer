@@ -128,8 +128,6 @@ int got_a_configuration=0;
 
 static int look_midi_file(struct md *d)
 {
-	int rc;
-	int32 val;
 
   ctl->cmsg(CMSG_INFO, VERB_VERBOSE, "MIDI file: %s", d->midi_name);
 
@@ -155,15 +153,6 @@ static int look_midi_file(struct md *d)
 
 
 static int configuration_failed = FALSE;
-
-static char *homedir;
-static char prefs_path[1024];
-static char *get_homedir()
-{
-	char *homedir = NULL;
-	homedir = getenv("HOME");
-	return homedir;
-}
 
 static int init_midi()
 {
@@ -424,8 +413,8 @@ static int midi_play_frame(input_object *obj, char *buf)
 {
         struct md *d;
 	int rc = 0;
-	int need_more, obfp, slacktime;
-	unsigned calc_start, req_interval;
+	int need_more, obfp;
+	unsigned calc_start, req_interval, slacktime;
 
 #ifdef PLUGDEBUG
 fprintf(stderr,"midi_play_frame to %x\n", buf);
@@ -496,7 +485,7 @@ fprintf(stderr,"mpf: slack=%d lc=%d req int=%d cwindow=%d poly=%d fp=%d rp=%d dv
 	d->last_calc = 0;
 
 	while (need_more) {
-		int calc_time;
+		unsigned calc_time;
 #ifdef PLUGDEBUG
 		fprintf(stderr,"bbcount of %d < fragsize %d: ", d->bbcount, output_fragsize);
 #endif
@@ -561,7 +550,7 @@ static int midi_frame_seek(input_object *obj, int frame)
 		/*if (current_frame > frame - 2 && current_frame < frame + 2) return 1;*/
 		tim_time = frame * output_fragsize / 4;
 		if (tim_time < 0) tim_time = 0;
-		if (tim_time > d->sample_count) return 0;
+		if (tim_time > (int)d->sample_count) return 0;
 		play_mode->purge_output(d);
 		result = skip_to(tim_time, d);
 	}
@@ -634,6 +623,7 @@ static int midi_channels(input_object *obj)
 #ifdef PLUGDEBUG
 fprintf(stderr,"midi_channels\n");
 #endif
+	if (!obj) return 0;
 	return 2; /* Yes, always stereo ...  */
 }
 
@@ -702,7 +692,7 @@ fprintf(stderr,"midi_stream_info\n");
 #endif
 	if (!info) return 0;
 
-	sprintf(info->stream_type, "%s midi: %d track%s, %d events",
+	sprintf(info->stream_type, "%s midi: %d track%s, %lu events",
 		d->midi_type,
 		d->track_info, (d->track_info > 1)? "s" : "", d->event_count);
 

@@ -2884,7 +2884,6 @@ static int pc42b_config_file(const char *name, int prescan)
 	while (1) {
 		int action, which;
 		const char *sfname;
-		char *vc_name = NULL;
 
 		action = PC42b[i].font_code;
 		which = PC42b[i].num;

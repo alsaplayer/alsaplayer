@@ -513,24 +513,21 @@ static void recompute_amp(int v, struct md *d)
 
 
 /* just a variant of note_on() */
-static int vc_alloc(int j, int clone_type, struct md *d)
+static int vc_alloc(int j, struct md *d)
 {
   int i=d->voices; 
-  int cpoly = 0, vc_ret = -1;
 
   while (i--)
     {
       if (i == j) continue;
       if (d->voice[i].status & VOICE_FREE) {
-	vc_ret = i;
+	return i;
       }
-      else if (d->voice[i].status & ~VOICE_DIE) cpoly++;
     }
-  /*if (cpoly < d->voices - d->voice_reserve  || clone_type == STEREO_CLONE)*/ return vc_ret;
   return -1;
 }
 
-static void kill_others(MidiEvent *e, int i, struct md *d)
+static void kill_others(/*MidiEvent *e,*/ int i, struct md *d)
 {
   int j=d->voices; 
 
@@ -605,7 +602,7 @@ static void clone_voice(Instrument *ip, int v, MidiEvent *e, uint8 clone_type, i
   else if (clone_type == STEREO_CLONE) variationbank = 0;
 	/* don't try to fake a second patch if we have a real one */
 
-  if ( (w = vc_alloc(v, clone_type, d)) < 0 ) return;
+  if ( (w = vc_alloc(v, d)) < 0 ) return;
 
   if (clone_type==STEREO_CLONE) d->voice[v].clone_voice = w;
   d->voice[w].clone_voice = v;
@@ -1076,7 +1073,7 @@ else {
     } /* not drum channel */
 
     select_stereo_samples(i, lp, d);
-    kill_others(e, i, d);
+    kill_others(/*e,*/ i, d);
 
     d->voice[i].starttime = e->time;
     played_note = d->voice[i].sample->note_to_use;
@@ -1400,7 +1397,7 @@ static void kill_note(int i, struct md *d)
 static int reduce_polyphony_by_one(struct md *d)
 {
   int i=d->voices, lowest=-1; 
-  int32 lv=0x7FFFFFFF, v, vr;
+  int32 lv=0x7FFFFFFF, v=0x7FFFFFFF, vr;
   int32 duration;
 
   /* Look for the decaying note with the lowest volume */
@@ -1906,7 +1903,7 @@ static void adjust_volume(int c, struct md *d)
 }
 
 #ifdef tplus
-static int32 midi_cnv_vib_rate(int rate, struct md *d)
+static int32 midi_cnv_vib_rate(int rate)
 {
     return (int32)((double)play_mode->rate * MODULATION_WHEEL_RATE
 		   / (midi_time_table[rate] *
@@ -2129,7 +2126,7 @@ static void seek_forward(uint32 until_time, struct md *d)
 	  break;
 #ifdef tplus
 	case ME_VIBRATO_RATE:
-	  d->channel[d->current_event->channel].vibrato_ratio=midi_cnv_vib_rate(d->current_event->a, d);
+	  d->channel[d->current_event->channel].vibrato_ratio=midi_cnv_vib_rate(d->current_event->a);
 	  break;
 	case ME_VIBRATO_DEPTH:
 	  d->channel[d->current_event->channel].vibrato_depth=midi_cnv_vib_depth(d->current_event->a);
@@ -2691,7 +2688,7 @@ d->current_event->channel);
 	      break;
 #ifdef tplus
 	case ME_VIBRATO_RATE:
-	  d->channel[d->current_event->channel].vibrato_ratio=midi_cnv_vib_rate(d->current_event->a, d);
+	  d->channel[d->current_event->channel].vibrato_ratio=midi_cnv_vib_rate(d->current_event->a);
 	  update_channel_freq(d->current_event->channel, d);
 	  break;
 	case ME_VIBRATO_DEPTH:
@@ -2840,7 +2837,9 @@ int play_midi_file(struct md *d)
 
 void play_midi_finish(struct md *d)
 {
+#ifdef CHANNEL_EFFECT
   int i;
+#endif
   compute_data(0, d);
 #ifdef CHANNEL_EFFECT
   if (opt_effect)

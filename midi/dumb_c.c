@@ -69,9 +69,6 @@ ControlMode ctl=
   ctl_expression, ctl_panning, ctl_sustain, ctl_pitch_bend
 };
 
-static FILE *infp;  /* infp isn't actually used yet */
-static FILE *outfp;
-
 static int ctl_open(int using_stdin, int using_stdout)
 {
   ctl.opened=1;

@@ -94,7 +94,8 @@ struct md
 	Effect* effect_list[ NUM_EFFECTS ][MAXCHAN] ; 
 };
 extern int play_midi_file(struct md *d);
-extern int play_some_midi_file(struct md *d);
+extern int play_some_midi(struct md *d);
+extern void play_midi_finish(struct md *d);
 extern int skip_to(uint32 until_time, struct md *d);
 extern void recompute_freq(int v, struct md *d);
 extern int init_effect(struct md *d) ;

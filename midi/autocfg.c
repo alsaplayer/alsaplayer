@@ -1,12 +1,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <dirent.h>
 #include "gtim.h"
 #include "common.h"
 #include "instrum.h"
 #include "playmidi.h"
+
+extern int sf2cfg(char *sffname, char *outname);
 
 static int choose(const struct dirent *nm) {
 	char *fname = nm->d_name;

@@ -1078,7 +1078,7 @@ static void groom_list(int32 divisions, struct md *d)
 {
   MidiEvent *groomed_list, *lp;
   MidiEventList *meep;
-  int32 i, our_event_count, tempo, skip_this_event, new_value;
+  int32 i, our_event_count, tempo, skip_this_event, new_value=0;
 #ifdef POLYPHONY_COUNT
   uint32 current_polyphony, future_interval;
   MidiEvent *hind_list;
