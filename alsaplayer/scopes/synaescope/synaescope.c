@@ -96,7 +96,7 @@ static void synaescope_set_data(void *audio_buffer, int size)
 		int i;
 		sound_sample *newset_l = pcmt_l;
 		sound_sample *newset_r = pcmt_r;
-		sound += (size / 2 - FFT_BUFFER_SIZE) * 2; // Use the very latest data
+		sound += (size / 2 - FFT_BUFFER_SIZE) * 2; /* Use the very latest data */
 		for (i=0; i < FFT_BUFFER_SIZE; i++) {
 			*(newset_l++) = (sound_sample)(*(sound++));
 			*(newset_r++) = (sound_sample)(*(sound++));
@@ -175,25 +175,27 @@ static void synaescope_coreGo(void) {
       ( (x1+x2) * (x1-x2) + (y1+y2) * (y1-y2) )/(aa+bb) * 256 );
   }
 
-  // Asger Alstrupt's optimized 32 bit fade
-  // (alstrup@diku.dk)
+  /* Asger Alstrupt's optimized 32 bit fade */
+  /* (alstrup@diku.dk) */
   ptr = (unsigned long*)output;
   end = (unsigned long*)(output + syn_width * syn_height * 2);
   do {
-    //Bytewize version was: *(ptr++) -= *ptr+(*ptr>>1)>>4;
+    /* Bytewize version was: *(ptr++) -= *ptr+(*ptr>>1)>>4; */
     if (*ptr)
 
       if (*ptr & 0xf0f0f0f0)
         *ptr = *ptr - ((*ptr & 0xf0f0f0f0) >> 4) - ((*ptr & 0xe0e0e0e0) >> 5);
       else {
         *ptr = (*ptr * 14 >> 4) & 0x0f0f0f0f;
-            //Should be 29/32 to be consistent. Who cares. This is totally
-            // hacked anyway. 
-        //unsigned char *subptr = (unsigned char*)(ptr++);
-        //subptr[0] = (int)subptr[0] * 29 / 32;
-        //subptr[1] = (int)subptr[0] * 29 / 32;
-        //subptr[2] = (int)subptr[0] * 29 / 32;
-        //subptr[3] = (int)subptr[0] * 29 / 32;
+            /* Should be 29/32 to be consistent. Who cares. This is totally */
+            /* hacked anyway.  */
+        /*
+	unsigned char *subptr = (unsigned char*)(ptr++);
+        subptr[0] = (int)subptr[0] * 29 / 32;
+        subptr[1] = (int)subptr[0] * 29 / 32;
+        subptr[2] = (int)subptr[0] * 29 / 32;
+        subptr[3] = (int)subptr[0] * 29 / 32;
+	*/
       }
     ptr++;
   } while(ptr < end);
@@ -208,10 +210,10 @@ static void synaescope_coreGo(void) {
 
   brtot = 0;
   for(i=1;i<FFT_BUFFER_SIZE/2;i++) {
-    //int h = (int)( corr_r[i]*280 / (corr_l[i]+corr_r[i]+0.0001)+20 );
+    /* int h = (int)( corr_r[i]*280 / (corr_l[i]+corr_r[i]+0.0001)+20 ); */
     if (corr_l[i] > 0 || corr_r[i] > 0) {
       int h = (int)( corr_r[i] * syn_width / (corr_l[i]+corr_r[i]) );
-//      int h = (int)( syn_width - 1 );
+      /* int h = (int)( syn_width - 1 ); */
       int br1, br2, br = (int)( 
           (corr_l[i]+corr_r[i])*i*brightFactor2 );
       int px = h, 
@@ -221,7 +223,7 @@ static void synaescope_coreGo(void) {
       br2 = br*(128-clarity[i])>>8;
       if (br1 < 0) br1 = 0; else if (br1 > 255) br1 = 255;
       if (br2 < 0) br2 = 0; else if (br2 > 255) br2 = 255;
-      //unsigned char *p = output+ h*2+(164-((i<<8)>>FFT_BUFFER_SIZE_LOG))*(syn_width*2); 
+      /* unsigned char *p = output+ h*2+(164-((i<<8)>>FFT_BUFFER_SIZE_LOG))*(syn_width*2);  */
 
       if (px < 30 || py < 30 || px > syn_width-30 || py > syn_height-30) {
         addPixel(output, px,py,br1,br2);
@@ -299,7 +301,7 @@ static void synaescope32(void *data)
 		colEq[i] = color.pixel; 
   	}
 
-	// Create render image
+	/* Create render image */
 	if (image) {
 		gdk_image_destroy(image);
 		image = NULL;
@@ -353,7 +355,7 @@ static void synaescope16(void *data)
 		colEq[i] = color.pixel; 
 	}
 
-	// Create render image
+	/* Create render image */
 	if (image) {
 		gdk_image_destroy(image);	
 		image = NULL;
@@ -410,7 +412,7 @@ static void synaescope8(void *data)
 		colEq[i * 4 + 3] = color.pixel; 
   	}
 
-	// Create render image
+	/* Create render image */
 	if (image) {
 		gdk_image_destroy(image);
 		image = NULL;
@@ -483,13 +485,13 @@ static GtkWidget *init_synaescope_window()
 	
 	win = synaescope_win->window;
 
-	// Signals
+	/* Signals */
 		
 	gtk_signal_connect(GTK_OBJECT(synaescope_win), "delete_event",
                 GTK_SIGNAL_FUNC(close_synaescope_window), synaescope_win);
 
 
-	// Clear and show the window
+	/* Clear and show the window */
 	gdk_window_clear(win);
 	gdk_window_show(win);
 	gdk_flush(); 
@@ -521,7 +523,7 @@ static void stop_synaescope()
 
 static void run_synaescope(void *data)
 {
-	nice(SCOPE_NICE); // Be nice to most processes
+	nice(SCOPE_NICE); /* Be nice to most processes */
 
 	GDK_THREADS_ENTER();	
 	visual = gdk_window_get_visual(win); 
@@ -578,13 +580,13 @@ static int init_synaescope()
 
     for(i = 0; i <= FFT_BUFFER_SIZE / 2 + 1; i++) {
 	double mult = (double)128 / ((FFT_BUFFER_SIZE * 16384) ^ 2);
-	// Result now guaranteed (well, almost) to be in range 0..128
+	/* Result now guaranteed (well, almost) to be in range 0..128 */
 
-	// Low values represent more frequencies, and thus get more
-	// intensity - this helps correct for that.
+	/* Low values represent more frequencies, and thus get more */
+	/* intensity - this helps correct for that. */
 	mult *= log(i + 1) / log(2);
 
-	mult *= 3; // Adhoc parameter, looks about right for me.
+	mult *= 3; /* Adhoc parameter, looks about right for me. */
 
 	fftmult[i] = mult;
     }

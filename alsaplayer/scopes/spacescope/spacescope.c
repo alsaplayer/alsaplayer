@@ -31,7 +31,7 @@
 #include "scope_config.h"
 #include "prefs.h"
 
-#define SPACE_WH	128	// Leave this at 128 for now
+#define SPACE_WH	128	/* Leave this at 128 for now */
 
 static char actEq[257];
 static char oldEq[257];       
@@ -151,13 +151,13 @@ GtkWidget *init_spacescope_window()
 	gtk_widget_show(area);
 	gtk_widget_show(spacescope_win);
 
-	// Signals
+	/* Signals */
 
 	gtk_signal_connect(GTK_OBJECT(spacescope_win), "delete_event",
                 GTK_SIGNAL_FUNC(close_spacescope_window), spacescope_win);
 
 	
-	// Create sin/cos tables
+	/* Create sin/cos tables */
 	
 	for (i = 0; i < 256; i++) {
                 scX[i] = (char) (sin(((2*M_PI)/255)*i)*128);

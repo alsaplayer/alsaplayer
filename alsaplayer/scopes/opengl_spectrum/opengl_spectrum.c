@@ -253,19 +253,19 @@ void *draw_thread_func(void *arg)
 					going = FALSE;
 					break;
 				case XK_z:
-					//xmms_remote_playlist_prev(oglspectrum_vp.xmms_session);
+					/*xmms_remote_playlist_prev(oglspectrum_vp.xmms_session); */
 					break;
 				case XK_x:
-					//xmms_remote_play(oglspectrum_vp.xmms_session);
+					/*xmms_remote_play(oglspectrum_vp.xmms_session); */
 					break;
 				case XK_c:
-					//xmms_remote_pause(oglspectrum_vp.xmms_session);
+					/*xmms_remote_pause(oglspectrum_vp.xmms_session); */
 					break;
 				case XK_v:
-					//xmms_remote_stop(oglspectrum_vp.xmms_session);
+					/*xmms_remote_stop(oglspectrum_vp.xmms_session); */
 					break;
 				case XK_b:
-					//xmms_remote_playlist_next(oglspectrum_vp.xmms_session);
+					/* xmms_remote_playlist_next(oglspectrum_vp.xmms_session); */
 					break;
 				case XK_Up:					
 					x_speed -= 0.1;

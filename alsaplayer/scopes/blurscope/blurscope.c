@@ -142,13 +142,11 @@ static void bscope_init(void)
 	area = gtk_drawing_area_new();
 	gtk_container_add(GTK_CONTAINER(window),area);
 	gtk_widget_realize(area);
-	//gdk_window_set_back_pixmap(area->window,bg_pixmap,0);
 	gdk_window_set_background(area->window, &color);
 	generate_cmap();
 	memset(rgb_buf,0,(WIDTH + 2) * (HEIGHT + 2));
 		
 	gtk_widget_show(area);
-	//gtk_widget_show(window);
 	gdk_window_clear(window->window);
 	gdk_window_clear(area->window);
 }

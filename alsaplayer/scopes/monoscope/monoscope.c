@@ -33,11 +33,12 @@
 #include "scope_config.h"
 #include "prefs.h"
 #include "convolve.h"
+#include "alsaplayer_error.h"
 
-short newEq[CONVOLVE_BIG];	// latest block of 512 samples.
+short newEq[CONVOLVE_BIG];	/* latest block of 512 samples. */
 static short copyEq[CONVOLVE_BIG];
-int avgEq[CONVOLVE_SMALL];	// a running average of the last few.
-int avgMax;			// running average of max sample.
+int avgEq[CONVOLVE_SMALL];	/* a running average of the last few. */
+int avgMax;			/* running average of max sample. */
 
 static GtkWidget *area = NULL;
 static GtkWidget *scope_win = NULL;
@@ -63,8 +64,10 @@ void monoscope_set_data(void *audio_buffer, int size)
 	int i;	
 	short *sound = (short *)audio_buffer;
 
-	if (pthread_mutex_trylock(&update_mutex) != 0) 
+	if (pthread_mutex_trylock(&update_mutex) != 0) {
+		/* alsaplayer_error("missing an update"); */
 		return;
+	}	
 	if (!sound) {
 		memset(&newEq, 0, sizeof(newEq));
 		pthread_mutex_unlock(&update_mutex);
@@ -230,7 +233,7 @@ GtkWidget *init_monoscope_window()
 	gtk_widget_show(area);
 	gtk_widget_show(monoscope_win);
 	
-	// Signals
+	/* Signals */
 		
 	gtk_signal_connect(GTK_OBJECT(monoscope_win), "delete_event",
                 GTK_SIGNAL_FUNC(close_monoscope_window), monoscope_win);
@@ -265,7 +268,7 @@ void stop_monoscope()
 
 void run_monoscope(void *data)
 {
-	nice(SCOPE_NICE); // Be nice to most processes
+	nice(SCOPE_NICE); /* Be nice to most processes */
 	
 	the_monoscope();
 	
