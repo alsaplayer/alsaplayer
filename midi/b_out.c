@@ -107,6 +107,7 @@ void b_out(char id, int fd, int *buf, int ocount, struct md *d)
   if (!ucount) { d->starting_up = 0; d->flushing = 1; }
   else d->flushing = 0;
 
+#if 0
   if (d->starting_up || d->flushing) d->output_buffer_full = PRESUMED_FULLNESS;
   else {
 	int samples_queued;
@@ -122,6 +123,7 @@ void b_out(char id, int fd, int *buf, int ocount, struct md *d)
 	else d->output_buffer_full = ((d->bbcount+samples_queued) * 100) / (BB_SIZE + d->total_bytes);
 /* fprintf(stderr," %d",d->output_buffer_full); */
   }
+#endif
 
   ret = 0;
 

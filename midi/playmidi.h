@@ -231,7 +231,8 @@ extern int32 control_ratio;
 /*extern int32 amplification;*/
 /*extern int32 drumchannels;*/
 /*extern int adjust_panning_immediately;*/
-/*extern int voices;*/
+extern int config_voices;
+extern int config_amplification;
 
 #ifdef tplus
 extern int note_key_offset;

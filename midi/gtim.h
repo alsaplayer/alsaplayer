@@ -127,7 +127,7 @@ typedef double FLOAT_T;
 */
 #define MAX_VOICES	MAX_DSPVOICES
 #else
-#define MAX_VOICES	128
+#define MAX_VOICES	256
 #endif
 #endif
 

@@ -1496,44 +1496,40 @@ YY_RULE_SETUP
 { if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		j = atoi(yytext+i+2);
-#ifdef TOTALLY_LOCAL
-		if (j > 1 && j < MAX_VOICES) voices = j;
-#endif
+		if (j > 1 && j <= MAX_VOICES) config_voices = j;
 	} }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 403 "./cfg.l"
+#line 401 "./cfg.l"
 { if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		j = atoi(yytext+i+2);
-#ifdef TOTALLY_LOCAL
-		if (j > 1 && j < MAX_AMPLIFICATION) amplification = j;
-#endif
+		if (j > 1 && j <= MAX_AMPLIFICATION) config_amplification = j;
 	} }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 410 "./cfg.l"
+#line 406 "./cfg.l"
 { if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		j = atoi(yytext+i+2);
-		if (j > 1 && j < MAX_CONTROL_RATIO) control_ratio = j;
+		if (j > 1 && j <= MAX_CONTROL_RATIO) control_ratio = j;
 	} }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 415 "./cfg.l"
+#line 411 "./cfg.l"
 { if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		j = atoi(yytext+i+2);
 		if (j < 100) j *= 1000;
-		if (j > MIN_OUTPUT_RATE && j < MAX_OUTPUT_RATE) play_mode->rate = j;
+		if (j > MIN_OUTPUT_RATE && j <= MAX_OUTPUT_RATE) play_mode->rate = j;
 	} }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 421 "./cfg.l"
+#line 417 "./cfg.l"
 { if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		j = atoi(yytext+i+2);
@@ -1542,7 +1538,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 426 "./cfg.l"
+#line 422 "./cfg.l"
 { if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		j = atoi(yytext+i+2);
@@ -1551,7 +1547,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 431 "./cfg.l"
+#line 427 "./cfg.l"
 { if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		j = atoi(yytext+i+2);
@@ -1560,7 +1556,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 436 "./cfg.l"
+#line 432 "./cfg.l"
 { if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		j = atoi(yytext+i+2);
@@ -1569,7 +1565,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 441 "./cfg.l"
+#line 437 "./cfg.l"
 { if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		i+=2;
@@ -1581,7 +1577,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 450 "./cfg.l"
+#line 446 "./cfg.l"
 {
 	int i = 0;
 	while (yytext[i] != '=') i++;
@@ -1591,7 +1587,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 456 "./cfg.l"
+#line 452 "./cfg.l"
 {
 	int i = 0;
 	while (yytext[i] != '=') i++;
@@ -1601,7 +1597,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 462 "./cfg.l"
+#line 458 "./cfg.l"
 {
 	int i = 0;
 	while (yytext[i] != '=') i++;
@@ -1611,17 +1607,17 @@ YY_RULE_SETUP
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 468 "./cfg.l"
+#line 464 "./cfg.l"
 BEGIN(K);
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 469 "./cfg.l"
+#line 465 "./cfg.l"
 BEGIN(S);
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 471 "./cfg.l"
+#line 467 "./cfg.l"
 {
 		  bank->tone[patchno].strip_loop=0;
 	BEGIN(P);
@@ -1629,7 +1625,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 475 "./cfg.l"
+#line 471 "./cfg.l"
 {
 		  bank->tone[patchno].strip_tail=0;
 	BEGIN(P);
@@ -1637,7 +1633,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 479 "./cfg.l"
+#line 475 "./cfg.l"
 {
 		  bank->tone[patchno].strip_envelope=0;
 	BEGIN(P);
@@ -1645,7 +1641,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 483 "./cfg.l"
+#line 479 "./cfg.l"
 {
 		  bank->tone[patchno].strip_loop=1;
 	BEGIN(P);
@@ -1653,7 +1649,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 487 "./cfg.l"
+#line 483 "./cfg.l"
 {
 		  bank->tone[patchno].strip_tail=1;
 	BEGIN(P);
@@ -1661,7 +1657,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 491 "./cfg.l"
+#line 487 "./cfg.l"
 {
 		  bank->tone[patchno].strip_envelope=1;
 	BEGIN(P);
@@ -1669,7 +1665,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 495 "./cfg.l"
+#line 491 "./cfg.l"
 {
 	set_patchno(yytext);
 	if (patchno < 256) gm_voice[patchno].flags &= ~SOLO_MASK;
@@ -1677,17 +1673,17 @@ YY_RULE_SETUP
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 499 "./cfg.l"
+#line 495 "./cfg.l"
 {
 	set_patchno(yytext);
 	if (patchno < 256) gm_voice[patchno].flags |= SOLO_MASK;
 }
 	YY_BREAK
 case 43:
-#line 505 "./cfg.l"
+#line 501 "./cfg.l"
 case 44:
 YY_RULE_SETUP
-#line 505 "./cfg.l"
+#line 501 "./cfg.l"
 {
 	patchno = -1;
 	BEGIN(0);
@@ -1695,7 +1691,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 509 "./cfg.l"
+#line 505 "./cfg.l"
 ECHO;
 	YY_BREAK
 
@@ -2584,7 +2580,7 @@ int main()
 	return 0;
 	}
 #endif
-#line 509 "./cfg.l"
+#line 505 "./cfg.l"
 
 
 static void new_toneset(int n)

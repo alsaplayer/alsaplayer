@@ -58,11 +58,11 @@ static int32 quietchannels=0;
 
 /* These would both fit into 32 bits, but they are often added in
    large multiples, so it's simpler to have two roomy ints */
-static int32 sample_increment, sample_correction; /*samples per MIDI delta-t*/
+/*static int32 sample_increment, sample_correction;*/ /*samples per MIDI delta-t*/
 
 #ifdef SFXDRUM
-static
-unsigned char sfxdrum1[100] = {
+/* I seem not to be using these tables ... */
+static unsigned char sfxdrum1[100] = {
 0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,
@@ -75,8 +75,7 @@ unsigned char sfxdrum1[100] = {
 0,0,0,0,0,0,0,0,0,0
 };
 
-static
-unsigned char sfxdrum2[100] = {
+static unsigned char sfxdrum2[100] = {
 0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,
@@ -91,17 +90,17 @@ unsigned char sfxdrum2[100] = {
 #endif
 
 /* Computes how many (fractional) samples one MIDI delta-time unit contains */
-static void compute_sample_increment(int32 tempo, int32 divisions)
+static void compute_sample_increment(int32 tempo, int32 divisions, struct md *d)
 {
   double a;
   a = (double) (tempo) * (double) (play_mode->rate) * (65536.0/1000000.0) /
     (double)(divisions);
 
-  sample_correction = (int32)(a) & 0xFFFF;
-  sample_increment = (int32)(a) >> 16;
+  d->sample_correction = (int32)(a) & 0xFFFF;
+  d->sample_increment = (int32)(a) >> 16;
 
   ctl->cmsg(CMSG_INFO, VERB_DEBUG, "Samples per delta-t: %d (correction %d)",
-       sample_increment, sample_correction);
+       d->sample_increment, d->sample_correction);
 }
 
 #ifdef tplus
@@ -1066,7 +1065,7 @@ static MidiEvent *groom_list(int32 divisions, struct md *d)
     }
 
   tempo=500000;
-  compute_sample_increment(tempo, divisions);
+  compute_sample_increment(tempo, divisions, d);
 
   /* This may allocate a bit more than we need */
   groomed_list=lp=(MidiEvent *)safe_malloc(sizeof(MidiEvent) * (d->event_count+1));
@@ -1099,7 +1098,7 @@ static MidiEvent *groom_list(int32 divisions, struct md *d)
 #ifndef tplus
 	  tempo=
 	    meep->event.channel + meep->event.b * 256 + meep->event.a * 65536;
-	  compute_sample_increment(tempo, divisions);
+	  compute_sample_increment(tempo, divisions, d);
 #endif
 	  skip_this_event=1;
 	}
@@ -1108,7 +1107,7 @@ static MidiEvent *groom_list(int32 divisions, struct md *d)
       else switch (meep->event.type)
 	{
 	case ME_PROGRAM:
-	  if (!d->is_playing)
+	  if (!d->is_open)
 	  {
 	    skip_this_event=1;
 	    break;
@@ -1183,7 +1182,7 @@ static MidiEvent *groom_list(int32 divisions, struct md *d)
 	  if (meep->event.channel == 15 && current_program[15] == SPECIAL_PROGRAM)
 	    d->channel[15].kit = current_kit[15] = 127;
 #endif
-	  if (!d->is_playing)
+	  if (!d->is_open)
 	    break;
 	  if (current_kit[meep->event.channel])
 	    {
@@ -1243,7 +1242,7 @@ static MidiEvent *groom_list(int32 divisions, struct md *d)
 	    }
 	  else if (meep->event.a == 126)
 	    {
-	     if (d->is_playing)
+	     if (d->is_open)
 	     {
 	      if (drumset[SFXDRUM1]) /* Is this a defined tone bank? */
 	        new_value=meep->event.a;
@@ -1272,7 +1271,7 @@ static MidiEvent *groom_list(int32 divisions, struct md *d)
 	      skip_this_event=1;
 	      break;
 	    }
-	  if (d->is_playing)
+	  if (d->is_open)
 	  {
 	   if (tonebank[SFXBANK]) /* Is this a defined tone bank? */
 	     new_value=SFX_BANKTYPE;
@@ -1292,7 +1291,7 @@ static MidiEvent *groom_list(int32 divisions, struct md *d)
 
 
 	case ME_TONE_BANK:
-	  if (current_kit[meep->event.channel] || !d->is_playing)
+	  if (current_kit[meep->event.channel] || !d->is_open)
 	    {
 	      skip_this_event=1;
 	      break;
@@ -1330,8 +1329,8 @@ static MidiEvent *groom_list(int32 divisions, struct md *d)
       /* Recompute time in samples*/
       if ((dt=meep->event.time - our_at) && !counting_time)
 	{
-	  samples_to_do=sample_increment * dt;
-	  sample_cum += sample_correction * dt;
+	  samples_to_do=d->sample_increment * dt;
+	  sample_cum += d->sample_correction * dt;
 	  if (sample_cum & 0xFFFF0000)
 	    {
 	      samples_to_do += ((sample_cum >> 16) & 0xFFFF);
@@ -1345,7 +1344,7 @@ static MidiEvent *groom_list(int32 divisions, struct md *d)
 	{
 	  tempo=
 	    meep->event.channel + meep->event.b * 256 + meep->event.a * 65536;
-	  compute_sample_increment(tempo, divisions);
+	  compute_sample_increment(tempo, divisions, d);
 	}
 #endif
       if (!skip_this_event)

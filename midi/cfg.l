@@ -396,27 +396,23 @@ cm	[ \t]*("#".*)?\n
 ^{owh}"-p"{owh}[0-9]+	{ if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		j = atoi(yytext+i+2);
-#ifdef TOTALLY_LOCAL
-		if (j > 1 && j < MAX_VOICES) voices = j;
-#endif
+		if (j > 1 && j <= MAX_VOICES) config_voices = j;
 	} }
 ^{owh}"-A"{wh}[0-9]+	{ if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		j = atoi(yytext+i+2);
-#ifdef TOTALLY_LOCAL
-		if (j > 1 && j < MAX_AMPLIFICATION) amplification = j;
-#endif
+		if (j > 1 && j <= MAX_AMPLIFICATION) config_amplification = j;
 	} }
 ^{owh}"-C"{owh}[0-9]+	{ if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		j = atoi(yytext+i+2);
-		if (j > 1 && j < MAX_CONTROL_RATIO) control_ratio = j;
+		if (j > 1 && j <= MAX_CONTROL_RATIO) control_ratio = j;
 	} }
 ^{owh}"-s"{owh}[0-9]+	{ if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;
 		j = atoi(yytext+i+2);
 		if (j < 100) j *= 1000;
-		if (j > MIN_OUTPUT_RATE && j < MAX_OUTPUT_RATE) play_mode->rate = j;
+		if (j > MIN_OUTPUT_RATE && j <= MAX_OUTPUT_RATE) play_mode->rate = j;
 	} }
 ^{owh}"-r"{owh}[0-9]+	{ if (prescanning) {
 		i=0; while(isspace(yytext[i])) i++;

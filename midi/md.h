@@ -1,3 +1,7 @@
+
+#ifdef PLAYLOCK
+#include <semaphore.h>
+#endif
 struct md
 {
 	char midi_name[FILENAME_MAX+1];
@@ -15,14 +19,23 @@ struct md
 	int output_buffer_full;
 	int output_device_open;
 	int flushing_output_device;
-
+	int super_buffer_count;
+#ifdef PLAYLOCK
+	sem_t play_lock;
+#endif
+	int xmp_epoch;
+	unsigned xxmp_epoch;
+	unsigned time_expired;
+	unsigned last_time_expired;
+	unsigned last_req_time;
+	unsigned min_req_interval;
 	MidiEvent *event;
 	MidiEvent *current_event;
 	MidiEventList *evlist;
 	int32 event_count;
 	FILE *fp;
 	uint32 at;
-	/* taken from tplus --gl */
+	int32 sample_increment, sample_correction;
 	int midi_port_number;
 	FLOAT_T *vol_table;
 	Channel channel[MAXCHAN];
@@ -31,7 +44,10 @@ struct md
 	int voice_reserve;
 	int32 amplification;
 	FLOAT_T master_volume;
-
+	int current_polyphony;
+#ifdef POLYPHONY_COUNT
+	int future_polyphony;
+#endif
 	int GM_System_On;
 	int XG_System_On;
 	int GS_System_On;

@@ -44,9 +44,14 @@
 #ifdef DO_PREFS
 #include "prefs.h"
 #endif
+
+
+
 /*#define PLUGDEBUG*/
 /************************************/
 
+int config_voices=DEFAULT_VOICES;
+int config_amplification = DEFAULT_AMPLIFICATION;
 int free_instruments_afterwards=0;
 /*int free_instruments_afterwards=1;*/
 static char def_instr_name[256]="";
@@ -147,7 +152,7 @@ static int look_midi_file(struct md *d)
 	    "%d supported events, %d samples", d->event_count, d->sample_count);
 
   ctl->total_time(d->sample_count);
-  d->is_open = TRUE;
+  /*d->is_open = TRUE;*/
   free(d->event);
   return 1;
 }
@@ -181,7 +186,8 @@ static void init_midi()
 	prefs_set_bool(ap_prefs, "midi", "active", 1);
 #endif
 
-  output_fragsize = 4096;
+  /*output_fragsize = 4096;*/
+  output_fragsize = 8192;
 
 #ifdef DEFAULT_PATH
   add_to_pathlist(DEFAULT_PATH, 0);
@@ -249,8 +255,9 @@ static int midi_open(input_object *obj, char *name)
 	d->flushing = 0;
 	d->out_count = 0;
 	d->total_bytes = 0;
-	d->voices = DEFAULT_VOICES;
-	d->amplification = DEFAULT_AMPLIFICATION;
+	d->super_buffer_count = 0;
+	d->voices = config_voices;
+	d->amplification = config_amplification;
 	d->drumchannels = DEFAULT_DRUMCHANNELS;
 	d->adjust_panning_immediately = 1;
 	d->voice_reserve = 0;
@@ -258,8 +265,18 @@ static int midi_open(input_object *obj, char *name)
 	d->XG_System_On = 0;
 	d->GS_System_On = 0;
 
+	d->xmp_epoch = -1;
+	d->xxmp_epoch = 0;
+	d->time_expired = 0;
+	d->last_time_expired = 0;
+	d->last_req_time = 0;
+	d->min_req_interval = 1000;
+
 	d->output_buffer_full = 50;
 	d->flushing_output_device = FALSE;
+#ifdef PLAYLOCK
+	if (sem_init(&d->play_lock, 0, 1)) fprintf(stderr,"no semaphore\n");
+#endif
 
 	if (!got_a_configuration) init_midi();
 
@@ -282,8 +299,14 @@ static int midi_open(input_object *obj, char *name)
 #ifdef PLUGDEBUG
 	fprintf(stderr,"midi open maybe(%s) returned %d\n", name, rc);
 #endif
-	obj->flags = P_SEEK;
-
+	obj->flags = P_SEEK | P_REENTRANT;
+	if (rc) {
+		obj->ready = TRUE;
+		obj->nr_frames = d->sample_count * 4 / output_fragsize;
+		obj->nr_tracks = 0;
+		obj->nr_channels = 2;
+		obj->frame_size = output_fragsize;
+	}
 	return rc;
 }
 
@@ -304,11 +327,12 @@ static int midi_truly_open(struct md *d)
 #endif
 	play_mode->purge_output(d);
 
-	d->is_playing = TRUE;
-	d->is_open = TRUE;
+	/*d->is_playing = TRUE;*/
+	/*d->is_open = TRUE;*/
   	play_midi_file(d);
 
-	return 1;
+	if (d->is_playing) return 1;
+	return 0;
 }
 
 
@@ -320,9 +344,15 @@ void midi_close(input_object *obj)
 	if (!obj->local_data) return;
 	d = (struct md *)obj->local_data;
 
+#ifdef PLAYLOCK
+	sem_wait(&d->play_lock);
+#endif
 	if (d->is_playing) {
 		play_midi_finish(d);
 	}
+#ifdef PLAYLOCK
+	sem_destroy(&d->play_lock);
+#endif
 	if (d->bbuf) free(d->bbuf);
 	free(obj->local_data);
 	obj->local_data = NULL;
@@ -331,11 +361,56 @@ fprintf(stderr,"midi_close\n");
 #endif
 }
 
+
+#ifdef PLAYLOCK
+static void play_more(struct md *d)
+{
+	int rc;
+	if (!d->is_playing) return;
+	if (!d->bbuf) return;
+	if (d->flushing_output_device) return;
+
+	if (d->bbcount < BB_SIZE/2) {
+		if ( sem_trywait(&d->play_lock) ) return;
+		rc = play_some_midi(d);
+		sem_post(&d->play_lock);
+		if (rc == RC_TUNE_END) d->flushing_output_device = TRUE;
+	}
+}
+#endif
+
+#include <sys/time.h>
+
+extern int gettimeofday(struct timeval *, struct timezone *);
+static struct timeval tv;
+static struct timezone tz;
+static void time_sync(uint32 resync, int dosync, struct md *d)
+{
+	unsigned jiffies;
+
+	if (dosync) {
+		d->last_time_expired = resync;
+		d->xmp_epoch = -1;
+		d->xxmp_epoch = 0; 
+		d->time_expired = 0;
+		/*return;*/
+	}
+	gettimeofday (&tv, &tz);
+	if (d->xmp_epoch < 0) {
+		d->xxmp_epoch = tv.tv_sec;
+		d->xmp_epoch = tv.tv_usec;
+	}
+	jiffies = (tv.tv_sec - d->xxmp_epoch)*100 + (tv.tv_usec - d->xmp_epoch)/10000;
+	d->time_expired = (jiffies * play_mode->rate)/100 + d->last_time_expired;
+}
+
 static int midi_play_frame(input_object *obj, char *buf)
 {
         struct md *d;
 	int rc = 0;
-	
+	int need_more;
+	unsigned calc_start, req_interval;
+
 #ifdef PLUGDEBUG
 fprintf(stderr,"midi_play_frame to %x\n", buf);
 #endif
@@ -343,16 +418,55 @@ fprintf(stderr,"midi_play_frame to %x\n", buf);
 	if (!obj->local_data) return 0;
 	d = (struct md *)obj->local_data;
 
-	if (!d->is_playing) midi_truly_open(d);
+	if (!d->is_playing) {
+		time_sync(0,1,d);
+	       	midi_truly_open(d);
+       	}
 
 	if (!d->is_playing) return 0;
+	time_sync(0,0,d);
+	calc_start = d->time_expired;
+	if (d->last_req_time) req_interval = d->time_expired - d->last_req_time;
+	else req_interval = d->min_req_interval;
+	if (req_interval > 0) {
+	       if (req_interval < d->min_req_interval) d->min_req_interval -= (d->min_req_interval - req_interval) / 2;
+	       else if (req_interval > d->min_req_interval) d->min_req_interval += (req_interval - d->min_req_interval)/ 4;
+	}
+	d->last_req_time = d->time_expired;
+#ifdef TIMEREQDEBUG
+	fprintf(stderr,"mpf: t=%d req int=%d cs=%d poly=%d bbc=%d\n", d->time_expired,
+	     req_interval, d->current_sample, d->current_polyphony, d->bbcount);
+#endif
 
+	need_more = TRUE;
 	if (d->bbcount < output_fragsize) {
+		need_more = TRUE;
+		d->output_buffer_full = 10;
+	}
+	else if (req_interval > 3 * d->min_req_interval / 2) need_more = FALSE;
+	else if (d->bbcount > BB_SIZE - 3 * output_fragsize) {
+		need_more = FALSE;
+		d->output_buffer_full = 100;
+	}
+	while (need_more) {
 #ifdef PLUGDEBUG
 		fprintf(stderr,"bbcount of %d < fragsize %d: ", d->bbcount, output_fragsize);
 #endif
+#ifdef PLAYLOCK
+		sem_wait(&d->play_lock);
+#endif
 		rc = play_some_midi(d);
+#ifdef PLAYLOCK
+		sem_post(&d->play_lock);
+#endif
+		need_more = FALSE;
+		time_sync(0,0,d);
+#ifdef TIMEREQDEBUG
+		fprintf(stderr,"calc time %d for bbc=%d\n", d->time_expired - calc_start, d->bbcount);
+#endif
 		if (rc == RC_TUNE_END) d->flushing_output_device = TRUE;
+		else if (d->bbcount < BB_SIZE/2 && d->time_expired - calc_start <= d->min_req_interval) need_more = TRUE;
+
 #ifdef PLUGDEBUG
 if (rc == RC_TUNE_END) fprintf(stderr,"tune is ending: bbcount after play is %d\n", d->bbcount);
 		fprintf(stderr,"bbcount after play is %d\n", d->bbcount);
@@ -411,6 +525,7 @@ static int midi_frame_size(input_object *obj)
 #ifdef PLUGDEBUG
 fprintf(stderr,"midi_frame_size is %d\n", output_fragsize);
 #endif
+	/*play_more(d);*/
 	return output_fragsize;
 }
 
@@ -423,7 +538,9 @@ static int midi_nr_frames(input_object *obj)
 	if (!obj) return 0;
 	if (!obj->local_data) return 0;
 	d = (struct md *)obj->local_data;
-
+#ifdef PLAYLOCK
+	play_more(d);
+#endif
 	result = d->sample_count * 4 / output_fragsize;
 #ifdef PLUGDEBUG
 fprintf(stderr,"midi_nr_frames is %d\n", result);
@@ -441,6 +558,7 @@ static int midi_sample_rate(input_object *obj)
 	if (!obj->local_data) return 0;
 	d = (struct md *)obj->local_data;
 
+	/*play_more(d);*/
 	result = 44100;
 #ifdef PLUGDEBUG
 fprintf(stderr,"midi_sample_rate is %d\n", result);
@@ -575,7 +693,7 @@ typedef struct _input_plugin
 
 input_plugin midi_plugin = {
 	INPUT_PLUGIN_VERSION,
-	0,
+	/*0,*/ P_SEEK | P_REENTRANT,
 	"MIDI player v0.01",
 	"Greg Lee",
 	NULL,

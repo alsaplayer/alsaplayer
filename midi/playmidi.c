@@ -558,10 +558,10 @@ static void recompute_amp(int v, struct md *d)
 }
 
 
-static int current_polyphony = 0;
-#ifdef POLYPHONY_COUNT
-static int future_polyphony = 0;
-#endif
+/*static int current_polyphony = 0;*/
+/*#ifdef POLYPHONY_COUNT*/
+/*static int future_polyphony = 0;*/
+/*#endif*/
 
 #define NOT_CLONE 0
 #define STEREO_CLONE 1
@@ -1417,15 +1417,15 @@ static int check_quality(struct md *d)
 
 #ifdef QUALITY_DEBUG
 if (!debug_count) {
-	if (dont_cspline) fprintf(stderr,"[%d-%d]", d->output_buffer_full, current_polyphony);
-	else fprintf(stderr,"{%d-%d}", d->output_buffer_full, current_polyphony);
+	if (dont_cspline) fprintf(stderr,"[%d-%d]", d->output_buffer_full, d->current_polyphony);
+	else fprintf(stderr,"{%d-%d}", d->output_buffer_full, d->current_polyphony);
 	debug_count = 30;
 }
 debug_count--;
 #endif
 
 #ifdef POLYPHONY_COUNT
-  if (current_polyphony < future_polyphony * 2) obf /= 2;
+  if (d->current_polyphony < d->future_polyphony * 2) obf /= 2;
 #endif
 
   if (obf < 1) d->voice_reserve = (4*d->voices) / 5;
@@ -1500,15 +1500,16 @@ static void note_on(MidiEvent *e, struct md *d)
 {
   int i=d->voices, lowest=-1; 
   int32 lv=0x7FFFFFFF, v;
-
-  current_polyphony = 0;
+  int cpoly = 0;
 
   while (i--)
     {
       if (d->voice[i].status == VOICE_FREE)
 	lowest=i; /* Can't get a lower volume than silence */
-	else current_polyphony++;
+	else cpoly++;
     }
+
+  d->current_polyphony = cpoly;
 
   if (!check_quality(d))
     {
@@ -1517,7 +1518,7 @@ static void note_on(MidiEvent *e, struct md *d)
     }
 
 
-  if (d->voices - current_polyphony <= d->voice_reserve)
+  if (d->voices - cpoly <= d->voice_reserve)
     lowest = -1;
 
   if (lowest != -1)
@@ -2156,14 +2157,13 @@ static void do_compute_data(uint32 count, struct md *d)
 }
 #endif /*CHANNEL_EFFECT*/
 
-static int super_buffer_count = 0;
 
 /* count=0 means flush remaining buffered data to output device, then
    flush the device itself */
 static int compute_data(uint32 count, struct md *d)
 {
   int rc;
-  super_buffer_count = 0;
+  d->super_buffer_count = 0;
   if (!count)
     {
       if (d->buffered_count)
@@ -2177,11 +2177,11 @@ static int compute_data(uint32 count, struct md *d)
   while ((count+d->buffered_count) >= AUDIO_BUFFER_SIZE)
     {
       if (d->bbcount + AUDIO_BUFFER_SIZE * 2 >= BB_SIZE/2) {
-	      super_buffer_count = count;
+	      d->super_buffer_count = count;
 	      return 0;
       }
       if (d->flushing_output_device && d->bbcount >= output_fragsize * 2) {
-	      super_buffer_count = count;
+	      d->super_buffer_count = count;
 	      return 0;
       }
       do_compute_data(AUDIO_BUFFER_SIZE-d->buffered_count, d);
@@ -2306,8 +2306,8 @@ int play_some_midi(struct md *d)
 
   for (;;)
     {
-      if (super_buffer_count) {
-	      compute_data(super_buffer_count, d);
+      if (d->super_buffer_count) {
+	      compute_data(d->super_buffer_count, d);
 	      return 0;
       }
       if (d->flushing_output_device && d->bbcount >= output_fragsize) {
@@ -2322,7 +2322,7 @@ int play_some_midi(struct md *d)
       while (d->current_event->time <= d->current_sample)
 	{
 	#ifdef POLYPHONY_COUNT
-	  future_polyphony = d->current_event->polyphony;
+	  d->future_polyphony = d->current_event->polyphony;
 	#endif
 	  switch(d->current_event->type)
 	    {
@@ -2581,7 +2581,7 @@ d->current_event->channel);
 	      /*
 	  fprintf(stderr,"filled 2 sec\n");
 	       */
-	      if (!super_buffer_count) compute_data(0, d); /* flush buffer to device */
+	      if (!d->super_buffer_count) compute_data(0, d); /* flush buffer to device */
 	      /*
 	  fprintf(stderr,"flushed\n");
 	       */
@@ -2601,7 +2601,7 @@ d->current_event->channel);
 	      /*
 	  fprintf(stderr,"end of tune\n");
 	       */
-	      if (super_buffer_count) return 0;
+	      if (d->super_buffer_count) return 0;
 	      return RC_TUNE_END;
 	    }
 	  d->current_event++;
@@ -2639,6 +2639,7 @@ int play_midi_file(struct md *d)
 
   ctl->file_name(current_filename);
 
+  d->is_open = TRUE;
   d->event=read_midi_file(d);
 
   close_file(d->fp);
@@ -2662,8 +2663,9 @@ int play_midi_file(struct md *d)
 
   got_a_lyric = 0;
 #ifdef POLYPHONY_COUNT
-  future_polyphony = 0;
+  d->future_polyphony = 0;
 #endif
+  d->current_polyphony = 0;
   rc=play_midi(d);
 /*
   if (free_instruments_afterwards)
@@ -2671,6 +2673,7 @@ int play_midi_file(struct md *d)
   
   free(event);
 */
+  if (!rc) d->is_playing = TRUE;
   return rc;
 }
 
