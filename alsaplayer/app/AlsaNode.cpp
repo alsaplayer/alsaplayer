@@ -336,7 +336,7 @@ void AlsaNode::StartStreaming()
 	if (plugin->start_callbacks)
 		return;
 	pthread_create(&looper_thread, NULL, (void * (*)(void *))looper, this);
-	pthread_detach(looper_thread);
+	//pthread_detach(looper_thread);
 }
 
 
@@ -349,8 +349,8 @@ void AlsaNode::StopStreaming()
 	}	
 	
 	looping = false;
-	pthread_cancel(looper_thread);
-	//pthread_join(looper_thread, NULL); // Wait for thread
+	//pthread_cancel(looper_thread);
+	pthread_join(looper_thread, NULL); // Wait for thread
 }
 
 

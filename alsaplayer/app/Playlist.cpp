@@ -468,7 +468,7 @@ Playlist::~Playlist() {
 	// FIXME - need to do something to kill off an insert thread, if one is
 	// running - otherwise it might have its playlist torn from underneath it
 	// We currently just wait for the thread to finish
-	pthread_join(adder, NULL);
+	//pthread_join(adder, NULL);
 	
 	if (player1)
 		delete player1;
