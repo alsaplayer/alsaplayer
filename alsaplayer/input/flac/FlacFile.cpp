@@ -114,7 +114,7 @@ FlacFile::open ()
 	return false;
 
     // this will invoke the metaCallBack
-    if (!FLAC__file_decoder_process_metadata (_decoder))
+    if (!FLAC__file_decoder_process_until_end_of_metadata (_decoder))
 	return false;
 
     // now that we've opened the file, tell the engine it's safe to 
@@ -147,7 +147,7 @@ FlacFile::processOneFrame ()
     if (!_decoder)
 	return false;
 
-    return FLAC__file_decoder_process_one_frame (_decoder);
+    return FLAC__file_decoder_process_single (_decoder);
 
 } // FlacFile::processOneFrame
 
