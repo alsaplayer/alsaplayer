@@ -1,22 +1,125 @@
-.TH midi-in 1 "8 Sep 1995" \" -*-nroff-*-
+.TH midi_in 1 "8 Sep 1995" \" -*-nroff-*-
 .SH NAME
-midi-in \- plugin midi synthesizer for alsaplayer
+midi_in \- plugin midi synthesizer for alsaplayer
 .P
 .SH SYNOPSIS
 .B midi_in
-is not called from the command line
+is used by interfaces for alsaplayer(1) to
+play midi files.
 .P
 .SH DESCRIPTION
-midi-in is derived from
+midi_in is derived from
 TiMidity, which is a MIDI to WAVE converter using Gravis
 Ultrasound\-compatible patch files or AWE\-compatible SoundFonts
 to generate digital audio data from
 General MIDI, GS, or XG midi files.
 .P
+When it is plugged in to alsaplayer, it is given file names, and
+it examines the files to see if they contain midi data
+(it does not care whether the file name ends in ".mid").  When
+a file does have midi data, midi_in tells alsaplayer it can handle
+the file; otherwise, the file name will be passed to some other plugin (or
+rejected).
+.P
+Alsaplayer then asks midi_in to open the file and determine some
+facts about it: title, author, playing time.  midi_in can tell
+the playing time, but usually cannot figure out the author or title, 
+so the playing time is all the alsaplayer interface will display
+for you.
+.P
+If you decide to play the file, alsaplayer tells midi_in to play
+it, and midi_in reads the file, uses it's instrument patches to
+convert midi events into a stream of samples, and directs this
+stream back to alsaplayer, which sends the samples to an output
+plugin.  Then, if all goes well, you hear the music.
+.P
+.SH PANEL DISPLAY
+Supposing that you are using the Gtk interface to alsaplayer, as a
+midi file is playing, you will see on the top line of the little
+information window either the name of the midi file, or possibly
+the title and/or author information from inside the midi file,
+if midi_in could find any.
+.P
+Below this is a line saying whether
+the midi file is a GM (General Midi), a GS (with Roland extensions
+to GM), or an XG file (with Yamaha extensions to GM/GS).  The
+line also says how many tracks the file has and how many midi
+events are in it.
+.P
+To the right is a continuously updated display of how many concurrently
+sounding notes midi_in is dealing with.  To make sense of the numbers displayed
+here (in case you're interested), you should know that midi_in usually
+works a second or two ahead of the music that you're hearing, and
+also that extra notes are generated to approximate reverberation
+and chorus effects, so often the numbers you see reported are much
+higher than the number of distinct notes that can be picked out by
+ear.  Some instrument patches are in stereo, so this also adds to
+the number of notes midi_in actually generates, but which merge
+perceptually.  (A single perceived note played with chorus and reverberation
+on a stereo patch requires at least 6 notes to be played.)
+.P
+There is only a theoretical limit of 256 simultaneously sounding notes,
+since before the polyphony gets this high, midi_in has to terminate
+some notes early, to give itself enough time to calculate samples
+fast enough to keep up with the music.  Unless, I suppose, you have
+a very powerful computer.
+.P
 .SH OPTIONS
-There are no command line options.
+Currently, it is not possible to pass any options or configuration
+information to midi_in from alsaplayer.  It is possible to set some
+options for midi_in using a patch configuration file called
+timidity.cfg.  It's rather involved, and I hope you don't need to
+do it.  The details are described later.
 .SH FILES
-midi-in looks for the configuration file \fItimidity.cfg\fP at
+.TP
+.B PC42b.sf2
+.P
+To work at all, midi_in requires instrument patches.  It doesn't
+have any built in, so you have to supply them.  That can be done
+very simply by acquiring the soundfont file PC42b.sf2 and putting
+it where midi_in can find it.  The author of this "Personal Copy"
+soundfont, Jim Roe, very kindly allowed it to be distributed along
+with midi_in, so it you don't have it already, look for the
+file PC42b.tar.gz wherever you got the midi_in distribution, unpack
+it, and put the soundfont itself, PC42b.sf2 either in the
+subdirectory .alsaplayer/ of your home directory or else in the
+directory /usr/local/share/timidity/.  (Actually, this last path
+name is just the default -- midi_in could have been configured to
+look in some different directory.)
+.P
+That's the easy way to provide instrument patches.  There are
+alternatives that provide more flexibility but require more work.
+.TP
+.IB xxxx .sf2
+.P
+If you have your own favorite soundfont of instrument patches, or
+just want to try some alternatives to PC42b.sf2, you can do that
+in the following way.  Go to your .alsaplayer/ subdirectory of
+your home directory and move away or delete PC42b.sf2 and any
+file timidity.cfg that is there.  Then put the new soundfont you'd
+like to use there, or perhaps just a soft link to it.  When midi_in
+is next used, it will notice the new soundfont and construct a
+file timidity.cfg for it, which contains information about the
+structure of the soundfont.  Then the new soundfont will be used.
+For this to work, the soundfont file name has to end in either
+".sf2" or ".SF2".
+.P
+Since midi_in has special knowledge of the Personal Copy soundfont,
+it can make some substitutions appropriate for playing GS and XG midi
+files when you use PC42b.sf2.  For other soundfonts, that can't
+be done.
+.P
+The file timidity.cfg that is contructed for a new soundfont and
+left in .alsaplayer/ is a text file which you can edit to add
+options, add, remove or modify information about individual patches
+within the soundfont, or bring in additional soundfonts.
+There's hardly any end to the possible elaborations for enriching
+the set of instrument patches available to midi_in as it plays
+midi files.
+.TP
+.B timidity.cfg
+.P
+midi_in looks for the configuration file \fItimidity.cfg\fP at
 startup, before processing any options.
 .P
 Configuration files define the mapping of MIDI programs to instrument
@@ -67,15 +170,6 @@ Adds \fIdirectory\fP to the search path in the same manner as the
 .BI source " file"
 Reads another configuration file, then continues processing the
 current one.
-.TP
-.BI fff " file"
-Reads the parameters in a Gravis/Forte\-compatible InterWave file.
-The file name is assumed to end in ".fff", which need not be
-given.  An accompanying ".dat" file containing waveform data must
-be in the same directory as the ".fff" file.  Preceding patch
-mappings must list all patches that are to be loaded from the
-files, and the preceding \fBbank\fP/\fBdrumset\fP keywords must
-be followed by \fBfff\fP.
 .TP
 .BI sf " file [option]"
 Reads the parameters and waveforms in an AWE\-compatible SoundFont
@@ -157,30 +251,23 @@ instrument, or strip the tail, i.e. all data after the loop. Some
 third-party instruments have garbage after the loop, as evidenced by a
 clicking noise whenever the instrument is played, so adding the
 \fBstrip=tail\fP option will markedly improve sound quality.
-.RE
-.LP
-.P
-\fBNOTE:\fP Whenever any filename ends in one of the compiled\-in
-compression identifiers, such as \fI.gz\fP, or \fI.sht\fP, midi-in
-will pipe the file through the appropriate decompressor.  MIDI files
-often compress very well, so the ability to handle compressed files
-can be useful.
-.P
 .SH COPYRIGHT
 Copyright (C) 1995 Tuukka Toivonen.
 .br
 See AUTHORS below for additional copyrights.
 .P
-midi-in is free software; you can redistribute it
+midi_in is free software; you can redistribute it
 and/or modify it under the terms of the \fIGNU General Public
 License\fP as published by the Free Software Foundation; either
 version 2 of the License, or (at your option) any later version.
 .P
-midi-in is distributed in the hope that it will be useful,
+midi_in is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 \fIGNU General Public License\fP for more details.
 .SH AVAILABILITY
+Presently available by cvs from the alsaplayer area at
+www.sourceforge.net.
 .SH BUGS
 .P
 Eats more CPU time than a small CPU-time-eating animal.

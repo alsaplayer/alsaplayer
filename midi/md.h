@@ -44,6 +44,7 @@ struct md
 	int32 sample_increment, sample_correction;
 	int track_info;
 	int curr_track;
+	int curr_title_track;
 	int midi_port_number;
 	FLOAT_T *vol_table;
 	Channel channel[MAXCHAN];

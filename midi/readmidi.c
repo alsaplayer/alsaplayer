@@ -288,6 +288,7 @@ static int sysex(uint32 len, uint8 *syschan, uint8 *sysa, uint8 *sysb, struct md
       return 0;
     }
   if (len<5) { free(s); return 0; }
+  if (d->curr_track == d->curr_title_track && d->track_info > 1) d->title[0] = '\0';
   id=s[0]; port=s[1]; model=s[2]; adhi=s[3]; adlo=s[4];
   if (id==0x7e && port==0x7f && model==0x09 && adhi==0x01)
     {
@@ -473,11 +474,13 @@ static int dumpstring(uint32 len, const char *label, int type, struct md *d)
     }
    ctl->cmsg(CMSG_TEXT, VERB_VERBOSE, "%s%s", label, s);
 
-   if (d->is_open && len > 10 && strstr(s, " by ") && !strstr(s, "opyright")) {
+   if (type != 3 && d->is_open && len > 10 && strstr(s, " by ") && !strstr(s, "opyright") && !strstr(s, "(C)")) {
      if (!d->author[0]) strncpy(d->author, s, 40);
    }
-   if (type == 3 && len > 6 && d->curr_track == 0 && !d->title[0])
+   if (type == 3 && len > 6 && d->curr_track == 0 && !d->title[0] && !strstr(s, "untitled")) {
 	   strncpy(d->title, s, 30);
+	   d->curr_title_track = d->curr_track;
+   }
   }
   free(s);
   return 0;
@@ -739,7 +742,7 @@ static MidiEventList *read_midi_event(struct md *d)
 	      b &= 0x7F;
 	      MIDIEVENT(d->at, ME_NOTEON, lastchan, a,b);
 
-	      if (d->curr_track == 0 && d->track_info > 1) d->title[0] = '\0';
+	      if (d->curr_track == d->curr_title_track && d->track_info > 1) d->title[0] = '\0';
 
 	    case 2: /* Key Pressure */
 #ifdef tplus
@@ -1524,6 +1527,7 @@ void read_midi_file(struct md *d)
   tracks=BE_SHORT(tracks);
   d->track_info = tracks;
   d->curr_track = 0;
+  d->curr_title_track = -1;
   divisions_tmp=BE_SHORT(divisions_tmp);
 
   if (divisions_tmp<0)

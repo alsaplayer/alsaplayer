@@ -1,3 +1,6 @@
+Mon Apr 29 07:15:46 HST 2002
+	readmidi.c: improve title detection
+	midi_in.1: work on man page
 Sun Apr 28 08:53:11 HST 2002
 	readmidi.c: spruce up panel display
 	playmidi.c: improve polyphony reduction
