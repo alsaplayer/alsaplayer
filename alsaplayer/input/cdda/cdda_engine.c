@@ -465,10 +465,10 @@ char * cddb_save_to_disk(char *subdir, int cdID, char *message)
 	  if ((mkdir(path, 0744)) < 0) {
 		  perror("mkdir");
 		  return (NULL);
-	  } else {
-		  closedir(thedir);
 	  }
-  } 
+  } else {
+	  closedir(thedir);
+  }  
   /* cddb directory should be there at this point */	 
   
   sprintf (path, "%s/%s", REAL_PATH, subdir);
@@ -488,7 +488,7 @@ char * cddb_save_to_disk(char *subdir, int cdID, char *message)
 	if (global_verbose)
 	  printf ("directory created successfully\n");
       }
-    } else {
+  } else {
 	    closedir(thedir);
     } 
 	
