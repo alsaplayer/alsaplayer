@@ -504,6 +504,11 @@ static int reconnect (http_desc_t *desc, char *redirect)
 		if (redirect)
 			redirect[0] = 0;
 		return 1;
+	} else if (rc == 401) {
+		alsaplayer_error("Unauthorized access.");
+		if (redirect)
+			redirect[0] = 0;
+		return 1;
 	} else {
 		/* unknown */
 		alsaplayer_error ("HTTP: We don't support %d response code: http://%s:%u%s",
