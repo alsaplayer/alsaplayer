@@ -346,6 +346,7 @@ static void help()
 		"  -b,--background         fork to background (useful for daemon interfaces)\n"
 		"  -d,--device string      select card and device [default=\"default\"]\n"
 		"  -e,--enqueue file(s)    queue files in running alsaplayer\n"
+		"  -E,--replace file(s)    clears and queues files in running alsaplayer\n"
 		"  -f,--fragsize n         fragment size in bytes [default=4096]\n"
 		"  -F,--frequency n        output frequency [default=%d]\n"
 		"  -g,--fragcount n        fragment count [default=8]\n"
@@ -420,6 +421,7 @@ int main(int argc, char **argv)
 	int do_loopsong = 0;
 	int do_looplist = 0;
 	int do_enqueue = 0;
+	int do_replace = 0;
 	int do_realtime = 0;
 	int use_freq = OUTPUT_RATE;
 	int use_vol = 100;
@@ -430,11 +432,12 @@ int main(int argc, char **argv)
 
 	int opt;
 	int option_index;
-	const char *options = "bd:ef:F:g:hi:I:l:n:p:qrs:vRSPVxo:";
+	const char *options = "bd:eEf:F:g:hi:I:l:n:p:qrs:vRSPVxo:";
 	struct option long_options[] = {
 		{ "background", 0, 0, 'b' },
 		{ "device", 1, 0, 'd' },
 		{ "enqueue", 0, 0, 'e' },
+		{ "replace", 0, 0, 'E' },
 		{ "fragsize", 1, 0, 'f' },
 		{ "frequency", 1, 0, 'F' },
 		{ "fragcount", 1, 0, 'g' },
@@ -508,6 +511,8 @@ int main(int argc, char **argv)
 			case 'd':
 				device_param = optarg;
 				break;
+			case 'E':
+				do_replace = 1;
 			case 'e':
 				do_enqueue = 1;
 				break;
@@ -617,8 +622,26 @@ int main(int argc, char **argv)
 					break;
 			}
 		}
+		if (do_replace) {
+			ap_clear_playlist(use_session);
+			ap_stop(use_session);
+		}	
+		
 		count = optind;
 		while (count < argc && ap_result) {
+			char *ext;
+
+			ext = strrchr(argv[count], '.');
+
+			if (ext) {
+				ext++;
+				if (strncasecmp(ext, "pls", 3) == 0 ||
+					strncasecmp(ext, "m3u", 3) == 0) {
+					ap_add_playlist(use_session, argv[count]);
+					count++;
+					continue;
+				}
+			}	
 			if (argv[count][0] != '/' &&
 				strncmp(argv[count], "http://", 7) != 0 &&
 				strncmp(argv[count], "ftp://", 6) != 0) {

@@ -159,30 +159,8 @@ static void socket_looper(void *arg)
 				break;
 			case AP_ADD_PLAYLIST:
 				if ((path = ap_message_find_string(msg, "path1"))) {
-					FILE *f;
 					alsaplayer_error("adding playlist: %s\n", path);
-
-					if ((f = fopen(path, "r")) != NULL)
-					{
-						char entry[PATH_MAX];
-						while (fgets(entry, sizeof(entry), f))
-						{
-							char *p;
-
-							if (*entry == '#')
-								continue;
-							if ((p = strchr(entry, '\n')) != NULL)
-								*p = 0;
-
-							alsaplayer_error("adding entry: %s\n", entry);
-
-							if (!*entry)
-								continue;
-
-							playlist->Insert(entry, playlist->Length());
-						}
-						fclose(f);
-					}
+					playlist->Load(path, playlist->Length(), 0);
 				}	
 				ap_message_add_int32(reply, "ack", 1);
 				break;
