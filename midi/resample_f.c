@@ -181,14 +181,17 @@ static sample_t *rs_plain(int v, uint32 *countptr, struct md *d)
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
-		        bw_index = vp->bw_index;
+		        /*bw_index = vp->bw_index;*/
+			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
+#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
+#endif
 		}
 		if (dont_filter_melodic) bw_index = 0;
                 newsample = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
@@ -201,6 +204,9 @@ static sample_t *rs_plain(int v, uint32 *countptr, struct md *d)
 		    y0 = outsamp;
 		    newsample = (outsamp > MAX_DATAVAL)? MAX_DATAVAL:
 			((outsamp < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)outsamp);
+#ifdef SHOWFOUT
+fprintf(stderr,"(%f, %d, ", insamp, (sample_t)outsamp);
+#endif
 	        }
 	}else{
 		ofsdu=ofs;
@@ -219,14 +225,17 @@ static sample_t *rs_plain(int v, uint32 *countptr, struct md *d)
 		if (!cc_count--) {
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
-			bw_index = vp->bw_index;
+		        /*bw_index = vp->bw_index;*/
+			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
+#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
+#endif
 		}
 		if (dont_filter_melodic) bw_index = 0;
 		newsample = (v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)v1);
@@ -239,10 +248,16 @@ static sample_t *rs_plain(int v, uint32 *countptr, struct md *d)
 		    y0 = outsamp;
 		    newsample = (sample_t)( (outsamp > MAX_DATAVAL)? MAX_DATAVAL:
 			((outsamp < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)outsamp) );
+#ifdef SHOWFOUT
+fprintf(stderr,"%f, %d, ", insamp, (sample_t)outsamp);
+#endif
 		}
 		ofs=ofsdu;
 	}
-	*dest++ = newsample;
+	*dest++ = (sample_t)newsample;
+#ifdef SHOWFOUT
+fprintf(stderr,"%d\n", (sample_t)newsample);
+#endif
       ofs += incr;
       if (ofs >= se + (overshoot << FRACTION_BITS))
 	{
@@ -328,13 +343,16 @@ static sample_t *rs_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 		        bw_index = vp->bw_index;
+			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
+#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
+#endif
 		}
 		if (dont_filter_melodic) bw_index = 0;
                 newsample = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
@@ -347,6 +365,9 @@ static sample_t *rs_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
 		    y0 = outsamp;
 		    newsample = (outsamp > MAX_DATAVAL)? MAX_DATAVAL:
 			((outsamp < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)outsamp);
+#ifdef SHOWFOUT
+fprintf(stderr,"(%f, %d, ", insamp, (sample_t)outsamp);
+#endif
 	        }
 	}else{
 		ofsdu=ofs;
@@ -366,13 +387,16 @@ static sample_t *rs_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 			bw_index = vp->bw_index;
+			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
+#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
+#endif
 		}
 		if (dont_filter_melodic) bw_index = 0;
 		newsample = (v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)v1);
@@ -385,10 +409,16 @@ static sample_t *rs_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
 		    y0 = outsamp;
 		    newsample = (sample_t)( (outsamp > MAX_DATAVAL)? MAX_DATAVAL:
 			((outsamp < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)outsamp) );
+#ifdef SHOWFOUT
+fprintf(stderr,"%f, %d, ", insamp, (sample_t)outsamp);
+#endif
 		}
 		ofs=ofsdu;
 	}
 	*dest++ = newsample;
+#ifdef SHOWFOUT
+fprintf(stderr,"%d\n", newsample);
+#endif
       ofs += incr;
       if (ofs>=le)
 	{
@@ -493,13 +523,16 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count, struct md *d)
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 		        bw_index = vp->bw_index;
+			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
+#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
+#endif
 		}
 		if (dont_filter_melodic) bw_index = 0;
                 newsample = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
@@ -531,13 +564,16 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count, struct md *d)
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 			bw_index = vp->bw_index;
+			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
+#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
+#endif
 		}
 		if (dont_filter_melodic) bw_index = 0;
 		newsample = (v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)v1);
@@ -595,13 +631,16 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count, struct md *d)
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 		        bw_index = vp->bw_index;
+			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
+#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
+#endif
 		}
 		if (dont_filter_melodic) bw_index = 0;
                 newsample = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
@@ -633,13 +672,16 @@ static sample_t *rs_bidir(int v, Voice *vp, uint32 count, struct md *d)
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 			bw_index = vp->bw_index;
+			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
+#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
+#endif
 		}
 		if (dont_filter_melodic) bw_index = 0;
 		newsample = (v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)v1);
@@ -852,13 +894,16 @@ static sample_t *rs_vib_plain(int v, uint32 *countptr, struct md *d)
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 		        bw_index = vp->bw_index;
+			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
+#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
+#endif
 		}
 		if (dont_filter_melodic) bw_index = 0;
                 newsample = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
@@ -890,13 +935,16 @@ static sample_t *rs_vib_plain(int v, uint32 *countptr, struct md *d)
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 			bw_index = vp->bw_index;
+			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
+#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
+#endif
 		}
 		if (dont_filter_melodic) bw_index = 0;
 		newsample = (v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)v1);
@@ -1006,13 +1054,16 @@ static sample_t *rs_vib_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 		        bw_index = vp->bw_index;
+			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
+#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
+#endif
 		}
 		if (dont_filter_melodic) bw_index = 0;
                 newsample = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
@@ -1044,13 +1095,16 @@ static sample_t *rs_vib_loop(int v, Voice *vp, uint32 *countptr, struct md *d)
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 			bw_index = vp->bw_index;
+			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
+#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
+#endif
 		}
 		if (dont_filter_melodic) bw_index = 0;
 		newsample = (v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)v1);
@@ -1175,13 +1229,16 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 		        bw_index = vp->bw_index;
+			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
+#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
+#endif
 		}
 		if (dont_filter_melodic) bw_index = 0;
                 newsample = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
@@ -1213,13 +1270,16 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 			bw_index = vp->bw_index;
+			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
+#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
+#endif
 		}
 		if (dont_filter_melodic) bw_index = 0;
 		newsample = (v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)v1);
@@ -1285,13 +1345,16 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 		        bw_index = vp->bw_index;
+			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
+#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
+#endif
 		}
 		if (dont_filter_melodic) bw_index = 0;
                 newsample = (sample_t)(v1 + ((int32)((v2-v1) * (ofs & FRACTION_MASK)) >> FRACTION_BITS));
@@ -1323,13 +1386,16 @@ static sample_t *rs_vib_bidir(int v, Voice *vp, uint32 count, struct md *d)
 		    cc_count = control_ratio - 1;
 		    if (calc_bw_index(v, d)) {
 			bw_index = vp->bw_index;
+			bw_index = d->voice[v].bw_index;
 			a0 = butterworth[bw_index][0];
 			a1 = butterworth[bw_index][1];
 			a2 = butterworth[bw_index][2];
 			b0 = butterworth[bw_index][3];
 			b1 = butterworth[bw_index][4];
 		    }
+#ifdef USEMODINCR
 		    incr = calc_mod_freq(v, incr, d);
+#endif
 		}
 		if (dont_filter_melodic) bw_index = 0;
 		newsample = (v1 > MAX_DATAVAL)? MAX_DATAVAL: ((v1 < MIN_DATAVAL)? MIN_DATAVAL: (sample_t)v1);

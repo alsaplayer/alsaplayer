@@ -1,3 +1,5 @@
+Fri May  3 13:28:39 HST 2002
+	pcmap.c: corrections
 Fri May  3 04:05:54 HST 2002
 	sndfont.c: in envelope calc. to_msec() safeguard against unreasonably large values
 Wed May  1 03:27:09 HST 2002
