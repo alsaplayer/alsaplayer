@@ -1,4 +1,4 @@
-EXTRA_DIST = TODO wishlist.txt donations.txt
+EXTRA_DIST = wishlist.txt donations.txt
 
 clean-local:
 	rm -f *~ *.bak $(DOC_STAMPS) || true
