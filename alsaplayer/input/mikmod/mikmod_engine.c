@@ -34,6 +34,8 @@ struct mikmod_local_data {
 	SBYTE *audio_buffer;
 };	
 
+/* Unfortunately libmikmod is *NOT* reentrant :-( */
+static pthread_mutex_t mikmod_mutex;
 
 static int mikmod_init ()
 {
@@ -52,6 +54,9 @@ static int mikmod_init ()
 				MikMod_strerror (MikMod_errno));
 		return 0;
 	}
+
+	pthread_mutex_init(&mikmod_mutex, NULL);
+
 	inited = 1;
 	return 1;
 }
@@ -105,17 +110,25 @@ static int mikmod_open (input_object *obj, char *name)
 	MODULE *mf = NULL;
 	struct mikmod_local_data *data;
 
-	mikmod_init ();
+	mikmod_init();
+
+	if (pthread_mutex_trylock(&mikmod_mutex) != 0)  {
+		printf("mikmod already in use :(\n");
+		obj->local_data = NULL;
+		return 0;
+	}		
 
 	if (!(mf = Player_Load (name, 255, 0))) {
 		printf ("error loading module: %s\n", name);
 		obj->local_data = NULL;
+		pthread_mutex_unlock(&mikmod_mutex);
 		return 0;
 	}
 	obj->local_data = malloc(sizeof(struct mikmod_local_data));
 
 	if (!obj->local_data) {
 		Player_Free(mf);	
+		pthread_mutex_unlock(&mikmod_mutex);
 		return 0;
 	}
 	data = (struct mikmod_local_data *)obj->local_data;
@@ -123,9 +136,11 @@ static int mikmod_open (input_object *obj, char *name)
 	if (!(data->audio_buffer = (SBYTE *)malloc(MIKMOD_FRAME_SIZE))) {
 		Player_Free(mf);
 		free(obj->local_data);
+		obj->local_data = NULL;
+		pthread_mutex_unlock(&mikmod_mutex);
 		return 0;
 	}	
-			
+
 	data->fname = strrchr(name, '/');
 	data->fname = (data->fname) ? data->fname + 1 : name;
 	data->mf = mf;
@@ -140,12 +155,13 @@ static int mikmod_open (input_object *obj, char *name)
 static void mikmod_close (input_object *obj)
 {
 	struct mikmod_local_data *data = (struct mikmod_local_data *)obj->local_data;
-	Player_Stop ();
 	if (data) {
+		Player_Stop ();
 		Player_Free (data->mf);
 		free(data->audio_buffer);
 		free(obj->local_data);
 		obj->local_data = NULL;
+		pthread_mutex_unlock(&mikmod_mutex);
 	}
 }
 
