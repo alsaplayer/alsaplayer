@@ -737,7 +737,7 @@ Playlist::Save(std::string file, enum plist_format format) const
 	switch(format) {
 		case PL_FORMAT_M3U:
 			if(file.length() < 4 ||
-			   cmp_nocase(file.substr(file.length() - 4), ".m3u")) {
+			   strcasecmp(file.substr(file.length() - 4).c_str(), ".m3u")) {
 				file += ".m3u";
 			}
 			//cout << "Saving to " << file << endl;
@@ -766,7 +766,7 @@ Playlist::Load(std::string const &file, unsigned position, bool force)
 	// Check extension
 	if(!force) {
 		if(file.length() < 4 ||
-		   cmp_nocase(file.substr(file.length() - 4), ".m3u")) {
+		   strcasecmp(file.substr(file.length() - 4).c_str(), ".m3u")) {
 			return E_PL_DUBIOUS;
 		}
 	}
