@@ -759,8 +759,8 @@ gint indicator_callback(gpointer data, int locking)
 	if (locking)
 		GDK_THREADS_ENTER();
 	draw_format(info.stream_type);
-	if (strlen(info.author)) {
-		sprintf(title_string, "%s - %s", info.author, info.title);
+	if (strlen(info.artist)) {
+		sprintf(title_string, "%s - %s", info.artist, info.title);
 		draw_title(title_string);
 	} else	
 		draw_title(info.title);

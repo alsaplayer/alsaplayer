@@ -208,7 +208,7 @@ static int mikmod_nr_frames (input_object *obj)
 }
 
 
-static unsigned long mikmod_frame_to_sec (input_object *obj, int frame)
+static long mikmod_frame_to_sec (input_object *obj, int frame)
 {
 	return 0;
 }
@@ -237,7 +237,7 @@ static int mikmod_stream_info (input_object *obj, stream_info *info)
 	sprintf (info->stream_type, "%i channel, %s", 
 			data->mf->numchn, data->mf->modtype);
 
-	info->author[0] = 0;
+	info->artist[0] = 0;
 	strcpy (info->status, "No time data");
 	strcpy (info->title, (data->mf->songname[0]) ? data->mf->songname : data->fname);
 

@@ -247,10 +247,10 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 			a = vorbis_comment_query(comment, "artist", 0);
 			sprintf(info->title, "%s",
 					t ? t : "Unkown song", a ? a : "Unknown artist");
-			sprintf(info->author, "%s", a ? a : "Unkown artist");	
+			sprintf(info->artist, "%s", a ? a : "Unkown artist");	
 		} else {
 			strcpy(info->title, data->path);
-			info->author[0] = 0;
+			info->artist[0] = 0;
 		}
 		if (vi)
 			sprintf(info->stream_type, "%dKHz %dkbit ogg",

@@ -66,7 +66,7 @@
  *  whenever structural changes are made to the API. This value should
  *  only be changed by the maintainers.
  */
-#define INPUT_PLUGIN_VERSION	(INPUT_PLUGIN_BASE_VERSION + 11)
+#define INPUT_PLUGIN_VERSION	(INPUT_PLUGIN_BASE_VERSION + 12)
 
 /**
  * This is a structure that keeps frequently used parameters of the
@@ -131,11 +131,19 @@ typedef struct _stream_info
 	/** 
 	 * Author of the stream. Usually the name of the Artist or Band
 	 */
-	char	author[128];
+	char	artist[128];
 	/**
 	 * The song title.
 	 */
 	char	title[128];
+	/**
+	 * The album name.
+	 */
+	char	album[128];
+	/**
+	 * The genre of this song
+	 */
+	char	genre[128];
 	/**
 	 * The status of the plugin. Can have something like "Seeking..."
 	 * or perhaps "Buffering" depending on what the plugin instance is

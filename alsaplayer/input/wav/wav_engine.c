@@ -383,7 +383,7 @@ static int wav_stream_info(input_object *obj, stream_info *info)
 	}		
 	sprintf(info->stream_type, "%d-bit %dKhz %s WAV", 16, 
 		data->format.rate / 1000, obj->nr_channels == 2 ? "stereo" : "mono");
-	info->author[0] = 0;
+	info->artist[0] = 0;
 	info->status[0] = 0;
 	strcpy(info->title, data->wav_name);	
 	

@@ -424,7 +424,7 @@ void parse_id3(struct id3_tag const *tag, stream_info *sinfo)
 					sprintf(sinfo->title, "%s", latin1);
 				} 
 				if (strcmp(name, "Artist") == 0)
-					sprintf(sinfo->author, "%s", latin1);
+					sprintf(sinfo->artist, "%s", latin1);
 				//alsaplayer_error("%s%s: %s", &spaces[namelen], name, latin1);
 			} else {
 				if (strcmp(info[i].id, "TCOP") == 0 ||
@@ -544,12 +544,12 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 			sprintf(info->title, "%s", data->sinfo.title);
 		else
 			sprintf(info->title, "%s", data->filename);
-		if (strlen(data->sinfo.author))
-			sprintf(info->author, "%s", data->sinfo.author);
+		if (strlen(data->sinfo.artist))
+			sprintf(info->artist, "%s", data->sinfo.artist);
 #else										
 		sprintf(info->title, "Unparsed: %s", data->filename);				
 #endif
-		sprintf(info->stream_type, "%dKHz %dkbit %s audio mpeg",
+		sprintf(info->stream_type, "%dKHz %-3d kbit %s audio mpeg",
 				data->frame.header.samplerate / 1000,
 				data->frame.header.bitrate / 1000,
 				obj->nr_channels == 2 ? "stereo" : "mono");

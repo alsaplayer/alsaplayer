@@ -75,7 +75,7 @@ void info_looper(void *data)
 				}		
 				if (myplayer->GetStreamInfo(&info)) {
 					(*p).title = info.title;
-					(*p).author = info.author;
+					(*p).artist = info.artist;
 				}
 				myplayer->Unload();	
 			}

@@ -46,7 +46,7 @@ class PlayItem
 		void SetParsed() { parsed = true; }
 		std::string filename;
 		std::string title;
-		std::string author;
+		std::string artist;
 		int playtime;
 };
 
