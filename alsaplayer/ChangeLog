@@ -1,3 +1,15 @@
+Fri Feb  8 02:25:49 CET 2002
+----------------------------
+
+- More jack related changes, sync up with latest CVS
+- Renamed libvorbis.so input plugin to libvorbis_in.so to prevent collision
+  with the real libvorbis.so
+- Bumped up plugin version to 7 to stop old libvorbis from loading. Clean
+  manually...
+- Code freeze for the next week or so since I want to document all the
+  various plugin API's	
+
+
 Mon Nov 26 22:57:36 CET 2001
 ----------------------------
 
