@@ -280,7 +280,10 @@ void playlist_remove(GtkWidget *widget, gpointer data)
 		int selected = 0;
 		if (GTK_CLIST(list)->selection) {
 			selected = GPOINTER_TO_INT(GTK_CLIST(list)->selection->data);
+			if (playlist->GetCurrent() == selected+1)
+				playlist->Next();
 			playlist->Remove(selected+1, selected+1);
+			
 		}
 	}
 }
