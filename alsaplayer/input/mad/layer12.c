@@ -1,6 +1,6 @@
 /*
  * libmad - MPEG audio decoder library
- * Copyright (C) 2000-2001 Robert Leslie
+ * Copyright (C) 2000-2004 Underbit Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@
  * used in both Layer I and Layer II decoding
  */
 static
-mad_fixed_t const sf_table[63] = {
+mad_fixed_t const sf_table[64] = {
 # include "sf_table.dat"
 };
 
@@ -163,10 +163,17 @@ int mad_layer_I(struct mad_stream *stream, struct mad_frame *frame)
       if (allocation[ch][sb]) {
 	scalefactor[ch][sb] = mad_bit_read(&stream->ptr, 6);
 
+# if defined(OPT_STRICT)
+	/*
+	 * Scalefactor index 63 does not appear in Table B.1 of
+	 * ISO/IEC 11172-3. Nonetheless, other implementations accept it,
+	 * so we only reject it if OPT_STRICT is defined.
+	 */
 	if (scalefactor[ch][sb] == 63) {
 	  stream->error = MAD_ERROR_BADSCALEFACTOR;
 	  return -1;
 	}
+# endif
       }
     }
   }
@@ -334,20 +341,44 @@ int mad_layer_II(struct mad_stream *stream, struct mad_frame *frame)
 
   if (header->flags & MAD_FLAG_LSF_EXT)
     index = 4;
+  else if (header->flags & MAD_FLAG_FREEFORMAT)
+    goto freeformat;
   else {
-    switch (nch == 2 ? header->bitrate / 2 : header->bitrate) {
-    case 32000:
-    case 48000:
+    unsigned long bitrate_per_channel;
+
+    bitrate_per_channel = header->bitrate;
+    if (nch == 2) {
+      bitrate_per_channel /= 2;
+
+# if defined(OPT_STRICT)
+      /*
+       * ISO/IEC 11172-3 allows only single channel mode for 32, 48, 56, and
+       * 80 kbps bitrates in Layer II, but some encoders ignore this
+       * restriction. We enforce it if OPT_STRICT is defined.
+       */
+      if (bitrate_per_channel <= 28000 || bitrate_per_channel == 40000) {
+	stream->error = MAD_ERROR_BADMODE;
+	return -1;
+      }
+# endif
+    }
+    else {  /* nch == 1 */
+      if (bitrate_per_channel > 192000) {
+	/*
+	 * ISO/IEC 11172-3 does not allow single channel mode for 224, 256,
+	 * 320, or 384 kbps bitrates in Layer II.
+	 */
+	stream->error = MAD_ERROR_BADMODE;
+	return -1;
+      }
+    }
+
+    if (bitrate_per_channel <= 48000)
       index = (header->samplerate == 32000) ? 3 : 2;
-      break;
-
-    case 56000:
-    case 64000:
-    case 80000:
+    else if (bitrate_per_channel <= 80000)
       index = 0;
-      break;
-
-    default:
+    else {
+    freeformat:
       index = (header->samplerate == 48000) ? 0 : 1;
     }
   }
@@ -431,12 +462,19 @@ int mad_layer_II(struct mad_stream *stream, struct mad_frame *frame)
 	if (scfsi[ch][sb] & 1)
 	  scalefactor[ch][sb][1] = scalefactor[ch][sb][scfsi[ch][sb] - 1];
 
+# if defined(OPT_STRICT)
+	/*
+	 * Scalefactor index 63 does not appear in Table B.1 of
+	 * ISO/IEC 11172-3. Nonetheless, other implementations accept it,
+	 * so we only reject it if OPT_STRICT is defined.
+	 */
 	if (scalefactor[ch][sb][0] == 63 ||
 	    scalefactor[ch][sb][1] == 63 ||
 	    scalefactor[ch][sb][2] == 63) {
 	  stream->error = MAD_ERROR_BADSCALEFACTOR;
 	  return -1;
 	}
+# endif
       }
     }
   }
