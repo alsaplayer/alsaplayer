@@ -547,8 +547,6 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 		}
 		if (strlen(data->sinfo.title))
 			snprintf(info->title, sizeof(info->title), "%s", data->sinfo.title);
-		else
-			snprintf(info->title, sizeof(info->title), "%s", data->filename);
 		if (strlen(data->sinfo.artist))
 			snprintf(info->artist, sizeof(info->artist), "%s", data->sinfo.artist);
 		if (strlen(data->sinfo.album))
