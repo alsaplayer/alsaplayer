@@ -25,6 +25,6 @@
 extern gint windows_x_offset;
 extern gint windows_y_offset;
 
-void init_main_window(CorePlayer *p, Playlist *);
+void init_main_window(CorePlayer *p, Playlist *, GtkFunction f);
 
 #endif /* _gtk_interface_h_ */

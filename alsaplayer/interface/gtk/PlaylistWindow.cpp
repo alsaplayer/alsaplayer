@@ -225,7 +225,9 @@ void playlist_click(GtkWidget *widget, gint row, gint column,
 		// Double click - play from the clicked item
 		int selected;
 		selected = GPOINTER_TO_INT(GTK_CLIST(widget)->selection->data);
+		playlist->Pause();
 		playlist->Play(selected + 1);
+		playlist->UnPause();
 	}
 }
 

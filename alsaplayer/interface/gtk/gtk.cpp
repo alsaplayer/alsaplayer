@@ -44,10 +44,12 @@
 #include "interface_plugin.h"
 
 static char addon_dir[1024];
-
+static AlsaSubscriber *scopes = NULL;
 
 void unload_scope_addons()
 {
+	if (scopes)
+		delete scopes;
 	apUnregiserScopePlugins();
 }
 
@@ -128,6 +130,8 @@ void interface_gtk_close()
 }
 
 
+void dl_close_scopes();
+
 int interface_gtk_start(CorePlayer *coreplayer, Playlist *playlist, int argc, char **argv)
 {
 	char path[256];
@@ -140,7 +144,7 @@ int interface_gtk_start(CorePlayer *coreplayer, Playlist *playlist, int argc, ch
 	}
 	
 	// Scope functions
-	AlsaSubscriber *scopes = new AlsaSubscriber();
+	scopes = new AlsaSubscriber();
 	scopes->Subscribe(coreplayer->GetNode());
 	scopes->EnterStream(scope_feeder_func, coreplayer);
 	
@@ -158,22 +162,25 @@ int interface_gtk_start(CorePlayer *coreplayer, Playlist *playlist, int argc, ch
 	}
 
 	playlist->UnPause(); // Make sure playlist is active
-	init_main_window(coreplayer, playlist);
+	init_main_window(coreplayer, playlist, (GtkFunction)unload_scope_addons);
 	
 	// Do something whacky here
-
-	//CorePlayer *third = new CorePlayer(coreplayer->GetNode());
-	//third->PlayFile("/mp3/Andy/the crystal method - bad stone.mp3");
 
 	// Scope addons
 	GDK_THREADS_ENTER();
 	load_scope_addons();
 	gtk_main();
-	//unload_scope_addons();
-	delete scopes;
-	unload_scope_addons();
+	playlist->Pause();
 	GDK_THREADS_LEAVE();
-
+	int s = 20;
+/*
+	while (s) {
+		gdk_flush();
+		dosleep(200000);
+		s--;
+	}	
+*/
+	dl_close_scopes();
 	return 0;
 }
 
@@ -183,6 +190,7 @@ interface_plugin default_plugin =
 	INTERFACE_PLUGIN_VERSION,
 	{ "GTK+ interface v1.0" },
 	{ "Andy Lo A Foe" },
+	NULL,
 	interface_gtk_init,
 	interface_gtk_start,
 	interface_gtk_running,

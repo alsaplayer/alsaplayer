@@ -123,12 +123,19 @@ gint indicator_callback(gpointer data);
 
 gboolean main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-	CorePlayer *p = (CorePlayer *)data;
+	GtkFunction f = (GtkFunction)data;
+	//CorePlayer *p = (CorePlayer *)data;
 	global_update = -1;
 	pthread_join(indicator_thread, NULL);
-	p->Stop();
+	//p->Stop();
+	if (f) { // Oh my, a very ugly HACK indeed! But it works
+		GDK_THREADS_LEAVE();
+		f(NULL);
+		GDK_THREADS_ENTER();
+	}	
 	gtk_main_quit();
 	
+	// Never reached
 	return FALSE;
 }
 
@@ -656,7 +663,15 @@ void cd_cb(GtkWidget *widget, gpointer data)
 
 void exit_cb(GtkWidget *widget, gpointer data)
 {
-	gtk_main_quit();	
+	GtkFunction f = (GtkFunction)data;
+	global_update = -1;
+	pthread_join(indicator_thread, NULL);
+	if (f) { // Oh my, a very ugly HACK indeed! But it works
+		GDK_THREADS_LEAVE();
+		f(NULL);
+		GDK_THREADS_ENTER();
+	}	
+	gtk_main_quit();
 }
 
 void scopes_cb(GtkWidget *widget, gpointer data)
@@ -877,7 +892,7 @@ gint val_area_configure(GtkWidget *widget, GdkEventConfigure *event, gpointer da
 	return true;
 }
 
-void init_main_window(CorePlayer *p, Playlist *pl)
+void init_main_window(CorePlayer *p, Playlist *pl, GtkFunction f)
 {
 	GtkWidget *root_menu;
 	GtkWidget *menu_item;
@@ -1131,7 +1146,7 @@ void init_main_window(CorePlayer *p, Playlist *pl)
 						GTK_SIGNAL_FUNC(speed_cb), p);
 	gtk_adjustment_set_value(adj, 100.0);
 #endif
-	gtk_signal_connect(GTK_OBJECT(main_window), "delete_event", GTK_SIGNAL_FUNC(main_window_delete), p);
+	gtk_signal_connect(GTK_OBJECT(main_window), "delete_event", GTK_SIGNAL_FUNC(main_window_delete), f);
 
 	// Create root menu
 	root_menu = gtk_menu_new();
@@ -1185,7 +1200,7 @@ void init_main_window(CorePlayer *p, Playlist *pl)
 	menu_item = gtk_menu_item_new_with_label("Exit");
 	gtk_menu_append(GTK_MENU(root_menu), menu_item);
 	gtk_signal_connect(GTK_OBJECT(menu_item), "activate",
-					   GTK_SIGNAL_FUNC(exit_cb), NULL);
+					   GTK_SIGNAL_FUNC(exit_cb), f);
 	gtk_widget_show(menu_item);
 #if 0	
 	// Connect popup menu
