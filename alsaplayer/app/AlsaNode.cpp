@@ -381,10 +381,8 @@ void AlsaNode::StartStreaming()
 
 void AlsaNode::StopStreaming()
 {
-	if (looper_thread) {
-		looping = false;
-		pthread_join(looper_thread, NULL); // Wait for thread
-	}
+	looping = false;
+	pthread_join(looper_thread, NULL); // Wait for thread
 }
 
 

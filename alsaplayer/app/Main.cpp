@@ -164,6 +164,9 @@ interface_plugin_info_type load_interface(char *name)
 		if ((handle = dlopen(path, RTLD_LAZY | RTLD_GLOBAL))) {
 			plugin_info = (interface_plugin_info_type) dlsym(handle, "interface_plugin_info");
 			if (plugin_info) {
+				interface_plugin *plugin = plugin_info();
+				if (plugin)
+					plugin->handle = handle;
 				return plugin_info;
 			} else {
 				fprintf(stderr, "symbol error in shared object: %s\n", path);
@@ -487,7 +490,8 @@ int main(int argc, char **argv)
 		ui->init();
 		ui->start(p, playlist, argc, argv);
 		ui->close();
-	}
+		//dlclose(ui->handle);
+	}	
 _fatal_err:	
 	delete playlist;
 	delete p;
