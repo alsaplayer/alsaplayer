@@ -232,6 +232,7 @@ static void help()
 "  -h,--help               print this help message\n"
 "  -i,--interface iface    load in the iface interface [default=gtk]\n"
 "  -l,--volume #           set software volume [0-100]\n"
+"  -n,--session #          select session # [default=0]\n"
 "  -p,--path [path]        print/set the path alsaplayer looks for add-ons\n" 
 "  -q,--quiet              quiet operation. no output\n"
 "  -r,--realtime           enable realtime scheduling (must be SUID root)\n"
@@ -279,8 +280,10 @@ int main(int argc, char **argv)
 	int last_arg = 0;
 	int arg_pos = 0;
 	int use_vol = 100;
+	int use_session = 0;
 	int use_crossfade = 0;
 	int use_other_output = 0;
+	int tmp;
 	char use_output[256];
 	char use_interface[256];
 
@@ -318,7 +321,7 @@ int main(int argc, char **argv)
 				last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--volume") == 0 ||
 				   strcmp(argv[arg_pos], "-l") == 0) {
-			int tmp = -1;	   
+			tmp = -1;	   
 			if (sscanf(argv[++arg_pos], "%d", &tmp) != 1 ||
 				(tmp < 0 || tmp > 100)) {
 				alsaplayer_error("invalid value for volume: %d", tmp);
@@ -335,6 +338,14 @@ int main(int argc, char **argv)
 						do_enqueue = 1;
 						arg_pos++;
 						last_arg = arg_pos;
+		} else if (strcmp(argv[arg_pos], "--session") == 0 ||
+						strcmp(argv[arg_pos], "-n") == 0) {
+					if (sscanf(argv[++arg_pos], "%d", &tmp) != 1 || tmp < 0) {
+						alsaplayer_error("invalid value for session: %d", tmp);
+						return 1;
+					}
+					use_session = tmp;
+					last_arg = arg_pos;
 		} else if (strcmp(argv[arg_pos], "--session-name") == 0 ||
 						strcmp(argv[arg_pos], "-s") == 0) {
 						if (0 < strlen(argv[++arg_pos]) < 32) {
@@ -478,7 +489,7 @@ int main(int argc, char **argv)
 			} else
 				strcpy(queue_name, argv[last_arg]);
 			last_arg++;	
-			if (ap_set_string(0, AP_SET_STRING_ADD_FILE, queue_name) == -1) {
+			if (ap_set_string(use_session, AP_SET_STRING_ADD_FILE, queue_name) == -1) {
 				last_arg--;
 				ap_result = -1;
 			}
