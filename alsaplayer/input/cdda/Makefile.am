@@ -14,7 +14,7 @@ endif
 
 lib_LTLIBRARIES = $(cddaltlibs)
 
-CFLAGS = -D_REENTRANT @ARCH_CFLAGS@
+AM_CFLAGS = -D_REENTRANT @ARCH_CFLAGS@
 
 INCLUDES = -I$(top_builddir) -I$(top_srcdir)/alsaplayer
 

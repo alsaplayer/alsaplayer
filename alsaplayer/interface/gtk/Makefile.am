@@ -24,7 +24,7 @@ CXXFLAGS = -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
 		$(EXTRA_CFLAGS) \
 		-D_REENTRANT -DADDON_DIR=\"$(ADDON_DIR)\"
 
-CFLAGS = $(CXXFLAGS)
+AM_CFLAGS = $(CXXFLAGS)
 
 libdir = $(ADDON_DIR)/interface
 

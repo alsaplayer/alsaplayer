@@ -1064,12 +1064,14 @@ void init_main_window(Playlist *pl)
 	GtkWidget *effects_window;
 	GtkWidget *scopes_window;
 	GtkWidget *working;
+	GtkWidget *toplevel;
 	GtkWidget *speed_scale;
 	GtkWidget *pix;
 	GtkWidget *val_area;
 	GtkStyle *style;
 	GdkFont *smallfont;
 	GtkAdjustment *adj;
+	GdkGeometry geom;
 
 	// Dirty trick
 	playlist = pl;
@@ -1358,4 +1360,19 @@ void init_main_window(Playlist *pl)
 	GDK_THREADS_LEAVE();
 	playlist->RegisterNotifier(&notifier, NULL);
 	GDK_THREADS_ENTER();
+#if 0
+	// Setup geometry stuff
+	memset(&geom, 0, sizeof(geom));
+	
+	toplevel = gtk_widget_get_toplevel(main_window);
+
+	geom.min_width = 408;
+	geom.min_height = geom.max_height = 98;
+	geom.max_width = 2048;	
+
+	gtk_window_set_geometry_hints(GTK_WINDOW(toplevel),
+		GTK_WIDGET(main_window), &geom,
+		(GdkWindowHints)(GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE));
+#endif
+	gdk_flush();
 }

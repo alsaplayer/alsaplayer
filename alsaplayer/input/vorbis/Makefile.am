@@ -16,7 +16,7 @@ EXTRA_DIST = vorbis_engine.c
 
 lib_LTLIBRARIES = $(vorbis_inltlibs)
 
-CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer
+AM_CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer
 
 libdir = $(ADDON_DIR)/input
 

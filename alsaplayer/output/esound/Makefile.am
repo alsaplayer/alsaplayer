@@ -17,7 +17,7 @@ endif
 
 lib_LTLIBRARIES = $(esound_outltlibs)
 
-CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
+AM_CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
 			@ARCH_CFLAGS@ @ESD_CFLAGS@
 
 libdir = $(ADDON_DIR)/output

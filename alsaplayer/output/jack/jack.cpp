@@ -131,7 +131,8 @@ int jack_prepare(void *arg)
 			alsaplayer_error("cannot activate client");
 			return -1;
 		}       
-		//alsaplayer_error("connecting to jack ports: %s & %s", dest_port1, dest_port2);
+		if (global_verbose)
+			alsaplayer_error("connecting to jack ports: %s & %s", dest_port1, dest_port2);
 
 		if (jack_connect (client, jack_port_name(my_output_port1), dest_port1)) {
 			alsaplayer_error("cannot connect output port 1");
@@ -269,7 +270,8 @@ int process(jack_nframes_t nframes, void *arg)
 	subscriber *subs = (subscriber *)arg;
 	char bufsize[16384];
 	static bool realtime_set = 0;
-
+#if 1
+#if 1 
 	if (!realtime_set) {
 		struct sched_param sp;
 		memset(&sp, 0, sizeof(sp));
@@ -285,7 +287,7 @@ int process(jack_nframes_t nframes, void *arg)
 		}
 		realtime_set = 1;
 	}       
-
+#endif
 	if (subs) {
 		subscriber *i;
 		int c;
@@ -307,7 +309,7 @@ int process(jack_nframes_t nframes, void *arg)
 		sample_move_dS_s16(out1, bufsize, nframes, sizeof(short) << 1);
 		sample_move_dS_s16(out2, bufsize + sizeof(short), nframes, sizeof(short) << 1); 
 	}       
-
+#endif
 	return 0;
 }
 

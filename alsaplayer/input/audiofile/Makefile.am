@@ -16,7 +16,7 @@ EXTRA_DIST = audiofile_engine.c
 
 lib_LTLIBRARIES = $(audiofileltlibs)
 
-CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
+AM_CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
 			@AUDIOFILE_CFLAGS@
 
 libdir = $(ADDON_DIR)/input

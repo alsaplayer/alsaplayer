@@ -237,7 +237,7 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 	if (plugin_count == MAX_PLUGIN) {
 		alsaplayer_error("Maximum number of plugins reached (%d)", MAX_PLUGIN);
 		return 0;
-	}	
+	}
 	output_plugin *tmp = &plugins[plugin_count];
 	tmp->version = the_plugin->version;
 	if ((version = tmp->version) != OUTPUT_PLUGIN_VERSION) {
@@ -272,7 +272,21 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 		plugin = NULL;
 		return 0; // Unclean but good enough for now
 	}
+#if 0	
+	/* Schedule realtime from this point on */
+	if (realtime_sched) {
+		struct sched_param sp;
+		memset(&sp, 0, sizeof(sp));
+		sp.sched_priority = sched_get_priority_max(SCHED_FIFO);
 
+		if (sched_setscheduler(0, SCHED_FIFO, &sp) != 0) {
+			alsaplayer_error("failed to setup rea-time scheduling!");
+		} else {
+			mlockall(MCL_CURRENT);
+			alsaplayer_error("real-time scheduling on");
+		}
+	}	
+#endif
 	/* If this is a callback based plugin, immediately start */
 	if (plugin->start_callbacks) {
 		if (!plugin->start_callbacks(subs)) {

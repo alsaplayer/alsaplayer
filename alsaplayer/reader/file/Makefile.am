@@ -4,7 +4,7 @@ filesources = file.c
 
 lib_LTLIBRARIES = $(fileltlibs)
 
-CFLAGS = @DFLAGS@ -Wall -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer
+AM_CFLAGS = @DFLAGS@ -Wall -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer
 
 libdir = $(ADDON_DIR)/reader
 

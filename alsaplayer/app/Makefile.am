@@ -26,7 +26,7 @@ INCLUDES = -I$(top_srcdir)/alsaplayer -I$(top_srcdir)/libalsaplayer
 
 CXXFLAGS = $(COMMON_FLAGS) $(EXTRA_CFLAGS)
 
-CFLAGS = $(CXXFLAGS)
+AM_CFLAGS = $(CXXFLAGS)
 
 bin_PROGRAMS = alsaplayer
 

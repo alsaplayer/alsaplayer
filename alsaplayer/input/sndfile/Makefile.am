@@ -16,7 +16,7 @@ EXTRA_DIST = sndfile_engine.c
 
 lib_LTLIBRARIES = $(sndfileltlibs)
 
-CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
+AM_CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
 			@SNDFILE_CFLAGS@
 
 libdir = $(ADDON_DIR)/input

@@ -4,7 +4,7 @@ null_outsources = null.c
 
 lib_LTLIBRARIES = $(null_outltlibs)
 
-CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer @ARCH_CFLAGS@
+AM_CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer @ARCH_CFLAGS@
 
 libdir = $(ADDON_DIR)/output
 

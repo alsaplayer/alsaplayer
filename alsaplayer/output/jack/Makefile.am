@@ -26,7 +26,7 @@ COMMON_CFLAGS = -D_REENTRANT -I$(top_builddir) \
 
 CXXFLAGS = $(COMMON_CFLAGS) $(EXTRA_CFLAGS)
 
-CFLAGS = $(CXXFLAGS)
+AM_CFLAGS = $(CXXFLAGS)
 
 libdir = $(ADDON_DIR)/output
 

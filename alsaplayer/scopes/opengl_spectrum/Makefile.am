@@ -24,6 +24,6 @@ liboglspectrum_la_LDFLAGS = $(oglespectrumldflags)
 
 liboglspectrum_la_SOURCES = $(oglspectrumsources)
 
-CFLAGS = -D_REENTRANT @ARCH_CFLAGS@ @DFLAGS@
+AM_CFLAGS = -D_REENTRANT @ARCH_CFLAGS@ @DFLAGS@
 
 INCLUDES = -I$(top_srcdir)/alsaplayer -I$(top_builddir)
