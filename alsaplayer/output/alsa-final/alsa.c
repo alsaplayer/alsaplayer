@@ -138,24 +138,24 @@ static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
 	snd_pcm_hw_params_t *hwparams;
 	snd_pcm_hw_params_alloca(&hwparams);
 	if (!sound_handle) {
-		printf("hmm, no sound hanlde... WTF?\n");
+		puts("hmm, no sound handle... WTF?");
 		goto _err;	
 	}	
 	err = snd_pcm_hw_params_any(sound_handle, hwparams);
 	if (err < 0) {
-		printf("error on snd_pcm_hw_params_any\n");			
+		puts("error on snd_pcm_hw_params_any");
 		goto _err;
 	}	
 	err = snd_pcm_hw_params_set_access(sound_handle, hwparams,
 					   SND_PCM_ACCESS_RW_INTERLEAVED);
 	if (err < 0) {
-		printf("error on set_access SND_PCM_ACCESS_RW_INTERLEAVED\n");
+		puts("error on set_access SND_PCM_ACCESS_RW_INTERLEAVED");
 		goto _err;
 	}	
 	err = snd_pcm_hw_params_set_format(sound_handle, hwparams,
 					   SND_PCM_FORMAT_S16_LE);
 	if (err < 0) {
-		printf("error on set_format SND_PCM_FORMAT_S16_LE\n");			
+		puts("error on set_format SND_PCM_FORMAT_S16_LE");
 		goto _err;
 	}	
 	err = snd_pcm_hw_params_set_rate_near(sound_handle, hwparams,
