@@ -1,5 +1,5 @@
 /*  prefs.c - Preferences system
- *  Copyright (C) 2002 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 2002-2004 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
  *
 */ 
 #include "prefs.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -135,9 +136,11 @@ prefs_handle_t *prefs_load(const char *filename)
 void prefs_set_int(prefs_handle_t *prefs, const char *section, char *key, int val)
 {
 	char str[1024];
+
+	assert(prefs);
+	assert(key);
+	assert(section);
 	
-	if (!prefs || !key || !section)
-		return;
 	sprintf(str, "%d", val);
 	prefs_set_string(prefs, section, key, str);
 }
@@ -147,8 +150,10 @@ void prefs_set_bool(prefs_handle_t *prefs, const char *section, char *key, int v
 {
 	char str[1024];
 
-	if (!prefs || !key || !section)
-		return;
+	assert(prefs);
+	assert(key);
+	assert(section);
+	
 	sprintf(str, "%s", val ? "true" : "false");
 	prefs_set_string(prefs, section, key, str);
 }
@@ -158,8 +163,10 @@ static prefs_key_t *prefs_find_key(prefs_handle_t *prefs, const char *section, c
 {
 	prefs_key_t *entry;
 
-	if (!prefs || !key || !section)
-		return NULL;
+	assert(prefs);
+	assert(key);
+	assert(section);
+	
 	entry = prefs->keys;
 	while (entry) {
 		if (strcmp(entry->section, section)==0 && strcmp(entry->key, key)==0)
@@ -173,8 +180,9 @@ void prefs_set_string(prefs_handle_t *prefs, const char *section, char *key, cha
 {
 	prefs_key_t *entry;
 
-	if (!prefs || !key || !section)
-		return;
+	assert(prefs);
+	assert(key);
+	assert(section);
 
 	if ((entry = prefs_find_key(prefs, section, key))) { /* Already in prefs, replace */
 		free(entry->value);
@@ -222,9 +230,11 @@ void prefs_set_string(prefs_handle_t *prefs, const char *section, char *key, cha
 void prefs_set_float(prefs_handle_t *prefs, const char *section, char *key, float val)
 {
 	char str[1024];
+
+	assert(prefs);
+	assert(key);
+	assert(section);
 	
-	if (!prefs || !key || !section)
-		return;
 	sprintf(str, "%.6f", val);
 	prefs_set_string(prefs, section, key, str);
 }
@@ -234,9 +244,11 @@ int prefs_get_bool(prefs_handle_t *prefs, const char *section, char *key, int de
 {
 	char str[1024];
 	char *res;
+
+	assert(prefs);
+	assert(key);
+	assert(section);
 	
-	if (!prefs || !key || !section)
-		return -1;
 	sprintf(str, "%s", default_val ? "true" : "false");
 	res = prefs_get_string(prefs, section, key, str);
 	if (strncasecmp(res, "true", 4) == 0 ||
@@ -253,9 +265,11 @@ int prefs_get_int(prefs_handle_t *prefs, const char *section, char *key, int def
 	char str[1024];
 	char *res;
 	int val;
+
+	assert(prefs);
+	assert(key);
+	assert(section);
 	
-	if (!prefs || !key)
-		return -1;
 	sprintf(str, "%d", default_val);
 	res = prefs_get_string(prefs, section, key, str);
 	if (sscanf(res, "%d", &val) != 1)
@@ -267,8 +281,9 @@ char *prefs_get_string(prefs_handle_t *prefs, const char *section, char *key, ch
 {
 	prefs_key_t *entry;
 
-	if (!prefs || !key || !section)
-		return default_val;
+	assert(prefs);
+	assert(key);
+	assert(section);
 
 	if ((entry = prefs_find_key(prefs, section, key))) {
 		return entry->value;
@@ -284,9 +299,11 @@ float prefs_get_float(prefs_handle_t *prefs, const char *section, char *key, flo
 	char str[1024];
 	char *res;
 	float val;
+
+	assert(prefs);
+	assert(key);
+	assert(section);
 	
-	if (!prefs || !key)
-		return default_val;
 	sprintf(str, "%.6f", default_val);
 	res = prefs_get_string(prefs, section, key, str);
 	if (sscanf(res, "%f", &val) != 1)
@@ -301,8 +318,10 @@ int prefs_save(prefs_handle_t *prefs)
 	prefs_key_t *entry = NULL;
 	prefs_key_t *sorted = NULL;
 	int c;
-		
-	if (!prefs || !prefs->filename || !strlen(prefs->filename)) {
+	
+	assert(prefs);
+
+	if (!prefs->filename || !strlen(prefs->filename)) {
 		return -1;
 	}
 
@@ -342,8 +361,8 @@ int prefs_save(prefs_handle_t *prefs)
 void prefs_free(prefs_handle_t *prefs)
 {
 	prefs_key_t *entry;
-    
-	if (!prefs)  return;
+   
+	assert(prefs);
 
 	entry = prefs->keys;
 	while (entry) {
