@@ -222,7 +222,7 @@ static void convolve_run (stack_entry * top, unsigned size, double * scratch)
 }
 
 int convolve_match (const int * lastchoice,
-		    const short int * input,
+		    const short * input,
 		    convolve_state * state)
 /* lastchoice is a 256 sized array.  input is a 512 array.  We find the
  * contiguous length 256 sub-array of input that best matches lastchoice.
@@ -234,13 +234,13 @@ int convolve_match (const int * lastchoice,
 {
 	double avg;
 	double best;
-	int p;
+	int p = 0;
 	int i;
 	double * left = state->left;
 	double * right = state->right;
 	double * scratch = state->scratch;
 	stack_entry * top = state->stack + STACK_SIZE - 1;
-
+#if 1
 	for (i = 0; i < 512; i++)
 		left[i] = input[i];
 
@@ -250,18 +250,18 @@ int convolve_match (const int * lastchoice,
 		right[i] = a;
 		avg += a;
 	}
-
+#endif
 	/* We adjust the smaller of the two input arrays to have average
 	 * value 0.  This makes the eventual result insensitive to both
 	 * constant offsets and positive multipliers of the inputs. */
 	avg /= 256;
 	for (i = 0; i < 256; i++)
 		right[i] -= avg;
-
 	/* End-of-stack marker. */
+#if 	0  /* The following line produces a CRASH, need to figure out why?!! */
 	top[1].b.null = scratch;
+#endif	
 	top[1].b.main = NULL;
-
 	/* The low 256x256, of which we want the high 256 outputs. */
 	top->v.left = left;
 	top->v.right = right;
@@ -288,7 +288,7 @@ int convolve_match (const int * lastchoice,
 		}
 	}
 	p++;
-
+	
 #if 0
 	{
 		/* This is some debugging code... */
