@@ -13,3 +13,4 @@ aclocal.m4
 acinclude.m4
 alsaplayer-config
 alsaplayer.pc
+autom4te.cache
