@@ -249,62 +249,6 @@ static int cd_getinfo(int *cdrom_fd, char *cd_dev, struct cd_trk_list *tl)
 	return 0;
 }
 
-#if 0
-static void cd_disp_TOC(struct cd_trk_list *tl)
-{
-	int i, len;
-	alsaplayer_error("%5s %8s %8s %5s %9s %4s","track","start","length","type",
-			"duration", "MB");
-	for (i=tl->min;i<=tl->max;i++)
-	{
-		len = tl->starts[i + 1 - tl->min] - tl->starts[i - tl->min];
-		alsaplayer_error("%5d %8d %8d %5s %9s %4d",i,
-				tl->starts[i-tl->min]+CD_MSF_OFFSET, len,
-				tl->types[i-tl->min]?"data":"audio",resttime(len / 75),
-				(len * CD_FRAMESIZE_RAW) >> (20)); // + opt_mono));
-	}
-	alsaplayer_error("%5d %8d %8s %s",CDROM_LEADOUT,
-			tl->starts[i-tl->min]+CD_MSF_OFFSET,"-","leadout");
-}
-
-
-static int cd_jc1(int *p1,int *p2) //nuova
-	/* looks for offset in p1 where can find a subset of p2 */
-{
-	int *p,n;
-
-	p=p1+opt_ibufsize-IFRAMESIZE-1;n=0;
-	while(n<IFRAMESIZE*opt_overlap && *p==*--p)n++;
-	if (n>=IFRAMESIZE*opt_overlap)	/* jitter correction is useless on silence */ 
-	{
-		n=(opt_bufstep)*CD_FRAMESIZE_RAW;
-	}
-	else			/* jitter correction */
-	{
-		n=0;p=p1+opt_ibufsize-opt_keylen/sizeof(int)-1;
-		while((n<IFRAMESIZE*(1+opt_overlap)) && memcmp(p,p2,opt_keylen))
-		{p--;n++;};
-		/*		  {p-=6;n+=6;}; //should be more accurate, but doesn't work well*/
-		if(n>=IFRAMESIZE*(1+opt_overlap)){		/* no match */
-			return -1;
-		};
-		n=sizeof(int)*(p-p1);
-	}
-	return n;
-}
-
-static int cd_jc(int *p1,int *p2)
-{
-	int n,d;
-	n=0;
-	do
-		d=cd_jc1(p1,p2+n);
-	while((d==-1)&&(n++<opt_ofs));n--;
-	if (d==-1) return (d);
-	else return (d-n*sizeof(int));
-}
-#endif
-
 /*
  * create_socket - create a socket to communicate with the remote server
  * return the fd' int on success, or -1 on error.
