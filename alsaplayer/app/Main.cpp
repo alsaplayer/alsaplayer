@@ -277,8 +277,8 @@ int main(int argc, char **argv)
 	char *use_pcm = default_pcm_device;
 	char *homedir;
 	char prefs_path[1024];
-	int use_fragsize = 4096;
-	int use_fragcount = 8;
+	int use_fragsize;
+	int use_fragcount;
 	int use_reverb = 0; // TEMP!
 	int use_loopSong = 0; 
 	int use_loopList = 0;
@@ -330,6 +330,11 @@ int main(int argc, char **argv)
 	ap_prefs = prefs_load(prefs_path);
 
 	memset(use_interface, 0, sizeof(use_interface));
+
+	/* Initialize some settings (and populate the prefs system if needed */
+
+	use_fragsize = prefs_get_int(ap_prefs, "period_size", 4096);
+	use_fragcount = prefs_get_int(ap_prefs, "period_count", 8);
 
 	for (arg_pos=1; arg_pos < argc; arg_pos++) {
 		if (strcmp(argv[arg_pos], "--help") == 0 ||
