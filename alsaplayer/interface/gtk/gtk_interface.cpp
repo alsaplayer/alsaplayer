@@ -653,6 +653,9 @@ gint indicator_callback(gpointer data)
 	p = pl->GetCorePlayer();
 	drawable = ustr->drawing_area->window;
 
+	adj = GTK_RANGE(ustr->speed_scale)->adjustment;
+	gtk_adjustment_set_value(adj, p->GetSpeed() * 100.0);
+
 	adj = GTK_RANGE(ustr->pos_scale)->adjustment;
 	if (p->CanSeek()) {
 		adj->lower = 0;
