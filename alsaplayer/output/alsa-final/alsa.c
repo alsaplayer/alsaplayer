@@ -47,21 +47,17 @@ static int alsa_init()
 }
 
 
-static int alsa_open(char *name)
+static int alsa_open(const char *name)
 {
 	int err;
-	char *device_name;
-	
-	if (name && strlen(name)) {
-		device_name = name;
-	} else {
-		device_name = "default";
-	}	
-	
-	if ((err = snd_pcm_open(&sound_handle, device_name, stream, 0)) < 0) {
 
-		alsaplayer_error("snd_pcm_open: %s (%s)", snd_strerror(err),
-										device_name);
+	if (!name || !*name) {
+		name = "default";
+	}	
+
+	if ((err = snd_pcm_open(&sound_handle, name, stream, 0)) < 0) {
+
+		alsaplayer_error("snd_pcm_open: %s (%s)", snd_strerror(err), name);
 		return 0;
 	}
 	err = snd_output_stdio_attach(&errlog, stderr, 0);

@@ -29,7 +29,7 @@
 
 typedef int output_version_type;
 typedef int(*output_init_type)();
-typedef int(*output_open_type)(char *path);
+typedef int(*output_open_type)(const char *path);
 typedef void(*output_close_type)();
 typedef int(*output_write_type)(void *data, int byte_count);
 typedef int(*output_start_callbacks_type)(void *data);

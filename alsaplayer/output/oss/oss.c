@@ -45,7 +45,7 @@ static int oss_init()
 	return 1;
 }
 
-static int oss_open(char *name)
+static int oss_open(const char *name)
 {
 	int err;
 

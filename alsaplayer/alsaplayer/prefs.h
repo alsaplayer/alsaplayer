@@ -47,7 +47,7 @@ struct _prefs_handle {
 
 typedef struct _prefs_handle prefs_handle_t;
 
-prefs_handle_t *prefs_load(char *filename);
+prefs_handle_t *prefs_load(const char *filename);
 void prefs_free(prefs_handle_t *prefs);
 
 void prefs_set_int(prefs_handle_t *prefs, char *section, char *key, int val);

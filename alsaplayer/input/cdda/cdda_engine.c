@@ -274,7 +274,7 @@ void cd_adder(void *data) {
 static int cdda_open(input_object *obj, const char *name)
 {
 	struct cdda_local_data *data;	
-	char *fname;
+	const char *fname;
 	char device_name[1024];
 
 	if (!obj)
@@ -328,7 +328,7 @@ static int cdda_open(input_object *obj, const char *name)
 		return 1;
 	} else if (sscanf(fname, "Track %02d.cdda", &data->track_nr) != 1 ||
 				sscanf(fname, "Track%02d.cdda", &data->track_nr) != 1) {
-			alsaplayer_error("Hmm failed to read track number (%s)", fname);
+			alsaplayer_error("Failed to read track number (%s)", fname);
 			free(obj->local_data);
 			obj->local_data = NULL;
 			return 0;

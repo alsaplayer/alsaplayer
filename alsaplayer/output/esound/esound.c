@@ -68,7 +68,7 @@ static int esound_init()
 	return 1;
 }
 
-static int esound_open(char *path)
+static int esound_open(const char *path)
 {
 	if (esound_socket >= 0) 
 		return 1;

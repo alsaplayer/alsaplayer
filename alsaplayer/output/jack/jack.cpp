@@ -185,21 +185,20 @@ static int jack_init()
 	return 1;
 }
 
-static int jack_open(char *name)
+static int jack_open(const char *name)
 {
-	int err, len, done = 0;
+	int err, done = 0;
 	char *c, *n, *t, *s;
 	char *token = NULL;
 
 	// Jack specific functions
 	jack_reconnect = 1;
 
-	if (name && (len=strlen(name))) {
-		token = (char *)malloc(len+1);
+	if (name && *name) {
+		token = strdup(name);
 	} else {
 		return 1;
 	}	
-	strcpy(token, name);
 	c = token;
 
 	//alsaplayer_error("c = %s", c);

@@ -31,7 +31,7 @@ static int null_init()
 	return 1;
 }
 
-static int null_open(char *name)
+static int null_open(const char *name)
 {
 	return 1;
 }

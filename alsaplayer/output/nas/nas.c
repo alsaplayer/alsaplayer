@@ -129,11 +129,11 @@ static int nas_init()
 	return 1;
 }
 
-static int nas_open(char *device)
+static int nas_open(const char *device)
 {
 	int err;
 	char *server = NULL;
-	
+
 	server = getenv("AUDIOSERVER");
 	if (server == NULL)
 	{

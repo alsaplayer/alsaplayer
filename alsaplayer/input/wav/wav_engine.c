@@ -125,11 +125,11 @@ static int wav_open(input_object *obj, const char *name)
 	struct wav_local_data *data;
 	
 	if (!obj)
-			return 0;
+		return 0;
 
 	obj->local_data = malloc(sizeof(struct wav_local_data));
 	if (!obj->local_data) {
-			return 0;
+		return 0;
 	}
 	data = (struct wav_local_data *)obj->local_data;
 	init_wav();
@@ -157,7 +157,7 @@ static int wav_open(input_object *obj, const char *name)
 	}
 	if (test_wavefile(obj, audiobuf) >= 0) {
 		/* Extract the filename */
-		char *ptr = strrchr(name, '/');
+		const char *ptr = strrchr(name, '/');
 		if (ptr)
 			ptr++;
 		else
@@ -186,16 +186,16 @@ void wav_close(input_object *obj)
 	struct wav_local_data *data;
 
 	if (!obj)
-			return;
+		return;
 	data = (struct wav_local_data *)obj->local_data;
 	if (!data) {
-			return;
+		return;
 	}		
 	if (data->wav_fd != NULL)
-			reader_close(data->wav_fd);
+		reader_close(data->wav_fd);
 	data->wav_fd =NULL;
 	if (obj->local_data)
-			free(obj->local_data);
+		free(obj->local_data);
 	obj->local_data = NULL;
 }
 

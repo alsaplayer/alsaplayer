@@ -44,19 +44,16 @@ static int alsa_init()
 }
 
 
-static int alsa_open(char *name)
+static int alsa_open(const char *name)
 {
 	int err;
 	int card, device;
-	char *device_name;
 
-	if (name && strlen(name)) {
-		device_name = name;
-	} else {
-		device_name = "hw:0,0";
-	}	
-	
-	if (sscanf(device_name, "hw:%d,%d", &card, &device)!=2) {
+	if (!name || !*name) {
+		name = "hw:0,0";
+	}
+
+	if (sscanf(name, "hw:%d,%d", &card, &device)!=2) {
 		fprintf(stderr, "ALSA->open(): invalid device \"%s\", using 0,0\n",
 				name);
 		card = device = 0;
@@ -201,7 +198,7 @@ output_plugin *output_plugin_info(void)
 {
 	memset(&alsa_output, 0, sizeof(output_plugin));
 	alsa_output.version = OUTPUT_PLUGIN_VERSION;
-	alsa_output.name = "ALSA output v1.5.10a";
+	alsa_output.name = "ALSA output v1.5.10b";
 	alsa_output.author = "Andy Lo A Foe";
 	alsa_output.init = alsa_init;
 	alsa_output.open = alsa_open;

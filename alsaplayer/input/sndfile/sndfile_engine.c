@@ -42,9 +42,9 @@ struct sf_local_data
 /*
    Take a path as input and return the last part of it as the file name.
  */
-static char *getfilenamefrompath (char *path)
+static char *getfilenamefrompath (const char *path)
 {
-	char	*p = strrchr(path, '/');
+	char *p = strrchr(path, '/');
 
 	if (p != NULL)
 		p++;

@@ -30,7 +30,7 @@
 extern "C" {
 #endif	
 
-prefs_handle_t *prefs_load(char *filename)
+prefs_handle_t *prefs_load(const char *filename)
 {
 	FILE *fd;
 	prefs_handle_t *prefs;

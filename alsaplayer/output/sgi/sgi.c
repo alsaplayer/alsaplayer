@@ -36,7 +36,7 @@ static int sgi_init ()
 	return 1;
 }
 
-static int sgi_open (char *device)
+static int sgi_open (const char *device)
 {
 	if (port != NULL) 
 		return 1;

@@ -98,7 +98,7 @@ static void default_alsaplayer_error(const char *fmt, ...) {
 
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
-		va_end(ap);
+	va_end(ap);
 	fputc('\n', stderr);
 }
 
@@ -167,30 +167,22 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 			if ((handle =
 			     dlopen(path, RTLD_NOW | RTLD_GLOBAL))) {
 				output_plugin_info =
-				    (output_plugin_info_type) dlsym(handle,
-								    "output_plugin_info");
+				    (output_plugin_info_type) dlsym(handle, "output_plugin_info");
 				if (output_plugin_info) {
 #ifdef DEBUG
-					alsaplayer_error
-					    ("Loading output plugin: %s\n",
-					     path);
+					alsaplayer_error("Loading output plugin: %s\n", path);
 #endif
 					if (node->RegisterPlugin(output_plugin_info())) {
 						if (!node->ReadyToRun()) {
-							alsaplayer_error
-							    ("%s failed to init",
-							     path);
+							alsaplayer_error("%s failed to init", path);
 							continue;	// This is not clean
 						}
 						return;	// Return as soon as we load one successfully!
 					} else {
-						alsaplayer_error
-						    ("%s failed to load",
-						     path);
+						alsaplayer_error("%s failed to load", path);
 					}
 				} else {
-					alsaplayer_error
-					    ("could not find symbol in shared object");
+					alsaplayer_error("could not find symbol in shared object");
 					dlclose(handle);
 				}
 			} else {
@@ -206,7 +198,7 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 }
 
 
-interface_plugin_info_type load_interface(char *name)
+interface_plugin_info_type load_interface(const char *name)
 {
 	void *handle;
 	char path[1024], *pluginroot;
@@ -220,48 +212,46 @@ interface_plugin_info_type load_interface(char *name)
 	else
 		pluginroot = global_pluginroot;
 
-	if (name) {
-		if (strchr(name, '.'))
-			strncpy(path, name, sizeof(path));
-		else
-			snprintf(path, sizeof(path), "%s/interface/lib%s.so", pluginroot, name);
+	if (!name)
+		return NULL;
+
+	if (strchr(name, '.'))
+		strncpy(path, name, sizeof(path));
+	else
+		snprintf(path, sizeof(path), "%s/interface/lib%s.so", pluginroot, name);
 #ifdef DEBUG
-		alsaplayer_error("Loading interface plugin: %s\n", path);
+	alsaplayer_error("Loading interface plugin: %s\n", path);
 #endif
-		if (stat(path, &statbuf) != 0)	// Error reading object
-			return NULL;
-		if ((handle = dlopen(path, RTLD_LAZY | RTLD_GLOBAL))) {
-			plugin_info =
-			    (interface_plugin_info_type) dlsym(handle,
-			    			"interface_plugin_info");
-			if (plugin_info) {
-				interface_plugin *plugin = plugin_info();
-				if (plugin)
-					plugin->handle = handle;
-				ui = plugin_info();
-				if (ui->version != INTERFACE_PLUGIN_VERSION) {
-					alsaplayer_error("Wrong interface plugin version (v%d, wanted v%d)",
-					ui->version,
-					INTERFACE_PLUGIN_VERSION -
-						INTERFACE_PLUGIN_BASE_VERSION);
-					alsaplayer_error("Error loading %s",
-						path);
-					alsaplayer_error("Please remove this file from your system");
-					return NULL;
-				}	
-			
-				return plugin_info;
-			} else {
-				alsaplayer_error
-				    ("symbol error in shared object: %s", path);
-				dlclose(handle);
-				return NULL;
-			}
-		} else {
-			alsaplayer_error("%s\n", dlerror());
-		}
+	if (stat(path, &statbuf) != 0)	// Error reading object
+		return NULL;
+
+	handle = dlopen(path, RTLD_LAZY | RTLD_GLOBAL);
+	if (!handle) {
+		alsaplayer_error("%s\n", dlerror());
+		return NULL;
 	}
-	return NULL;
+
+	plugin_info = (interface_plugin_info_type) dlsym(handle, "interface_plugin_info");
+	if (!plugin_info) {
+		alsaplayer_error("symbol error in shared object: %s", path);
+		dlclose(handle);
+		return NULL;
+	}
+
+	interface_plugin *plugin = plugin_info();
+	if (plugin)
+		plugin->handle = handle;
+	ui = plugin_info();
+	if (ui->version != INTERFACE_PLUGIN_VERSION) {
+		alsaplayer_error("Wrong interface plugin version (v%d, wanted v%d)",
+		ui->version,
+		INTERFACE_PLUGIN_VERSION - INTERFACE_PLUGIN_BASE_VERSION);
+		alsaplayer_error("Error loading %s", path);
+		alsaplayer_error("Please remove this file from your system");
+		return NULL;
+	}	
+
+	return plugin_info;
 }
 
 
@@ -273,7 +263,7 @@ static char *copyright_string =
     "AlsaPlayer " VERSION
     "\n(C) 1999-2002 Andy Lo A Foe <andy@alsaplayer.org> and others.";
 
-static void list_available_plugins(char *plugindir)
+static void list_available_plugins(const char *plugindir)
 {
 	char path[1024], *pluginroot;
 	struct stat buf;
@@ -292,46 +282,47 @@ static void list_available_plugins(char *plugindir)
 	DIR *dir = opendir(path);
 	dirent *entry;
 
-	if (dir) {
-		while ((entry = readdir(dir)) != NULL) {
-			if (strcmp(entry->d_name, ".") == 0 ||
-					strcmp(entry->d_name, "..") == 0) {
+	if (!dir)
+		return;
+
+	while ((entry = readdir(dir)) != NULL) {
+		if (strcmp(entry->d_name, ".") == 0 ||
+				strcmp(entry->d_name, "..") == 0) {
+			continue;
+		}
+		snprintf(path, sizeof(path), "%s/%s/%s", pluginroot, plugindir, entry->d_name);
+		if (stat(path, &buf)) {
+			continue;
+		}	
+		if (S_ISREG(buf.st_mode)) {
+			char *ext = strrchr(path, '.');
+			if (!ext)
+				continue;
+			ext++;
+			if (strcasecmp(ext, "so")) {
 				continue;
 			}
-			snprintf(path, sizeof(path), "%s/%s/%s", pluginroot, plugindir, entry->d_name);
-			if (stat(path, &buf)) {
+			snprintf(path, sizeof(path), "%s", entry->d_name);
+			ext = strrchr(path, '.');
+			if (ext)
+				*ext = '\0';
+			if (strncmp(path, "lib", 3)) {
 				continue;
 			}	
-			if (S_ISREG(buf.st_mode)) {
-				char *ext = strrchr(path, '.');
-				if (!ext)
-					continue;
-				ext++;
-				if (strcasecmp(ext, "so")) {
-					continue;
-				}
-				snprintf(path, sizeof(path), "%s", entry->d_name);
-				ext = strrchr(path, '.');
+			char *name = path + 3;
+			if (strcmp(plugindir, "output") == 0) { // Remove trailing _out
+				ext = strrchr(name, '_');
 				if (ext)
 					*ext = '\0';
-				if (strncmp(path, "lib", 3)) {
-					continue;
-				}	
-				char *name = path + 3;
-				if (strcmp(plugindir, "output") == 0) { // Remove trailing _out
-					ext = strrchr(name, '_');
-					if (ext)
-						*ext = '\0';
-				}
-				if (first) { // don't print comma
-					first = false;
-				} else {
-					fprintf(stdout, " | ");
-				}
-				fprintf(stdout, "%s", name);
 			}
+			if (first) { // don't print comma
+				first = false;
+			} else {
+				fprintf(stdout, " | ");
+			}
+			fprintf(stdout, "%s", name);
 		}
-	}	
+	}
 }
 
 
@@ -476,7 +467,9 @@ int main(int argc, char **argv)
 	
 	// Init global mutexes
 	pthread_mutex_init(&playlist_sort_seq_mutex, NULL);
+#if !defined(EMBEDDED)
 	init_effects();
+#endif
 
 	homedir = get_homedir();
 
@@ -488,8 +481,7 @@ int main(int argc, char **argv)
 
 	/* Initialize some settings (and populate the prefs system if needed */
 
-	use_fragsize =
-		prefs_get_int(ap_prefs, "main", "period_size", 4096);
+	use_fragsize = prefs_get_int(ap_prefs, "main", "period_size", 4096);
 	use_fragcount = prefs_get_int(ap_prefs, "main", "period_count", 8);
 
 	while ((opt = getopt_long(argc, argv, options, long_options, &option_index)) != EOF) {
@@ -694,14 +686,26 @@ int main(int argc, char **argv)
 	if (optind < argc) {
 		std::vector < std::string > newitems;
 		while (optind < argc) {
-			char *ext;
-			ext = strrchr(argv[optind], '.');
-			if (ext && strncasecmp(++ext, "m3u", 3) == 0) {
-				playlist->Load(std::string(argv[optind++]),
-					playlist->Length(), false);
-			} else {	
-				newitems.push_back(std::string(argv[optind++]));
-			}	
+#if 0
+			if (strcmp(argv[optind], "-") == 0) {
+				// stream from stdin
+				// FIXME: implement
+				alsaplayer_error("warning: streaming from stdin (experimental)");
+				newitems.push_back("-");
+				break;
+			} else {
+#else
+			{
+#endif
+				char *ext;
+				ext = strrchr(argv[optind], '.');
+				if (ext && strncasecmp(++ext, "m3u", 3) == 0) {
+					playlist->Load(std::string(argv[optind++]),
+						playlist->Length(), false);
+				} else {	
+					newitems.push_back(std::string(argv[optind++]));
+				}	
+			}
 		}
 		playlist->Insert(newitems, playlist->Length());
 		playlist->UnPause();

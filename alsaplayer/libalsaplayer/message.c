@@ -71,7 +71,7 @@ ap_message_t *ap_message_new()
 }
 
 
-ap_key_t *ap_key_new(char *key_id)
+ap_key_t *ap_key_new(const char *key_id)
 {
 	ap_key_t *key;
 	key = (ap_key_t *)malloc(sizeof(ap_key_t));
