@@ -206,10 +206,10 @@ static int jack_open(char *name)
 			strncpy(dest_port1, t, 31);
 			strncpy(dest_port2, s, 31);
 			dest_port1[31] = dest_port2[31] = 0;
-			alsaplayer_error("Using: %s & %s",
+			alsaplayer_error("jack: using ports %s & %s for output",
 					dest_port1, dest_port2);
 		} else if (strcmp(t, "noreconnect") == 0) {
-			alsaplayer_error("jack driver will not try to reconnect");
+			alsaplayer_error("jack: driver will not try to reconnect");
 			jack_reconnect = 0;
 		} else {
 			/* alsaplayer_error("Unkown jack parameter: %s", t); */
@@ -234,9 +234,7 @@ static int jack_start_callbacks(void *data)
 static void jack_close()
 {
 	if (client) {
-		alsaplayer_error("Deactivating client");
 		jack_deactivate(client);
-		alsaplayer_error("Closing client");
 		jack_client_close (client);
 		client = (jack_client_t *)NULL;
 	}	
@@ -254,7 +252,12 @@ static int jack_set_buffer(int fragment_size, int fragment_count, int channels)
 
 static int jack_set_sample_rate(int rate)
 {
-	return rate;
+	/* Ignore any rate change! */
+	if (rate != sample_rate) {
+		alsaplayer_error("jack: running interface at %d instead of %d",
+			sample_rate, rate);
+	}	
+	return sample_rate;
 }
 
 int process(jack_nframes_t nframes, void *arg)
@@ -271,10 +274,10 @@ int process(jack_nframes_t nframes, void *arg)
 		//alsaplayer_error("THREAD-%d=soundcard thread\n", getpid());
 
 		if (sched_setscheduler(0, SCHED_FIFO, &sp) != 0) {
-			alsaplayer_error("failed to setup realtime scheduling! reliability might suffer.");
+			alsaplayer_error("jack: failed to setup realtime scheduling! reliability might suffer.");
 		} else {
 			mlockall(MCL_CURRENT);
-			printf("realtime scheduling active\n");
+			printf("jack: realtime scheduling active\n");
 		}
 		realtime_set = 1;
 	}       
