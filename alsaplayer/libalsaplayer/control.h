@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-int ap_find_session(char *session_name);
+int ap_find_session(char *session_name, int *session);
 int ap_session_running(int session);
 int ap_version();
 

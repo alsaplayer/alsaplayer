@@ -365,7 +365,7 @@ int ap_session_running(int session)
 }
 
 
-int ap_find_session(char *session_name)
+int ap_find_session(char *session_name, int *session)
 {
 	int i = 0;
 	char remote_name[AP_SESSION_MAX];
@@ -378,7 +378,7 @@ int ap_find_session(char *session_name)
 	int session_id;
 
 	if (!session_name)
-		return -1;
+		return 0;
 	dir = opendir("/tmp");
 
 	pwd = getpwuid(geteuid());
@@ -395,7 +395,8 @@ int ap_find_session(char *session_name)
 					if (ap_session_running(i) == 1) {
 						if (ap_get_session_name(i, remote_name)) {
 							if (strcmp(remote_name, session_name) == 0) {
-								return i;
+								*session = i;
+								return 1;
 							}
 						}
 					}
@@ -403,7 +404,7 @@ int ap_find_session(char *session_name)
 			}	
 		}	
 	}
-	return -1;
+	return 0;
 }
 
 
