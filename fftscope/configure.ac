@@ -47,7 +47,7 @@ AC_ARG_WITH(alsaplayer,
 
 export PKG_CONFIG_PATH
 
-PKG_CHECK_MODULES(ALSAPLAYER, alsaplayer)
+PKG_CHECK_MODULES(ALSAPLAYER, alsaplayer >= 0.99.60)
 
 PLUGIN_DIR=`pkg-config alsaplayer --variable=plugindir`
 INTERFACEPLUGIN_DIR=`pkg-config alsaplayer --variable=interfaceplugindir`
