@@ -492,8 +492,7 @@ void stop_cb(GtkWidget *widget, gpointer data)
 	CorePlayer *p = pl->GetCorePlayer();
 
 	if (p && p->IsPlaying()) {
-		if (playlist)
-			playlist->Pause();
+		pl->Pause();
 		p->Stop();
 		clear_buffer();
 	}	
@@ -506,9 +505,12 @@ void play_cb(GtkWidget *widget, gpointer data)
 	Playlist *pl = (Playlist *)data;
 	CorePlayer *p = pl->GetCorePlayer();
 	if (p) {
-		if (playlist)
-			playlist->UnPause(); // Start playing stuff in the playlist
-		eject_cb(widget, data);
+		pl->UnPause();
+		if (p->IsPlaying() || !pl->Length()) {
+			eject_cb(widget, data);
+		} else if (!p->IsPlaying() && pl->Length()) {
+			pl->Play(pl->GetCurrent());
+		}	
 	}	
 }
 
@@ -663,9 +665,9 @@ void cd_cb(GtkWidget *widget, gpointer data)
 	CorePlayer *p = pl->GetCorePlayer();
 
 	if (p) {
-		playlist->Pause();
+		pl->Pause();
 		p->PlayFile("CD.cdda");
-		playlist->UnPause();
+		pl->UnPause();
 	}
 }
 
