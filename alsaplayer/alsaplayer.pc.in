@@ -14,4 +14,4 @@ Name: AlsaPlayer
 Description: AlsaPlayer audio player with plugin support
 Version: @ALSAPLAYER_VERSION@
 Libs: -L${libdir} -lalsaplayer -ldl
-Cflags: -I${includedir} -I${alsaplayer_includedir}
+Cflags: -I${alsaplayer_includedir}
