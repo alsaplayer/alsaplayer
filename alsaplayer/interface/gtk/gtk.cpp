@@ -42,6 +42,7 @@
 #include "gtk_interface.h"
 #include "utilities.h"
 #include "interface_plugin.h"
+#include "error.h"
 
 static char addon_dir[1024];
 static AlsaSubscriber *scopes = NULL;
@@ -87,12 +88,14 @@ void load_scope_addons()
 					scope_plugin_info = (scope_plugin_info_type) dlsym(handle, "scope_plugin_info");
 					if (scope_plugin_info) { 
 #ifdef DEBUG					
-						fprintf(stderr, "Loading scope addon: %s\n", path);
+						alsaplayer_error("Loading scope addon: %s\n", path);
 #endif
 						tmp = scope_plugin_info();
 						if (tmp) {
 								tmp->handle = handle;
-								apRegisterScopePlugin(tmp);
+								if (apRegisterScopePlugin(tmp) == -1) {
+									alsaplayer_error("%s is deprecated. Please remove it\n", path);
+								}
 						}		
 					} else {
 						dlclose(handle);
@@ -142,7 +145,7 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 
 	g_thread_init(NULL);
 	if (!g_thread_supported()) {
-		fprintf(stderr, "Sorry - this interface requires working threads.\n");
+		alsaplayer_error("Sorry - this interface requires working threads.\n");
 		return 1;
 	}
 	
