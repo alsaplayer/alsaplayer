@@ -259,7 +259,8 @@ static int cdda_open(input_object *obj, char *name)
 	fname = strrchr(name, '/');
 	if (!fname)
 		fname = name;
-
+	else fname++; // Ignore '/'
+	
 	if (ap_prefs) {
 		strcpy(device_name, prefs_get_string(ap_prefs, "cdda", "device", DEFAULT_DEVICE));
 	} else {
@@ -303,8 +304,9 @@ static int cdda_open(input_object *obj, char *name)
 #endif
 	}			
 	else
-		if (sscanf(fname, "Track %02d.cdda\n", &data->track_nr) != 1) {
-			printf("Hmm failed to read track number\n");
+		if (sscanf(fname, "Track %02d.cdda", &data->track_nr) != 1 ||
+				sscanf(fname, "Track%02d.cdda", &data->track_nr) != 1) {
+			printf("Hmm failed to read track number (%s)\n", fname);
 			free(obj->local_data);
 			obj->local_data = NULL;
 			return 0;
