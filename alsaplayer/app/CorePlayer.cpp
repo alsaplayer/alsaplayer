@@ -1015,7 +1015,7 @@ int CorePlayer::Read32(void *data, int samples)
 		write_buf_changed = 1;
 		pthread_mutex_unlock(&counter_mutex);
 	}
-#if 0
+#ifdef EMBEDDED
 	// provide a fast path implementation for the common case (no pitch)
 	if ((use_read_direction == DIR_FORWARD) && (use_pitch == 1.0)) {
 
