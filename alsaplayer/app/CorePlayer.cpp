@@ -569,9 +569,7 @@ bool CorePlayer::Start()
 		alsaplayer_error("CorePlayer does not have a node");
 		return false;
 	}	
-
 	Lock();
-	
 	// First check if we have a filename to play
 	if (!the_object->ready) {
 		Unlock();
@@ -594,7 +592,6 @@ bool CorePlayer::Start()
 	update_pitch();
 	write_buf_changed = 0;
 	read_buf = write_buf;
-
 	result = GetSpeed();
 
 	if (result < 0.0) {
@@ -605,13 +602,10 @@ bool CorePlayer::Start()
 		write_buf->start = 0;
 		SetDirection(DIR_FORWARD);
 	}
-
 	pthread_create(&producer_thread, NULL,
 		(void * (*)(void *))producer_func, this);
-
 	// allow producer to actually start producing
 	dosleep(20000);
-
 	//alsaplayer_error("Prebuffering...");
 	// wait up to 4 seconds to get all (really: half) the PCM buffers filled
 	tries = 100;
@@ -619,18 +613,16 @@ bool CorePlayer::Start()
 		//alsaplayer_error("Waiting for buffers...");
 		dosleep(40000);
 	}
-
 	sub = new AlsaSubscriber();
 	if (!sub) {
 		alsaplayer_error("Subscriber creation failed :-(\n");
 		Unlock();
 		return false;
-	}	
+	}
 	sub->Subscribe(node);
 	//alsaplayer_error("Starting streamer thread...");
 	sub->EnterStream(streamer_func, this);
 	Unlock();
-	
 	// Notify 
 	std::set<coreplayer_notifier *>::const_iterator i;
 	LockNotifiers();
@@ -640,7 +632,6 @@ bool CorePlayer::Start()
 		}
 	}
 	UnlockNotifiers();
-
 	return true;
 }  
 
@@ -663,9 +654,11 @@ void CorePlayer::Stop()
 #ifdef DEBUG	
 	alsaplayer_error("Waiting for producer_thread to finish...");
 #endif
-	//pthread_cancel(producer_thread);
-	if (producer_thread)
-	    pthread_join(producer_thread, NULL); 
+	if (producer_thread) {
+	    if (pthread_join(producer_thread, NULL)) {
+		    alsaplayer_error("producer_thread not running...");
+	    } 
+	}	    
 	pthread_mutex_destroy(&counter_mutex);
 	
 	pthread_mutex_init(&counter_mutex, NULL);
