@@ -11,7 +11,6 @@ BETA=-alpha4
 ALSAPLAYER_VERSION=$ALSAPLAYER_MAJOR_VERSION.$ALSAPLAYER_MINOR_VERSION.${ALSAPLAYER_MICRO_VERSION}${BETA}
 
 AM_INIT_AUTOMAKE(alsaplayer, ${ALSAPLAYER_VERSION})
-AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
 dnl =======================================================
@@ -426,23 +425,15 @@ dnl ================================================================
 dnl Special assembly options. Note: Need to fix the above arch code!
 dnl ================================================================
 
-AC_CANONICAL_HOST
+dnl AC_CANONICAL_HOST
+AM_CONFIG_HEADER(config.h)
 
-case "$host_alias" in
-	k6-*)
-		dnl try to support k6 for new amd-aware ia32 backend
-		use_3dnow_asm=yes
-		dnl Try to configure for gcc. If this fails use old gcc flags only.
-		old_cflags=$CFLAGS
-		CFLAGS="$CFLAGS -march=k6"
-		AC_TRY_COMPILE([#include <stdio.h>],
-        [ int main() { printf ("hello, world"); return 0; } ],
-        [ EXTRA_CPU_CFLAGS=="-march=k6"],[ EXTRA_CPU_CFLAGS="-m486"])
-        CFLAGS=$old_cflags
-    ;;
-	k7-*)
-		dnl Athlon!
-		echo "This is an Athlon"
+echo "Going to check hosts...($host)"
+
+case "$host" in
+	i?86-* | k?-* | athlon-*) dnl catch i386,i486,i586,i686,k6,k7
+		echo "defining FPM_NTEL"
+		AC_DEFINE(FPM_INTEL)
 	;;	
 	*-*)
 		echo "host_alias = $host_alias"
