@@ -426,7 +426,7 @@ static void new_list_item(const PlayItem *item, gchar **list_item)
 		sprintf(pt, "%02d:%02d", (item->playtime > 0) ? item->playtime / 60 : 0,
 			(item->playtime > 0) ? item->playtime % 60 : 0);
 	} else {
-		sprintf(pt, "No time");
+		sprintf(pt, "00:00");
 	}
 	list_item[2] = (gchar *)g_strdup(pt);
 	// Strip directory names

@@ -32,11 +32,12 @@ presented in PCM audio format. There are currently no plans to support
 video or midi data formats (future projects will address this).
 The following plugins are in various states of usability:
 
+- OGG vorbis plugin, works flawlessly, uses the ogg/vorbis libs
 - MPEG audio plugin, based on mpg123 0.59r, works quite well, being phased out
   however for:
 - MAD based audio plugin, based on the new MAD MPEG decoder library, uses a 
   tiny bit more CPU, but has much better output quality then mpg123.
-- CDDA plugin, play back audio CD's by ripping the data digitally of the disk
+- CDDA plugin, play back audio CD's by ripping the data digitally off the disk
 - MikMod plugin, play back all MikMod supported module formats, no random
   seeking in modules yet
 - Audiofile library plugin, this one needs a bit of work still
@@ -54,8 +55,8 @@ systems map quite well on to it however. Supported output plugins include:
 - Sparc (tested on UltraSparc)
 - SGI
 - JACK, http://jackit.sf.net, this plugin is actually built-in since its
-  differs radically from all the oters. It is callback based. This is my
-	preferred output method these days. The underlying audio driver is ALSA.
+  differs radically from all the others. It is callback based. This is my
+  preferred output method these days. The underlying audio driver is ALSA.
 
 
 SCOPE PLUGINS
@@ -69,13 +70,12 @@ distribution:
 - Monoscope
 - Spacescope
 - Levelmeter
-- FFTscope
-- FFTscope II
+- Blurscope
+- OpenGL spectrum
 - logFFtscope
 
 Nothing stops you from writing a kick ass *FULLSCREEN* (DGA) or even a
 *Hardwarde Accellerated OpenGL* visualization plugin for AlsaPlayer!
-
 
 EFFECTS PLUGINS
 ---------------
@@ -117,19 +117,19 @@ MAILING LISTS
 
 We now have a couple of mailing lists for alsaplayer
 
-Name		: alsaplayer-announce
+Name        : alsaplayer-announce
 Description : notification of new versions (read-only)
-Address		: mailto:alsaplayer-announce-request@lists.tartarus.org
-			  with subject "subscribe"
-			  
-Name		: alsaplayer-devel
-Description	: discuss development of alsaplayer
-Address		: mailto:alsaplayer-devel-request@lists.tartarus.org
-			  with subject "subscribe"
-			 
-Name		: alsaplayer-commits
-Description	: keep up to date on the CVS commits
-Address		:  http://lists.sourceforge.net/lists/listinfo/alsaplayer-commits
+Address     : mailto:alsaplayer-announce-request@lists.tartarus.org
+              with subject "subscribe"
+ 
+Name        : alsaplayer-devel
+Description : discuss development of alsaplayer
+Address     : mailto:alsaplayer-devel-request@lists.tartarus.org
+              with subject "subscribe"
+ 
+Name        : alsaplayer-commits
+Description : keep up to date on the CVS commits
+Address     : http://lists.sourceforge.net/lists/listinfo/alsaplayer-commits
 
 
 More information on these mailing lists and online archives can be found at
@@ -139,7 +139,7 @@ http://lists.tartarus.org/mailman/listinfo/
 CVS REPOSITORY
 --------------
 
-You can always check out the latest version of AlsAplayer. Execute the
+You can always check out the latest version of AlsaPlayer. Execute the
 following commands in the directory you want the sources in:
 
 cvs \
@@ -159,5 +159,5 @@ Thanks to the folks at SourceForge.net for providing these resources.
 OTHER INFO
 ----------
 
-WWW Page: http://www.alsaplayer.org/
-Email	: <andy@alsaplayer.org>
+WWW Page : http://www.alsaplayer.org/
+Email    : <andy@alsaplayer.org>

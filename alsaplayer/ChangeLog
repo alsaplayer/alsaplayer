@@ -1,3 +1,8 @@
+- Fix crashing bug when old visual scopes were present.
+- Stop the mikmod plugin from crashing. This plugin was not 
+  reentrant, and it still isn't, not until libmikmod becomes reentrant :(
+
+
 Tue Apr 30 13:43:07 CEST 2002
 -----------------------------
 - Update included MAD files to 0.14b2. 
