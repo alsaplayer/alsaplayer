@@ -42,17 +42,33 @@
 
 extern void exit_sighandler(int);
 
-AlsaNode::AlsaNode(char *name, int realtime)
+AlsaNode::AlsaNode(const char *name, const char *args, int realtime)
 {
+	int len;
+
 	follow_id = 1;
 	count = 0;
 	plugin_count = 0;
 	plugin = NULL;
+	driver_name = NULL;
+	driver_args = NULL;
 	nr_fragments = fragment_size = external_latency = 0;	
 	init = false;
-	use_pcm = name;
 	realtime_sched = realtime;
 	sample_freq = OUTPUT_RATE;
+
+	// Parse driver name,args
+	if (name && strlen(name)) {
+		len = strlen(name);
+		driver_name = new char[len+1];
+		strcpy(driver_name, name);
+	}
+	if (args && strlen(args)) {
+		len = strlen(args);
+		driver_args = new char[len+1];
+		strcpy(driver_args, args);
+	} 
+	
 
 	for (int i = 0; i < MAX_SUB; i++) {
 		memset(&subs[i], 0, sizeof(subscriber));
@@ -72,6 +88,15 @@ AlsaNode::~AlsaNode()
 	StopStreaming();
 	assert(plugin);
 	plugin->close();
+
+	if (driver_name) {
+		delete driver_name;
+		driver_name = NULL;
+	}
+	if (driver_args) {
+		delete driver_args;
+		driver_args = NULL;
+	}	
 }
 
 
@@ -240,9 +265,10 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 		//alsaplayer_error("Closing already opened plugin?!");
 		plugin->close();
 	}
+	
 	/* Remember this plugin - it's the one we're going to use. */
 	plugin = tmp;
-	if (!tmp->init() || !tmp->open(use_pcm)) {
+	if (!tmp->init() || !tmp->open(driver_args)) {
 		plugin = NULL;
 		return 0; // Unclean but good enough for now
 	}

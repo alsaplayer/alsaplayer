@@ -1108,7 +1108,6 @@ void CorePlayer::producer_func(void *data)
 			obj->write_buf = obj->new_write_buf;
 			obj->write_buf->start = obj->new_frame_number;
 		}
-
 		// still at least one buffer left to fill?
 		if (obj->FilledBuffers() < (NR_CBUF-1)) {
 			switch (obj->read_direction) {

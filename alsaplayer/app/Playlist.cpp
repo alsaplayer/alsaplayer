@@ -368,7 +368,7 @@ void insert_looper(void *data) {
 	if (playlist->active)
 		info_looper(playlist);
 
-#if 0
+#if 1
 	// do NOT work as a thread anymore due to race conditions
 	pthread_exit(NULL);
 #endif
@@ -583,10 +583,14 @@ void Playlist::Insert(std::vector<std::string> const & paths, unsigned position,
 	//    inform it of the change
 // FIXME: race conditions ahead!
 #if 1 
+	pthread_t adder;
+
 	pthread_create(&adder, NULL,
 				   (void * (*)(void *))insert_looper, (void *)items);
 	if (wait_for_insert)
 		pthread_join(adder, NULL);
+	else
+		pthread_detach(adder);
 #else
 	// This will cause a deadlock because we assume that insert
 	// looper is called from another thread. The GTK+ GUI will thus
