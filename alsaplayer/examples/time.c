@@ -7,7 +7,7 @@ int main (int argc, char *argv[])
 	int pos_frame, pos_sec;
 	int length_frame, length_sec;
 
-	fprintf(stdout, "\n");
+	puts("");
 	while (ap_session_running(0)) {
 		// Totals
 		ap_get_frames(0, &length_frame);
@@ -17,7 +17,7 @@ int main (int argc, char *argv[])
 		ap_get_frame(0, &pos_frame);
 		ap_get_position(0, &pos_sec);
 
-		fprintf(stdout, "Run: %5d / %5d = %.2f <-> %5d / %5d = %.2f   \r",
+		printf("Run: %5d / %5d = %.2f <-> %5d / %5d = %.2f   \r",
 			pos_frame, length_frame, 
 			(float)pos_frame / (float)length_frame,
 			pos_sec, length_sec,
@@ -25,6 +25,6 @@ int main (int argc, char *argv[])
 		fflush(stdout);
 		usleep(50000);
 	}
-	fprintf(stdout, "done\n");
+	puts("done");
 	return 0;
 }
