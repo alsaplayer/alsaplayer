@@ -1,13 +1,15 @@
+- Scopes will now remember their state
+- Added a section parameter to the prefs system
 - Changed behaviour of PLAY button in gtk interface
 - Fix MAD playback on big-endian machines.
 - Doubled the set_data and set_fft rate for smoother scope output
 - Changed fft data output slightly
 - New Blurscope and OpenGL Spectrum analyzer scopes, ported over from xmms
-- Retired fftscope and logfftscope scope plugins. They were just (bad) copies
-  of logbarscope anyway
+- Retired fftscope and logfftscope scope plugins. They were just (bad) versions
+  of logbarscope
 - Fix crashing bug when loading old scopes
-- Removed scope_open() call since it was never every used. Also renamed
-  scope_close() to scope_shutdown() to better reflect its function.	
+- Removed scope_open() call since it was never used. Also renamed
+  scope_close() to scope_shutdown() to better reflect its intended function.	
 
 Tue Mar 12 18:54:48 CET 2002
 ----------------------------

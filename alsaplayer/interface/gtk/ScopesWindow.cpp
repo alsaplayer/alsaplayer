@@ -162,7 +162,6 @@ void apUnregiserScopePlugins()
 	while (current && current->sp) {
 		//printf("closing and unloading scope plugin %s\n", current->sp->name);
 		current->active = 0;
-		current->sp->stop();
 		current->sp->shutdown();
 		current = current->next;
 	}
@@ -238,7 +237,7 @@ void scopes_list_click(GtkWidget *widget, gint row, gint column,
 					row, 0, "");	
 			}
 #else
-			se->sp->start(NULL);
+			se->sp->start();
 #endif			
 		}
 	}

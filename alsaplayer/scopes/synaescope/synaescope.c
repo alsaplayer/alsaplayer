@@ -33,6 +33,7 @@
 #include <string.h>
 #include <assert.h>
 #include "scope_config.h"
+#include "prefs.h"
 
 #define FFT_BUFFER_SIZE_LOG 8 
 #define FFT_BUFFER_SIZE (1 << FFT_BUFFER_SIZE_LOG)
@@ -75,6 +76,7 @@ static int running = 0;
 static void synaescope_hide(void);
 static void synaes_fft(double *x, double *y);
 static void synaescope_coreGo(void);
+static int synaescope_running();
 
 static const int default_colors[] = {
     10, 20, 30,
@@ -543,7 +545,7 @@ static void run_synaescope(void *data)
 }
 
 
-static void start_synaescope(void *data)
+static void start_synaescope()
 {
 	if (pthread_mutex_trylock(&synaescope_mutex) != 0) {
 		printf("synaescope already running\n");
@@ -554,7 +556,7 @@ static void start_synaescope(void *data)
 		scope_win = init_synaescope_window();
 	}
 	gtk_widget_show(scope_win);
-	pthread_create(&synaescope_thread, NULL, (void * (*)(void *))run_synaescope, data);
+	pthread_create(&synaescope_thread, NULL, (void * (*)(void *))run_synaescope, NULL);
 }
 
 
@@ -587,18 +589,21 @@ static int init_synaescope()
 	fftmult[i] = mult;
     }
 
-    for(i = 0; i < FFT_BUFFER_SIZE; i++) {
-	negSinTable[i] = -sin(M_PI * 2 / FFT_BUFFER_SIZE*i);
-	cosTable[i] = cos(M_PI * 2 / FFT_BUFFER_SIZE*i);
-	bitReverse[i] = bitReverser(i);
-    }
+	for(i = 0; i < FFT_BUFFER_SIZE; i++) {
+		negSinTable[i] = -sin(M_PI * 2 / FFT_BUFFER_SIZE*i);
+		cosTable[i] = cos(M_PI * 2 / FFT_BUFFER_SIZE*i);
+		bitReverse[i] = bitReverser(i);
+	}
 
-    for(i=0;i<256;i++)
-	scaleDown[i] = i*200>>8;
+	for(i=0;i<256;i++)
+		scaleDown[i] = i*200>>8;
 
-    memset(output, 0, syn_width * syn_height * 2);
+	memset(output, 0, syn_width * syn_height * 2);
 
-    return 1;
+	if (prefs_get_bool(ap_prefs, "synaescope", "active", 0))
+		start_synaescope();
+		
+	return 1;
 }
 
 static void synaes_fft(double *x, double *y) {
@@ -627,9 +632,15 @@ static void synaes_fft(double *x, double *y) {
 	}
 }
 
+
 static void shutdown_synaescope()
 {
+	prefs_set_bool(ap_prefs, "synaescope", "active", synaescope_running());
+	
+	if (synaescope_running())
+		stop_synaescope();
 }
+
 
 static int synaescope_running()
 {

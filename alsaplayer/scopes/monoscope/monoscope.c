@@ -29,7 +29,7 @@
 #include <string.h>
 #include <assert.h>
 #include "scope_config.h"
-
+#include "prefs.h"
 #include "convolve.h"
 
 short newEq[CONVOLVE_BIG];	// latest block of 512 samples.
@@ -48,6 +48,7 @@ static int running = 0;
 static convolve_state *state = NULL;
 
 static void monoscope_hide();
+static int monoscope_running();
 
 static const int default_colors[] = {
     10, 20, 30,
@@ -262,7 +263,7 @@ void run_monoscope(void *data)
 }
 
 
-void start_monoscope(void *data)
+void start_monoscope()
 {
 	if (!is_init) {
 		is_init = 1;
@@ -273,7 +274,7 @@ void start_monoscope(void *data)
 		return;
 	}
 	gtk_widget_show(scope_win);
-	pthread_create(&monoscope_thread, NULL, (void * (*)(void *))run_monoscope, data);
+	pthread_create(&monoscope_thread, NULL, (void * (*)(void *))run_monoscope, NULL);
 }
 
 
@@ -285,12 +286,19 @@ static int init_monoscope()
 	/* FIXME - Need to call convolve_close(state); at some point
 	 * if this is going to become a proper plugin. */
 
+	if (prefs_get_bool(ap_prefs, "monoscope", "active", 0))
+		start_monoscope();
+	
 	return 1;
 }
 
 static void shutdown_monoscope()
 {
-/*	
+	prefs_set_bool(ap_prefs, "monoscope", "active", monoscope_running());
+
+	if (monoscope_running())
+		stop_monoscope();
+	/*	
 		if (state)
 						convolve_close(state);		
 */						

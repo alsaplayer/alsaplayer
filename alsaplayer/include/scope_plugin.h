@@ -30,7 +30,7 @@
  * THE VERSION NUMBER IS *NOT* A USER SERVICABLE PART!
  */
 
-#define SCOPE_PLUGIN_VERSION    0x1004
+#define SCOPE_PLUGIN_VERSION    0x1005
 
 #define SCOPE_NICE	10	
 #define SCOPE_SLEEP 20000
@@ -40,7 +40,7 @@
 
 typedef int scope_version_type;
 typedef int(*scope_init_type)();
-typedef void(*scope_start_type)(void *);
+typedef void(*scope_start_type)();
 typedef int(*scope_running_type)();
 typedef void(*scope_stop_type)();
 typedef void(*scope_shutdown_type)();

@@ -29,7 +29,7 @@
 #include <assert.h>
 #include <pthread.h>
 #include "scope_config.h"
-
+#include "prefs.h"
 
 static char actlEq[257];
 static char oldlEq[257];       
@@ -55,6 +55,7 @@ static gint running = 0;/* this global variable determines when
 
 
 static void levelmeter_hide();
+static int levelmeter_running();
 
 static void levelmeter_set_data(void *audio_buffer, int size)
 {
@@ -276,7 +277,7 @@ static void run_levelmeter(void *data)
 
 
 
-static void start_levelmeter(void *data)
+static void start_levelmeter()
 {
     if (!is_init) {
 		is_init = 1;
@@ -288,17 +289,21 @@ static void start_levelmeter(void *data)
 	}		
 	gtk_widget_show(scope_win);
 	pthread_create(&levelmeter_thread, NULL,
-		(void * (*)(void *))run_levelmeter, data);
+		(void * (*)(void *))run_levelmeter, NULL);
 }
 
 static int init_levelmeter()
 {
+	if (prefs_get_bool(ap_prefs, "levelmeter", "active", 0))
+		start_levelmeter();
 	return 1;
 }
 
 
 static void shutdown_levelmeter()
 {
+	prefs_set_bool(ap_prefs, "levelmeter", "active", levelmeter_running());
+	
 	stop_levelmeter();
 	if (disp) {
 					gdk_pixmap_unref(disp);

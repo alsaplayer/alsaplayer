@@ -29,6 +29,7 @@
 #include <string.h>
 #include <assert.h>
 #include "scope_config.h"
+#include "prefs.h"
 
 #define BARS 16 
 
@@ -55,6 +56,7 @@ static int xranges[] = {0, 1, 2, 3, 5, 7, 10, 14, 20, 28, 40, 54, 74, 101, 137, 
 
 
 static void fftscope_hide();
+static int fftscope_running();
 
 static const int default_colors[] = {
     10, 20, 30,
@@ -213,7 +215,7 @@ static void run_fftscope(void *data)
 }
 
 
-static void start_fftscope(void *data)
+static void start_fftscope()
 {
 	if (!is_init) {
 		is_init = 1;
@@ -224,7 +226,7 @@ static void start_fftscope(void *data)
 		return;
 	}
 	gtk_widget_show(scope_win);
-	pthread_create(&fftscope_thread, NULL, (void * (*)(void *))run_fftscope, data);
+	pthread_create(&fftscope_thread, NULL, (void * (*)(void *))run_fftscope, NULL);
 }
 
 
@@ -235,11 +237,19 @@ static int init_fftscope()
 	for (i = 0; i < BARS; i++) {
 		maxbar[ i ] = 0;
 	}	
+	
+	if (prefs_get_bool(ap_prefs, "logbarfft", "active", 0))
+		start_fftscope();
+	
 	return 1;
 }
 
 static void shutdown_fftscope()
 {
+	prefs_set_bool(ap_prefs, "logbarfft", "active", fftscope_running());
+
+	if (fftscope_running())
+		stop_fftscope();
 }
 
 static int fftscope_running()

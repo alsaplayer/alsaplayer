@@ -30,6 +30,7 @@
 
 #include "scope_plugin.h"
 #include "alsaplayer_error.h"
+#include "prefs.h"
 
 #define NUM_BANDS 16
 
@@ -389,6 +390,10 @@ static void stop_display(int join_thread)
 static int oglspectrum_init()
 {
 	pthread_mutex_init(&scope_mutex, NULL);
+
+	if (prefs_get_bool(ap_prefs, "opengl_spectrum", "active", 0)) {
+		oglspectrum_start();
+	}
 	return 1;		
 }	
 
@@ -397,7 +402,7 @@ static void oglspectrum_cleanup(void)
 	stop_display(1);
 }
 
-static void oglspectrum_start(void *data)
+static void oglspectrum_start()
 {
 	if (pthread_mutex_trylock(&scope_mutex) != 0) {
 		alsaplayer_error("spectrum already running");
@@ -448,6 +453,10 @@ static int oglspectrum_running()
 
 static void oglspectrum_shutdown()
 {
+	prefs_set_bool(ap_prefs, "opengl_spectrum", "active", oglspectrum_running());
+	if (oglspectrum_running()) {
+		oglspectrum_stop();
+	}
 }
 
 

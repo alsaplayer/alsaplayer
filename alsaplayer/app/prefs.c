@@ -24,6 +24,10 @@
 #include <string.h>
 #include "alsaplayer_error.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif	
+
 prefs_handle_t *prefs_load(char *filename)
 {
 	FILE *fd;
@@ -207,9 +211,9 @@ int prefs_get_bool(prefs_handle_t *prefs, char *section, char *key, int default_
 		return -1;
 	sprintf(str, "%s", default_val ? "true" : "false");
 	res = prefs_get_string(prefs, section, key, str);
-	if (strncasecmp(str, "true", 4) == 0 ||
-			strncasecmp(str, "yes", 3) == 0 ||
-			strncasecmp(str, "1", 1) == 0) {
+	if (strncasecmp(res, "true", 4) == 0 ||
+			strncasecmp(res, "yes", 3) == 0 ||
+			strncasecmp(res, "1", 1) == 0) {
 		return 1;
 	}
 	return 0;
@@ -226,7 +230,7 @@ int prefs_get_int(prefs_handle_t *prefs, char *section, char *key, int default_v
 		return -1;
 	sprintf(str, "%d", default_val);
 	res = prefs_get_string(prefs, section, key, str);
-	if (sscanf(str, "%d", &val) != 1)
+	if (sscanf(res, "%d", &val) != 1)
 		return default_val;
 	return val;
 }
@@ -257,7 +261,7 @@ float prefs_get_float(prefs_handle_t *prefs, char *section, char *key, float def
 		return default_val;
 	sprintf(str, "%.6f", default_val);
 	res = prefs_get_string(prefs, section, key, str);
-	if (sscanf(str, "%f", &val) != 1)
+	if (sscanf(res, "%f", &val) != 1)
 		return default_val;
 	return val;
 
@@ -288,3 +292,9 @@ int prefs_save(prefs_handle_t *prefs)
 	}
 	fclose(fd);
 }
+
+#ifdef __cplusplus
+}
+#endif	
+
+

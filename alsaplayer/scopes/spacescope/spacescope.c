@@ -29,6 +29,7 @@
 #include <assert.h>
 #include <pthread.h>
 #include "scope_config.h"
+#include "prefs.h"
 
 #define SPACE_WH	128	// Leave this at 128 for now
 
@@ -48,7 +49,7 @@ static gint running = 0;
 
 
 static void spacescope_hide();
-
+static int spacescope_running();
 
 void spacescope_set_data(void *audio_buffer, int size)
 {
@@ -191,7 +192,7 @@ void run_spacescope(void *data)
 }
 
 
-void start_spacescope(void *data)
+void start_spacescope()
 {
 	if (!is_init) {
 		is_init = 1;
@@ -203,17 +204,24 @@ void start_spacescope(void *data)
 	}		 
 	running = 1;
 	gtk_widget_show(scope_win);
-	pthread_create(&spacescope_thread, NULL, (void * (*)(void *))run_spacescope, data);
+	pthread_create(&spacescope_thread, NULL, (void * (*)(void *))run_spacescope, NULL);
 }
 
 
 static int init_spacescope()
 {
+	if (prefs_get_bool(ap_prefs, "spacescope", "active", 0))
+			start_spacescope();
 	return 1;
 }
 
 static void shutdown_spacescope()
 {
+	prefs_set_bool(ap_prefs, "spacescope", "active", spacescope_running());
+	
+	if (spacescope_running())
+		stop_spacescope();
+
 	if (area) {
 					gtk_widget_destroy(area);
 					area = NULL;

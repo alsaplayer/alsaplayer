@@ -32,6 +32,7 @@
 #include <pthread.h>
 #include "scope_plugin.h"
 #include "utilities.h"
+#include "prefs.h"
 
 static GtkWidget *window = NULL,*area;
 static GdkPixmap *bg_pixmap = NULL;
@@ -39,7 +40,7 @@ static pthread_t bscope_thread;
 static pthread_mutex_t bscope_mutex;
 static pthread_mutex_t edit_mutex;
 static gint is_init = 0;
-static gint running = 1;
+static gint running = 0;
 static gint16 audio_data[2][256];
 
 #define WIDTH 256 
@@ -153,6 +154,10 @@ static void bscope_init(void)
 
 static void shutdown_bscope(void)
 {
+	prefs_set_bool(ap_prefs, "blurscope", "active", bscope_running());
+
+	stop_bscope();
+
 	if(window)
 		gtk_widget_destroy(window);
 	if(bg_pixmap)
@@ -294,7 +299,7 @@ static void run_bscope(void *data)
 
 
 
-static void start_bscope(void *data)
+static void start_bscope()
 {
 	if (pthread_mutex_trylock(&bscope_mutex) != 0) {
 			printf("blurscope already running\n");
@@ -303,19 +308,26 @@ static void start_bscope(void *data)
 
 	gtk_widget_show(window);
 	pthread_create(&bscope_thread, NULL,
-		(void * (*)(void *))run_bscope, data);
+		(void * (*)(void *))run_bscope, NULL);
 }
+
 
 static int init_bscope()
 {
 	bscope_init();
+
+	if (prefs_get_bool(ap_prefs, "blurscope", "active", 0)) {
+		start_bscope();
+	}	
 	return 1;
 }
+
 
 static int bscope_running()
 {
 	return running;
 }
+
 
 scope_plugin bscope_plugin = {
 	SCOPE_PLUGIN_VERSION,
