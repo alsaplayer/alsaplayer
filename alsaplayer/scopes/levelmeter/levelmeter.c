@@ -156,7 +156,7 @@ static void stop_levelmeter();
 
 static gboolean close_levelmeter_window(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-	GDK_THREAD_LEAVE();			
+	GDK_THREADS_LEAVE();			
 	stop_levelmeter();
 	GDK_THREADS_ENTER();
 	
