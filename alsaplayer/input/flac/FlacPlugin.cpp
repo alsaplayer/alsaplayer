@@ -27,7 +27,8 @@
 #include "input_plugin.h"
 #include "alsaplayer_error.h"
 
-#include "FlacFile.h"
+#include "FlacStream.h"
+#include "FlacSeekableStream.h"
 #include "FlacEngine.h"
 #include "FlacTag.h"
 
@@ -46,7 +47,7 @@ flac_sample_rate (input_object * obj)
     if (!obj)
 	return 0;
 
-    Flac::FlacFile * f = (Flac::FlacFile *) obj->local_data;
+    Flac::FlacStream * f = (Flac::FlacStream *) obj->local_data;
     if (!f)
 	return 0;
     return (int) f->sampleRate ();
@@ -77,7 +78,7 @@ flac_frame_to_centisec (input_object * obj, int frame)
     if (!obj)
 	return 0;
     
-    Flac::FlacFile * f = (Flac::FlacFile *) obj->local_data;
+    Flac::FlacStream * f = (Flac::FlacStream *) obj->local_data;
     if (!f || !f->engine ())
 	return 0;
 
@@ -91,7 +92,7 @@ flac_frame_seek (input_object * obj, int frame)
     if (!obj)
 	return 0;
 
-    Flac::FlacFile * f = (Flac::FlacFile *) obj->local_data;
+    Flac::FlacStream * f = (Flac::FlacStream *) obj->local_data;
     if (!f)
       return 0;
     return f->engine ()->seekToFrame (frame);
@@ -104,7 +105,7 @@ flac_play_frame (input_object * obj, char * buf)
     if (!obj || !buf)
 	return 0;
     
-    Flac::FlacFile * f = (Flac::FlacFile *) obj->local_data;
+    Flac::FlacStream * f = (Flac::FlacStream *) obj->local_data;
     if (!f)
 	return 0;
     return f->engine ()->decodeFrame (buf);
@@ -112,18 +113,32 @@ flac_play_frame (input_object * obj, char * buf)
 
 
 static int
-flac_open (input_object * obj, const char * path)
+flac_open (input_object * obj, const char * name)
 {
     if (!obj)
 	return 0;
-    if (!path)
+    if (!name)
 	return 0;
 
-    Flac::FlacFile *   f = 0;
+    reader_type * rdr = reader_open (name);
+    if (!rdr)
+    {
+	alsaplayer_error ("flac_open: reader_open failed");
+	return 0;
+    }
+
+    obj->flags = 0;
+    Flac::FlacStream * f = 0;
     Flac::FlacEngine * e = 0;
     try
     {
-	f = new Flac::FlacFile (string (path), false);
+	if (reader_seekable (rdr))
+	{
+	    f = new Flac::FlacSeekableStream (name, rdr);
+	    obj->flags |= P_SEEK | P_PERFECTSEEK;
+	}
+	else
+	    f = new Flac::FlacStream (name, rdr);
 	e = new Flac::FlacEngine (f);
     }
     catch (...)
@@ -131,6 +146,7 @@ flac_open (input_object * obj, const char * path)
 	alsaplayer_error ("flac_open: unable to allocate memory for plugin.");
 	delete f;
 	delete e;
+	reader_close (rdr);
 	return 0;
     }
 
@@ -142,24 +158,28 @@ flac_open (input_object * obj, const char * path)
 
 	// attach a song info tag
 	
-	if (Flac::FlacTag::hasTag (f->path ()))
+	if (Flac::FlacTag::hasTag (f->name ()))
 	{
-	    Flac::FlacTag * t = Flac::FlacTag::newTag (f->path ());
+	    Flac::FlacTag * t = Flac::FlacTag::newTag (f->name ());
 	    f->setTag (t);
 	}
 
-	obj->nr_channels = f->engine ()->apChannels ();
-	obj->flags       = P_SEEK | P_REENTRANT | P_FILEBASED | P_PERFECTSEEK;
-	obj->nr_frames   = f->engine ()->apFrames ();
-	obj->nr_tracks   = 1;
-	obj->ready       = 1;
-	obj->local_data  = (void *) f;
+	if (strncasecmp (name, "http://", 7) == 0)
+	    obj->flags |= P_STREAMBASED;
+	else
+	    obj->flags |= P_FILEBASED;
+	obj->nr_channels  = f->engine ()->apChannels ();
+	obj->flags       |= P_REENTRANT;
+	obj->nr_frames    = f->engine ()->apFrames ();
+	obj->nr_tracks    = 1;
+	obj->ready        = 1;
+	obj->local_data   = (void *) f;
 	return 1;
     }
     else
     {
-	alsaplayer_error ("flac_open: unable to open flac file or "
-			  "unsupported flac file. (%s)", path);
+	alsaplayer_error ("flac_open: unable to open flac stream or "
+			  "unsupported flac stream (%s)", name);
 	delete f;
 	delete e;
 	obj->frame_size  = 0;
@@ -181,7 +201,7 @@ flac_stream_info (input_object * obj, stream_info * info)
     if (!obj || !info)
 	return 0;
 
-    Flac::FlacFile * f = (Flac::FlacFile *) obj->local_data;
+    Flac::FlacStream * f = (Flac::FlacStream *) obj->local_data;
     if (!f)
 	return 0;
 
@@ -206,8 +226,8 @@ flac_stream_info (input_object * obj, stream_info * info)
     }
     else
     {
-	// use filename
-	char * fname = strrchr (f->path ().c_str (), '/');
+	// use stream name
+	char * fname = strrchr (f->name ().c_str (), '/');
 	if (fname)
 	{
 	    fname++;
@@ -231,9 +251,9 @@ flac_stream_info (input_object * obj, stream_info * info)
 
 
 static float
-flac_can_handle (const char * path)
+flac_can_handle (const char * name)
 {
-    return Flac::FlacFile::isFlacFile (string (path)) ? 1.0 : 0.0;
+    return Flac::FlacStream::isFlacStream (name) ? 1.0 : 0.0;
 }
 
 
@@ -243,7 +263,7 @@ flac_close (input_object * obj)
     if (!obj)
 	return;
 
-    Flac::FlacFile * f = (Flac::FlacFile *) obj->local_data;
+    Flac::FlacStream * f = (Flac::FlacStream *) obj->local_data;
     delete f;
     f = 0;
 }
@@ -274,7 +294,7 @@ input_plugin_info (void)
     memset (&flac_plugin, 0, sizeof(input_plugin));
 
     flac_plugin.version      = INPUT_PLUGIN_VERSION;
-    flac_plugin.name         = "flac player v1.05";
+    flac_plugin.name         = "flac player v1.1";
     flac_plugin.author       = "Drew Hess";
     flac_plugin.init         = flac_init;
     flac_plugin.shutdown     = flac_shutdown;

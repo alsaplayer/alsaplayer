@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------
-//  Provide read-only access to flac file tags.  Supports id3v1 tags
+//  Provide read-only access to flac stream tags.  Supports id3v1 tags
 //  without any additional libraries.
 //
 //  Copyright (c) 2002 by Drew Hess <dhess@bothan.net>
@@ -26,15 +26,16 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "reader.h"
 
 using namespace std;
 
 static bool
-findId3Tag (FILE * f, char * tag)
+findId3Tag (reader_type * f, char * tag)
 {
-    if (fseek (f, -128, SEEK_END) != 0)
+    if (reader_seek (f, -128, SEEK_END) != 0)
 	return false;
-    if (fread (tag, 1, 128, f) != 128)
+    if (reader_read (tag, 128, f) != 128)
 	return false;
     return strncmp (tag, "TAG", 3) == 0 ? true : false;
 
@@ -57,25 +58,25 @@ typedef struct {
 
 // static
 bool
-FlacId3Tag::hasId3 (const string & path)
+FlacId3Tag::hasId3 (const string & name)
 {
     static char tag[128];
 
-    FILE * f = fopen (path.c_str (), "rb");
+    reader_type * f = reader_open (name.c_str ());
     if (!f)
 	return false;
 
     bool status = findId3Tag (f, tag);
-    fclose (f);
+    reader_close (f);
     return status;
 
 } // FlacId3Tag::hasId3
 
 
-FlacId3Tag::FlacId3Tag (const string & path)
-    : FlacTag (path)
+FlacId3Tag::FlacId3Tag (const string & name)
+    : FlacTag (name)
 {
-    FILE * f = fopen (path.c_str (), "rb");
+    reader_type * f = reader_open (name.c_str ());
     if (!f)
 	return;
 

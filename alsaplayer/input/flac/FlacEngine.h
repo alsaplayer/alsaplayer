@@ -30,13 +30,13 @@
 
 extern "C"
 {
-#include <FLAC/file_decoder.h>
+#include <FLAC/stream_decoder.h>
 }
 
 namespace Flac
 {
 
-class FlacFile;
+class FlacStream;
 
 class FlacEngine
 {
@@ -49,10 +49,10 @@ class FlacEngine
     static bool supportsBlockSizes (unsigned int min, unsigned int max);
 
 
-    //---------------------------------------------------------------
-    // Does the engine support a flac file with the indicated number
+    //-----------------------------------------------------------------
+    // Does the engine support a flac stream with the indicated number
     // of channels?
-    //---------------------------------------------------------------
+    //-----------------------------------------------------------------
 
     static bool supportsChannels (unsigned int nchannels);
 
@@ -66,7 +66,7 @@ class FlacEngine
 
  public:
 
-    FlacEngine (FlacFile * f);
+    FlacEngine (FlacStream * f);
     ~FlacEngine ();
 
 
@@ -136,9 +136,9 @@ class FlacEngine
     FlacEngine ();
 
 
-    //------------------------------------------------------------------
-    // Initialize the engine.  Called by FlacFile after it successfully
-    // opens the file.
+    //--------------------------------------------------------------------
+    // Initialize the engine.  Called by a flac stream object after it
+    // opens the stream.
     //
     // Returns true if successfully initialized, false otherwise.
     //------------------------------------------------------------------
@@ -165,12 +165,13 @@ class FlacEngine
 			     int shift);
 
 
-    friend class FlacFile;
+    friend class FlacStream;
+    friend class FlacSeekableStream;
 
 
  private:
 
-    FlacFile *       _f;
+    FlacStream *       _f;
     char *           _buf;
     int              _apFramesPerFlacFrame;
 

@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------
-//  Provide read-only access to flac file tags.  Supports id3v1 tags
+//  Provide read-only access to flac stream tags.  Supports id3v1 tags
 //  without any additional libraries.  Supports the id3v1 subset of
 //  fields for id3v2 tags if libid3tag is available.
 //
@@ -33,18 +33,18 @@ class FlacId3Tag : public FlacTag
 {
  public:
 
-    FlacId3Tag (const std::string & path);
+    FlacId3Tag (const std::string & name);
 
     virtual ~FlacId3Tag ();
 
  protected:
 
-    //------------------------------------------------------------
-    // Return true if the flac file pointed to by path has an id3
+    //--------------------------------------------------------------
+    // Return true if the flac stream whose name is given has an id3
     // tag.
-    //------------------------------------------------------------
+    //--------------------------------------------------------------
 
-    static bool hasId3 (const std::string & path);
+    static bool hasId3 (const std::string & name);
 
     friend class FlacTag;
 

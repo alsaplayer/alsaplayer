@@ -30,14 +30,14 @@
 #include <iostream>
 #include <math.h>
 #include <string.h>
-#include "FlacFile.h"
+#include "FlacStream.h"
 #include "CorePlayer.h"
 #include "alsaplayer_error.h"
 
 namespace Flac
 {
 
-FlacEngine::FlacEngine (FlacFile * f)
+FlacEngine::FlacEngine (FlacStream * f)
     : _f (f),
       _buf (0),
       _apFramesPerFlacFrame (1),
@@ -75,7 +75,7 @@ FlacEngine::init ()
     // Calculate the number of AlsaPlayer frames in a flac frame.
     // This number must be chosen such that apFrameSize is no greater
     // than BUF_SIZE (see alsaplayer/CorePlayer.h).  It should
-    // also be a power of 2 so that it nicely divides the file's
+    // also be a power of 2 so that it nicely divides the stream's
     // samplesPerBlock without fractions, in order to prevent rounding
     // errors when converting AlsaPlayer frame numbers to flac sample
     // numbers and vice versa.
@@ -161,7 +161,7 @@ FlacEngine::seekToFrame (int frame)
     if (!_f || frame < 0 || frame > apFrames ())
 	return false;
 
-    // The flac file decoder interface allows us to seek to an exact sample,
+    // Some flac decoder interfaces allow us to seek to an exact sample,
     // so translate the frame number to the corresponding sample
     // number.  Don't actually seek to this sample yet, we do that later
     // in flac_play_frame.
@@ -185,7 +185,7 @@ FlacEngine::decodeFrame (char * buf)
     // For some reason I haven't figured out yet, the flac library
     // won't return an error when we try to process a frame beyond
     // the total number of samples, nor will it immediately set
-    // the file decoder state to EOF when there are no more samples
+    // the decoder state to EOF when there are no more samples
     // to read.  So we check the current sample number here and
     // if it's greater than the total number of samples, return false.
 

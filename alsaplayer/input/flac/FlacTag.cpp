@@ -1,6 +1,6 @@
-//---------------------------------------------------------------------------
-//  Provide read-only access to flac file tags.  This is the public interface
-//  class for tags.  It's the default tag implementation for flac files with
+//-----------------------------------------------------------------------------
+//  Provide read-only access to flac stream tags.  This is the public interface
+//  class for tags.  It's the default tag implementation for flac streams with
 //  no tag info.  Other tag implementations (e.g. id3, ogg) are provided by 
 //  subclasses of this class.
 //
@@ -19,7 +19,7 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program; if not, write to the Free Software
 //    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-//--------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 
 #include "FlacTag.h"
 #include "FlacId3Tag.h"
@@ -44,14 +44,14 @@ FlacTag::hasTag (const string & path)
 
 // static
 FlacTag *
-FlacTag::newTag (const string & path)
+FlacTag::newTag (const string & name)
 {
     try
     {
-	if (FlacId3Tag::hasId3 (path))
-	    return new FlacId3Tag (path);
+	if (FlacId3Tag::hasId3 (name))
+	    return new FlacId3Tag (name);
 
-	return new FlacTag (path);
+	return new FlacTag (name);
     }
     catch (...)
     {
@@ -63,18 +63,18 @@ FlacTag::newTag (const string & path)
 
 // static
 FlacTag
-FlacTag::tag (const string & path)
+FlacTag::tag (const string & name)
 {
-    if (FlacId3Tag::hasId3 (path))
-	return FlacId3Tag (path);
+    if (FlacId3Tag::hasId3 (name))
+	return FlacId3Tag (name);
 
-    return FlacTag (path);
+    return FlacTag (name);
 
 } // FlacTag::tag
 
 
-FlacTag::FlacTag (const string & path)
-    : _path (path)
+FlacTag::FlacTag (const string & name)
+    : _name (name)
 {
 } // FlacTag::FlacTag
 

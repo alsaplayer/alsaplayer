@@ -1,6 +1,6 @@
-//---------------------------------------------------------------------------
-//  Provide read-only access to flac file tags.  This is the public interface
-//  class for tags.  It's the default tag implementation for flac files with
+//-----------------------------------------------------------------------------
+//  Provide read-only access to flac stream tags.  This is the public interface
+//  class for tags.  It's the default tag implementation for flac streams with
 //  no tag info.  Other tag implementations (e.g. id3, ogg) are provided by 
 //  subclasses of this class.
 //
@@ -33,11 +33,11 @@ class FlacTag
 {
  public:
 
-    //--------------------------------------------------------
-    // Does the file pointed to by path have a recognized tag?
-    //--------------------------------------------------------
+    //-----------------------------------------------------------
+    // Does the stream whose name is given have a recognized tag?
+    //-----------------------------------------------------------
 
-    static bool      hasTag (const std::string & path);
+    static bool      hasTag (const std::string & name);
 
 
     //-----------------------------------------------------------
@@ -46,7 +46,7 @@ class FlacTag
     // be created.
     //-----------------------------------------------------------
 
-    static FlacTag * newTag (const std::string & path);
+    static FlacTag * newTag (const std::string & name);
 
 
     //-------------------------------------------------------------
@@ -54,24 +54,25 @@ class FlacTag
     // Throws an exception if no tag could be created.
     //-------------------------------------------------------------
 
-    static FlacTag   tag (const std::string & path);
+    static FlacTag   tag (const std::string & name);
 
 
     //-----------------------------------------------------------------
-    // Create a flac tag object from the flac file pointed to by path.
+    // Create a flac tag object from the flac stream whose name is
+    // given.
     //-----------------------------------------------------------------
 
-    FlacTag (const std::string & path);
+    FlacTag (const std::string & name);
 
     virtual ~FlacTag ();
 
 
-    //------------------------------------------------------------------
+    //--------------------------------------------------------------------
     // Access methods for tag fields.
     //
-    // Any tags which are not present in the file are returned as empty
+    // Any tags which are not present in the stream are returned as empty
     // strings.
-    //------------------------------------------------------------------
+    //--------------------------------------------------------------------
 
     const std::string artist ();
     const std::string title ();
@@ -84,7 +85,7 @@ class FlacTag
     
  protected:
 
-    const std::string _path;
+    const std::string _name;
     std::string       _artist;
     std::string       _title;
     std::string       _track;
