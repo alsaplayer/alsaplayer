@@ -84,6 +84,8 @@ struct _ApPlaylist {
      */
     ApObject	    ap_object;
  
+    GArray*	    queue;
+    
     gboolean	    active;
    
     gboolean	    paused;
@@ -123,6 +125,11 @@ struct _ApPlaylistClass {
 
     void*   (*updated_signal)			(ApPlaylist	*playlist,
 						 ApPlayItem	*playitem,
+						 gpointer	data);
+
+    void*   (*inserted_signal)			(ApPlaylist	*playlist,
+						 guint		pos,
+						 GPtrArray	*playitem,
 						 gpointer	data);
 };
 

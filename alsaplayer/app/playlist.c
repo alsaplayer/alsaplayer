@@ -142,8 +142,19 @@ ap_playlist_class_init (ApPlaylistClass *class)
 		  g_cclosure_marshal_VOID__OBJECT,
 		  G_TYPE_NONE,
 		  1, G_TYPE_OBJECT);
+
+    g_signal_new ("inserted",
+		  G_OBJECT_CLASS_TYPE (class),
+		  G_SIGNAL_RUN_FIRST,
+		  G_STRUCT_OFFSET (ApPlaylistClass, inserted_signal),
+		  NULL,
+		  NULL,
+		  g_cclosure_marshal_VOID__UINT_POINTER,
+		  G_TYPE_NONE,
+		  2, G_TYPE_UINT, G_TYPE_POINTER);
 } /* ap_playlist_class_init */
 
+/* - - - -  - - - - - - - - - - - -  - - - - -  - - - - - - -  - - - - - - -*/
 static void
 ap_playlist_init (ApPlaylist *playlist)
 {
@@ -151,6 +162,9 @@ ap_playlist_init (ApPlaylist *playlist)
     
     playlist->paused = FALSE;
     playlist->looping_song = FALSE;
+
+    /* Create general queue for playitems. */
+    playlist->queue = g_array_new (FALSE, FALSE, sizeof (gpointer));
 
     /* Create asynchronous queue for delivering playitems into info thread */
     playlist->info_queue = g_async_queue_new ();
@@ -175,12 +189,14 @@ ap_playlist_init (ApPlaylist *playlist)
 					       NULL);	    /* error var */
 } /* ap_playlist_init */
 
+/* - - - -  - - - - - - - - - - - -  - - - - -  - - - - -  - - - - - - - - */
 static void
 ap_playlist_dispose (GObject *object)
 {
     ApPlaylist	    *playlist = AP_PLAYLIST (object);
     ApPlayItem	    *playitem;
     GPtrArray	    *p_array;
+    guint	    i;
 
     /* Let other threads know that we are going to die.
      */
@@ -199,15 +215,19 @@ ap_playlist_dispose (GObject *object)
      */
     playitem = ap_playitem_new (NULL);
     g_async_queue_push (playlist->info_queue, playitem);
- 
+   
     /* Join stopped threads. */
     g_thread_join (playlist->insert_thread);
     g_thread_join (playlist->info_thread);
+
+    /* Unref all playitems in the queue */
+    for (i=0; i<playlist->queue->len; i++)
+	ap_object_unref (g_array_index (playlist->queue, gpointer, i));
    
     G_OBJECT_CLASS (parent_class)->dispose (object);
 } /* ap_playlist_dispose */
 
-
+/* - - - -  - - - - - - - - - - - -  - - - - -  - - - - - - - - - - - - */
 static void
 ap_playlist_finalize (GObject *object)
 {
@@ -216,10 +236,14 @@ ap_playlist_finalize (GObject *object)
     /* Unref queues */
     g_async_queue_unref (playlist->info_queue);
     g_async_queue_unref (playlist->insert_queue);
+
+    /* Destroy general queue */
+    g_array_free (playlist->queue, TRUE);
     
     G_OBJECT_CLASS (parent_class)->finalize (object);
 } /* ap_playlist_finalize */
 
+/* - - - -  - - - - - - - - - - - -  - - - - -  -  - - - - - - - - - - - - -*/
 static void
 ap_playlist_set_property (GObject		*object,
 			  guint			prop_id,
@@ -241,6 +265,7 @@ ap_playlist_set_property (GObject		*object,
     }
 } /* ap_playlist_set_property */
 
+/* - - - -  - - - - - - - - - - - -  - - - - -  - - - - - - - -  - - - - */
 static void
 ap_playlist_get_property (GObject	*object,
 			  guint		prop_id,
@@ -262,6 +287,7 @@ ap_playlist_get_property (GObject	*object,
     }
 } /* ap_playlist_set_property */
 
+/* - - - -  - - - - - - - - - - - -  - - - - -  - - - - - - - - - */
 gpointer
 ap_playlist_info_thread (gpointer data)
 {
@@ -297,11 +323,10 @@ ap_playlist_info_thread (gpointer data)
 	    continue;
 	}
 	
-	/* TODO: Make the real info filling.
+	/* TODO TODO TODO TODO TODO TODO TODO TODO */
+	/* Make the real info filling.
 	 * But now, we just emulate it ;)
 	 */
-	g_print ("info thread fills %p\n", playitem);
-
 	ap_object_lock (AP_OBJECT (playitem));
 	ap_playitem_set_title (playitem, "Updated");
 	ap_object_unlock (AP_OBJECT (playitem));
@@ -319,6 +344,7 @@ ap_playlist_info_thread (gpointer data)
     return NULL;
 } /* ap_playlist_info_thread */
 
+/* - - - -  - - - - - - - - - - - -  - - - - -  - - - - - - - - - - - - -*/
 gpointer
 ap_playlist_insert_thread (gpointer data)
 {
@@ -332,6 +358,7 @@ ap_playlist_insert_thread (gpointer data)
     /* infty loop */
     while (1) {
 	guint	    pos, i;
+	GPtrArray   *items_p_array;
 	GPtrArray   *p_array = g_async_queue_pop (playlist->insert_queue);
 
 	if (p_array->len == 0) {
@@ -355,13 +382,48 @@ ap_playlist_insert_thread (gpointer data)
 	/* Get position value */
 	pos = GPOINTER_TO_UINT (g_ptr_array_index (p_array, 0));
 	
-	g_print ("Insert %u items in %u position.\n", p_array->len-1, pos);
+	/* Create list of playitems to add */
+	items_p_array = g_ptr_array_sized_new (p_array->len - 1);
+	
+	for (i=1; i<p_array->len; i++) {
+	    ApPlayItem *item;
+	    char *filename = g_ptr_array_index (p_array, i);
+	    
+	    /* TODO TODO TODO TODO TODO TODO TODO TODO */
+	    /* Make the real filename filtering. */
+	    if (i % 2 == 0) {
+		/* Skip this item */
+		/* We don't need filename anymore. */
+		g_free (filename);
+		continue;
+	    }
 
-	/* Free array, and each pointer in array. */
-	for (i=1; i<p_array->len; i++)
-	    g_free (g_ptr_array_index (p_array, i));
+	    /* Add PlayItem for this file. */
+	    item = ap_playitem_new (filename);
+	    g_ptr_array_add (items_p_array, item);
+	    ap_object_ref (AP_OBJECT (item));
+
+	    /* We don't need it anymore. */
+	    g_free (filename);
+	} /* list creation cycle */
+
+	/* Insert items into the playlist queue. */
+	ap_object_lock (AP_OBJECT (playlist));
+	g_array_insert_vals (playlist->queue, pos,
+			     items_p_array->pdata, items_p_array->len);
+	ap_object_unlock (AP_OBJECT (playlist));
+
+	/* Emit "inserted" signal. */
+	g_signal_emit_by_name (playlist, "inserted", pos, items_p_array);
+	
+	/* Free playitems array and unref locally refed items. */
+	for (i=0; i<items_p_array->len; i++)
+	    ap_object_unref (g_ptr_array_index (items_p_array, i));
+	g_ptr_array_free (items_p_array, TRUE);
+	
+	/* Free filenames array. */
 	g_ptr_array_free (p_array, TRUE);
-    }
+    } /* infty loop */
 
     /* Unref queue before exit. */
     g_async_queue_unref (playlist->insert_queue);
