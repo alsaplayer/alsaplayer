@@ -362,7 +362,7 @@ void add_file_ok(GtkWidget *widget, gpointer data)
 void load_list_ok(GtkWidget *widget, gpointer data)
 {
   PlaylistWindowGTK *playlist_window_gtk = (PlaylistWindowGTK *)data;
-	gtk_widget_hide(GTK_WIDGET(playlist_window_gtk->save_list));
+	gtk_widget_hide(GTK_WIDGET(playlist_window_gtk->load_list));
 	Playlist *playlist = playlist_window_gtk->GetPlaylist();
 	enum plist_result loaderr;
 
