@@ -33,6 +33,8 @@ extern "C" {
 
 /**
  * @file playitem.h
+ *
+ * @brief	Declarations for #ApPlayItem and #ApPlayItemClass.
  */
 
 /**

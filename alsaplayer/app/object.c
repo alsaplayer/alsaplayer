@@ -1,4 +1,4 @@
-/*  object.c - Threads safe versions of functions from GObject.
+/*  object.c - Threads safe version of functions from GObject.
  *  Copyright (C) 2002 Evgeny Chukreev <codedj@echo.ru>
  *
  *  This program is free software; you can redistribute it and/or modify

@@ -1,4 +1,4 @@
-/*  object.h - Threads safe versions of functions from GObject.
+/*  object.h - Threads safe version of functions from GObject.
  *  Copyright (C) 2002 Evgeny Chukreev <codedj@echo.ru>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -31,6 +31,9 @@ extern "C" {
 
 /**
  * @file object.h
+ *
+ * @brief	Declarations for #ApObject and #ApObjectClass.
+ * 
  */
 
 /**

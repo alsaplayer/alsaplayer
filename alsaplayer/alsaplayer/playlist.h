@@ -35,6 +35,21 @@ extern "C" {
 
 /**
  * @file playlist.h
+ *
+ * @brief	Declarations for #ApPlaylist and #ApPlaylistClass.
+ *
+ * @par List of signals defined in ApPlaylistClass:
+ *	- @b "updated". Emitted when updating process for a one #ApPlayItem is done.
+ *		     Handler for this signal takes three arguments:
+ *		     @code void handler (ApPlaylist *playlist, ApPlayItem *plaitem, gpointer data); @endcode
+ *		     First argument is a playlist which did item updating.
+ *		     Next one is an updated item. This playitem was queued for
+ *		     update by ap_playlist_update() function. Last argument is
+ *		     a data pointer which was passed for g_signal_connect().
+ *	- @b "inserted".
+ *	- @b "pause-toggled".
+ *	- @b "looping-playlist-toggled".
+ *	- @b "looping-song-toggled".
  */
 
 /**
