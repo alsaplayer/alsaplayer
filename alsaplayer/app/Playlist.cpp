@@ -127,11 +127,13 @@ void playlist_looper(void *data)
 		if (!pl->Paused()) {
 			if (!(coreplayer = (CorePlayer *)(pl->coreplayer)))
 				return;
+			
 			if (!coreplayer->IsActive()) {
 				if (pl->Length()) {
 					pl->Next();
 				}	
 			}
+			
 			if (pl->Length() && pl->Crossfading() && pl->coreplayer->GetSpeed() >= 0.0) {
 				// Cross example
 				if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < 300) {
@@ -807,7 +809,6 @@ bool Playlist::PlayFile(PlayItem const & item) {
 			coreplayer->SetSpeed(1.0);
 		}	
 	}	
-	UnPause();
 	return result;
 }
 

@@ -1,3 +1,5 @@
+* MAD plugin converted to new reader plugin API. This also means we don't use
+  mmap() any longer.
 * New reader plugin system by Evgeny. This brings in URI support i.e.
   you can now play directly from ftp and http sources (needs libcurl)
 * --enable-tophack switch to configure. This enables some code that fools

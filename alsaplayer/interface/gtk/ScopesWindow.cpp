@@ -214,7 +214,65 @@ int apRegisterScopePlugin(scope_plugin *plugin)
 }
 
 
-void exclusive_open_cb(GtkWidget *widget, gpointer data)
+static void close_all_cb(GtkWidget *widget, gpointer data)
+{
+	GtkWidget *list = (GtkWidget *)data;
+
+	if (list) {
+		scope_entry *current = root_scope;
+		scope_entry *exclusive_one = NULL;
+
+		while (current) {
+			GDK_THREADS_LEAVE();
+			if (current->sp) current->sp->stop();
+			GDK_THREADS_ENTER();
+			current = current->next;
+		}
+	}	
+}
+
+
+static void close_scope_cb(GtkWidget *widget, gpointer data)
+{
+	GtkWidget *list = (GtkWidget *)data;
+	
+	if (list) {
+		if (!GTK_CLIST(list)->selection)
+			return;
+		gint row = GPOINTER_TO_INT(GTK_CLIST(list)->selection->data);
+
+		scope_entry *se = (scope_entry *)
+			gtk_clist_get_row_data(GTK_CLIST(list), row);
+		if (se && se->sp) {
+			GDK_THREADS_LEAVE();
+			se->sp->stop();
+			GDK_THREADS_ENTER();
+		}	
+	}
+}
+
+
+static void open_scope_cb(GtkWidget *widget, gpointer data)
+{
+	GtkWidget *list = (GtkWidget *)data;
+	
+	if (list) {
+		if (!GTK_CLIST(list)->selection)
+			return;
+		gint row = GPOINTER_TO_INT(GTK_CLIST(list)->selection->data);
+
+		scope_entry *se = (scope_entry *)
+			gtk_clist_get_row_data(GTK_CLIST(list), row);
+		if (se && se->sp) {
+			GDK_THREADS_LEAVE();
+			se->sp->start();
+			GDK_THREADS_ENTER();
+		}	
+	}
+}
+
+
+static void exclusive_open_cb(GtkWidget *widget, gpointer data)
 {
 	GtkWidget *list = (GtkWidget *)data;
 
@@ -260,14 +318,54 @@ void scopes_list_button_press(GtkWidget *widget, GdkEvent *bevent, gpointer data
 		(gint)bevent->button.x, (gint)bevent->button.y,
 		&row, &col);
 	if (bevent->button.button == 3) { // Right mouse
+		bool selection;
+
 		gtk_clist_select_row(GTK_CLIST(widget), row, 0);
+
+		if (!GTK_CLIST(widget)->selection)
+			selection = false;
+		else
+			selection = true;
+	
 		// Construct a popup
 		the_menu = gtk_menu_new();
-		menu_item = gtk_menu_item_new_with_label("Open Exclusively");
+		menu_item = gtk_menu_item_new_with_label("Open");
+		gtk_menu_append(GTK_MENU(the_menu), menu_item);
+		gtk_widget_show(menu_item);
+		gtk_signal_connect(GTK_OBJECT(menu_item), "activate",
+			GTK_SIGNAL_FUNC(open_scope_cb), widget);
+		if (!selection)
+			gtk_widget_set_sensitive(menu_item, false);
+	
+		menu_item = gtk_menu_item_new_with_label("Open exclusively");
 		gtk_menu_append(GTK_MENU(the_menu), menu_item);
 		gtk_widget_show(menu_item);
 		gtk_signal_connect(GTK_OBJECT(menu_item), "activate", 
 			GTK_SIGNAL_FUNC(exclusive_open_cb), widget);
+		if (!selection)
+			gtk_widget_set_sensitive(menu_item, false);
+
+		// Separator
+		menu_item = gtk_menu_item_new();
+		gtk_menu_append(GTK_MENU(the_menu), menu_item);
+		gtk_widget_show(menu_item);
+
+
+		 menu_item = gtk_menu_item_new_with_label("Close");
+		 gtk_menu_append(GTK_MENU(the_menu), menu_item);
+		 gtk_widget_show(menu_item);
+		 gtk_signal_connect(GTK_OBJECT(menu_item), "activate",
+		 	GTK_SIGNAL_FUNC(close_scope_cb), widget);
+		 if (!selection)
+		 	gtk_widget_set_sensitive(menu_item, false);
+
+		 menu_item = gtk_menu_item_new_with_label("Close all");
+		 gtk_menu_append(GTK_MENU(the_menu), menu_item);
+		 gtk_signal_connect(GTK_OBJECT(menu_item), "activate",
+		 	GTK_SIGNAL_FUNC(close_all_cb), widget);
+		 gtk_widget_show(menu_item);
+		 
+			
 		gtk_menu_popup(GTK_MENU(the_menu), NULL, NULL, NULL, NULL,
 			bevent->button.button, bevent->button.time);
 	}
