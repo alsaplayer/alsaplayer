@@ -122,7 +122,7 @@ static int vol_scale[] = {
 ////////////////////////
 
 
-gint indicator_callback(gpointer data);
+gint indicator_callback(gpointer data, int locking);
 
 
 
@@ -434,9 +434,7 @@ void release_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 
 void move_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-	//static int c=0;
-	//printf("move event %d\n", c++);
-	indicator_callback(data);
+	indicator_callback(data, 0);
 }
 
 void speed_cb(GtkWidget *widget, gpointer data)
@@ -641,7 +639,7 @@ void balance_cb(GtkWidget *widget, gpointer data)
 }
 
 
-gint indicator_callback(gpointer data)
+gint indicator_callback(gpointer data, int locking)
 {
 	update_struct *ustr;
 	Playlist *pl;
@@ -670,17 +668,28 @@ gint indicator_callback(gpointer data)
 	if (p->CanSeek()) {
 		adj->lower = 0;
 		adj->upper = p->GetFrames() - 32; // HACK!!
+		if (locking)
+			GDK_THREADS_ENTER();
 		gtk_widget_set_sensitive(GTK_WIDGET(ustr->pos_scale), true);
+		if (locking)
+			GDK_THREADS_LEAVE();
 	} else {
 		adj->lower = adj->upper = 0;
+		if (locking)
+			GDK_THREADS_ENTER();
 		gtk_adjustment_set_value(adj, 0);
 		gtk_widget_set_sensitive(GTK_WIDGET(ustr->pos_scale), false);
+		if (locking)
+			GDK_THREADS_LEAVE();
 	}	
 	memset(&info, 0, sizeof(stream_info));
 
 	color.red = color.blue = color.green = 0;
+	if (locking)
+		GDK_THREADS_ENTER();
 	gdk_color_alloc(gdk_colormap_get_system(), &color);
-
+	if (locking)
+		GDK_THREADS_LEAVE();
 	sr = p->GetSampleRate();
 	if (p->IsActive()) { 
 		int pos;
@@ -696,7 +705,11 @@ gint indicator_callback(gpointer data)
 		secs = p->GetCurrentTime(p->GetFrames());
 		t_min = secs / 6000;
 		t_sec = (secs % 6000) / 100;
+		if (locking)
+			GDK_THREADS_ENTER();
 		gtk_adjustment_set_value(adj, pos);
+		if (locking)
+			GDK_THREADS_LEAVE();
 		p->GetStreamInfo(&info);
 	} else {
 		t_min = 0;
@@ -724,7 +737,9 @@ gint indicator_callback(gpointer data)
 		update_rect.x = ustr->drawing_area->allocation.width-INDICATOR_WIDTH;
 		update_rect.y = 16;
 		update_rect.width = INDICATOR_WIDTH;
-		update_rect.height = 18;	
+		update_rect.height = 18;
+		if (locking)
+			GDK_THREADS_ENTER();
 		gdk_draw_rectangle(val_ind, 
 						   ustr->drawing_area->style->black_gc,
 						   true,
@@ -740,7 +755,11 @@ gint indicator_callback(gpointer data)
 						update_rect.y + 12,
 						str);	
 		gtk_widget_draw (ustr->drawing_area, &update_rect);
+		if (locking)
+			GDK_THREADS_LEAVE();
 	}
+	if (locking)
+		GDK_THREADS_ENTER();
 	draw_format(info.stream_type);
 	if (strlen(info.author)) {
 		sprintf(title_string, "%s - %s", info.author, info.title);
@@ -755,6 +774,8 @@ gint indicator_callback(gpointer data)
 	update_rect.width = ustr->drawing_area->allocation.width;
 	update_rect.height = ustr->drawing_area->allocation.height;
 	gdk_flush();
+	if (locking)
+		GDK_THREADS_LEAVE();
 	return true;
 }
 
@@ -925,9 +946,9 @@ void indicator_looper(void *data)
 #endif
 	while (global_update >= 0) {
 		if (global_update == 1) {
-			GDK_THREADS_ENTER();
-			indicator_callback(data);
-			GDK_THREADS_LEAVE();
+			//GDK_THREADS_ENTER();
+			indicator_callback(data, 1);
+			//GDK_THREADS_LEAVE();
 		}
 		dosleep(UPDATE_TIMEOUT);
 	}	
