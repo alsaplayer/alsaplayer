@@ -1,4 +1,4 @@
-/*  External.cpp - external control for alsaplayer
+/*  external.cpp - external control for alsaplayer
  *  Copyright (C) 2002 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
