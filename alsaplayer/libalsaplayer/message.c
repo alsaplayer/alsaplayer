@@ -977,7 +977,94 @@ int ap_quit(int session)
 	return (ap_do_command_only(session, AP_QUIT));
 }
 
+int ap_get_playlist_position(int session, int *pos)
+{
+	return (ap_cmd_get_int(session, AP_GET_PLAYLIST_POSITION, pos));
+}
 
+int ap_get_string_set_int(int session, int32_t cmd, char* str, int maxlen, int val)
+{
+	int fd, *ack;
+	ap_message_t *msg, *reply;
+	char *result;
+
+	fd = ap_connect_session(session);
+	if (fd < 0)
+		return 0;
+	msg = ap_message_new();
+	msg->header.cmd = cmd;
+	ap_message_add_int32(msg, "int", val);
+
+	ap_message_send(fd, msg);
+	ap_message_delete(msg);
+	msg = NULL;
+
+	reply = ap_message_receive(fd);
+	close(fd);
+
+	ack = ap_message_find_int32(reply, "ack");
+	if(*ack == 1) {
+	  if ((result = ap_message_find_string(reply, "string"))) {
+	    if (strlen(result) > (size_t)maxlen) {
+	      strncpy(str, result, maxlen-1);
+	      str[maxlen] = 0;
+	    } else 	
+	      strcpy(str, result);
+	    ap_message_delete(reply);
+	    return 1;
+	  }
+	}
+	ap_message_delete(reply);
+	return 0;
+}
+
+int ap_get_file_path_for_track(int session, char* path, int track)
+{
+        return (ap_get_string_set_int(session, AP_GET_FILE_PATH_FOR_TRACK, path, AP_FILE_PATH_MAX, track));
+}
+
+int ap_set_string_set_int(int session, int32_t cmd, const char* string, int val)
+{
+	int fd;
+	int32_t *result;
+	ap_message_t *msg, *reply;
+
+	fd = ap_connect_session(session);
+	if (fd < 0)
+		return 0;
+	msg = ap_message_new();
+	msg->header.cmd = cmd;
+
+	ap_message_add_string(msg, "string", string);
+	ap_message_add_int32(msg, "int", val);
+
+	ap_message_send(fd, msg);
+	ap_message_delete(msg);
+	msg = NULL;
+
+	reply = ap_message_receive(fd);
+	close(fd);
+
+	result = ap_message_find_int32(reply, "ack");
+	if(*result) {
+	  ap_message_delete(reply);
+	  return 1;
+	}
+	ap_message_delete(reply);
+	return 0;
+}        
+
+int ap_insert(int session, const char* path, int val) {
+    return ap_set_string_set_int(session, AP_INSERT, path, val);
+}
+
+int ap_remove(int session, int pos) {
+    return ap_cmd_set_int(session, AP_REMOVE, pos);
+}
+
+int ap_set_current(int session, int pos) {
+    return ap_cmd_set_int(session, AP_SET_CURRENT, pos);
+}
 
 #ifdef __cplusplus
 } /* extern "C" */

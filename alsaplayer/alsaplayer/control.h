@@ -95,6 +95,12 @@ int ap_is_playing(int session, int *val);
 int ap_sort (int session, char *seq);
 int ap_jump_to(int session, int pos);
 
+int ap_get_playlist_position(int session, int *pos);
+int ap_get_file_path_for_track(int session, char* path, int pos);
+int ap_insert(int session, const char*, int pos);
+int ap_remove(int session, int pos);
+int ap_set_current(int session, int pos);
+
 #ifdef __cplusplus
 }
 #endif

@@ -252,6 +252,8 @@ public:
 	// Unregister - must do this before a registered interface is deleted
 	void UnRegister(PlaylistInterface *);
 	void UnRegister(playlist_interface *);
+
+	std::vector<PlayItem>& GetQueue() { return queue; }
 };
 
 inline void Playlist::Insert(std::string const &path, unsigned pos) {

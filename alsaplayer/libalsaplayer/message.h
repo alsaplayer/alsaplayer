@@ -80,6 +80,11 @@
 #define AP_IS_PLAYLIST_LOOPING	0xcc2f
 #define AP_IS_PAUSED		0xcc30
 
+#define AP_GET_PLAYLIST_POSITION 0xcc31
+#define AP_GET_FILE_PATH_FOR_TRACK 0xcc32
+#define AP_INSERT                 0xcc33
+#define AP_REMOVE               0xcc34
+#define AP_SET_CURRENT          0xcc35
 /* Add new commands here */
 
 #ifdef __cplusplus

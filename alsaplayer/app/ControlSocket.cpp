@@ -485,6 +485,56 @@ static void socket_looper(void *arg)
 					}
 				}
 				break;
+			case AP_GET_PLAYLIST_POSITION:
+				ap_message_add_int32(reply, "int", (int32_t)playlist->GetCurrent());
+				ap_message_add_int32(reply, "ack", 1);
+				break;
+			case AP_GET_FILE_PATH_FOR_TRACK:
+				if((int_val = ap_message_find_int32(msg, "int"))) {
+					if(0 < *int_val && *int_val <= playlist->Length()) {
+						ap_message_add_string(reply, "string", playlist->GetQueue()[(*int_val)-1].filename.c_str());
+						ap_message_add_int32(reply, "ack", 1);
+					}
+					else {
+						ap_message_add_int32(reply, "ack", 0);
+					}
+				}
+				break;
+			case AP_INSERT:
+				if((int_val = ap_message_find_int32(msg, "int"))) {
+					if(-1 < *int_val && *int_val <= playlist->Length()) {
+						path = ap_message_find_string(msg, "string");
+						playlist->Insert(path, *int_val);
+						ap_message_add_int32(reply, "ack", 1);
+					}
+					else {
+						ap_message_add_int32(reply, "ack", 0);
+					}
+				}
+				break;
+			case AP_REMOVE:
+				if((int_val = ap_message_find_int32(msg, "int"))) {
+					if(0 < *int_val && *int_val <= playlist->Length()) {
+						playlist->Remove(*int_val, *int_val);
+						ap_message_add_int32(reply, "ack", 1);
+					}
+					else {
+						ap_message_add_int32(reply, "ack", 0);
+					}
+				}
+				break;
+			case AP_SET_CURRENT:
+				if((int_val = ap_message_find_int32(msg, "int"))) {
+					if(0 < *int_val && *int_val <= playlist->Length()) {
+						playlist->SetCurrent(*int_val);
+						ap_message_add_int32(reply, "ack", 1);
+					}
+					else {
+						ap_message_add_int32(reply, "ack", 0);
+					}
+				}
+				break;
+		    
 			default: alsaplayer_error("CMD unknown or not implemented= %x",
 					msg->header.cmd);
 				 break;
