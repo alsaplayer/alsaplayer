@@ -61,7 +61,7 @@ create_root_window (void)
   GtkWidget *vol_scale;
 
   root_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title (GTK_WINDOW (root_window), _("AlsaPlayer"));
+  gtk_window_set_title (GTK_WINDOW (root_window), "AlsaPlayer");
 
   root_box = gtk_vbox_new (FALSE, 0);
   gtk_widget_show (root_box);
@@ -95,7 +95,7 @@ create_root_window (void)
   gtk_widget_show (vbox7);
   gtk_box_pack_start (GTK_BOX (hbox4), vbox7, TRUE, TRUE, 0);
 
-  status_label = gtk_label_new (_("Dit is text"));
+  status_label = gtk_label_new ("Dit is text");
   gtk_widget_show (status_label);
   gtk_box_pack_start (GTK_BOX (vbox7), status_label, FALSE, FALSE, 0);
   gtk_misc_set_alignment (GTK_MISC (status_label), 0, 0.5);
@@ -108,12 +108,12 @@ create_root_window (void)
   gtk_widget_show (vbox16);
   gtk_box_pack_start (GTK_BOX (hbox17), vbox16, TRUE, TRUE, 0);
 
-  format_label = gtk_label_new (_("Dit is text"));
+  format_label = gtk_label_new ("Dit is text");
   gtk_widget_show (format_label);
   gtk_box_pack_start (GTK_BOX (vbox16), format_label, FALSE, FALSE, 0);
   gtk_misc_set_alignment (GTK_MISC (format_label), 0, 0.5);
 
-  time_label = gtk_label_new (_("Dit is ook text"));
+  time_label = gtk_label_new ("Dit is ook text");
   gtk_widget_show (time_label);
   gtk_box_pack_start (GTK_BOX (hbox17), time_label, FALSE, FALSE, 0);
   gtk_label_set_justify (GTK_LABEL (time_label), GTK_JUSTIFY_RIGHT);
@@ -243,33 +243,33 @@ create_playlist_window (void)
   GtkWidget *vbox12;
   GtkWidget *hbox9;
   GtkWidget *scrolledwindow1;
-  GtkWidget *treeview1;
+  GtkWidget *tree_view;
   GtkWidget *vbuttonbox1;
-  GtkWidget *button9;
+  GtkWidget *add_button;
   GtkWidget *alignment1;
   GtkWidget *hbox10;
   GtkWidget *image1;
-  GtkWidget *add_button;
-  GtkWidget *button10;
+  GtkWidget *add_button_label;
+  GtkWidget *remove_button;
   GtkWidget *alignment2;
   GtkWidget *hbox11;
   GtkWidget *image2;
-  GtkWidget *remove_button;
+  GtkWidget *remove_button_label;
   GtkWidget *shuffle_button;
   GtkWidget *load_button;
   GtkWidget *alignment6;
   GtkWidget *hbox15;
   GtkWidget *image6;
-  GtkWidget *label6;
+  GtkWidget *load_button_label;
   GtkWidget *save_button;
   GtkWidget *alignment7;
   GtkWidget *hbox16;
   GtkWidget *image7;
-  GtkWidget *label7;
+  GtkWidget *save_button_label;
   GtkWidget *vbox15;
 
   playlist_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title (GTK_WINDOW (playlist_window), _("Playlist"));
+  gtk_window_set_title (GTK_WINDOW (playlist_window), "Playlist");
 
   vbox12 = gtk_vbox_new (FALSE, 0);
   gtk_widget_show (vbox12);
@@ -285,24 +285,24 @@ create_playlist_window (void)
   gtk_box_pack_start (GTK_BOX (hbox9), scrolledwindow1, TRUE, TRUE, 0);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow1), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
-  treeview1 = gtk_tree_view_new ();
-  gtk_widget_show (treeview1);
-  gtk_container_add (GTK_CONTAINER (scrolledwindow1), treeview1);
-  gtk_tree_view_set_reorderable (GTK_TREE_VIEW (treeview1), TRUE);
+  tree_view = gtk_tree_view_new ();
+  gtk_widget_show (tree_view);
+  gtk_container_add (GTK_CONTAINER (scrolledwindow1), tree_view);
+  gtk_tree_view_set_reorderable (GTK_TREE_VIEW (tree_view), TRUE);
 
   vbuttonbox1 = gtk_vbutton_box_new ();
   gtk_widget_show (vbuttonbox1);
   gtk_box_pack_start (GTK_BOX (hbox9), vbuttonbox1, FALSE, TRUE, 0);
   gtk_button_box_set_layout (GTK_BUTTON_BOX (vbuttonbox1), GTK_BUTTONBOX_START);
 
-  button9 = gtk_button_new ();
-  gtk_widget_show (button9);
-  gtk_container_add (GTK_CONTAINER (vbuttonbox1), button9);
-  GTK_WIDGET_SET_FLAGS (button9, GTK_CAN_DEFAULT);
+  add_button = gtk_button_new ();
+  gtk_widget_show (add_button);
+  gtk_container_add (GTK_CONTAINER (vbuttonbox1), add_button);
+  GTK_WIDGET_SET_FLAGS (add_button, GTK_CAN_DEFAULT);
 
   alignment1 = gtk_alignment_new (0.5, 0.5, 0, 0);
   gtk_widget_show (alignment1);
-  gtk_container_add (GTK_CONTAINER (button9), alignment1);
+  gtk_container_add (GTK_CONTAINER (add_button), alignment1);
 
   hbox10 = gtk_hbox_new (FALSE, 2);
   gtk_widget_show (hbox10);
@@ -312,18 +312,18 @@ create_playlist_window (void)
   gtk_widget_show (image1);
   gtk_box_pack_start (GTK_BOX (hbox10), image1, FALSE, FALSE, 0);
 
-  add_button = gtk_label_new_with_mnemonic (_("Add"));
-  gtk_widget_show (add_button);
-  gtk_box_pack_start (GTK_BOX (hbox10), add_button, FALSE, FALSE, 0);
+  add_button_label = gtk_label_new_with_mnemonic ("Add");
+  gtk_widget_show (add_button_label);
+  gtk_box_pack_start (GTK_BOX (hbox10), add_button_label, FALSE, FALSE, 0);
 
-  button10 = gtk_button_new ();
-  gtk_widget_show (button10);
-  gtk_container_add (GTK_CONTAINER (vbuttonbox1), button10);
-  GTK_WIDGET_SET_FLAGS (button10, GTK_CAN_DEFAULT);
+  remove_button = gtk_button_new ();
+  gtk_widget_show (remove_button);
+  gtk_container_add (GTK_CONTAINER (vbuttonbox1), remove_button);
+  GTK_WIDGET_SET_FLAGS (remove_button, GTK_CAN_DEFAULT);
 
   alignment2 = gtk_alignment_new (0.5, 0.5, 0, 0);
   gtk_widget_show (alignment2);
-  gtk_container_add (GTK_CONTAINER (button10), alignment2);
+  gtk_container_add (GTK_CONTAINER (remove_button), alignment2);
 
   hbox11 = gtk_hbox_new (FALSE, 2);
   gtk_widget_show (hbox11);
@@ -333,11 +333,11 @@ create_playlist_window (void)
   gtk_widget_show (image2);
   gtk_box_pack_start (GTK_BOX (hbox11), image2, FALSE, FALSE, 0);
 
-  remove_button = gtk_label_new_with_mnemonic (_("Remove"));
-  gtk_widget_show (remove_button);
-  gtk_box_pack_start (GTK_BOX (hbox11), remove_button, FALSE, FALSE, 0);
+  remove_button_label = gtk_label_new_with_mnemonic ("Remove");
+  gtk_widget_show (remove_button_label);
+  gtk_box_pack_start (GTK_BOX (hbox11), remove_button_label, FALSE, FALSE, 0);
 
-  shuffle_button = gtk_button_new_with_mnemonic (_("Shuffle"));
+  shuffle_button = gtk_button_new_with_mnemonic ("Shuffle");
   gtk_widget_show (shuffle_button);
   gtk_container_add (GTK_CONTAINER (vbuttonbox1), shuffle_button);
   GTK_WIDGET_SET_FLAGS (shuffle_button, GTK_CAN_DEFAULT);
@@ -359,9 +359,9 @@ create_playlist_window (void)
   gtk_widget_show (image6);
   gtk_box_pack_start (GTK_BOX (hbox15), image6, FALSE, FALSE, 0);
 
-  label6 = gtk_label_new_with_mnemonic (_("Load..."));
-  gtk_widget_show (label6);
-  gtk_box_pack_start (GTK_BOX (hbox15), label6, FALSE, FALSE, 0);
+  load_button_label = gtk_label_new_with_mnemonic ("Load...");
+  gtk_widget_show (load_button_label);
+  gtk_box_pack_start (GTK_BOX (hbox15), load_button_label, FALSE, FALSE, 0);
 
   save_button = gtk_button_new ();
   gtk_widget_show (save_button);
@@ -380,9 +380,9 @@ create_playlist_window (void)
   gtk_widget_show (image7);
   gtk_box_pack_start (GTK_BOX (hbox16), image7, FALSE, FALSE, 0);
 
-  label7 = gtk_label_new_with_mnemonic (_("Save..."));
-  gtk_widget_show (label7);
-  gtk_box_pack_start (GTK_BOX (hbox16), label7, FALSE, FALSE, 0);
+  save_button_label = gtk_label_new_with_mnemonic ("Save...");
+  gtk_widget_show (save_button_label);
+  gtk_box_pack_start (GTK_BOX (hbox16), save_button_label, FALSE, FALSE, 0);
 
   vbox15 = gtk_vbox_new (FALSE, 0);
   gtk_widget_show (vbox15);
@@ -393,29 +393,29 @@ create_playlist_window (void)
   GLADE_HOOKUP_OBJECT (playlist_window, vbox12, "vbox12");
   GLADE_HOOKUP_OBJECT (playlist_window, hbox9, "hbox9");
   GLADE_HOOKUP_OBJECT (playlist_window, scrolledwindow1, "scrolledwindow1");
-  GLADE_HOOKUP_OBJECT (playlist_window, treeview1, "treeview1");
+  GLADE_HOOKUP_OBJECT (playlist_window, tree_view, "tree_view");
   GLADE_HOOKUP_OBJECT (playlist_window, vbuttonbox1, "vbuttonbox1");
-  GLADE_HOOKUP_OBJECT (playlist_window, button9, "button9");
+  GLADE_HOOKUP_OBJECT (playlist_window, add_button, "add_button");
   GLADE_HOOKUP_OBJECT (playlist_window, alignment1, "alignment1");
   GLADE_HOOKUP_OBJECT (playlist_window, hbox10, "hbox10");
   GLADE_HOOKUP_OBJECT (playlist_window, image1, "image1");
-  GLADE_HOOKUP_OBJECT (playlist_window, add_button, "add_button");
-  GLADE_HOOKUP_OBJECT (playlist_window, button10, "button10");
+  GLADE_HOOKUP_OBJECT (playlist_window, add_button_label, "add_button_label");
+  GLADE_HOOKUP_OBJECT (playlist_window, remove_button, "remove_button");
   GLADE_HOOKUP_OBJECT (playlist_window, alignment2, "alignment2");
   GLADE_HOOKUP_OBJECT (playlist_window, hbox11, "hbox11");
   GLADE_HOOKUP_OBJECT (playlist_window, image2, "image2");
-  GLADE_HOOKUP_OBJECT (playlist_window, remove_button, "remove_button");
+  GLADE_HOOKUP_OBJECT (playlist_window, remove_button_label, "remove_button_label");
   GLADE_HOOKUP_OBJECT (playlist_window, shuffle_button, "shuffle_button");
   GLADE_HOOKUP_OBJECT (playlist_window, load_button, "load_button");
   GLADE_HOOKUP_OBJECT (playlist_window, alignment6, "alignment6");
   GLADE_HOOKUP_OBJECT (playlist_window, hbox15, "hbox15");
   GLADE_HOOKUP_OBJECT (playlist_window, image6, "image6");
-  GLADE_HOOKUP_OBJECT (playlist_window, label6, "label6");
+  GLADE_HOOKUP_OBJECT (playlist_window, load_button_label, "load_button_label");
   GLADE_HOOKUP_OBJECT (playlist_window, save_button, "save_button");
   GLADE_HOOKUP_OBJECT (playlist_window, alignment7, "alignment7");
   GLADE_HOOKUP_OBJECT (playlist_window, hbox16, "hbox16");
   GLADE_HOOKUP_OBJECT (playlist_window, image7, "image7");
-  GLADE_HOOKUP_OBJECT (playlist_window, label7, "label7");
+  GLADE_HOOKUP_OBJECT (playlist_window, save_button_label, "save_button_label");
   GLADE_HOOKUP_OBJECT (playlist_window, vbox15, "vbox15");
 
   return playlist_window;

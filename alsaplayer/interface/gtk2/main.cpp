@@ -41,6 +41,7 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <set>
+#include <string>
 #include "interface.h"
 #include "support.h"
 #include "scopes.h"
@@ -50,6 +51,7 @@
 #include "AlsaPlayer.h"
 #include "Playlist.h"
 #include "control.h"
+#include "playlist.h"
 
 #include "pixmaps/new_prev.xpm"
 #include "pixmaps/new_next.xpm"
@@ -117,6 +119,29 @@ void volume_changed(void *data, float new_vol)
 
 void speed_changed(void *data, float new_speed)
 {
+}
+
+
+gboolean escape_string(char *str, int maxlen)
+{
+	std::string tmp = std::string(str);
+	std::string::size_type pos = 0;
+	std::string::size_type loc = 0;
+
+	//alsaplayer_error("in string: %s", str);
+	
+	// replace &
+	while ((pos = tmp.find("&", loc)) != std::string::npos) {
+		loc = pos+1; // next iteration start
+		tmp.replace(pos, 1, "&amp;");
+		loc++;
+	}
+	strncpy(str, tmp.c_str(), maxlen);
+
+	//alsaplayer_error("out string: %s", str);
+	
+	return true;
+	
 }
 
 
@@ -261,6 +286,8 @@ void position_notify(void *data, int frame)
 			curr = p->GetCurrentTime(frame);
 			if (!p->GetStreamInfo(&info)) {
 			} else {
+				escape_string(info.title, AP_TITLE_MAX);
+				escape_string(info.artist, AP_ARTIST_MAX);
 			}	
 
 			notifier_lock();
@@ -585,12 +612,13 @@ static GtkWidget *label_box(gchar *label_text) {
 
 int interface_gtk2_start(Playlist *playlist, int argc, char **argv)
 {
-	GtkWidget *root_window;
-	GtkWidget *playlist_window;
-	GtkWidget *toplevel;
-	GtkWidget *working;
-	GtkWidget *misc_slider;
-	GtkWidget *pix;
+	GtkWidget *root_window = NULL;
+	GtkWidget *playlist_window  = NULL;
+        GtkTreeView *tree_view  = NULL;
+	GtkWidget *toplevel  = NULL;
+	GtkWidget *working  = NULL;
+	GtkWidget *misc_slider  = NULL;
+	GtkWidget *pix  = NULL;
 	GdkGeometry geom;
 	
 	g_thread_init(NULL);
@@ -622,7 +650,7 @@ int interface_gtk2_start(Playlist *playlist, int argc, char **argv)
 	time_label = GTK_LABEL(lookup_widget(root_window, "time_label"));
 	format_label = GTK_LABEL(lookup_widget(root_window, "format_label"));
 	status_label = GTK_LABEL(lookup_widget(root_window, "status_label"));
-		
+                
 	if (time_label) {
 		gtk_label_set_use_markup(time_label, 1);
 	}	
@@ -733,6 +761,11 @@ int interface_gtk2_start(Playlist *playlist, int argc, char **argv)
 	notifier.stop_notify = stop_notify;
 	playlist->RegisterNotifier(&notifier, playlist);
 
+        // Register playlist
+        tree_view = (GtkTreeView *)lookup_widget(playlist_window, "tree_view");
+        if (tree_view) {
+                playlist_register(playlist, tree_view);
+        } 
 	// Setup drag & drop 
 	gtk_drag_dest_set(toplevel,
 		GTK_DEST_DEFAULT_ALL,
