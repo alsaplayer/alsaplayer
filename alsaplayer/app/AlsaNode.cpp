@@ -216,7 +216,7 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 	int version;
 
 	if (plugin_count == MAX_OUTPUT_PLUGINS) {
-		alsaplayer_error("Maximum number of plugins reached (%d)", MAX_OUTPUT_PLUGINS);
+		alsaplayer_error("Maximum number of output plugins reached (%d)", MAX_OUTPUT_PLUGINS);
 		return 0;
 	}
 	output_plugin *tmp = &plugins[plugin_count];
