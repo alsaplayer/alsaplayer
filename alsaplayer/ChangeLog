@@ -4,6 +4,8 @@
 * Add preliminary HTTP 302 redirect handling in http reader plugin
 * MAD plugin works correctly with non-seekable sources now
 * Text interface works much better now
+* --quiet mode disables progress bar in text mode interface
+* Improved ogg vorbis performance
 * New -E option, which replaces the queue in a running alsaplayer
 * New ap_jump_to() libalsaplayer function which allows jumping to specific
   playlist tracks.
