@@ -150,7 +150,6 @@ ap_message_t *ap_message_receive(int fd)
 	if (!msg)
 		return NULL;
 	
-	
 	memset(msg, 0, sizeof(ap_message_t));
 	
 	if (read (fd, msg, sizeof (ap_message_t)) != sizeof (ap_message_t)) {
@@ -619,6 +618,8 @@ int ap_do_do(int session, int32_t cmd)
 
 	if (fd < 0)
 		return 0;
+
+	msg = ap_message_new();
 
 	msg->header.cmd = cmd;
 
