@@ -1,3 +1,32 @@
+Thu Nov  1 14:53:23 CET 2001
+----------------------------
+
+- Fix MAD input plugin to play MONO files correctly
+- Convert Monoscope to use indexed images
+- Changed interface_plugin API. interface_start() no longer has a 
+  CorePlayer parameter, instead the CorePlayer object is now part of
+	the Playlist objects.
+- Converted the input plugins to compile as C++. This will allow greaters
+  flexibility as to what can be done inside input plugins.
+- Updated Qt interface plugin (rikkus)	
+- Add a dirty fix for the convolve_match routine called in Monoscope. Further
+  investigation is still neded.
+- Renamed the cli (command line interface) to text
+- Various other tiny bug fixes
+
+
+Sun Oct 14 23:10:55 CEST 2001
+-----------------------------
+
+- Made alsa output plugin more flexible when setting sampling rate. This
+  should fix startup failures on some audio cards
+- MAD plugin inclusion. 
+- Add --enable-prefer-mad configure switch to load the MAD plugin
+  over de mpg123 plugin for MP3. The MAD plugin doesn't do song info
+	display yet so.
+- Lots of bug fixes
+
+
 Sat Sep  8 23:38:02 CEST 2001
 -----------------------------
 
