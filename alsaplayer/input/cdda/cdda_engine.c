@@ -872,11 +872,12 @@ void cddb_update_info(struct cdda_local_data *data)
 	char *cddb_serverport = NULL;
 	struct cd_trk_list *tl;
 	int index;
+	unsigned int cd_id;
 
 	if (!data)
 		return;
 	tl = &data->tl;
-	unsigned int cd_id = cddb_disc_id(tl);
+	cd_id = cddb_disc_id(tl);
 
 	/* try to get the audio info from the hard disk.. */
 	file_name = cddb_local_lookup(REAL_PATH, cd_id);
