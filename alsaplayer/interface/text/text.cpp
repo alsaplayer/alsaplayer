@@ -42,7 +42,7 @@
 #include "interface_plugin.h"
 
 #define NR_BLOCKS	30
-#define SLEEPTIME	500000
+#define SLEEPTIME	1000000
 
 extern int global_quiet;
 
@@ -126,8 +126,6 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 	memset(&info, 0, sizeof(stream_info));
 	memset(&old_info, 0, sizeof(stream_info));
 
-	playlist->UnPause();
-
 	going = true;
 
 	memset(&notifier, 0, sizeof(notifier));
@@ -144,10 +142,15 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 
 	// playlist loop
 	if (playlist->Length() == 0) {
-		fprintf(stdout, "Nothing to play.\n");
+		if (!global_quiet)
+			fprintf(stdout, "Nothing to play.");
 		pthread_mutex_unlock(&finish_mutex);
 		return 0;
-	}	
+	}
+
+	playlist->Play(1);
+	playlist->UnPause();
+	
 	while(going && !playlist->Eof()) {
 		unsigned long secs, t_min, t_sec, c_min, c_sec;
 		t_min = t_sec = c_min = c_sec = 0;
@@ -161,6 +164,9 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 			int cur_val, block_val, i;
 			
 			old_pos = pos;	
+
+			playlist->UnPause();
+			
 			pos = playlist->GetCurrent();
 			if (pos != old_pos) {
 				fprintf(stdout, "\n");
@@ -229,7 +235,6 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 			fflush(stdout);
 			dosleep(SLEEPTIME);
 		}
-		//fprintf(stdout, "\n\n");
 	}
 	fprintf(stdout, "\n\n...done playing\n");
 	pthread_mutex_unlock(&finish_mutex);
