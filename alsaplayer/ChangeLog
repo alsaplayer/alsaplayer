@@ -1,3 +1,5 @@
+- Removed mpg123 based plugin from tarball. It will probably make a comeback
+  as a (sample) standalone input plugin
 - Rewrote command line parsing, is much more flexible now.
 - libalsaplayer: Change ap_session_running() return values to 1 for
   "running" and 0 for "not running"

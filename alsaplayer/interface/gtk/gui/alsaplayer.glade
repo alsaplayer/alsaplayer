@@ -620,7 +620,7 @@
 	  <class>GtkButton</class>
 	  <name>close_button</name>
 	  <can_focus>True</can_focus>
-	  <label>close</label>
+	  <label>Close</label>
 	  <relief>GTK_RELIEF_NORMAL</relief>
 	  <child>
 	    <padding>0</padding>
@@ -634,7 +634,7 @@
 	  <class>GtkButton</class>
 	  <name>shuffle_button</name>
 	  <can_focus>True</can_focus>
-	  <label>shuffle</label>
+	  <label>Shuffle</label>
 	  <relief>GTK_RELIEF_NORMAL</relief>
 	  <child>
 	    <padding>0</padding>
@@ -658,7 +658,7 @@
 	    <class>GtkButton</class>
 	    <name>del_button</name>
 	    <can_focus>True</can_focus>
-	    <label>remove</label>
+	    <label>Remove</label>
 	    <relief>GTK_RELIEF_NORMAL</relief>
 	    <child>
 	      <padding>0</padding>
@@ -671,7 +671,7 @@
 	    <class>GtkButton</class>
 	    <name>clear_button</name>
 	    <can_focus>True</can_focus>
-	    <label>clear</label>
+	    <label>Clear</label>
 	    <relief>GTK_RELIEF_NORMAL</relief>
 	    <child>
 	      <padding>6</padding>

@@ -6,7 +6,7 @@ ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
 ALSAPLAYER_MICRO_VERSION=60
 
-BETA=-pre2
+BETA=-pre3
 
 ALSAPLAYER_VERSION=$ALSAPLAYER_MAJOR_VERSION.$ALSAPLAYER_MINOR_VERSION.${ALSAPLAYER_MICRO_VERSION}${BETA}
 
@@ -73,7 +73,6 @@ AC_CHECK_LIB(audiofile, afOpenFile,
 	], )
 AC_HEADER_STDC
 
-
 dnl ======================
 dnl PKGCONFIG preparations
 dnl ======================
@@ -85,19 +84,19 @@ fi
 export PKG_CONFIG_PATH
 
 
-AC_ARG_ENABLE(prefer-mad,
-[  --enable-prefer-mad     prefer MAD plugin over mpg123 (default=yes)],
-[if test "$enableval" = "no"
-then
-	if test "$prefer_mad" = "yes"
-	then
-		prefer_mad=no
-	fi
-fi])
+dnl AC_ARG_ENABLE(prefer-mad,
+dnl [  --enable-prefer-mad     prefer MAD plugin over mpg123 (default=yes)],
+dnl [if test "$enableval" = "no"
+dnl then
+dnl	if test "$prefer_mad" = "yes"
+dnl	then
+dnl		prefer_mad=no
+dnl	fi
+dnl fi])
 
-if test "$prefer_mad" = yes; then
-	AC_DEFINE(PREFER_MAD, 1, [Define if you prefer MAD over mpg123])
-fi	
+dnl if test "$prefer_mad" = yes; then
+dnl	AC_DEFINE(PREFER_MAD, 1, [Define if you prefer MAD over mpg123])
+dnl fi	
 
 dnl ===============
 dnl Debugging stuff
@@ -244,7 +243,7 @@ oldcflags=$CFLAGS
 CFLAGS="$CFLAGS -lz"
 
 AC_CHECK_LIB(id3tag, id3_file_open,
-		MAD_LDADD="$MAD_LDADD -lid3tag -lz"; use_libid3tag=yes; AC_DEFINE(HAVE_LIBID3TAG, 1, [Define if you have libid3tag library (-lid3tag)]), use_libid3tag=no, -lmad)
+		MAD_LDADD="$MAD_LDADD -lid3tag -lz"; use_libid3tag=yes; AC_DEFINE(HAVE_LIBID3TAG, 1, [Define if you have libid3tag library (-lid3tag)]), use_libid3tag=no)
 
 CFLAGS=$oldcflags
 
@@ -686,7 +685,6 @@ output/sparc/Makefile
 output/null/Makefile
 output/nas/Makefile
 input/Makefile
-input/mpg123/Makefile
 input/mad/Makefile
 input/cdda/Makefile
 input/mikmod/Makefile
@@ -705,7 +703,6 @@ echo "
 Configuration:
   
   Install path:                       ${prefix}
-  Prefer mad over mpg123 plugin:      ${prefer_mad}
   Use libmad shared library:          ${use_libmad}
   Enable libid3tag support:           ${use_libid3tag}
   Build gtk interface:                ${have_gtk}

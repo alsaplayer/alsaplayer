@@ -93,7 +93,7 @@ void the_monoscope()
 	running = 1;
 
 	while (running) {
-		int w, factor;
+		int factor;
 		int val;
 		int max = 1;
 		short * thisEq;

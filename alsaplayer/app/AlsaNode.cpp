@@ -52,7 +52,7 @@ void AlsaNode::jack_restarter(void *arg)
 	AlsaNode *node = (AlsaNode *)arg;
 	alsaplayer_error("sleeping 2 second");
 	sleep (2);
-	
+
 	if (node && node->client)
 		jack_client_close(node->client);
 	if (jack_prepare(arg) < 0) {
@@ -104,16 +104,16 @@ int AlsaNode::jack_prepare(void *arg)
 			alsaplayer_error("connecting to jack ports: %s & %s", node->dest_port1, node->dest_port2);
 
 		if (jack_connect (node->client, jack_port_name(node->my_output_port1), node->dest_port1)) {
-				alsaplayer_error("cannot connect output port 1");
-				return -1;
+			alsaplayer_error("cannot connect output port 1");
+			return -1;
 		}		
 		if (jack_connect (node->client, jack_port_name(node->my_output_port2), node->dest_port2)) {
-				alsaplayer_error("cannot connect output port 2");
-				return -1;
+			alsaplayer_error("cannot connect output port 2");
+			return -1;
 		}		
-	
+
 		node->use_jack = 1;
-		
+
 		node->init = 1;
 
 		return 0;
@@ -151,7 +151,7 @@ AlsaNode::AlsaNode(char *name, int realtime)
 		strcpy(dest_port1, prefs_get_string(ap_prefs, "jack", "output1", "alsa_pcm:out_1"));
 		strcpy(dest_port2, prefs_get_string(ap_prefs, "jack", "output2", "alsa_pcm:out_2"));
 		if (sscanf(name, "jack %31s %31s", dest_port1, dest_port2) == 1) {
-		  strcpy(dest_port2, dest_port1);
+			strcpy(dest_port2, dest_port1);
 		}
 		if (jack_prepare(this) < 0) {
 			alsaplayer_error("failed initial connect attempt to jack\n");
@@ -247,14 +247,14 @@ int AlsaNode::srate(nframes_t rate, void *arg)
 #define SAMPLE_MAX_16BIT  32767.0f
 
 void sample_move_dS_s16 (sample_t *dst, char *src,
- 			unsigned long nsamples, unsigned long src_skip) 
+		unsigned long nsamples, unsigned long src_skip) 
 {
-        /* ALERT: signed sign-extension portability !!! */
-        while (nsamples--) {
-                *dst = (*((short *) src)) / SAMPLE_MAX_16BIT;
-                dst++;
-                src += src_skip;
-        }
+	/* ALERT: signed sign-extension portability !!! */
+	while (nsamples--) {
+		*dst = (*((short *) src)) / SAMPLE_MAX_16BIT;
+		dst++;
+		src += src_skip;
+	}
 }      
 
 //#define STATS  /* Only meaningful if fragments per interrupt is 64 */
@@ -274,7 +274,7 @@ int AlsaNode::process(nframes_t nframes, void *arg)
 		//alsaplayer_error("THREAD-%d=soundcard thread\n", getpid());
 
 		if (sched_setscheduler(0, SCHED_FIFO, &sp) != 0) {
-				alsaplayer_error("failed to setup realtime scheduling!");
+			alsaplayer_error("failed to setup realtime scheduling!");
 		} else {
 			mlockall(MCL_CURRENT);
 			printf("realtime scheduling active\n");
@@ -289,7 +289,7 @@ int AlsaNode::process(nframes_t nframes, void *arg)
 		bool status;
 		sample_t *out1 = (sample_t *) jack_port_get_buffer(node->my_output_port1, nframes);
 		sample_t *out2 = (sample_t *) jack_port_get_buffer(node->my_output_port2, nframes);
-		
+
 		memset(bufsize, 0, sizeof(bufsize));	
 
 		for (c = 0; c < MAX_SUB; c++) {
@@ -332,7 +332,7 @@ void AlsaNode::looper(void *pointer)
 		struct sched_param sp;
 		memset(&sp, 0, sizeof(sp));
 		sp.sched_priority = sched_get_priority_max(SCHED_FIFO);
-	
+
 		if (sched_setscheduler(0, SCHED_FIFO, &sp) != 0) {
 			if (node->fragment_size < 1024) {
 				alsaplayer_error("***NOTE***: please consider scheduling real-time!");
@@ -344,7 +344,7 @@ void AlsaNode::looper(void *pointer)
 	}	
 #endif
 	usleep_hack = (node->plugin->get_queue_count != NULL);
-	
+
 	node->looping = true;
 
 	buffer_data = new char[16384];
@@ -381,9 +381,9 @@ void AlsaNode::looper(void *pointer)
 
 		read_size = node->GetFragmentSize(); // Change on the fly
 		if (usleep_hack) {
-				int count = node->plugin->get_queue_count();
-				if (count > 8192)
-					dosleep(1000);
+			int count = node->plugin->get_queue_count();
+			if (count > 8192)
+				dosleep(1000);
 		}			
 	}
 	delete buffer_data;
@@ -395,7 +395,7 @@ bool AlsaNode::IsInStream(int the_id)
 {
 	subscriber *i;
 	int c;
-	
+
 	pthread_mutex_lock(&queue_mutex);	
 	for (c = 0; c < MAX_SUB; c++) {
 		if (subs[c].ID == the_id) {
@@ -420,7 +420,7 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 	tmp->version = the_plugin->version;
 	if ((version = tmp->version) != OUTPUT_PLUGIN_VERSION) {
 		alsaplayer_error("Wrong version on plugin v%d, wanted v%d",
-			version - 0x1000, OUTPUT_PLUGIN_VERSION - 0x1000);
+				version - 0x1000, OUTPUT_PLUGIN_VERSION - 0x1000);
 		return 0;
 	}	
 	tmp->name = the_plugin->name;
@@ -446,8 +446,8 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 	plugin = tmp;
 	if (!tmp->init() || !tmp->open(use_pcm)) {
 		plugin = NULL;
-       	return 0; // Unclean but good enough for now
-    	}
+		return 0; // Unclean but good enough for now
+	}
 	init = true;
 	if (global_verbose)
 		fprintf(stdout, "Output plugin: %s\n", tmp->name);
@@ -464,35 +464,35 @@ int AlsaNode::AddStreamer(streamer_type str, void *arg, int preferred_pos)
 	switch (preferred_pos) {
 		case POS_BEGIN:
 		case POS_MIDDLE:
-						for (c = 0; c < MAX_SUB; c++) {
-								i = &subs[c];
-								if (!i->active) { // found an empty slot
-										i->ID = follow_id++;	
-										i->streamer = str;
-										i->arg = arg;
-										i->active = true; // Default is stream directly
-										count++;
-										pthread_mutex_unlock(&queue_mutex);
-										return i->ID;
-								}
-						}
-						break;
-			case POS_END:
-						for (c = MAX_SUB-1; c >= 0; c--) {
-								i = &subs[c];
-								if (!i->active) { // found an empty slot
-										i->ID = follow_id++;	
-										i->streamer = str;
-										i->arg = arg;
-										i->active = true; // Default is stream directly
-										count++;
-										pthread_mutex_unlock(&queue_mutex);
-										return i->ID;
-								}
-						}
-						break;
-			default:
-						break;
+			for (c = 0; c < MAX_SUB; c++) {
+				i = &subs[c];
+				if (!i->active) { // found an empty slot
+					i->ID = follow_id++;	
+					i->streamer = str;
+					i->arg = arg;
+					i->active = true; // Default is stream directly
+					count++;
+					pthread_mutex_unlock(&queue_mutex);
+					return i->ID;
+				}
+			}
+			break;
+		case POS_END:
+			for (c = MAX_SUB-1; c >= 0; c--) {
+				i = &subs[c];
+				if (!i->active) { // found an empty slot
+					i->ID = follow_id++;	
+					i->streamer = str;
+					i->arg = arg;
+					i->active = true; // Default is stream directly
+					count++;
+					pthread_mutex_unlock(&queue_mutex);
+					return i->ID;
+				}
+			}
+			break;
+		default:
+			break;
 	}	
 	alsaplayer_error("oversubscribed....!");
 	pthread_mutex_unlock(&queue_mutex);
@@ -504,7 +504,7 @@ bool AlsaNode::RemoveStreamer(int the_id)
 {
 	int c;
 	subscriber *i;
-	
+
 	pthread_mutex_lock(&queue_mutex);
 	for (c = 0; c < MAX_SUB; c++) {
 		i = &subs[c];
@@ -556,7 +556,7 @@ int AlsaNode::GetLatency()
 	int count = 0;
 #ifdef USE_JACK
 	if (use_jack) // Should jack have a hardware buffer length query?
-			return (fragment_size * nr_fragments);
+		return (fragment_size * nr_fragments);
 #endif
 	assert(plugin);
 	if (plugin->get_queue_count && (count = plugin->get_queue_count()) >= 0) {

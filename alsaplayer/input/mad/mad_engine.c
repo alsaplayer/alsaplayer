@@ -53,7 +53,7 @@ extern "C" { 	/* Make sure MAD symbols are not mangled
 
 #ifdef HAVE_ID3TAG_H
 #ifndef HAVE_LIBID3TAG
-#error "libid3tag.h was present but not libid3tag.so :-("
+#error "id3tag.h was present but libid3tag.so is apparantly missing :-("
 #endif
 #include "id3tag.h"
 #include <assert.h>

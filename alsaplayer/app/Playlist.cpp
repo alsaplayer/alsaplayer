@@ -47,8 +47,7 @@ void info_looper(void *data)
 	Playlist *playlist = (Playlist *)data;
 	CorePlayer *myplayer;
 	stream_info info;
-	char tmp[1024];
-	int t_sec, t_min, count;
+	int t_sec, count;
 
 	std::set<PlaylistInterface *>::const_iterator i;
 	std::set<playlist_interface *>::const_iterator j;

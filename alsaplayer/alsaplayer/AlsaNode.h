@@ -108,7 +108,7 @@ class AlsaNode
 	int SamplingRate() { return sample_freq; }
 	int SetStreamBuffers(int frag_size, int count, int channels);
 	int RegisterPlugin(output_plugin *the_plugin);
-	virtual int GetLatency();
+	int GetLatency();
 	int GetFragmentSize() { return fragment_size; }
 	void StartStreaming();
 	void StopStreaming();	

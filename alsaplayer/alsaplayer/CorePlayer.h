@@ -80,18 +80,18 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	pthread_mutex_t thread_mutex;
 	sample_buf *buffer;
 	sample_buf *read_buf, *write_buf, *new_write_buf;
-	virtual int FrameSeek(int);
-	virtual int AvailableBuffers();
-	virtual void ResetBuffer();
-	virtual void SetSpeedMulti(float multi) { pitch_multi = multi; }
-	virtual void update_pitch();
+	int FrameSeek(int);
+	int AvailableBuffers();
+	void ResetBuffer();
+	void SetSpeedMulti(float multi) { pitch_multi = multi; }
+	void update_pitch();
 	static void producer_func(void *data);
 	static bool streamer_func(void *, void *, int);
-	virtual int pcm_worker(sample_buf *dest, int start, int lin=0);
-	virtual int Read32(void *, int);
-	virtual int SetDirection(int dir);
-	virtual int GetDirection() { return read_direction; }
-	virtual void Close();
+	int pcm_worker(sample_buf *dest, int start, int lin=0);
+	int Read32(void *, int);
+	int SetDirection(int dir);
+	int GetDirection() { return read_direction; }
+	void Close();
 	void load_input_addons();
 	void UnregisterPlugins();
 	void Lock();
@@ -103,39 +103,39 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	CorePlayer(AlsaNode *node=(AlsaNode *)NULL);
 	~CorePlayer();
 	AlsaNode *GetNode() { return node; }
-	virtual int GetPosition();				// Current position in frames
-	virtual int SetSpeed(float val);	// Set the playback speed: 1.0 = 100%
-	virtual float GetSpeed();					// Get speed
-	virtual int GetVolume() { return volume; }				// Get Volume level
-	virtual void SetVolume(int vol) { volume = vol; }	// Set volume level
-	virtual int GetPan() { return pan; }	// Get Pan level
+	int GetPosition();				// Current position in frames
+	int SetSpeed(float val);	// Set the playback speed: 1.0 = 100%
+	float GetSpeed();					// Get speed
+	int GetVolume() { return volume; }				// Get Volume level
+	void SetVolume(int vol) { volume = vol; }	// Set volume level
+	int GetPan() { return pan; }	// Get Pan level
 	
-	virtual void SetPan(int p) { pan = p; }	// Set Pan level: 
+	void SetPan(int p) { pan = p; }	// Set Pan level: 
 																					// 0		= center
 																					// -100	= right channel muted
 																					// 100  = left channel muted
 	
-	virtual unsigned long GetCurrentTime(int frame=-1);
-																		// Returns the time position of frame in
-																		// hundreths of seconds
-	virtual int GetStreamInfo(stream_info *info); // Return stream info
-	virtual int GetFrames();					// Total number of frames
-	virtual int GetSampleRate();			// Samplerat of this player
-	virtual int GetChannels();				// Number of channels
-	virtual int GetFrameSize();				// Frame size in bytes
+	unsigned long GetCurrentTime(int frame=-1);
+																	// Returns the time position of frame in
+																	// hundreths of seconds
+	int GetStreamInfo(stream_info *info); // Return stream info
+	int GetFrames();					// Total number of frames
+	int GetSampleRate();			// Samplerat of this player
+	int GetChannels();				// Number of channels
+	int GetFrameSize();				// Frame size in bytes
 	input_plugin * GetPlayer(const char *);
 	// This one is temporary
-	virtual int GetLatency() { if (node) return node->GetLatency(); else return 0; }
+	int GetLatency() { if (node) return node->GetLatency(); else return 0; }
 
-	virtual bool Load(const char *path = NULL);
-	virtual void Unload();
-	virtual bool Start(int reset=1);
-	virtual void Stop(int streamer=1);
-	virtual int Seek(int pos);
-	virtual bool CanSeek();
+	bool Load(const char *path = NULL);
+	void Unload();
+	bool Start(int reset=1);
+	void Stop(int streamer=1);
+	int Seek(int pos);
+	bool CanSeek();
 	
-	virtual int IsActive() { return streaming; }	
-	virtual int IsPlaying() { return producing; }
+	int IsActive() { return streaming; }	
+	int IsPlaying() { return producing; }
 };
 
 

@@ -36,9 +36,9 @@ class AlsaSubscriber
  public:
 	AlsaSubscriber();
 	~AlsaSubscriber();
-	virtual void Subscribe(AlsaNode *node, int pos=POS_BEGIN);
+	void Subscribe(AlsaNode *node, int pos=POS_BEGIN);
 	void Unsubscribe();
-	virtual void EnterStream(streamer_type str, void *arg);
+	void EnterStream(streamer_type str, void *arg);
 	void ExitStream();	
 };
 

@@ -39,7 +39,6 @@ static GdkPixmap *bg_pixmap = NULL;
 static pthread_t bscope_thread;
 static pthread_mutex_t bscope_mutex;
 static pthread_mutex_t edit_mutex;
-static gint is_init = 0;
 static gint running = 0;
 static gint16 audio_data[2][256];
 

@@ -414,14 +414,14 @@ create_playlist_window (void)
   gtk_box_pack_start (GTK_BOX (vbox6), save_button, FALSE, TRUE, 0);
   gtk_widget_set_usize (save_button, 70, -2);
 
-  close_button = gtk_button_new_with_label ("close");
+  close_button = gtk_button_new_with_label ("Close");
   gtk_widget_ref (close_button);
   gtk_object_set_data_full (GTK_OBJECT (playlist_window), "close_button", close_button,
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (close_button);
   gtk_box_pack_end (GTK_BOX (vbox6), close_button, FALSE, TRUE, 0);
 
-  shuffle_button = gtk_button_new_with_label ("shuffle");
+  shuffle_button = gtk_button_new_with_label ("Shuffle");
   gtk_widget_ref (shuffle_button);
   gtk_object_set_data_full (GTK_OBJECT (playlist_window), "shuffle_button", shuffle_button,
                             (GtkDestroyNotify) gtk_widget_unref);
@@ -435,14 +435,14 @@ create_playlist_window (void)
   gtk_widget_show (vbox24);
   gtk_box_pack_start (GTK_BOX (vbox6), vbox24, FALSE, TRUE, 18);
 
-  del_button = gtk_button_new_with_label ("remove");
+  del_button = gtk_button_new_with_label ("Remove");
   gtk_widget_ref (del_button);
   gtk_object_set_data_full (GTK_OBJECT (playlist_window), "del_button", del_button,
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (del_button);
   gtk_box_pack_start (GTK_BOX (vbox24), del_button, FALSE, FALSE, 0);
 
-  clear_button = gtk_button_new_with_label ("clear");
+  clear_button = gtk_button_new_with_label ("Clear");
   gtk_widget_ref (clear_button);
   gtk_object_set_data_full (GTK_OBJECT (playlist_window), "clear_button", clear_button,
                             (GtkDestroyNotify) gtk_widget_unref);

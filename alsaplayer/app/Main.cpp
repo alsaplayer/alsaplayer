@@ -18,6 +18,8 @@
  *
  *  $Id$
  *
+ *  VIM: set ts=8
+ *
 */
 
 #include <stdio.h>
@@ -63,6 +65,7 @@ int global_session_id = -1;
 int global_quiet = 0;
 
 char *global_session_name = NULL;
+char *global_interface_script = NULL;
 
 prefs_handle_t *ap_prefs = NULL;
 
@@ -126,9 +129,7 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 
 	if (module) {
 		sprintf(path, "%s/output/lib%s.so", addon_dir, module);
-#ifdef DEBUG
 		printf("Loading output plugin: %s\n", path);
-#endif
 		if (stat(path, &statbuf) != 0)	// Error reading object
 			return;
 		if ((handle = dlopen(path, RTLD_NOW | RTLD_GLOBAL))) {
@@ -150,10 +151,7 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 		} else {
 			alsaplayer_error("%s\n", dlerror());
 		}
-	}
-
-	else
-
+	} else {
 		for (int i = 0; default_output_addons[i]; i++) {
 			sprintf(path, "%s/output/lib%s.so", addon_dir,
 				default_output_addons[i]);
@@ -194,6 +192,7 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 				alsaplayer_error("%s\n", dlerror());
 			}
 		}
+	}	
 	// If we arrive here it means we haven't found any suitable output-addons
 	alsaplayer_error
 	    ("I could not find a suitable output module on your\n"
@@ -302,6 +301,17 @@ static char *get_homedir()
 	return homedir;
 }
 
+static int get_interface_from_argv0 (char *argv0, char *str)
+{
+	char *bs = strrchr (argv0, '/');
+	
+	if (bs)  argv0 = ++bs;
+	
+	if (sscanf(argv0, "alsaplayer-%s", str) == 1)  return 1;
+  	if (sscanf(argv0, "jackplayer-%s", str) == 1)  return 1;
+
+	return 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -328,7 +338,7 @@ int main(int argc, char **argv)
 
 	int opt;
 	int option_index;
-	const char *options = "d:ef:F:g:hi:l:n:p:qrs:vRSPxo:";
+	const char *options = "d:ef:F:g:hi:I:l:n:p:qrs:vRSPxo:";
 	struct option long_options[] = {
 		{ "device", 1, 0, 'd' },
 		{ "enqueue", 0, 0, 'e' },
@@ -342,6 +352,7 @@ int main(int argc, char **argv)
 		{ "path", 1, 0, 'p' },
 		{ "quiet", 0, 0, 'q' },
 		{ "realtime", 0, 0, 'r' },
+		{ "interface-script", 1, 0, 'I'},
 		{ "session-name", 1, 0, 's' },
 		{ "version", 0, 0, 'v' },
 		{ "verbose", 0, 0, 'V' },
@@ -470,6 +481,9 @@ int main(int argc, char **argv)
 				break;
 			case '?':
 				break;
+			case 'I':
+				global_interface_script = optarg;
+				break;
 			default:
 				alsaplayer_error("Unknown option '%c'", opt);
 				break;
@@ -522,6 +536,7 @@ int main(int argc, char **argv)
 	// Check if we want jack
 	if (strcmp(argv[0], "jackplayer") == 0) {
 		use_output = "jack";
+		device_param = "jack";
 	}
 	// Else do the usual plugin based thing
 	node = new AlsaNode(device_param, do_realtime);
@@ -594,10 +609,9 @@ int main(int argc, char **argv)
 	interface_plugin_info_type interface_plugin_info;
 	interface_plugin *ui;
 
-	if (sscanf(argv[0], "alsaplayer-%s", str) == 1 ||
-			sscanf(argv[0], "jackplayer-%s", str) == 1) {
-		use_interface = str;	
-	}
+	if (get_interface_from_argv0 (argv[0], str))
+		use_interface = str;
+	
 	if (use_interface && strlen(use_interface)) {
 		if (!(interface_plugin_info =
 					load_interface(use_interface))) {

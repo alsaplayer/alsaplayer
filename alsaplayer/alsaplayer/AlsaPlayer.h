@@ -16,10 +16,11 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */ 
 
-#ifndef __AlsaPLayer_h__
+#ifndef __AlsaPlayer_h__
 #define __AlsaPlayer_h__
 
 extern char *global_session_name;
+extern char *global_interface_script;
 extern int global_verbose;
 extern int global_session_id;
 extern int global_quiet;
