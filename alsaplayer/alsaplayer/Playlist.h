@@ -142,7 +142,7 @@ private:
 	bool loopingSong;	//  Loop the current song
 	bool loopingPlaylist;	// Loop the Playlist
 	bool crossfade; // Crossfade the playlist
-
+	
 	CorePlayer *coreplayer; // Core player - set this
 
 	std::vector<PlayItem> queue;	// List of files to play
@@ -163,7 +163,8 @@ public:
 	void Stop();
 	bool PlayFile(PlayItem const &);
 	bool CanPlay(std::string const &);
-
+	bool Eof();
+	
 	Playlist(AlsaNode *);
 	~Playlist();
 

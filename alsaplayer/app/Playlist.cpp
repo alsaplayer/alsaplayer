@@ -1006,6 +1006,20 @@ void Playlist::Sort (std::string const &seq) {
 }	
 
 
+bool Playlist::Eof()
+{
+	int length;
+	
+	if (!(length=Length()))
+		return true;
+	if (LoopingPlaylist())
+		return false;
+	if (curritem == queue.size() &&
+			!GetCorePlayer()->IsPlaying())
+		return true;
+	return false;
+}
+
 // Add a path to list, recursing through (to a maximum of depth subdirectories)
 static void additems(std::vector<std::string> *items, std::string path, int depth) {
 	if(depth < 0) return;
