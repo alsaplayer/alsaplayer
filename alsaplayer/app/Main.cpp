@@ -515,10 +515,13 @@ int main(int argc, char **argv)
 	if (interface_plugin_info) {
 		ui = interface_plugin_info();
 		printf("Loading Interface plugin: %s\n", ui->name); 
-		ui->init();
-		ui->start(p, playlist, argc, argv);
-		ui->close();
-		//dlclose(ui->handle);
+		if (!ui->init()) {
+			printf("Failed to load gtk+ interface. Should fall back to cli\n");
+		} else {	
+			ui->start(p, playlist, argc, argv);
+			ui->close();
+			//dlclose(ui->handle);
+		}	
 	}	
 _fatal_err:	
 	delete playlist;
