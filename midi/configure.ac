@@ -31,7 +31,28 @@ AC_PROG_LN_S
 AM_DISABLE_STATIC
 AM_PROG_LIBTOOL
 AC_PROG_MAKE_SET
+
+dnl ======================
+dnl Check for header files
+dnl ======================
+
 AC_HEADER_STDC
+AC_HEADER_DIRENT
+AC_CHECK_HEADERS(fcntl.h)
+AC_CHECK_HEADERS(malloc.h)
+AC_CHECK_HEADERS(sys/ioctl.h)
+AC_CHECK_HEADERS(sys/time.h)
+AC_CHECK_HEADERS(unistd.h)
+
+
+dnl ===========================
+dnl Check for library functions
+dnl ===========================
+
+AC_PROG_GCC_TRADITIONAL
+AC_FUNC_MMAP
+AC_FUNC_MALLOC
+AC_CHECK_FUNCS(strdup usleep)
 
 dnl pkg-config stuff
 
@@ -45,6 +66,14 @@ AC_ARG_WITH(alsaplayer,
 
 export PKG_CONFIG_PATH
 
+TIMIDITY_DIR=${datadir}/timidity
+
+AC_ARG_WITH(timidity,
+	[  --with-timidity       Location of timidity patch dir (DATADIR/timidity)],
+	[TIMIDITY_DIR="$withval"],)	
+
+export TIMIDITY_DIR
+
 PKG_CHECK_MODULES(ALSAPLAYER, alsaplayer)
 
 PLUGIN_DIR=`pkg-config alsaplayer --variable=plugindir`
@@ -53,7 +82,7 @@ INPUTPLUGIN_DIR=`pkg-config alsaplayer --variable=inputplugindir`
 OUTPUTPLUGIN_DIR=`pkg-config alsaplayer --variable=outputplugindir`
 SCOPEPLUGIN_DIR=`pkg-config alsaplayer --variable=scopeplugindir`
 
-TIMIDITY_DIR="/usr/local/share/timidy"
+#TIMIDITY_DIR="$datadir/timidity"
 
 AC_SUBST(TIMIDITY_DIR)
 AC_SUBST(ALSAPLAYER_LIBS)
