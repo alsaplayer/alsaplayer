@@ -464,6 +464,7 @@ input_plugin cdda_plugin = {
 		0,
 		{ "CDDA player v1.0" },
 		{ "Andy Lo A Foe <andy@alsa-project.org>" },
+		NULL,
 		cdda_init,
 		NULL,
 		NULL,

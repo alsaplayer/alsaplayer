@@ -425,6 +425,7 @@ input_plugin mpg123_plugin = {
 		0,
 		{ "MPEG (mpg123) player v0.59r" },
 		{ "Andy Lo A Foe <andy@alsa-project.org>" },
+		NULL,
 		mpeg_init,
 		NULL,
 		NULL,	

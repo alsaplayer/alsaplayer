@@ -373,6 +373,7 @@ input_plugin vorbis_plugin =
 	0,
 	{ "Ogg Vorbis player v1.0" },
 	{ "Andy Lo A Foe" },
+	NULL,
 	vorbis_init,
 	NULL,
 	NULL,

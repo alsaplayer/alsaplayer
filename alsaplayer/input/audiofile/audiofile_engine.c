@@ -341,6 +341,7 @@ input_plugin audiofile_plugin =
 	0,
 	{ "Audio File Library player v0.2.1" },	// Plugin name
 	{ "Michael Pruett" },	// Author name
+	NULL,									// Handle, filled in by main program
 	audiofile_init,
 	NULL,
 	NULL,

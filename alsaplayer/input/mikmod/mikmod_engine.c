@@ -228,6 +228,7 @@ input_plugin mikmod_plugin = {
   0,
   { "MikMod player v0.9" },
   { "Paul Fisher <rao@gnu.org>" },
+	NULL,
   mikmod_init,
   NULL,
   NULL,

@@ -37,7 +37,7 @@
  */
 
 #define INPUT_PLUGIN_BASE_VERSION	0x1000
-#define INPUT_PLUGIN_VERSION	INPUT_PLUGIN_BASE_VERSION + 4
+#define INPUT_PLUGIN_VERSION	INPUT_PLUGIN_BASE_VERSION + 5
 
 typedef struct _input_object
 {
@@ -102,6 +102,7 @@ typedef struct _input_plugin
 	input_flags_type	flags;
 	char name[256];
 	char author[256];
+	void *handle;
 	input_init_type init;
 	input_cleanup_type cleanup;
 	input_plugin_handle_type plugin_handle;

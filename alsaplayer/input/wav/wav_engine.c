@@ -396,6 +396,7 @@ input_plugin wav_plugin = {
 	0,
 	{ "WAV player v1.01" },	// Plugin name
 	{ "Andy Lo A Foe" }, 	// Author name
+	NULL,
 	wav_init,
 	NULL,
 	NULL,
