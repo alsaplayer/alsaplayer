@@ -97,9 +97,14 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	void Lock();
 	void Unlock();
 	int RegisterPlugin(input_plugin *the_plugin);
-	int plugin_count; // Number of registered plugins
-	input_plugin plugins[MAX_PLUGINS]; // Be very optimistic
+
  public:
+	// Static members
+	static int plugins_loaded;
+	static int plugin_count;
+	static pthread_mutex_t plugins_mutex;
+	static input_plugin plugins[MAX_PLUGINS];
+	
 	CorePlayer(AlsaNode *node=(AlsaNode *)NULL);
 	~CorePlayer();
 	AlsaNode *GetNode() { return node; }

@@ -2,7 +2,7 @@
 
 int main (int argc, char *argv[])
 {
-	if (ap_do (0, AP_DO_CLEAR_PLAYLIST)) {
+	if (ap_clear_playlist(0)) {
 		printf("Cleared playlist\n");
 	}	
   return 0;

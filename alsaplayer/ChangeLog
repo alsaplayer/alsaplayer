@@ -1,160 +1,164 @@
-- NEW FLAC input plugin by Drew Hess, see http://flac.sourceforge.net/ for FLAC
-- JACK plugin is now a *real* plugin. Minor changes to the output 
+Wed May 15 12:30:11 CEST 2002
+-----------------------------
+* NEW FLAC input plugin by Drew Hess, see http://flac.sourceforge.net/ for FLAC
+* JACK plugin is now a *real* plugin. Minor changes to the output 
   plugin API to accommodate this.
-- Changes for latest JACK, at least 0.28.2 required now.
-- Add genre and album parsing in MAD plugin (Evgeny)
-- Complete reimplentation of socket control API (libalsaplayer)
+* Changes for latest JACK, at least 0.28.2 required now.
+* Add genre and album parsing in MAD plugin (Evgeny)
+* Complete reimplentation of socket control API (libalsaplayer)
   This breaks all old libalsaplayer apps, fortunately there aren't that many
   right now. The new API is much more flexible. It is partly based on ideas
   from BeOS' (RIP) BMessage.
-- Parse XING headers so VBR mp3's get the correct time (finally! :)
-- Include prefs_free() call, should have been in the previous version
-- Force control socket to be read/write for the owner only
-- Fix crashing bug when old visual scopes were present.
-- Stop the mikmod plugin from crashing. This plugin was not 
+* Parse XING headers so VBR mp3's get the correct time (finally! :)
+* Load input plugins only once
+* Check interface plugin version
+* Include prefs_free() call, should have been in the previous version
+* Force control socket to be read/write for the owner only
+* Fix crashing bug when old visual scopes were present.
+* Stop the mikmod plugin from crashing. This plugin was not 
   reentrant, and it still isn't, not until libmikmod becomes reentrant :(
 
 
 Tue Apr 30 13:43:07 CEST 2002
 -----------------------------
-- Update included MAD files to 0.14b2. 
-- Add -I interface for interfaces that want scripts (e.g. python interface)
-- Removed mpg123 based plugin from tarball. It will probably make a comeback
+* Update included MAD files to 0.14b2. 
+* Add -I interface for interfaces that want scripts (e.g. python interface)
+* Removed mpg123 based plugin from tarball. It will probably make a comeback
   as a (sample) standalone input plugin
-- Rewrote command line parsing, is much more flexible now.
-- libalsaplayer: Change ap_session_running() return values to 1 for
+* Rewrote command line parsing, is much more flexible now.
+* libalsaplayer: Change ap_session_running() return values to 1 for
   "running" and 0 for "not running"
-- Round the total time calculation of mp3's upwards
-- Implement some more libalsaplayer commands (AP_GET_INT_SONG_LENGTH_SECOND)
-- Implement C interface for playlist interface subscription. It still uses some
+* Round the total time calculation of mp3's upwards
+* Implement some more libalsaplayer commands (AP_GET_INT_SONG_LENGTH_SECOND)
+* Implement C interface for playlist interface subscription. It still uses some
   STL based datatypes for some parameters so the conversion is not total, just
   enough to not need pure virtual member functions.
-- Made the song scanning function more efficient.
-- Fix nasty bug with CDDA menu entry. 
-- No playlist interface locking was done when playlist entries were removed.
+* Made the song scanning function more efficient.
+* Fix nasty bug with CDDA menu entry. 
+* No playlist interface locking was done when playlist entries were removed.
 
 
 Mon Apr  8 14:41:39 CEST 2002
 -----------------------------
-- Song artist - title - time displaying in the playlist.
-- Allow multiple selections in playlist for easier deletes.
-- Found the real source of all the subtle deadlocks. We weren't acquiring
+* Song artist - title - time displaying in the playlist.
+* Allow multiple selections in playlist for easier deletes.
+* Found the real source of all the subtle deadlocks. We weren't acquiring
   locks in the same order all the time, a thinko.
-- Replace foreground color change with icon for active entry in playlist
+* Replace foreground color change with icon for active entry in playlist
 
 
 Mon Apr  1 03:06:08 CEST 2002
 -----------------------------
-- Unpause when going to Next/Prev song
-- Smooth speed transition, configurable with "gtk_interface.smooth_transition"
+* Unpause when going to Next/Prev song
+* Smooth speed transition, configurable with "gtk_interface.smooth_transition"
   in ~/.alsaplayer/config
-- Renamed cleanup to shutdown in input_plugin, bumped up version number
-- Bump up input plugin version number
-- Found another subtle playlist locking bug
-- Fixed huuge stack leak!
-- ID3 tag support in mad plugin, using libid3tag!
-- gtk+ playlist marks active entry 
-- Renamed mad input plugin to mad_in
-- Added check for libmad, and use it if present instead of our own copy
-- Renamed 'include' -> 'alsaplayer'
+* Renamed cleanup to shutdown in input_plugin, bumped up version number
+* Bump up input plugin version number
+* Found another subtle playlist locking bug
+* Fixed huuge stack leak!
+* ID3 tag support in mad plugin, using libid3tag!
+* gtk+ playlist marks active entry 
+* Renamed mad input plugin to mad_in
+* Added check for libmad, and use it if present instead of our own copy
+* Renamed 'include' -> 'alsaplayer'
 
 
 Tue Mar 19 00:08:04 CET 2002
 ----------------------------
-- Scopes will now remember their state
-- Added a section parameter to the prefs system
-- Changed behaviour of PLAY button in gtk interface
-- Fix MAD playback on big-endian machines.
-- Doubled the set_data and set_fft rate for smoother scope output
-- Changed fft data output slightly
-- New Blurscope and OpenGL Spectrum analyzer scopes, ported over from xmms
-- Retired fftscope and logfftscope scope plugins. They were just (bad) versions
+* Scopes will now remember their state
+* Added a section parameter to the prefs system
+* Changed behaviour of PLAY button in gtk interface
+* Fix MAD playback on big-endian machines.
+* Doubled the set_data and set_fft rate for smoother scope output
+* Changed fft data output slightly
+* New Blurscope and OpenGL Spectrum analyzer scopes, ported over from xmms
+* Retired fftscope and logfftscope scope plugins. They were just (bad) versions
   of logbarscope
-- Fix crashing bug when loading old scopes
-- Removed scope_open() call since it was never used. Also renamed
+* Fix crashing bug when loading old scopes
+* Removed scope_open() call since it was never used. Also renamed
   scope_close() to scope_shutdown() to better reflect its intended function.	
 
 
 Tue Mar 12 18:54:48 CET 2002
 ----------------------------
-- Fix bugs in external.cpp (libalsaplayer)
-- Remove global session limit
-- Add status field to stream_info in input plugin
-- Fix build problem for MAD plugin on non-x86 platforms
-- Remove ap_connect_session from public interface
-- Fixed GTK playlist insert bug
-- Fixed a bug in the AP_DO_PLAY remote command
+* Fix bugs in external.cpp (libalsaplayer)
+* Remove global session limit
+* Add status field to stream_info in input plugin
+* Fix build problem for MAD plugin on non-x86 platforms
+* Remove ap_connect_session from public interface
+* Fixed GTK playlist insert bug
+* Fixed a bug in the AP_DO_PLAY remote command
 
 
 Fri Mar  8 21:28:05 CET 2002
 ----------------------------
-- Modified scope plugin interface, optional set_fft() call to scope. There is 
+* Modified scope plugin interface, optional set_fft() call to scope. There is 
   a global FFT calculation routine fso scopes can feed off this instead.
 	Doing internal FFT is of course still possible, see synaescope.
-- Fix CDDA (CD) plugin to recognize "Track XX.cdda" files again
-- Make our jack output ports terminal.
-- alsaplayer will now remember the paths of the play, add, load and save
+* Fix CDDA (CD) plugin to recognize "Track XX.cdda" files again
+* Make our jack output ports terminal.
+* alsaplayer will now remember the paths of the play, add, load and save
   dialogs whenever you sucessfully complete one of these actions (all paths
 	default to / initially)
-- Removed Qt plugin since it was causing build problems for many folks. 
+* Removed Qt plugin since it was causing build problems for many folks. 
   Will make it back, but as a separate plugin.
 
 
 Tue Feb 26 20:56:34 CET 2002
 ----------------------------
 
-- More improvements to libalsaplayer. pkg-config support
-- alsaplayer headers are also installed by default. First version that
+* More improvements to libalsaplayer. pkg-config support
+* alsaplayer headers are also installed by default. First version that
   is really ready for external plugin development.
-- Preferences system, finally! The code is there, now we need to use it
+* Preferences system, finally! The code is there, now we need to use it
   pervasively. The prefs system is also available to plugins of course.
-- More JACK improvements, we try to reconnect if we timeout.
-- configure flag --with-jack now works
-- The logfftscope does a fast to slow falldown, very subtle change.
-- The MAD plugin is now much smarter at detecting the correct start of
+* More JACK improvements, we try to reconnect if we timeout.
+* configure flag --with-jack now works
+* The logfftscope does a fast to slow falldown, very subtle change.
+* The MAD plugin is now much smarter at detecting the correct start of
   MP3 files.
-- Placed the pause button inbetween the -100 and +100 speed buttons. Makes
+* Placed the pause button inbetween the -100 and +100 speed buttons. Makes
   more sense since pause is speed 0.
-- Fix NAS detection and nas_set_buffer() function.
-- Some more cleanups to the code.
+* Fix NAS detection and nas_set_buffer() function.
+* Some more cleanups to the code.
 
 
 
 Sat Feb 16 12:59:23 CET 2002
 ----------------------------
 
-- libalsaplayer becomes reality. Using this lib external programs are able
+* libalsaplayer becomes reality. Using this lib external programs are able
   to control an alsaplayer process (set speed, seek, etc)
-- Fix cdda build process	
-- You can now select to which JACK ports alsaplayer (jackplayer) should
+* Fix cdda build process	
+* You can now select to which JACK ports alsaplayer (jackplayer) should
   connect to.
-- When using JACK exit cleanly if we timeout.
-- Code freeze turned out to be coding session :)
+* When using JACK exit cleanly if we timeout.
+* Code freeze turned out to be coding session :)
 
 
 Fri Feb  8 02:25:49 CET 2002
 ----------------------------
 
-- More jack related changes, sync up with latest CVS
-- Renamed libvorbis.so input plugin to libvorbis_in.so to prevent collision
+* More jack related changes, sync up with latest CVS
+* Renamed libvorbis.so input plugin to libvorbis_in.so to prevent collision
   with the real libvorbis.so
-- Bumped up plugin version to 7 to stop old libvorbis from loading. Clean
+* Bumped up plugin version to 7 to stop old libvorbis from loading. Clean
   manually...
-- Code freeze for the next week or so since I want to document all the
+* Code freeze for the next week or so since I want to document all the
   various plugin API's	
 
 
 Mon Nov 26 22:57:36 CET 2001
 ----------------------------
 
-- Modified AlsaNode to output through JACK (jackit.sf.net). After successfull
+* Modified AlsaNode to output through JACK (jackit.sf.net). After successfull
   compile just start alsaplayer with -o jack, or make a symbolic link from
 	"jackplayer" to the alsaplayer binary. For more information on JACK visit
 	the website at http://jackit.sf.net
-- Added -x option to crossfade between songs. Note that fading is not done
+* Added -x option to crossfade between songs. Note that fading is not done
   yet and that the cross time is not configurable. This feature is still in
 	the "proof of concept" stage.
-- The scopes in the gtk interface plugin are now fed a fixed block of audio
+* The scopes in the gtk interface plugin are now fed a fixed block of audio
   data instead of a single fragment. This greatly increases the quality of
 	the scope display and the scopes will now work even if you have a fragment
 	size of less than 1024 bytes. They also work fine when jack output is used.	
@@ -163,62 +167,62 @@ Mon Nov 26 22:57:36 CET 2001
 Thu Nov  1 14:53:23 CET 2001
 ----------------------------
 
-- Fix MAD input plugin to play MONO files correctly
-- Convert Monoscope to use indexed images
-- Changed interface_plugin API. interface_start() no longer has a 
+* Fix MAD input plugin to play MONO files correctly
+* Convert Monoscope to use indexed images
+* Changed interface_plugin API. interface_start() no longer has a 
   CorePlayer parameter, instead the CorePlayer object is now part of
 	the Playlist objects.
-- Converted the input plugins to compile as C++. This will allow greaters
+* Converted the input plugins to compile as C++. This will allow greaters
   flexibility as to what can be done inside input plugins.
-- Updated Qt interface plugin (rikkus)	
-- Add a dirty fix for the convolve_match routine called in Monoscope. Further
+* Updated Qt interface plugin (rikkus)	
+* Add a dirty fix for the convolve_match routine called in Monoscope. Further
   investigation is still neded.
-- Renamed the cli (command line interface) to text
-- Various other tiny bug fixes
+* Renamed the cli (command line interface) to text
+* Various other tiny bug fixes
 
 
 Sun Oct 14 23:10:55 CEST 2001
 -----------------------------
 
-- Made alsa output plugin more flexible when setting sampling rate. This
+* Made alsa output plugin more flexible when setting sampling rate. This
   should fix startup failures on some audio cards
-- MAD plugin inclusion. 
-- Add --enable-prefer-mad configure switch to load the MAD plugin
+* MAD plugin inclusion. 
+* Add --enable-prefer-mad configure switch to load the MAD plugin
   over de mpg123 plugin for MP3. The MAD plugin doesn't do song info
 	display yet so.
-- Lots of bug fixes
+* Lots of bug fixes
 
 
 Sat Sep  8 23:38:02 CEST 2001
 -----------------------------
 
-- Fixed another nasty threading bug. The scope windows never really
+* Fixed another nasty threading bug. The scope windows never really
   joined since the wrong thread id value was passed
-- Modified the cli interface output slightly, better looking
-- Added a new menu pixmap button. This is less confusing.
-- Modified the scope window to be less confusing also.
-- Many small cleanups to the code to make some compilers complain less.
-- A new Qt interface plugin was added, courtesy Rik Hemsley. This plugin
+* Modified the cli interface output slightly, better looking
+* Added a new menu pixmap button. This is less confusing.
+* Modified the scope window to be less confusing also.
+* Many small cleanups to the code to make some compilers complain less.
+* A new Qt interface plugin was added, courtesy Rik Hemsley. This plugin
   still needs work, lots of functionality is still missing, but it will
 	improve.
-- Unload scope plugins at gtk interface exit.
-- Disabled convolve in Monoscope. The convolve function has a bug that
+* Unload scope plugins at gtk interface exit.
+* Disabled convolve in Monoscope. The convolve function has a bug that
   overwrites some parts of memory, but it's subtle enough to not crash 
 	during runtime. It will be back once we figure out the exact nature of
 	the bug.
-- Another bunch of autoconf fixes and cleanups.
+* Another bunch of autoconf fixes and cleanups.
 
 
 Tue Aug 28 11:16:15 CEST 2001
 -----------------------------
 
-- Interface plugins are reality! Woohoo :)
-- New gtk+ interface plugin (spaghetti code)
-- Crude command line interface plugin
-- Moved load_input_plugins inside the CorePlayer class, where it belongs
-- Cleaned up Playlist class
-- Removed many of the global variables
-- Modified CorePlayer class to do stream mixing. Multiple instances of
+* Interface plugins are reality! Woohoo :)
+* New gtk+ interface plugin (spaghetti code)
+* Crude command line interface plugin
+* Moved load_input_plugins inside the CorePlayer class, where it belongs
+* Cleaned up Playlist class
+* Removed many of the global variables
+* Modified CorePlayer class to do stream mixing. Multiple instances of
   CorePlayer are now possible in combination with reentrant plugins allow
 	for simultaneous playback of multiple streams (with internal mixing).
 
@@ -226,100 +230,100 @@ Tue Aug 28 11:16:15 CEST 2001
 Wed Aug 22 11:17:20 CEST 2001
 -----------------------------
 
-- Fixed a nasty threading bug. The Playlist interface was updated
+* Fixed a nasty threading bug. The Playlist interface was updated
   without proper GDK locking. This caused an Xlib async when you had
   lots of things going on.
-- Fixed a crashing bug in GTK code. This bug was only reliably
+* Fixed a crashing bug in GTK code. This bug was only reliably
   triggerable with Ximian's GTK package. If you've been getting
   GDK BadDrawable errors at startup, here is the fix!
-- Fixed OGG VORBIS mono playback. non 44KHZ stream might still have
+* Fixed OGG VORBIS mono playback. non 44KHZ stream might still have
   problems. Please report.
-- Lots of fixes in the configure script.
-- New --disable-mikmod configure option to disable mikmod plugin building
-- Added a close button to the playlist window
+* Lots of fixes in the configure script.
+* New --disable-mikmod configure option to disable mikmod plugin building
+* Added a close button to the playlist window
 
 
 Mon Aug 20 17:32:13 CEST 2001
 -----------------------------
 
-- NEW!! OGG VORBIS input plugin. Full speed control too!
-- Major restructuring of the configure script. Many packages were
+* NEW!! OGG VORBIS input plugin. Full speed control too!
+* Major restructuring of the configure script. Many packages were
   simply misdetected (nas, esd, audiofile)
-- Fixes for GCC 3.0. Everything should build with g++ 3.0 now
+* Fixes for GCC 3.0. Everything should build with g++ 3.0 now
 
 
 Mon Aug 13 18:33:33 CEST 2001
 -----------------------------
 
-- Updated for latest ALSA CVS (0.9beta6)
-- New configure option --disable-gtk, to build without GUI code
+* Updated for latest ALSA CVS (0.9beta6)
+* New configure option --disable-gtk, to build without GUI code
   (defaults to --enable-gtk)
-- Minor bug fixes
+* Minor bug fixes
 
 
 Mon Dec 11 02:31:34 CET 2000
 ----------------------------
 
-- Works with latest CVS 0.6.0 version (as of Dec 7).
+* Works with latest CVS 0.6.0 version (as of Dec 7).
   WILL NOT WORK WITH 0.5.x FOR NOW! 
-- Removed -c/--card, introduced -d/--device to reflect the flexibilty of the
+* Removed -c/--card, introduced -d/--device to reflect the flexibilty of the
   new snd_pcm_open() call. Default value is "hw:0,0" for first device on first
   card (same as before)
-- Fixed MONO mp3 playback bug, should fix the "Frame too large" errors
-- Next release should have completely decoupled interface/gui
-- Fixed include problem in app/SampleBuffer.cpp
+* Fixed MONO mp3 playback bug, should fix the "Frame too large" errors
+* Next release should have completely decoupled interface/gui
+* Fixed include problem in app/SampleBuffer.cpp
 
 
 Fri Apr 14 20:53:57 CEST 2000
 -----------------------------
 
-- Woah, has it been that long?!
-- New NAS (Network Audio System) output plugin by Erik Inge Bolsø
-- Esound output plugin should be included once again
-- Mini bug fixes
+* Woah, has it been that long?!
+* New NAS (Network Audio System) output plugin by Erik Inge Bolsø
+* Esound output plugin should be included once again
+* Mini bug fixes
 
 
 Mon Nov  8 19:51:11 CET 1999
 ----------------------------
 
-- Fixed MONO mp3 bug, finally, for real!
-- More GUI separation code from Richard
-- Playlist code reworked almost completely (Richard)
-- Minor cleanups to the various scopes
-- Monoscope fixed, smooth again
+* Fixed MONO mp3 bug, finally, for real!
+* More GUI separation code from Richard
+* Playlist code reworked almost completely (Richard)
+* Minor cleanups to the various scopes
+* Monoscope fixed, smooth again
 
 
 Sun Oct 10 00:46:03 CEST 1999
 -----------------------------
 
-- Added new alsa2 output plugin which adds suppor for the PCM v2 tree
+* Added new alsa2 output plugin which adds suppor for the PCM v2 tree
   in the ALSA CVS repository
 
 Mon Oct  4 14:13:57 CEST 1999
 -----------------------------
 
-- Playlist fixes. Handles m3u files correctly. Saving a playlist will
+* Playlist fixes. Handles m3u files correctly. Saving a playlist will
   automatically append .m3u to it, if it's not there already.
-- Audiofile plugin is not build by default, it is only useful for WAV files
+* Audiofile plugin is not build by default, it is only useful for WAV files
   right now and the dedicated WAV plugin does a better job anyway.
-- WAV plugin fixes, plays many more WAV variants. It does need a complete
+* WAV plugin fixes, plays many more WAV variants. It does need a complete
   overhaul though. Soon
-- Eject button is in place. Functionality should be about right
-- Multiple file select! Yes, you can now add multiple files to the playlist in
+* Eject button is in place. Functionality should be about right
+* Multiple file select! Yes, you can now add multiple files to the playlist in
   one go
-- Fixes to the configure.in process. Should work very well on SGI/Irix now
-- Fixed MP2 playback, whoops, forgot to add support after changing the input
+* Fixes to the configure.in process. Should work very well on SGI/Irix now
+* Fixed MP2 playback, whoops, forgot to add support after changing the input
   plugins to be pure C.
-- All input plugins are now pure C coded. This makes portability much simpler
+* All input plugins are now pure C coded. This makes portability much simpler
   and also makes writing a plugin much easier. Support for shared memory areas
   will be looked at in the near future. This might be useful for multiple
   instances of a plugin.
-- The input plugin interface was expanded a bit. see input_plugin.h for
+* The input plugin interface was expanded a bit. see input_plugin.h for
   details
-- Reorganized the source code layout. input, output and scopes directory are
+* Reorganized the source code layout. input, output and scopes directory are
   now directly under the root tree instead of in app
   relevant.
-- Offtopic: new mailing lists, thanks to Richard Boulton. And while we're
+* Offtopic: new mailing lists, thanks to Richard Boulton. And while we're
   off-topic, "The Matrix" DVD works flawlessly here, whoopee :)
 
   
@@ -327,96 +331,96 @@ Mon Oct  4 14:13:57 CEST 1999
 Wed Sep 29 20:26:03 CEST 1999
 -----------------------------
 
-- Will take songs from the command line vim /usr/s
+* Will take songs from the command line vim /usr/s
 
 Sat Sep 25 11:47:16 CEST 1999
 -----------------------------
 
-- New NULL output plugin that simulates a soundcard. This allows you to
+* New NULL output plugin that simulates a soundcard. This allows you to
   experiment with the player even if you don't have auidio hardware.
-- The NULL plugin allowed me to debug all the scopes on Sparc hardware
+* The NULL plugin allowed me to debug all the scopes on Sparc hardware
   remotely. Fixed a longstanding bug in Spacescope and Stereoscope!
-- Cleaned up some gtk calls. It's getting clearer every day
-- Fixed a silly bug in AlsaDAC that prevented output plugin autoselection
-- Added 2 tiny icons to the interface that identify the balance and volume
+* Cleaned up some gtk calls. It's getting clearer every day
+* Fixed a silly bug in AlsaDAC that prevented output plugin autoselection
+* Added 2 tiny icons to the interface that identify the balance and volume
   controls
 
   
 Wed Sep  8 15:38:00 CEST 1999
 -----------------------------
 
-- Fixed some bugs, cleaned up some code
-- Reintroduced the WAV plugin. You no longer need audiofile to play WAVs
-- Made the CDDA plugin compile only on Linux platforms 
-- Removed the hard coded plugin names. Everything is now loaded dynamically
+* Fixed some bugs, cleaned up some code
+* Reintroduced the WAV plugin. You no longer need audiofile to play WAVs
+* Made the CDDA plugin compile only on Linux platforms 
+* Removed the hard coded plugin names. Everything is now loaded dynamically
 
 
 Tue Aug 17 09:07:51 SRT 1999
 ----------------------------
 
-- Fixes to the source tree so it compiles for gcc 2.95. Thanks to everyone
+* Fixes to the source tree so it compiles for gcc 2.95. Thanks to everyone
   who sent in patches :)
-- NEW Synaescope! This is a port of Synaesthesia to the AlsaPlayer scope
+* NEW Synaescope! This is a port of Synaesthesia to the AlsaPlayer scope
   plugin architecture. Thanks Richard, it rocks!
-- Stereoscope returns, lets see if its more stable now.
-- Other cleanups to the code
+* Stereoscope returns, lets see if its more stable now.
+* Other cleanups to the code
 
 
 Sat Aug 14 18:37:07 SRT 1999
 ----------------------------
 
-- Fixed levelmeter and spacescope set_data functions. It should fix the
+* Fixed levelmeter and spacescope set_data functions. It should fix the
   problem on SGI and Sparc boxes
-- Added correct casting in several places to keep gcc 2.95+ happy  
+* Added correct casting in several places to keep gcc 2.95+ happy  
 
 
 Wed Aug 11 09:54:43 SRT 1999
 ----------------------------
 
-- Pause button now toggles between pause and play
-- UI changes, for the better I hope. I hacked in an Eject button but removed
+* Pause button now toggles between pause and play
+* UI changes, for the better I hope. I hacked in an Eject button but removed
   it again (the code is still there). Somehow I still think an "Eject" button
   is not right. File selection will improve soon so that should make it
   obsolete anyway.
-- Increased pitch range to 233%
-- Scope plugins are now loaded dynamically! Except for Monoscope and FFtscope
+* Increased pitch range to 233%
+* Scope plugins are now loaded dynamically! Except for Monoscope and FFtscope
   which keep the fft and convolve routines linked in until that prob is
   resolved.
-- As a result of the dynamic scope plugins the stripped main binary is only
+* As a result of the dynamic scope plugins the stripped main binary is only
   about 150K now!  
 
 
 Tue Jul 20 14:44:41 SRT 1999
 ----------------------------
 
-- Minor changes to the MikMod plugin
+* Minor changes to the MikMod plugin
 
 Mon Jul 19 15:01:31 SRT 1999
 ----------------------------
 
-- Major changes in thread synchronization, using pthread_join()
-- Fixes for MikMod crashes
-- New experimental layout of main GUI
-- Updated audiofile library plugin to v0.2.1
+* Major changes in thread synchronization, using pthread_join()
+* Fixes for MikMod crashes
+* New experimental layout of main GUI
+* Updated audiofile library plugin to v0.2.1
 
 
 Tue Jul 13 17:28:26 SRT 1999
 ----------------------------
 
-- Bumped the default SCOPE nice level to 15 (again). This makes a HUGE
+* Bumped the default SCOPE nice level to 15 (again). This makes a HUGE
   difference for slower machines. Performance should be much better now.
   Scopes should not suck up CPU cycles that are badly needed by the decoder 
   and soundcard feader threads!!
-- Modifications to the audiofile library plugin, should work much better now,
+* Modifications to the audiofile library plugin, should work much better now,
   but we're not there yet
-- Added yet antoher incarnation of the FFTscope, this one is called the
+* Added yet antoher incarnation of the FFTscope, this one is called the
   logFFTscope with a logarithmic X-axis (Petr Janecek)
-- Disabled the default reverb level in the MikMod plugin. This should
+* Disabled the default reverb level in the MikMod plugin. This should
   dramatically decrease the CPU usage and actually improves the sound output.
-- Added genuine audiofile library detection for SGI boxes (Michael Pruett) 
-- Fixed some crashing MikMod plugin bugs. Started looking at potential race
+* Added genuine audiofile library detection for SGI boxes (Michael Pruett) 
+* Fixed some crashing MikMod plugin bugs. Started looking at potential race
   conditions in the code. We should be save for now.
-- Removed the 50ms delay time before feeding the next song to the soundcard.
+* Removed the 50ms delay time before feeding the next song to the soundcard.
   This might have a negative effect on slow boxes (stuttering output at the
   start of the first song). Please report problems.
 
@@ -424,36 +428,36 @@ Tue Jul 13 17:28:26 SRT 1999
 Thu Jul  8 12:35:35 SRT 1999
 ----------------------------
 
-- Minor changes to the MikMod plugin. Requires libmikmod 3.1.7 now.
-- Modified time indicator to display "No time data" when there's none
+* Minor changes to the MikMod plugin. Requires libmikmod 3.1.7 now.
+* Modified time indicator to display "No time data" when there's none
   available (the plugin hasn't implemented it yet, etc..)
 
 
 Tue Jul  6 03:07:06 SRT 1999
 ----------------------------
 
-- New MikMod plugin from Paul Fisher. Thanks! AlsaPlayer can now do MODS,
+* New MikMod plugin from Paul Fisher. Thanks! AlsaPlayer can now do MODS,
   weehaa!!
-- Removed aplay plugin for now. It is cuasing a bit of trouble for other
+* Removed aplay plugin for now. It is cuasing a bit of trouble for other
   plugin coders and the code is really hackish anyway.
-- Also disabled the sterescope. It has been the source of crashing bugs on
+* Also disabled the sterescope. It has been the source of crashing bugs on
   Sparc and selected x86/linux boxes. Have to figure out how/where.
-- Added audiofile plugin from Michael Preutt. Thanks!
+* Added audiofile plugin from Michael Preutt. Thanks!
   It still needs work though. This will perhaps replace the aplay
   entirely since audiofile supports many more formats.
-- Preparing code for the CVS tree
-- Added gtk_set_locale() call
+* Preparing code for the CVS tree
+* Added gtk_set_locale() call
 
 
 Thu Jul  1 11:21:30 CEST 1999
 -----------------------------
 
-- Bug fixes to the gtk+ code, delete_events were mishandled and that caused
+* Bug fixes to the gtk+ code, delete_events were mishandled and that caused
   many unexplained segfaults when closing scope windows.
-- Improved monoscope and fft code
-- Removed 'active' icon in Scopes Window, it didn't work very well and I got
+* Improved monoscope and fft code
+* Removed 'active' icon in Scopes Window, it didn't work very well and I got
   too many 'bug' reports on it not working ;-]
-- New SGI audio library output plugin by Michael Pruett. He also discovered
+* New SGI audio library output plugin by Michael Pruett. He also discovered
   the gtk+ bugs. Thanks!
 
 MAJOR CHANGE:
@@ -471,101 +475,101 @@ reentrant? :)
 Sun Jun 27 20:15:26 CEST 1999
 -----------------------------
 
-- fft lib thread-safe fixes from Richard Boulton
-- Modified Monoscope by Ralph Loader! Cool stuff
-- New FFTscope II!, modified FFTscope with few bars and fall-off
-- Minor changes in the engine
+* fft lib thread-safe fixes from Richard Boulton
+* Modified Monoscope by Ralph Loader! Cool stuff
+* New FFTscope II!, modified FFTscope with few bars and fall-off
+* Minor changes in the engine
 
 
 Fri Jun 25 17:59:09 CEST 1999
 -----------------------------
 
-- Fixed some configure.in bugs
-- NEW! UltraSparc native output addon!!!
+* Fixed some configure.in bugs
+* NEW! UltraSparc native output addon!!!
 
 Thu Jun 24 13:12:06 CEST 1999
 -----------------------------
 
-- New FFTscope implementation by Richard Boulton! Many thanks!
-- Fixed spacescope hanging in 8-bit mode, thanks Fice :)
-- Replaced redundant code in scopes with MACRO
+* New FFTscope implementation by Richard Boulton! Many thanks!
+* Fixed spacescope hanging in 8-bit mode, thanks Fice :)
+* Replaced redundant code in scopes with MACRO
 
 
 Thu Jun 24 00:23:31 CEST 1999
 -----------------------------
 
-- Output plugins are now compiled using plain C. C++ compilation was not
+* Output plugins are now compiled using plain C. C++ compilation was not
   needed and automake was screwing up with conditional compiles
-- Major configure work. The configure process should now build all
+* Major configure work. The configure process should now build all
   configurable output modules (ALSA, OSS and ESD).
-- New -o,--ouput switch to select the output method to use
+* New -o,--ouput switch to select the output method to use
 
 
 Mon Jun 21 14:40:08 CEST 1999
 -----------------------------
 
-- Important performance bug fixed. An extra memset in the (tight) soundcard
+* Important performance bug fixed. An extra memset in the (tight) soundcard
   loop was not needed at all. This should really help especially for low
   latency playback!
-- Put the indicator callback update in a thread. I don't trust the gtk+
+* Put the indicator callback update in a thread. I don't trust the gtk+
   timeout system. I keep wondering which commercial company will use gtk+
   for their apps?!
-- Fixed ALSA scope synchro bug
+* Fixed ALSA scope synchro bug
 
   
 Sat Jun 19 22:17:13 CEST 1999
 -----------------------------
 
-- Yes! Input and output plugins are now loaded dynamically! This means you
+* Yes! Input and output plugins are now loaded dynamically! This means you
   will have to do a 'make install' to copy the files to the right location.
   Future versions will allow for custom plugin paths and more flexibility.
-- Changed the font of the main window
-- Added another function the output_plugin structure:
-	get_latency() - returns the latency introduced by the hardware
-- The scopes should be synced with music using esound (0.2.12) now
-- Bug fixes, and bug additions no doubt 
-- Selecting something in the "Play File" dialog closes the dialog
+* Changed the font of the main window
+* Added another function the output_plugin structure:
+	get_latency() * returns the latency introduced by the hardware
+* The scopes should be synced with music using esound (0.2.12) now
+* Bug fixes, and bug additions no doubt 
+* Selecting something in the "Play File" dialog closes the dialog
 
 
 Fri Jun 18 00:06:29 CEST 1999
 -----------------------------
 
-- Weeh! stupid bug in Playlist.cpp. The playlist loader couldn't handle paths
+* Weeh! stupid bug in Playlist.cpp. The playlist loader couldn't handle paths
 	with spaces in them. Fixed.
-- Some instability for mp3 playback under Solaris. Needs more investigation.
+* Some instability for mp3 playback under Solaris. Needs more investigation.
   	Fixed up some code, but that's not the main prob.
 	
 	
 Wed Jun 16 15:44:19 CEST 1999
 -----------------------------
 
-- Delete dac object at program exit
-- Added functionality to load/save buttons in playlist window
-- Internal changes/cleanups
-- Added 2 new functions to input_plugin struct:
-	nr_tracks()	- return number of tracks in stream
-	track_seek() - seek to a track
-- Many changes in the various input plugins, all except the mpg123 plugin
+* Delete dac object at program exit
+* Added functionality to load/save buttons in playlist window
+* Internal changes/cleanups
+* Added 2 new functions to input_plugin struct:
+	nr_tracks()	* return number of tracks in stream
+	track_seek() * seek to a track
+* Many changes in the various input plugins, all except the mpg123 plugin
 	should be ready for multi open. the mpg123 plugin needs a lot of work
 	since the decoder itself is not reentrant. I hear xaudio is, and perhaps
 	the skysound also. I'll be working on plugin docs sometime this summer.
-- Upped ringbuffer fragment count from 20 to 44. This uses more memory but
+* Upped ringbuffer fragment count from 20 to 44. This uses more memory but
   buffers a lot more data in RAM for playback (see app/CorePlayer.h)
-- plugin->close(obj) is now called only once, as it should
-- RESYNC_FRAMES is now 3 in mpg123 plugin, should make reverse playback
+* plugin->close(obj) is now called only once, as it should
+* RESYNC_FRAMES is now 3 in mpg123 plugin, should make reverse playback
 	a wee bit faster :)
-- squashed some more bugs
-- ID3 tag info is displayed in the main window (when present)
+* squashed some more bugs
+* ID3 tag info is displayed in the main window (when present)
 
 
 Mon Jun  7 10:30:30 CEST 1999
 -----------------------------
 
-- Optimized display info output. Fields are only redrawn if their text has
+* Optimized display info output. Fields are only redrawn if their text has
   changed. The update frequency has als been bought down from 10HZ to 5HZ
-- Added check for snd_pcm_t / void handles so it compiles with older versions
+* Added check for snd_pcm_t / void handles so it compiles with older versions
   of alsa-lib
-- Disabled the usleep() hack in ALSAOutput.cpp, produces crackles. I'm almost
+* Disabled the usleep() hack in ALSAOutput.cpp, produces crackles. I'm almost
   100% sure this is an ALSA bug.
 
 
@@ -582,32 +586,32 @@ Woah, what is it with all these gaping holes in the Changelog file?
 Frankly I'm still a horrible documenter.
 
 Bug fixes:
-- Last (partial) ringbuffer partition is also played. It was being skipped
+* Last (partial) ringbuffer partition is also played. It was being skipped
   earlier since it was marked empty. pcm_worker() does the right thing now
-- Fixed a bug where the player would sometimes do a CPU hogging loop
+* Fixed a bug where the player would sometimes do a CPU hogging loop
   on MP3 streams with garbage at the start. There was already some code
   in mpg123 to strip this crap out but the read_frame_init() function was
   not called at the start of each new stream. Happens when you don't bother
   checking what use a function is :) 
-- Fixed some potential divide by zero errors.
-- Added some more 'check pointer for NULL before using it' code
-- Fixed a bug in the audio data buffering code. Still wondering when
+* Fixed some potential divide by zero errors.
+* Added some more 'check pointer for NULL before using it' code
+* Fixed a bug in the audio data buffering code. Still wondering when
   that cast from void* to int* made it in there (I hear that's bad practice)
-- Cleaned up the CorePlayer class. Not sure if I need to abstract it more
-- Cleaned up some stale code in the scopes. Plugification still needs to 
+* Cleaned up the CorePlayer class. Not sure if I need to abstract it more
+* Cleaned up some stale code in the scopes. Plugification still needs to 
   be done for scopes btw
-- Cast sum to (short) in app/mpg123/decode_4to1.c WRITE_SAMPLE(...)
-- Cast sum to (short) in app/mpg123/decode_2to1.c WRITE_SAMPLE(...)
-- Cast sum to (short) in app/mpg123/decode_ntom.c WRITE_SAMPLE(...)
-- More configure.in hacking. The player should compile on Solaris/UltraSparc
-- Added an --enable-debug switch for -DDEBUG and -g
-- Check for esd only if we compile for esd output
+* Cast sum to (short) in app/mpg123/decode_4to1.c WRITE_SAMPLE(...)
+* Cast sum to (short) in app/mpg123/decode_2to1.c WRITE_SAMPLE(...)
+* Cast sum to (short) in app/mpg123/decode_ntom.c WRITE_SAMPLE(...)
+* More configure.in hacking. The player should compile on Solaris/UltraSparc
+* Added an --enable-debug switch for -DDEBUG and -g
+* Check for esd only if we compile for esd output
 
 New:
 
-- CD button. When pressed should start playing your AUDIO CD in /dev/cdrom
-- Experimental 8-bit WAV support, thanks to Tkil for the algorithm 
-- Parameters at startup!
+* CD button. When pressed should start playing your AUDIO CD in /dev/cdrom
+* Experimental 8-bit WAV support, thanks to Tkil for the algorithm 
+* Parameters at startup!
 
 Available options:
 
@@ -619,9 +623,9 @@ Available options:
   -q,--quiet        quiet operation. no output
   -v,--version      print version of this program
 
-- NOGUI mode. Yes, you can now use the player in your scripts. Controls are
+* NOGUI mode. Yes, you can now use the player in your scripts. Controls are
   still missing though (I'm trying to learn Python. *hint hint*)
-- Doesn't do subsecond display by default.
+* Doesn't do subsecond display by default.
 
 
 Thu Apr 15 15:02:34 CEST 1999
@@ -634,7 +638,7 @@ plugin, and most of it was cutting and pasting stuff and getting to know the
 ioctl CD interface.
 
 New:
-- CDDA plugin for true CD Digital Audio playback! You get speed (pitch)
+* CDDA plugin for true CD Digital Audio playback! You get speed (pitch)
   control for free too!
  
 
@@ -642,10 +646,10 @@ Thu Mar  4 11:57:12 CET 1999
 ----------------------------
 
 Fixes:
-- Cleanup of automake builds. Distrubtions can now be build by simply doing
+* Cleanup of automake builds. Distrubtions can now be build by simply doing
   a 'make dist' in the source tree, cool! Automatically fixed the .deps/
   inclusion prob!
-- Started serious thinking about the marshaller thread. This is the main
+* Started serious thinking about the marshaller thread. This is the main
   reason there is no function playlist yet. Since the program is threaded
   we can't use simple function calls in some places, messaging is needed.
 
@@ -663,10 +667,10 @@ Mon Mar  1 07:39:02 CET 1999
 ----------------------------
 
 Fixes: 
-- Cleanups everywhere, restructuring of code
-- I finally sat down and figured out how autoconf works. So from now
+* Cleanups everywhere, restructuring of code
+* I finally sat down and figured out how autoconf works. So from now
   on compiling should be as easy as running configure and make (yeah right)
-- packed up a pr3 release, still only really interesting to C coders or
+* packed up a pr3 release, still only really interesting to C coders or
   real enthousiasts
 
 
@@ -674,17 +678,17 @@ Thu Feb 18 00:19:23 CET 1999
 ----------------------------
 
 Fixes:
-- Started logging changes into a Changelog
-- Massive cleanups everywhere, most code gets throught the -Wall test
+* Started logging changes into a Changelog
+* Massive cleanups everywhere, most code gets throught the -Wall test
   The GLADE code is the only part that produces minor warnings. Standard
   flag in the Makefile now
-- Finally (finally!) got the buffering code right (crossing fingers). It
+* Finally (finally!) got the buffering code right (crossing fingers). It
   turns out there was way too much (and incorrect) locking done on various
   datastructures. The only mutex that survived was the counter_mutex. The
   producer functions blocks on this mutex as soon as there are enough
   buffers ready for the consumer. The consumers unblocks the producer as
   soon as its starts consuming the next block. 
-- Fixed a nasty bug where consumer could start reading a buffer that was
+* Fixed a nasty bug where consumer could start reading a buffer that was
   being written to by the producer! The solution was very simple. Since
   we don't really care about a missed buffer read that much we just return
   an empty PCM block if there are currently no buffers available. The reason
@@ -693,36 +697,36 @@ Fixes:
   condition (a real life one!) which occured sometimes (the producer would
   start producing at full CPU speed never blocking untill it ran out of
   st(r)eam.
-- Made the playlist do something. gtk_object_set_data() rocks!
-- Tidying up for PR3 release
-- Threaded file/directory loading in playlist (directory recursion is done
+* Made the playlist do something. gtk_object_set_data() rocks!
+* Tidying up for PR3 release
+* Threaded file/directory loading in playlist (directory recursion is done
   in a separate thread)
-- Minor GUI updates
-- Scope threads now die when closing their window
+* Minor GUI updates
+* Scope threads now die when closing their window
 
 
 ??? Jan 24 00:00:00 CET 1999
 ----------------------------
 
-- Somewhat usable now
-- Fixed loads of race conditions/threading issues
-- Implemented all scopes for 8-, 16- and 32-bit X displays
-- Added more threading (each scope runs in its own thread)
-- Functional FX and SCOPES button
-- Software volume and balance controls (leaves the hardware mixer alone)
-- Minor GUI redesign (glade is ok)
-- Double buffered counters
-- Further design on Playlist layout (it's *NOT* working yet)
-- Minor code cleanups, still very hackish/ugly
+* Somewhat usable now
+* Fixed loads of race conditions/threading issues
+* Implemented all scopes for 8-, 16- and 32-bit X displays
+* Added more threading (each scope runs in its own thread)
+* Functional FX and SCOPES button
+* Software volume and balance controls (leaves the hardware mixer alone)
+* Minor GUI redesign (glade is ok)
+* Double buffered counters
+* Further design on Playlist layout (it's *NOT* working yet)
+* Minor code cleanups, still very hackish/ugly
 
 
 Earlier additions
 -----------------
 
-- The base code was started on in August 1998, with on and off coding. 
+* The base code was started on in August 1998, with on and off coding. 
   Various redesigns and new ideas were implemnted/scrapped/reimplemented
-- A semi working player core appeared at the end of 1998. 
-- Coding on my BeOS player BeMP has virtually stopped, there are no more
+* A semi working player core appeared at the end of 1998. 
+* Coding on my BeOS player BeMP has virtually stopped, there are no more
   challenges to it. I haven't even bothered porting it to R4 (maybe to R4.5)
   since BeOS boots are few and far apart. UPDATE: Well, after 3 more years
 	of lingering Be, Inc. finally sold its assets to Palm in 2001.

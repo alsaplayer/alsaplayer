@@ -142,9 +142,14 @@ void socket_looper(void *arg)
 				ap_message_add_int32(reply, "ack", 1);
 				break;
 			case AP_PLAY: 
-				if (player && !player->IsPlaying()) {
-					ap_message_add_int32(reply, "ack",
+				if (player) {
+					if (player->GetSpeed() == 0.0) {
+						player->SetSpeed(1.0);
+					}	
+					if (player->IsPlaying()) {
+						ap_message_add_int32(reply, "ack",
 						player->Start());
+					}	
 				}
 				break;
 			case AP_NEXT: 

@@ -71,6 +71,11 @@ bool surround_func(void *arg, void *data, int size)
 }
 
 
+int CorePlayer::plugin_count = 0;
+int CorePlayer::plugins_loaded = 0;
+pthread_mutex_t CorePlayer::plugins_mutex = PTHREAD_MUTEX_INITIALIZER;
+input_plugin CorePlayer::plugins[MAX_PLUGINS];
+
 void CorePlayer::Lock()
 {
 	//alsaplayer_error("Getting player lock...");
@@ -99,6 +104,8 @@ void CorePlayer::load_input_addons()
 
 	dir = opendir(path);
 
+	memset(plugins, 0, sizeof(plugins));
+
 	if (dir) {
 		while ((entry = readdir(dir)) != NULL) {
 			if (strcmp(entry->d_name, ".") == 0 ||
@@ -125,9 +132,7 @@ void CorePlayer::load_input_addons()
 						dlsym(handle, "input_plugin_info");
 
 					if (input_plugin_info) {
-#ifdef DEBUG					
-							alsaplayer_error("Loading input plugin: %s", path);
-#endif							
+						//alsaplayer_error("Loading input plugin: %s", path);
 						input_plugin *the_plugin = input_plugin_info();
 						if (the_plugin) {
 							the_plugin->handle = handle;
@@ -135,6 +140,7 @@ void CorePlayer::load_input_addons()
 						if (!RegisterPlugin(the_plugin)) {
 							alsaplayer_error("Error loading %s", path);
 							dlclose(handle);
+							continue;
 						}
 					} else {
 						alsaplayer_error("Could not find input_plugin_info symbol in shared object `%s'", path);
@@ -158,7 +164,7 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	total_frames = 0;
 	streaming = false;
 	producing = false;
-	plugin_count = 0;
+	//plugin_count = 0;
 	plugin = NULL;
 	jumped = jump_point = repitched = write_buf_changed = 0; 
 	new_frame_number = 0;
@@ -192,7 +198,7 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	buffer[0].prev = &buffer[NR_BUF-1];
 	buffer[NR_BUF-1].next = &buffer[0];
 
-	memset(plugins, 0, sizeof(plugins));
+	//memset(plugins, 0, sizeof(plugins));
 
 	read_buf = write_buf = buffer;
 	pthread_mutex_init(&counter_mutex, NULL); 
@@ -205,7 +211,12 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	strcpy(addon_dir, ADDON_DIR);
 
 	// Load the input addons
-	load_input_addons();
+	pthread_mutex_lock(&plugins_mutex);
+	if (!plugins_loaded) {
+		plugins_loaded = 1;
+		load_input_addons();
+	}
+	pthread_mutex_unlock(&plugins_mutex);
 }
 
 
@@ -263,7 +274,7 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	int error_count = 0;
 	input_plugin *tmp;
 
-	Lock();
+	//Lock();
 	tmp = &plugins[plugin_count];
 	tmp->version = the_plugin->version;
 	if (tmp->version) {
@@ -271,7 +282,7 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 			alsaplayer_error("Wrong version number on plugin (v%d, wanted v%d)",
 					version - INPUT_PLUGIN_BASE_VERSION,
 					INPUT_PLUGIN_VERSION - INPUT_PLUGIN_BASE_VERSION);      
-			Unlock();
+			//Unlock();
 			return 0;
 		}
 	}
@@ -347,17 +358,17 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	}
 	if (error_count) {
 	    	alsaplayer_error("At least %d error(s) were detected");
-		Unlock();
+		//Unlock();
 		return 0;
 	}	
 	plugin_count++;
 	if (plugin_count == 1) { // First so assign plugin
-		plugin = tmp;
+		//plugin = tmp;
 	}
 	if (global_verbose)
 		alsaplayer_error("Loading Input plugin: %s", tmp->name);
 
-	Unlock();
+	//Unlock();
 	return 1;
 }
 

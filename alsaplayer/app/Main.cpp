@@ -207,6 +207,7 @@ interface_plugin_info_type load_interface(char *name)
 	struct stat statbuf;
 
 	interface_plugin_info_type plugin_info;
+	interface_plugin *ui;
 
 	if (name) {
 		if (strchr(name, '.'))
@@ -214,7 +215,7 @@ interface_plugin_info_type load_interface(char *name)
 		else
 			sprintf(path, "%s/interface/lib%s.so", addon_dir, name);
 #ifdef DEBUG
-		alsaplayer_error("Loading output plugin: %s\n", path);
+		alsaplayer_error("Loading interface plugin: %s\n", path);
 #endif
 		if (stat(path, &statbuf) != 0)	// Error reading object
 			return NULL;
@@ -226,6 +227,18 @@ interface_plugin_info_type load_interface(char *name)
 				interface_plugin *plugin = plugin_info();
 				if (plugin)
 					plugin->handle = handle;
+				ui = plugin_info();
+				if (ui->version != INTERFACE_PLUGIN_VERSION) {
+					alsaplayer_error("Wrong interface plugin version (v%d, wanted v%d)",
+					ui->version,
+					INTERFACE_PLUGIN_VERSION -
+						INTERFACE_PLUGIN_BASE_VERSION);
+					alsaplayer_error("Error loading %s",
+						path);
+					alsaplayer_error("Please remove this file from your system");
+					return NULL;
+				}	
+			
 				return plugin_info;
 			} else {
 				alsaplayer_error
