@@ -134,7 +134,7 @@ void playlist_looper(void *data)
 					pl->Next(1);
 				}	
 			}
-			if (pl->Crossfading() && pl->coreplayer->GetSpeed() >= 0.0) {
+			if (pl->Length() && pl->Crossfading() && pl->coreplayer->GetSpeed() >= 0.0) {
 				// Cross example
 				if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < 300) {
 						if (pl->player1->IsActive() && pl->player2->IsActive()) {
@@ -152,7 +152,7 @@ void playlist_looper(void *data)
 				}
 			}
 		}	
-		dosleep(100000);
+		dosleep(50000);
 	}
 }
 
@@ -602,6 +602,9 @@ void Playlist::Clear(int locking) {
 			(*i)->CbClear();
 		}
 	}
+	
+	player1->Stop(); // Stop players
+	player2->Stop();
 
 	Unlock();
 	if (locking) {
