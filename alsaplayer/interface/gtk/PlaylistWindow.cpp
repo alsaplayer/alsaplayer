@@ -70,7 +70,9 @@ PlaylistWindowGTK::PlaylistWindowGTK(Playlist * pl) {
 	
 	//alsaplayer_error("Would Register here");
 	//playlist->Register(this);
+	alsaplayer_error("About to register pli");
 	playlist->Register(&pli);
+	alsaplayer_error("Registered pli");
 }
 
 PlaylistWindowGTK::~PlaylistWindowGTK() {
