@@ -62,6 +62,7 @@ static void socket_looper(void *arg)
 	int32_t *int_val;
 	socklen_t len;
 	int fd;
+	int fsize = 0;
 	int session_id = 0;
 	int session_ok = 0;
 	ap_message_t *msg;
@@ -326,6 +327,12 @@ static void socket_looper(void *arg)
 					ap_message_add_int32(reply, "ack", 1);
 				}
 				break;
+			case AP_GET_TRACKS:
+				if (player) {
+					ap_message_add_int32(reply, "int", player->GetTracks());
+					ap_message_add_int32(reply, "ack", 1);
+				}
+				break;
 			case AP_GET_GENRE:
 				if (player) {
 					player->GetStreamInfo(&info);
@@ -380,14 +387,17 @@ static void socket_looper(void *arg)
 			case AP_SET_POS_SECOND_RELATIVE:
 				if (player) {
 					if ((int_val = ap_message_find_int32(msg, "int"))) {
-						*int_val += ( player->GetCurrentTime() / 100);
-						*int_val *= player->GetSampleRate();
-						*int_val /= player->GetFrameSize();
-						*int_val *= player->GetChannels();
-						*int_val *= 2; // 16-bit ("2" x 8-bit)a
-						if (*int_val < 0)
-							*int_val = 0;
-						player->Seek(*int_val);
+						fsize = player->GetFrameSize();
+						if (fsize) {
+							*int_val += ( player->GetCurrentTime() / 100);
+							*int_val *= player->GetSampleRate();
+							*int_val /= fsize;
+							*int_val *= player->GetChannels();
+							*int_val *= 2; // 16-bit ("2" x 8-bit)a
+							if (*int_val < 0)
+								*int_val = 0;
+							player->Seek(*int_val);
+						}	
 					}
 				}
 				ap_message_add_int32(reply, "ack", 1);
@@ -395,11 +405,14 @@ static void socket_looper(void *arg)
 			case AP_SET_POS_SECOND:
 				if (player) {
 					if ((int_val = ap_message_find_int32(msg, "int"))) {
-						*int_val *= player->GetSampleRate();
-						*int_val /= player->GetFrameSize();
-						*int_val *= player->GetChannels();
-						*int_val *= 2; // 16-bit ("2" x 8-bit)
-						player->Seek(*int_val);
+						fsize = player->GetFrameSize();
+						if (fsize) {
+							*int_val *= player->GetSampleRate();
+							*int_val /= fsize;
+							*int_val *= player->GetChannels();
+							*int_val *= 2; // 16-bit ("2" x 8-bit)
+							player->Seek(*int_val);
+						}	
 					}
 				}
 				ap_message_add_int32(reply, "ack", 1);
