@@ -24,7 +24,7 @@ COMMON_FLAGS = @DFLAGS@ -Wall -D_REENTRANT \
 
 INCLUDES = -I$(top_srcdir)/alsaplayer -I$(top_srcdir)/libalsaplayer
 
-CXXFLAGS = $(COMMON_FLAGS) $(EXTRA_CFLAGS)
+AM_CXXFLAGS = $(COMMON_FLAGS) $(EXTRA_CFLAGS)
 
 AM_CFLAGS = $(CXXFLAGS)
 

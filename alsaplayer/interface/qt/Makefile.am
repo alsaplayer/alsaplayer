@@ -34,7 +34,7 @@ endif
 
 lib_LTLIBRARIES = $(qtltlibs)
 
-CXXFLAGS = @QT_CXXFLAGS@ @DFLAGS@ $(COMMON_FLAGS) \
+AM_CXXFLAGS = @QT_CXXFLAGS@ @DFLAGS@ $(COMMON_FLAGS) \
 	$(EXTRA_CFLAGS) \
 	-D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
 	-DADDON_DIR=\"$(ADDON_DIR)\"

@@ -30,7 +30,7 @@ lib_LTLIBRARIES = $(flac_inltlibs)
 
 INCLUDES = -I$(top_builddir) -I$(top_srcdir)/alsaplayer
 
-CXXFLAGS = -D_REENTRANT $(EXTRA_CFLAGS)
+AM_CXXFLAGS = -D_REENTRANT $(EXTRA_CFLAGS)
 
 libdir = $(ADDON_DIR)/input
 

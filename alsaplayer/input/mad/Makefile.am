@@ -28,7 +28,7 @@ COMMON_CFLAGS = -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
 
 AM_CFLAGS = $(COMMON_CFLAGS) $(EXTRA_CFLAGS)
 
-CXXFLAGS = $(CFLAGS)
+AM_CXXFLAGS = $(CFLAGS)
 
 INCLUDES = -I$(ROOT_DIR)/app $(GLIB_CFLAGS)
 
