@@ -59,7 +59,7 @@ void scope_entry_destroy_notify(gpointer data)
 
 bool  scope_feeder_func(void *arg, void *data, int size) 
 {
-	static char buf[16384];
+	static char buf[32768];
 	static char *latency_buffer = NULL;
 	static int latency = -1;
 	static int fft_buf[512];
@@ -87,6 +87,8 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 	sound_sample *left_newset;
 	sound_sample *right_newset;
 
+	if (size > 32768) 
+		return true;
 	if (!init) {
 		for(i = 0; i <= FFT_BUFFER_SIZE / 2 + 1; i++) {
 			double mult = (double)128 / ((FFT_BUFFER_SIZE * 16384) ^ 2);
