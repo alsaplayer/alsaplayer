@@ -22,8 +22,16 @@
 #ifndef __alsaplayer_error_h__
 #define __alsaplayer_error_h__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern void (*alsaplayer_error)(const char *fmt, ...);
 void alsaplayer_set_error_function (void (*func)(const char *, ...));
 
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif /* __alsaplayer_error_h__ */
