@@ -24,9 +24,10 @@
 extern void playlist_window_gtk_prev(GtkWidget *, gpointer);
 extern void playlist_window_gtk_next(GtkWidget *, gpointer);
 
-class PlaylistWindowGTK : public virtual PlaylistInterface
+class PlaylistWindowGTK
 {
 	private:
+		playlist_interface pli;
 		Playlist * playlist;
 		GtkWidget * playlist_window;  // The window containing the list
 		GtkWidget * playlist_list;    // The list itself
@@ -42,13 +43,13 @@ class PlaylistWindowGTK : public virtual PlaylistInterface
 		GtkWidget *load_list;
 		
 		// Callbacks called by playlist when its state changes
-		void CbSetCurrent(unsigned);
-		void CbInsert(std::vector<PlayItem> &, unsigned);
-		void CbUpdated(PlayItem &, unsigned);
-		void CbRemove(unsigned, unsigned);
-		void CbLock();
-		void CbUnlock();
-		void CbClear();
+		static void CbSetCurrent(void *,unsigned);
+		static void CbInsert(void *,std::vector<PlayItem> &, unsigned);
+		static void CbUpdated(void *,PlayItem &, unsigned);
+		static void CbRemove(void *, unsigned, unsigned);
+		static void CbLock(void *);
+		static void CbUnlock(void *);
+		static void CbClear(void *);
 
 		// Other methods
 		Playlist *GetPlaylist() { return playlist; } 

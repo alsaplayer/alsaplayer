@@ -57,8 +57,20 @@ PlaylistWindowGTK::PlaylistWindowGTK(Playlist * pl) {
 	showing = false;
 
 	pthread_mutex_init(&playlist_list_mutex, NULL);
+
+	memset(&pli, 0, sizeof(playlist_interface));
+	pli.cblock = CbLock;
+	pli.cbunlock = CbUnlock;
+	pli.cbsetcurrent = CbSetCurrent;
+	pli.cbupdated = CbUpdated;
+	pli.cbinsert = CbInsert;
+	pli.cbremove = CbRemove;
+	pli.cbclear = CbClear;
+	pli.data = this;
+	
 	//alsaplayer_error("Would Register here");
-	playlist->Register(this);
+	//playlist->Register(this);
+	playlist->Register(&pli);
 }
 
 PlaylistWindowGTK::~PlaylistWindowGTK() {
@@ -67,7 +79,8 @@ PlaylistWindowGTK::~PlaylistWindowGTK() {
 	Hide();
 	gtk_clist_clear(GTK_CLIST(playlist_list));
 	//alsaplayer_error("About to Unregister");
-	playlist->UnRegister(this);
+	//playlist->UnRegister(this);
+	playlist->UnRegister(&pli);
 	//alsaplayer_error("Unregister OK");
 }
 
@@ -80,108 +93,85 @@ static GdkBitmap *current_stop_mask = (GdkBitmap *)NULL;
 
 
 // Set item currently playing
-// (FIXME - shouldn't just be the currently selected item - indicate with an
-// icon?)
-void PlaylistWindowGTK::CbSetCurrent(unsigned current) {
+void PlaylistWindowGTK::CbSetCurrent(void *data, unsigned current) {
+	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 	GtkWidget *working;
 	GtkStyle *style;
-#if 0	
-	if (!select_color) {
-		select_color = (GdkColor *)g_malloc(sizeof(GdkColor));
-		if (select_color) {
-			select_color->red = 200 << 8;
-			select_color->blue = 0;
-			select_color->green = 0;
-			gdk_color_alloc(gdk_colormap_get_system(), select_color);
-		}
-	}
-	if (!default_color) {
-		default_color = (GdkColor *)g_malloc(sizeof(GdkColor));
-		if (default_color) {
-			default_color->red = default_color->green = default_color->blue = 0;
-			gdk_color_alloc(gdk_colormap_get_system(), select_color);
-		}
-	}
-		
-	gtk_clist_set_foreground(GTK_CLIST(playlist_list), current_entry - 1, default_color);
-#else
 	if (!current_play_pix) {
-		style = gtk_widget_get_style(GTK_WIDGET(playlist_list));
-		if (!GTK_WIDGET(playlist_window)->window) {
-			gtk_widget_realize(playlist_window);
+		style = gtk_widget_get_style(GTK_WIDGET(gtkpl->playlist_list));
+		if (!GTK_WIDGET(gtkpl->playlist_window)->window) {
+			gtk_widget_realize(gtkpl->playlist_window);
 			gdk_flush();
 		}	
 		current_play_pix = gdk_pixmap_create_from_xpm_d(
-			GTK_WIDGET(playlist_window)->window,
+			GTK_WIDGET(gtkpl->playlist_window)->window,
 			&current_play_mask, &style->bg[GTK_STATE_NORMAL],
 			current_play_xpm);
 		current_stop_pix = gdk_pixmap_create_from_xpm_d(
-			GTK_WIDGET(playlist_window)->window,
+			GTK_WIDGET(gtkpl->playlist_window)->window,
 			&current_stop_mask, &style->bg[GTK_STATE_NORMAL],
 			current_stop_xpm);
 	} else {
-		gtk_clist_set_text(GTK_CLIST(playlist_list), current_entry - 1,
+		gtk_clist_set_text(GTK_CLIST(gtkpl->playlist_list), current_entry - 1,
 			0, "");
 	}	
-#endif	
 	current_entry = current;	
 	
-	//gtk_clist_select_row(GTK_CLIST(playlist_list), current_entry - 1, 1);
-#if 0	
-	gtk_clist_set_foreground(GTK_CLIST(playlist_list), current_entry - 1, select_color);	
-#else
-	gtk_clist_set_pixmap(GTK_CLIST(playlist_list), current_entry - 1,
+	gtk_clist_set_pixmap(GTK_CLIST(gtkpl->playlist_list), current_entry - 1,
 		0, current_play_pix, current_play_mask);
-#endif
 }
 
 
-void PlaylistWindowGTK::CbLock()
+void PlaylistWindowGTK::CbLock(void *data)
 {
+	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 	GDK_THREADS_ENTER();
 	//alsaplayer_error("GDK_THREADS_ENTER()...");
 }
 
-void PlaylistWindowGTK::CbUnlock()
+void PlaylistWindowGTK::CbUnlock(void *data)
 {
+	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 	//alsaplayer_error("GDK_THREADS_LEAVE()...");
 	GDK_THREADS_LEAVE();
 }
 
 
-void PlaylistWindowGTK::CbUpdated(PlayItem & item, unsigned position) {
+void PlaylistWindowGTK::CbUpdated(void *data,PlayItem & item, unsigned position) {
+	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 	char tmp[1024];
 	int secs;
 
-	pthread_mutex_lock(&playlist_list_mutex);
+	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
 
-	gtk_clist_freeze(GTK_CLIST(playlist_list));
+	gtk_clist_freeze(GTK_CLIST(gtkpl->playlist_list));
 	//printf("Updating %d (%s, %d)\n", position, item.author.c_str(), item.playtime);
 	if (item.author.size() && item.title.size()) {
 		sprintf(tmp, "%s - %s", item.author.c_str(), item.title.c_str());
-		gtk_clist_set_text(GTK_CLIST(playlist_list), position,
+		gtk_clist_set_text(GTK_CLIST(gtkpl->playlist_list), position,
 				1, g_strdup(tmp));
 	}
 	if (item.playtime >= 0) {
 		sprintf(tmp, "%02d:%02d", item.playtime / 60, item.playtime % 60);
-		gtk_clist_set_text(GTK_CLIST(playlist_list), position,
+		gtk_clist_set_text(GTK_CLIST(gtkpl->playlist_list), position,
 				2, g_strdup(tmp));
 	}	
 		
-	gtk_clist_thaw(GTK_CLIST(playlist_list));
-	pthread_mutex_unlock(&playlist_list_mutex);
+	gtk_clist_thaw(GTK_CLIST(gtkpl->playlist_list));
+	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
 }
 
 // Insert new items into the displayed list
-void PlaylistWindowGTK::CbInsert(std::vector<PlayItem> & items, unsigned position) {
+void PlaylistWindowGTK::CbInsert(void *data,std::vector<PlayItem> & items, unsigned position) {
+	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 	//alsaplayer_error("CbInsert(`%d items', %d)", items.size(), position);
 
-	pthread_mutex_lock(&playlist_list_mutex);
+	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
 
 	std::vector<PlayItem> item_copy = items;
 
-	GiveStatus("Adding files...");
-	gtk_clist_freeze(GTK_CLIST(playlist_list));
+	gtkpl->GiveStatus("Adding files...");
+	gtk_clist_freeze(GTK_CLIST(gtkpl->playlist_list));
 
 	if(items.size() > 0) {
 		int index = position;
@@ -192,60 +182,58 @@ void PlaylistWindowGTK::CbInsert(std::vector<PlayItem> & items, unsigned positio
 			new_list_item(&(*item), list_item);
 
 			// Add it to the playlist
-			int index = gtk_clist_insert(GTK_CLIST(playlist_list), position, list_item);
-			gtk_clist_set_shift(GTK_CLIST(playlist_list), index, 1, 2, 2);
-			gtk_clist_set_shift(GTK_CLIST(playlist_list), index, 2, 2, 2);
+			int index = gtk_clist_insert(GTK_CLIST(gtkpl->playlist_list), position, list_item);
+			gtk_clist_set_shift(GTK_CLIST(gtkpl->playlist_list), index, 1, 2, 2);
+			gtk_clist_set_shift(GTK_CLIST(gtkpl->playlist_list), index, 2, 2, 2);
 
 
 			index ++;
 		}
 	}
-    std::string msg = inttostring(items.size()) + " file";
+	std::string msg = inttostring(items.size()) + " file";
 	if(items.size() != 1) msg += "s";
 	msg += " added";
 
-	GiveStatus(msg);
-	gtk_clist_thaw(GTK_CLIST(playlist_list));
+	gtkpl->GiveStatus(msg);
+	gtk_clist_thaw(GTK_CLIST(gtkpl->playlist_list));
 
-	pthread_mutex_unlock(&playlist_list_mutex);
+	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
 }
 
 // Remove items from start to end
-void PlaylistWindowGTK::CbRemove(unsigned start, unsigned end)
+void PlaylistWindowGTK::CbRemove(void *data, unsigned start, unsigned end)
 {
-
-	pthread_mutex_lock(&playlist_list_mutex);	
-	GiveStatus("Removing files...");
-	gtk_clist_freeze(GTK_CLIST(playlist_list));
+	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
+	pthread_mutex_lock(&gtkpl->playlist_list_mutex);	
+	gtkpl->GiveStatus("Removing files...");
+	gtk_clist_freeze(GTK_CLIST(gtkpl->playlist_list));
 
 	unsigned i = start;
 	while(i <= end) {
-		gtk_clist_remove(GTK_CLIST(playlist_list), start - 1);
+		gtk_clist_remove(GTK_CLIST(gtkpl->playlist_list), start - 1);
 		i++;
 	}
 
-    std::string msg = inttostring(end + 1 - start) + " file";
+	std::string msg = inttostring(end + 1 - start) + " file";
 	if(end != start) msg += "s";
 	msg += " removed";
 
-	GiveStatus(msg);
+	gtkpl->GiveStatus(msg);
 
-	gtk_clist_thaw(GTK_CLIST(playlist_list));
+	gtk_clist_thaw(GTK_CLIST(gtkpl->playlist_list));
 	
-	pthread_mutex_unlock(&playlist_list_mutex);
+	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
 }
 
 // Clear the displayed list
-void PlaylistWindowGTK::CbClear()
+void PlaylistWindowGTK::CbClear(void *data)
 {
+	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 
-	pthread_mutex_lock(&playlist_list_mutex);
-#ifdef DEBUG
-	printf("CbClear()\n");
-#endif /* DEBUG */
-	gtk_clist_clear(GTK_CLIST(playlist_list));
-	GiveStatus("List was cleared");
-	pthread_mutex_unlock(&playlist_list_mutex);
+	pthread_mutex_lock(&gtkpl->playlist_list_mutex);
+	gtk_clist_clear(GTK_CLIST(gtkpl->playlist_list));
+	gtkpl->GiveStatus("List was cleared");
+	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
 }
 
 // Display a status message

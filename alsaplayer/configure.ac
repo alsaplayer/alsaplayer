@@ -255,7 +255,7 @@ oldcflags=$CFLAGS
 CFLAGS="$CFLAGS -lz"
 
 AC_CHECK_LIB(id3tag, id3_file_open,
-		MAD_LDADD="$MAD_LDADD -lid3tag -lz"; use_libid3tag=yes; AC_DEFINE(HAVE_LIBID3TAG, 1, [Define if you have libid3tag library (-lid3tag)]), use_libid3tag=no; -lmad)
+		MAD_LDADD="$MAD_LDADD -lid3tag -lz"; use_libid3tag=yes; AC_DEFINE(HAVE_LIBID3TAG, 1, [Define if you have libid3tag library (-lid3tag)]), use_libid3tag=no, -lmad)
 
 CFLAGS=$oldcflags
 

@@ -347,6 +347,12 @@ int main(int argc, char **argv)
 	signal(SIGFPE, exit_sighandler);	// floating point exc.
 	signal(SIGABRT, exit_sighandler);	// abort()
 
+	//if (argc) {
+	//	for (int z=0; z < argc; z++) {
+	//		alsaplayer_error("argv[%d] = \"%s\"", z, argv[z]);
+	//	}
+	//}	
+
 	strcpy(addon_dir, ADDON_DIR);
 
 	init_effects();
@@ -751,7 +757,7 @@ int main(int argc, char **argv)
 	if (sscanf(argv[0], "alsaplayer-%s", &use_interface) == 1 ||
 			sscanf(argv[0], "jackplayer-%s", &use_interface) == 1) {
 		/* Determine interface from the command line */
-		printf("Using interface %s\n", use_interface);
+		//alsaplayer_error("Using interface %s\n", use_interface);
 	}
 	if (strlen(use_interface)) {
 		if (!

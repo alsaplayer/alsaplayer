@@ -18,7 +18,7 @@
  *
  *  $Id$
  *
-*/ 
+ */ 
 
 #ifndef __Playlist_h__
 #define __Playlist_h__
@@ -50,6 +50,28 @@ class PlayItem
 		int playtime;
 };
 
+// C interface for the playlist
+typedef void(*cblock_type)(void *data);
+typedef void(*cbunlock_type)(void *data);
+typedef void(*cbsetcurrent_type)(void *data, unsigned pos);
+typedef void(*cbinsert_type)(void *data, std::vector<PlayItem> &items, unsigned pos);
+typedef void(*cbremove_type)(void *data, unsigned start, unsigned end);
+typedef void(*cbupdated_type)(void *data, PlayItem &, unsigned);
+typedef void(*cbclear_type)(void *data);
+
+typedef struct _playlist_interface
+{
+	void *data;
+	cblock_type cblock;
+	cbunlock_type cbunlock;
+	cbsetcurrent_type cbsetcurrent;
+	cbinsert_type cbinsert;
+	cbremove_type cbremove;
+	cbupdated_type cbupdated;
+	cbclear_type cbclear;
+} playlist_interface;
+
+
 class PlaylistInterface
 {
 	private:
@@ -60,7 +82,7 @@ class PlaylistInterface
 
 		virtual void CbLock() = 0;
 		virtual void CbUnlock() = 0;
-		
+
 		// Current position changed
 		virtual void CbSetCurrent(unsigned pos) = 0;
 
@@ -71,9 +93,9 @@ class PlaylistInterface
 		//      items already in list
 		// Note: CbSetCurrent will be called after this callback.
 		virtual void CbInsert(std::vector<PlayItem> &items, unsigned pos) = 0;
-
+		// Item was updated
 		virtual void CbUpdated(PlayItem &item, unsigned pos) = 0;
-		
+
 		// Tracks from position start to end inclusive were removed
 		// Note: CbSetCurrent will be called after this callback.
 		virtual void CbRemove(unsigned, unsigned) = 0;
@@ -84,16 +106,19 @@ class PlaylistInterface
 
 class Playlist
 {
-friend void playlist_looper(void *data);
-friend void insert_looper(void *);
-friend void info_looper(void *);
-private:
-		CorePlayer *player1;
-		CorePlayer *player2;
+	friend void playlist_looper(void *data);
+	friend void insert_looper(void *);
+	friend void info_looper(void *);
+	private:
+	CorePlayer *player1;
+	CorePlayer *player2;
 
 
-   // Mutex to stop moving onto next song while we're modifying the playlist
+	// Mutex to stop moving onto next song while we're modifying the playlist
 	pthread_mutex_t playlist_mutex;
+	
+	// Interfaces mutex
+	pthread_mutex_t interfaces_mutex;
 	
 	// Thread which starts new song when previous one finishes
 	// -- would be nice to get rid of this eventually...
@@ -117,15 +142,20 @@ private:
 	unsigned curritem;		// Position of next file to play
 
 	std::set<PlaylistInterface *> interfaces;  // Things to tell when things change
+	std::set<playlist_interface *> cinterfaces; // C version
 
 	void Looper(void *data);
+
+	void LockInterfaces();
+	void UnlockInterfaces();
+	
+	void Lock();
+	void Unlock();
+
 public:	
 	void Stop();
 	bool PlayFile(PlayItem const &);
 	bool CanPlay(std::string const &);
-	
-	void Lock();
-	void Unlock();
 
 	Playlist(CorePlayer *);
 	Playlist(AlsaNode *);
@@ -134,7 +164,7 @@ public:
 
 	// Get CorePLayer object
 	CorePlayer *GetCorePlayer() { return coreplayer; }
-	
+
 	// Get the number of items in the playlist (0 if playlist is empty)
 	unsigned Length();
 
@@ -145,7 +175,7 @@ public:
 	void Next(int locking=0);    // Start playing next item in playlist
 	void Prev(int locking=0);    // Start playing previous item in playlist
 	int GetCurrent() { return curritem; } // Return current item
-	
+
 	// Insert items at position - 0 = beginning, 1 = after first item, etc
 	void Insert(std::vector<std::string> const &, unsigned);
 
@@ -165,7 +195,7 @@ public:
 
 	// Shuffle playlist
 	void Shuffle(int locking=0);
-	
+
 	// Clear playlist
 	void Clear(int locking=0);
 
@@ -178,7 +208,7 @@ public:
 	bool Crossfading() { return crossfade; }
 	void Crossfade() { crossfade = true; }
 	void UnCrossfade() { crossfade = false; }
-	
+
 	// Loop_Song controls
 	bool LoopingSong() { return loopingSong; }
 	void LoopSong() { loopingSong = true; }
@@ -188,7 +218,7 @@ public:
 	bool LoopingPlaylist() { return loopingPlaylist; }
 	void LoopPlaylist() { loopingPlaylist = true; }
 	void UnLoopPlaylist() { loopingPlaylist = false; }
-	
+
 	// Save playlist to file
 	enum plist_result Save(std::string, enum plist_format) const;
 
@@ -197,13 +227,15 @@ public:
 
 	// Register to receive callbacks
 	void Register(PlaylistInterface *);
-
+	void Register(playlist_interface *);
+	
 	// Unregister - must do this before a registered interface is deleted
 	void UnRegister(PlaylistInterface *, int locking=0);
+	void UnRegister(playlist_interface *, int locking=0);
 };
 
 inline void Playlist::Insert(std::string const &path, unsigned pos) {
-		std::vector<std::string> items;
+	std::vector<std::string> items;
 	items.push_back(path);
 	Insert(items, pos);
 }
