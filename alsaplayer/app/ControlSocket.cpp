@@ -44,7 +44,7 @@ struct socket_params
 	interface_plugin *ui;
 };
 
-void socket_looper(void *arg)
+static void socket_looper(void *arg)
 {
 	int socket_fd = 0;
 	struct socket_params *sp = (struct socket_params *)arg;
