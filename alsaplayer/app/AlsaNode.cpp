@@ -46,8 +46,12 @@ extern void exit_sighandler(int);
 
 void AlsaNode::jack_restarter(void *arg)
 {
-	alsaplayer_error("sleeping 1 seconds");
+	AlsaNode *node = (AlsaNode *)arg;
+	alsaplayer_error("sleeping 1 second");
 	sleep (1);
+	
+	if (node && node->client)
+		jack_client_close(node->client);
 	if (jack_prepare(arg) < 0) {
 		alsaplayer_error("Failed reconnecting to jack...exitting");
 		kill(0, SIGTERM);
@@ -63,10 +67,6 @@ void AlsaNode::jack_shutdown (void *arg)
 	if (node) {
 		alsaplayer_error("trying to reconnect to jack (spawning thread)");
 		pthread_create(&restarter, NULL, (void * (*)(void *))jack_restarter, arg);
-		//if (node->client) {
-		//	 jack_client_close (node->client);
-		//	 node->client = NULL;
-		//}	 
 	}	
 }
 
@@ -79,13 +79,6 @@ int AlsaNode::jack_prepare(void *arg)
 	char str[32];
 
 	if (node && strlen(node->dest_port1) && strlen(node->dest_port2)) {
-		sprintf(str, "zomaar-%d", tel++);
-		if (zomaar)
-			jack_client_close(zomaar);
-		if ((zomaar = jack_client_new(str)) == 0) {
-			alsaplayer_error("zomaar failed........");
-		}
-		
 		if ((node->client = jack_client_new(node->client_name)) == 0) {
 			alsaplayer_error("jack server not running?");
 			return -1;
