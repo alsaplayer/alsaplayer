@@ -40,6 +40,7 @@ struct mad_local_data {
 	  struct mad_stream stream;
  	  struct mad_frame  frame;
 		uint8_t stream_buffer[STREAM_BUFFER_SIZE];
+		int mad_init;
 		int bytes_in_buffer;
 		ssize_t offset;
 		int sample_rate;
@@ -291,8 +292,10 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 									pos++;
 					}				
 	}
-	printf("MAD debug: (%x %x %x %x)\n",
-													data[0], data[1], data[2], data[3]);
+	if (data[0] != 0xff) {
+		printf("MAD debug: potential problem file, first 4 bytes =  %x %x %x %x\n",
+			data[0], data[1], data[2], data[3]);
+	}
 	return 0;
 }
 
@@ -314,8 +317,6 @@ static int mad_open(input_object *obj, char *path)
 		
 		if ((data->mad_fd = open(path, O_RDONLY)) < 0) {
 					fprintf(stderr, "mad_open() failed\n");
-					free(obj->local_data);
-					obj->local_data = NULL;
 					return 0;
 		}
 		if ((bytes_read = read(data->mad_fd,
@@ -323,21 +324,17 @@ static int mad_open(input_object *obj, char *path)
 				// Not enough data available
 				fprintf(stderr, "mad_open() can't read enough initial data\n");
 				close(data->mad_fd);
-				free(obj->local_data);
-				obj->local_data = NULL;
 				return 0;
 		}		
 		mad_synth_init  (&data->synth);
 		mad_stream_init (&data->stream);
 		mad_frame_init  (&data->frame);
-		
+		data->mad_init = 1;
 		data->offset = find_initial_frame(data->stream_buffer, bytes_read);
 
 		if (data->offset < 0) {
 						fprintf(stderr, "mad_open() couldn't find valid MPEG header\n");
 						close(data->mad_fd);
-						free(obj->local_data);
-						obj->local_data = NULL;
 						return 0;
 		} else {
 						memmove(data->stream_buffer, data->stream_buffer + data->offset, 
@@ -359,15 +356,11 @@ static int mad_open(input_object *obj, char *path)
 										case	MAD_ERROR_BUFLEN:
 														printf("MAD_ERROR_BUFLEN...\n");
 														close(data->mad_fd);
-														free(obj->local_data);
-														obj->local_data = NULL;
 														break;
 										default:
 														printf("MAD debug: no valid frame found at start\n");
 					}
 					close(data->mad_fd);
-					free(obj->local_data);
-					obj->local_data = NULL;
 					return 0;
 		} else {
 					int mode = (data->frame.header.mode == MAD_MODE_SINGLE_CHANNEL) ?
@@ -387,10 +380,18 @@ static int mad_open(input_object *obj, char *path)
 		}
 
 		/* Reset decoder */
+		data->mad_init = 0;
+		mad_synth_finish (&data->synth);
+		mad_frame_finish (&data->frame);
+		mad_stream_finish(&data->stream);
+		
 		lseek(data->mad_fd, data->offset, SEEK_SET);
+		
 		mad_synth_init  (&data->synth);
 		mad_stream_init (&data->stream);
 		mad_frame_init  (&data->frame);
+		data->mad_init = 1;
+		
 		data->bytes_in_buffer = 0;	
 		return 1;
 }
@@ -403,11 +404,14 @@ static void mad_close(input_object *obj)
 			return;
 	data = (struct mad_local_data *)obj->local_data;
 
-	if (data && data->mad_fd) {
-					close(data->mad_fd);
-					mad_synth_finish (&data->synth);
-					mad_frame_finish (&data->frame);
-					mad_stream_finish(&data->stream);
+	if (data) {
+					if (data->mad_fd)
+									close(data->mad_fd);
+					if (data->mad_init) {
+						mad_synth_finish (&data->synth);
+						mad_frame_finish (&data->frame);
+						mad_stream_finish(&data->stream);
+					}	
 					free(obj->local_data);
 					obj->local_data = NULL;
 	}				
