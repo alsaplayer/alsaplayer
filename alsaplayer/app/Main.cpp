@@ -143,7 +143,7 @@ interface_plugin_info_type load_interface(const char *name)
 	if (strchr(name, '.'))
 		strncpy(path, name, sizeof(path));
 	else
-		snprintf(path, sizeof(path), "%s/interface/lib%s.so", pluginroot, name);
+		snprintf(path, sizeof(path), "%s/interface/lib%s_interface.so", pluginroot, name);
 #ifdef DEBUG
 	alsaplayer_error("Loading interface plugin: %s\n", path);
 #endif
@@ -239,7 +239,12 @@ static void list_available_plugins(const char *plugindir)
 				ext = strrchr(name, '_');
 				if (ext)
 					*ext = '\0';
-			}
+			} else if (strcmp(plugindir, "interface") == 0) { // Remove trailing _interface
+				ext = strrchr(name, '_');
+				if (ext)
+					*ext = '\0';
+			}	
+			
 			if (first) { // don't print comma
 				first = false;
 			} else {

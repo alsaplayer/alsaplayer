@@ -1,8 +1,8 @@
-textltlibs = libtext.la
-textldflags = -export-dynamic -avoid-version
-textsources = text.cpp
+text_interfaceltlibs = libtext_interface.la
+text_interfaceldflags = -export-dynamic -avoid-version
+text_interfacesources = text.cpp
 
-lib_LTLIBRARIES = $(textltlibs)
+lib_LTLIBRARIES = $(text_interfaceltlibs)
 
 COMMON_FLAGS = @ARCH_CFLAGS@
 
@@ -14,6 +14,6 @@ AM_CFLAGS = $(CXXFLAGS)
 
 libdir = $(ADDON_DIR)/interface
 
-libtext_la_LDFLAGS = $(textldflags)
-libtext_la_LIBADD =
-libtext_la_SOURCES= $(textsources)
+libtext_interface_la_LDFLAGS = $(text_interfaceldflags)
+libtext_interface_la_LIBADD =
+libtext_interface_la_SOURCES= $(text_interfacesources)

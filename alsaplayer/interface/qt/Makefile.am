@@ -1,8 +1,8 @@
 if HAVE_QT
 
-qtltlibs = libqt.la
-qtldflags = -export-dynamic -avoid-version
-qtsources = MainWindowBase.cpp      \
+qt_interfaceltlibs = libqt_interface.la
+qt_interfaceldflags = -export-dynamic -avoid-version
+qt_interfacesources = MainWindowBase.cpp      \
 						ScopesDialogBase.cpp    \
 						PlayListDialogBase.cpp  \
 						MainWindow.cpp          \
@@ -18,21 +18,21 @@ DESIGNERSOURCES = MainWindowBase.h      \
                   PlayListDialogBase.h  \
                   PlayListDialogBase.h
 
-METASOURCES = MainWindowBase.moc			\
-							ScopesDialogBase.moc		\
-							PlayListDialogBase.moc	\
-							MainWindow.moc					\
-							ScopesDialog.moc				\
-							PlayListDialog.moc
+METASOURCES = MainWindowBase.moc \
+		ScopesDialogBase.moc	\
+		PlayListDialogBase.moc	\
+		MainWindow.moc		\
+		ScopesDialog.moc	\
+		PlayListDialog.moc
 else
 
-qtltlibs =
-qtldflags =
-qtsources =
+qt_interfaceltlibs =
+qt_interfaceldflags =
+qt_interfacesources =
 
 endif
 
-lib_LTLIBRARIES = $(qtltlibs)
+lib_LTLIBRARIES = $(qt_interfaceltlibs)
 
 COMMON_FLAGS = @ARCH_CFLAGS@
 
@@ -44,9 +44,9 @@ LINK = $(CXXLINK)
 
 libdir = $(ADDON_DIR)/interface
 
-libqt_la_LDFLAGS = $(qtldflags)
-libqt_la_LIBADD = @QT_LIBS@
-libqt_la_SOURCES= $(qtsources)
+libqt_interface_la_LDFLAGS = $(qt_interfaceldflags)
+libqt_interface_la_LIBADD = @QT_LIBS@
+libqt_interface_la_SOURCES= $(qt_interfacesources)
 
 # UIC headers
 

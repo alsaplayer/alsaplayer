@@ -1,8 +1,8 @@
-daemonltlibs = libdaemon.la
-daemonldflags = -export-dynamic -avoid-version
-daemonsources = daemon.cpp
+daemon_interfaceltlibs = libdaemon_interface.la
+daemon_interfaceldflags = -export-dynamic -avoid-version
+daemon_interfacesources = daemon.cpp
 
-lib_LTLIBRARIES = $(daemonltlibs)
+lib_LTLIBRARIES = $(daemon_interfaceltlibs)
 
 COMMON_FLAGS = @ARCH_CFLAGS@
 
@@ -14,6 +14,6 @@ AM_CFLAGS = $(CXXFLAGS)
 
 libdir = $(ADDON_DIR)/interface
 
-libdaemon_la_LDFLAGS = $(daemonldflags)
-libdaemon_la_LIBADD =
-libdaemon_la_SOURCES= $(daemonsources)
+libdaemon_interface_la_LDFLAGS = $(daemon_interfaceldflags)
+libdaemon_interface_la_LIBADD =
+libdaemon_interface_la_SOURCES= $(daemon_interfacesources)

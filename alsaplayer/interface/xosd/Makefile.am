@@ -2,19 +2,19 @@ EXTRA_DIST = xosd.cpp
 
 if HAVE_XOSD
 
-xosdltlibs = libxosd.la
-xosdldflags = -export-dynamic -avoid-version -lxosd
-xosdsources = xosd.cpp
+xosd_interfaceltlibs = libxosd_interface.la
+xosd_interfaceldflags = -export-dynamic -avoid-version -lxosd
+xosd_interfacesources = xosd.cpp
 
 else
 
-xosdltlibs =
-xosdldflags =
-xosdsources =
+xosd_interfaceltlibs =
+xosd_interfaceldflags =
+xosd_interfacesources =
 
 endif
 
-lib_LTLIBRARIES = $(xosdltlibs)
+lib_LTLIBRARIES = $(xosd_interfaceltlibs)
 
 COMMON_FLAGS = @ARCH_CFLAGS@
 
@@ -26,6 +26,6 @@ AM_CFLAGS = $(CXXFLAGS)
 
 libdir = $(ADDON_DIR)/interface
 
-libxosd_la_LDFLAGS = $(xosdldflags)
-libxosd_la_LIBADD =
-libxosd_la_SOURCES= $(xosdsources)
+libxosd_interface_la_LDFLAGS = $(xosd_interfaceldflags)
+libxosd_interface_la_LIBADD =
+libxosd_interface_la_SOURCES= $(xosd_interfacesources)
