@@ -92,6 +92,17 @@ void prefs_set_int(prefs_handle_t *prefs, char *key, int val)
 }
 
 
+void prefs_set_bool(prefs_handle_t *prefs, char *key, int val)
+{
+	char str[1024];
+
+	if (!prefs || !key)
+		return;
+	sprintf(str, "%s", val ? "true" : "false");
+	prefs_set_string(prefs, key, str);
+}
+
+
 static prefs_key_t *prefs_find_key(prefs_handle_t *prefs, char *key)
 {
 	prefs_key_t *entry;
@@ -162,6 +173,25 @@ void prefs_set_float(prefs_handle_t *prefs, char *key, float val)
 		return;
 	sprintf(str, "%.6f", val);
 	prefs_set_string(prefs, key, str);
+}
+
+
+int prefs_get_bool(prefs_handle_t *prefs, char *key, int default_val)
+{
+	char str[1024];
+	char *res;
+	int val;
+	
+	if (!prefs || !key)
+		return -1;
+	sprintf(str, "%s", default_val ? "true" : "false");
+	res = prefs_get_string(prefs, key, str);
+	if (strncasecmp(str, "true", 4) == 0 ||
+			strncasecmp(str, "yes", 3) == 0 ||
+			strncasecmp(str, "1", 1) == 0) {
+		return 1;
+	}
+	return 0;
 }
 
 
