@@ -1110,6 +1110,7 @@ void CorePlayer::producer_func(void *data)
 		}
 		// still at least one buffer left to fill?
 		if (obj->FilledBuffers() < (NR_CBUF-1)) {
+			//alsaplayer_error("producer: filling buffer");
 			switch (obj->read_direction) {
 			 case DIR_FORWARD:
 				frames_read = obj->pcm_worker(obj->write_buf, obj->write_buf->start);
@@ -1138,7 +1139,6 @@ void CorePlayer::producer_func(void *data)
 			//alsaplayer_error("producer: waiting for free buffer");
 			pthread_mutex_lock(&obj->counter_mutex);
 			//alsaplayer_error("producer: unblocked");
-			//dosleep(800000);
 		}	
 	}
 	//alsaplayer_error("Exitting producer_func (producing = %d)", obj->producing);
