@@ -40,6 +40,8 @@
 #include "Playlist.h"
 #include "utilities.h"
 #include "interface_plugin.h"
+#include "AlsaPlayer.h"
+#include "control.h"
 
 static pthread_mutex_t finish_mutex;
 static coreplayer_notifier notifier;
@@ -106,27 +108,41 @@ void daemon_close()
 
 int daemon_start(Playlist *playlist, int argc, char **argv)
 {
+	char session_name[AP_SESSION_MAX];
+	int session_id = -1;
+
+	playlist->Clear();
 	playlist->UnPause();
 
 	going = true;
 
+	// The notifier is here only for convenience
 	memset(&notifier, 0, sizeof(notifier));
 	notifier.speed_changed = speed_changed;
 	notifier.volume_changed = volume_changed;
 	notifier.position_notify = position_notify;
 	notifier.stop_notify = stop_notify;
 
-	playlist->Clear(); // Clear playlist
 	playlist->RegisterNotifier(&notifier, NULL);
 
 	pthread_mutex_lock(&finish_mutex);
 
-	fprintf(stdout, "Daemon started.\n");
+	// Wait on socket thread
+	while (global_session_id < 0) {
+		dosleep(10000);
+	}
+	//fprintf(stdout, "Session %d is starting.\n", global_session_id);
+	while (!ap_ping(global_session_id)) {
+		dosleep(100000);
+	}
+	if (ap_get_session_name(global_session_id, session_name)) {
+		fprintf(stdout, "Session \"%s\" is ready.\n", session_name);
+	}
 
 	while(going) {
-		dosleep(10000); // What should be do here?
+		dosleep(10000); // What should we do here?
 	}
-	fprintf(stdout, "Daemon exitting.\n");
+	
 
 	pthread_mutex_unlock(&finish_mutex);
 
@@ -136,7 +152,7 @@ int daemon_start(Playlist *playlist, int argc, char **argv)
 }
 
 
-interface_plugin daemon_plugin =
+static interface_plugin daemon_plugin =
 {
 	INTERFACE_PLUGIN_VERSION,
 	"DAEMON interface v1.0",
