@@ -136,8 +136,15 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 
 	if (module) {
 		snprintf(path, sizeof(path), "%s/output/lib%s_out.so", pluginroot, module);
-		if (stat(path, &statbuf) != 0)	// Error reading object
+		if (stat(path, &statbuf) != 0) {
+			// Error reading object
+			alsaplayer_error
+				("Cannot find plugin: %s\n"
+				 "Try chosing different plugin name with \"-o\" parameter"
+				 "or \"main.default_output\" configuration file option",
+				 path);
 			return;
+		}
 		if ((handle = dlopen(path, RTLD_NOW | RTLD_GLOBAL))) {
 			output_plugin_info =
 			    (output_plugin_info_type) dlsym(handle,
@@ -148,9 +155,10 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 				}	
 			} else {
 				alsaplayer_error
-				    ("symbol error in shared object: %s\n"
-				     "Try starting up with \"-o\" to load a\n"
-				     "specific output module (alsa, oss, esd, etc.)",
+				    ("Symbol error in shared object: %s\n"
+				     "Try starting up with \"-o\" or setting \"main.default_output\""
+				     "in configuration file to load a specific output module (alsa,
+				     "oss, esound, etc.)",
 				     path);
 				dlclose(handle);
 				return;
@@ -638,6 +646,13 @@ int main(int argc, char **argv)
 	if (strcmp(argv[0], "jackplayer") == 0) {
 		use_output = "jack";
 	}
+	
+	// Check the output option
+	if (use_output == NULL) {
+		use_output = prefs_get_string(ap_prefs, "main",
+				"default_output", "");
+	}
+
 	// Else do the usual plugin based thing
 	node = new AlsaNode(use_output, device_param, do_realtime);
 	if (use_output) {
