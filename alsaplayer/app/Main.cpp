@@ -56,6 +56,8 @@
 #include "message.c"		/* This is a dirty hack */
 #include "reader.h"
 
+#define MAX_REMOTE_SESSIONS	32
+
 Playlist *playlist = NULL;
 
 int global_reverb_on = 0;
@@ -342,41 +344,55 @@ static void help()
 		"\n"
 		"  -b,--background         fork to background (useful for daemon interfaces)\n"
 		"  -c,--config file        use given config file for this session\n"
-		"  -d,--device string      select card and device [default=\"default\"]\n"
-		"  -e,--enqueue file(s)    queue files in running alsaplayer\n"
-		"  -E,--replace file(s)    clears and queues files in running alsaplayer\n"
-		"  -f,--fragsize n         fragment size in bytes [default=4096]\n"
-		"  -F,--frequency n        output frequency [default=%d]\n"
-		"  -g,--fragcount n        fragment count [default=8]\n"
 		"  -h,--help               print this help message\n"
-		"  -i,--interface <iface>  use specific interface [default=gtk]. choices:\n", OUTPUT_RATE);
+		"  -i,--interface iface    use specific interface [default=gtk]. choices:\n");
 	fprintf(stdout,
 		"                          [ ");
-			list_available_plugins("interface");
+	list_available_plugins("interface");
 	fprintf(stdout,
 		" ]\n"
 		"  -I,--script file        script to pass to interface plugin\n"
-		"  -l,--volume n           set software volume [0-100]\n"
 		"  -n,--session n          use this session id [default=0]\n"
-		"  -o,--output <output>    use specific output driver [default=alsa]. choices:\n");
-	fprintf(stdout,
-		"                          [ ");
-			list_available_plugins("output");
-	fprintf(stdout,
-		" ]\n"
 		"  -p,--path path          set the path alsaplayer looks for add-ons\n"
 		"  -q,--quiet              quiet operation. less output\n"
-		"  -r,--realtime           enable realtime scheduling (with proper rights)\n"
 		"  -s,--session-name name  name this session \"name\"\n"
 		"  -v,--version            print version of this program\n"
 		"  --verbose               be verbose about the output\n"
 		"  --nosave                do not save playlist content at exit\n"
 		"\n"
-		"Testing options:\n"
+		"Player control (use -n to sleect another session than the default):\n"
 		"\n"
-		"  -S,--loopsong           loop file\n"
-		"  -P,--looplist           loop playlist\n"
-		"  -x,--crossfade          crossfade playlist entries (experimental)\n"
+		"  -e,--enqueue file(s)  queue files in running alsaplayer\n"
+		"  -E,--replace file(s)  clears and queues files in running alsaplayer\n"
+		"  -l<n>,--volume<=n>    set/get software volume [0-100]\n"
+		"  --start               start playing\n"
+		"  --stop                stop playing\n"
+		"  --prev                jump to previous track\n"
+		"  --next                jump to next track\n"
+		"  --seek second         jump to specified second in current track\n"
+		"  --relative second     jump second seconds from current position\n"
+		"  --jump track          jump to specified playlist track\n"
+		"  --clear               clear whole playlist\n"
+		"\n"
+		"Sound driver options:\n"
+		"\n"
+		"  -d,--device string    select card and device [default=\"default\"]\n"
+		"  -f,--fragsize n       fragment size in bytes [default=4096]\n"
+		"  -F,--frequency n      output frequency [default=%d]\n"
+		"  -g,--fragcount n      fragment count [default=8]\n"
+		"  -o,--output output    use specific output driver [default=alsa]. choices:\n"
+		"  -r,--realtime         enable realtime scheduling (with proper rights)\n", OUTPUT_RATE);
+	fprintf(stdout,
+		"                        [ ");
+	list_available_plugins("output");
+	fprintf(stdout,
+		" ]\n"
+		"\n"
+		"Experimental options:\n"
+		"\n"
+		"  -S,--loopsong         loop file\n"
+		"  -P,--looplist         loop playlist\n"
+		"  -x,--crossfade        crossfade playlist entries\n"
 		"\n");
 }
 
@@ -415,6 +431,7 @@ int main(int argc, char **argv)
 	char *homedir;
 	char prefs_path[1024];
 	char str[1024];
+	int ap_result = 0;
 	int use_fragsize = -1; // Initialized
 	int use_fragcount = -1; // later
 	int do_reverb = 0;
@@ -423,19 +440,30 @@ int main(int argc, char **argv)
 	int do_enqueue = 0;
 	int do_replace = 0;
 	int do_realtime = 0;
+	int do_remote_control = 0;
+	int do_start = 0;
+	int do_stop = 0;
+	int do_prev = 0;
+	int do_next = 0;
+	int do_jump = -1;
+	int do_clear = 0;
+	int do_seek = -1;
+	int do_relative = 0;
+	int do_getvol = 0;
+	int do_setvol = 0;
+	
 	int use_freq = OUTPUT_RATE;
 	int use_vol = 100;
 	int use_session = 0;
 	int do_crossfade = 0;
 	int do_save = 1;
-	int was_playing = 0;
 	char *use_output = NULL;
 	char *use_interface = NULL;
 	char *use_config = NULL;
 	
 	int opt;
 	int option_index;
-	const char *options = "bc:d:eEf:F:g:hi:I:l:n:Np:qrs:vRSPVxo:";
+	const char *options = "bCc:d:eEf:F:g:hi:JI:l::n:NMp:qrs:vRSQTPVxo:Z:";
 	struct option long_options[] = {
 		{ "background", 0, 0, 'b' },
 		{ "config", 1, 0, 'c' },
@@ -447,7 +475,7 @@ int main(int argc, char **argv)
 		{ "fragcount", 1, 0, 'g' },
 		{ "help", 0, 0, 'h' },
 		{ "interface", 1, 0, 'i' },
-		{ "volume", 1, 0, 'l' },
+		{ "volume", 2, 0, 'l' },
 		{ "session", 1, 0, 'n' },
 		{ "nosave", 0, 0, 'N' },
 		{ "path", 1, 0, 'p' },
@@ -462,6 +490,14 @@ int main(int argc, char **argv)
 		{ "looplist", 0, 0, 'P' },
 		{ "crossfade", 0, 0, 'x' },
 		{ "output", 1, 0, 'o' },
+		{ "stop", 0, 0, 'U' },
+		{ "start", 0, 0, 'T' },
+		{ "prev", 0, 0, 'Q' },
+		{ "next", 0, 0, 'M' },
+		{ "jump", 1, 0, 'J' },
+		{ "seek", 1, 0, 'X' },
+		{ "relative", 1, 0, 'Z' },
+		{ "clear", 0, 0, 'C' },
 		{ 0, 0, 0, 0 }
 	};	
 		
@@ -547,11 +583,17 @@ int main(int argc, char **argv)
 				use_interface = optarg;
 				break;
 			case 'l':
-				use_vol = atoi(optarg);
-				if (use_vol < 0 || use_vol > 100) {
-					alsaplayer_error("volume out of range: using 100");
-					use_vol = 100;
-				}
+				do_remote_control = 1;
+				if (optarg == NULL) {
+					do_getvol = 1;
+				} else {
+					do_setvol = 1;
+					use_vol = atoi(optarg);
+					if (use_vol < 0 || use_vol > 100) {
+						alsaplayer_error("volume out of range: using 100");
+						use_vol = 100;
+					}
+				}	
 				break;
 			case 'n':
 				use_session = atoi(optarg);
@@ -597,9 +639,42 @@ int main(int argc, char **argv)
 				use_output = optarg;
 				break;
 			case '?':
-				break;
+				return 1;
 			case 'I':
 				global_interface_script = optarg;
+				break;
+			case 'U':
+				do_remote_control = 1;
+				do_stop = 1;
+				break;
+			case 'T': 
+				do_remote_control = 1;
+				do_start = 1;
+				break;
+			case 'Q':
+				do_remote_control = 1;
+				do_prev = 1;
+				break;
+			case 'M':
+				do_remote_control = 1;
+				do_next = 1;
+				break;
+			case 'J':
+				do_remote_control = 1;
+				do_jump = atoi(optarg);
+				break;
+			case 'C':
+				do_remote_control = 1;
+				do_clear = 1;
+				break;
+			case 'X':
+				do_remote_control = 1;
+				do_seek = atoi(optarg);
+				break;
+			case 'Z':
+				do_remote_control = 1;
+				do_relative = 1;
+				do_seek = atoi(optarg);
 				break;
 			default:
 				alsaplayer_error("Unknown option '%c'", opt);
@@ -635,26 +710,83 @@ int main(int argc, char **argv)
 		global_pluginroot = strdup (ADDON_DIR);
 	}	
 
+
+	if (use_session == 0) {
+		for (; use_session < MAX_REMOTE_SESSIONS+1; use_session++) {
+			ap_result = ap_session_running(use_session);
+
+			if (ap_result)
+				break;
+		}
+		if (use_session == (MAX_REMOTE_SESSIONS+1)) {
+			//alsaplayer_error("No remote session found");
+			do_remote_control = 0;
+			do_enqueue = 0;
+		} else {
+			//alsaplayer_error("Found remote session %d", use_session);
+		}	
+	}
+
+	// Check if we're in remote control mode
+	if (do_remote_control) {
+		if (do_getvol) {
+			int getvol = 0;
+			if (ap_get_volume(use_session, &getvol)) {
+				fprintf(stdout, "%d\n", getvol);
+			}
+			return 0;
+		} else if (do_setvol) {
+			ap_set_volume(use_session, use_vol);
+			return 0;
+		} else if (do_start) {
+			ap_play(use_session);
+			return 0;
+		} else if (do_stop) {
+			ap_stop(use_session);
+			return 0;
+		} else if (do_next) {
+			ap_next(use_session);
+			return 0;
+		} else if (do_prev) {
+			ap_prev(use_session);
+			return 0;
+		} else if (do_jump >= 0) {
+			ap_jump_to(use_session, do_jump);
+			return 0;
+		} else if (do_clear) {
+			ap_clear_playlist(use_session);
+			return 0;
+		} else if (do_relative) {
+			if (do_seek != 0)
+				ap_set_position_relative(use_session, do_seek);
+			return 0;
+		} else if (do_seek >= 0) {
+			ap_set_position(use_session, do_seek);
+			return 0;
+		} else 	
+			alsaplayer_error("No remote control command executed.");
+	}
+
 	// Check if we need to enqueue the files
 	if (do_enqueue) {
 		char queue_name[2048];
-		int ap_result = 0;
 		int count = 0;
-
-		if (use_session == 0) {
-			for (; use_session < 32; use_session++) {
-				ap_result = ap_session_running(use_session);
-
-				if (ap_result)
-					break;
-			}
-		}
+		int was_playing = 0;
+		int playlist_length = 0;
+		
+		ap_result = 1;
+		
 		if (do_replace) {
 			ap_is_playing(use_session, &was_playing);
 			if (was_playing) {
 				ap_stop(use_session);
 			}
 			ap_clear_playlist(use_session);
+		} else {
+			ap_get_playlist_length(use_session, &playlist_length);
+			if (!playlist_length) { // Empty list so fire up after add
+				was_playing = 1;
+			}		
 		}	
 		
 		count = optind;
