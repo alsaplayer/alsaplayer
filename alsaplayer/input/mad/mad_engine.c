@@ -90,6 +90,7 @@ struct mad_local_data {
 	int seeking;
 	int eof;
 	int parsed_id3;
+	int is_remote;
 	char str[17];
 };		
 
@@ -296,13 +297,16 @@ static int mad_play_frame(input_object *obj, char *buf)
 	}
 	if (mad_frame_decode(&data->frame, &data->stream) == -1) {
 		if (!MAD_RECOVERABLE(data->stream.error)) {
-			//alsaplayer_error("MAD error: %s (%d)", 
+			//alsaplayer_error("MAD error: %s (%d). fatal", 
 			//	error_str(data->stream.error, data->str),
 			//	data->bytes_avail);
 			mad_frame_mute(&data->frame);
 			return 0;
-		}	else {
-			/* alsaplayer_error("MAD error: %s", error_str(data->stream.error, data->str)); */
+		} else {
+			if (reader_eof(data->mad_fd)) {
+				return 0;
+			}	
+			//alsaplayer_error("MAD error: %s (not fatal)", error_str(data->stream.error, data->str)); 
 		}
 	}
 	data->current_frame++;
@@ -313,7 +317,6 @@ static int mad_play_frame(input_object *obj, char *buf)
 		if (data->current_frame > 3 && 
 				(data->frames[data->current_frame] -
 				 data->frames[data->current_frame-3]) < 6) {
-			//alsaplayer_error("EOF reached");
 			return 0;
 		}		
 		if (data->highest_frame < data->current_frame)
@@ -339,7 +342,6 @@ static int mad_play_frame(input_object *obj, char *buf)
 		}
 	}
 	data->bytes_avail = data->stream.bufend - data->stream.next_frame;
-	
 	return 1;
 }
 
@@ -649,9 +651,13 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 
 	if (data) {
 		if (!data->parsed_id3) {
-		    // Some data we parse only once
-		    parse_id3 (data->path, &data->sinfo);
-		     
+	            if (strncmp(data->path, "http://", 7) != 0) {
+			    // Some data we parse only once
+			    parse_id3 (data->path, &data->sinfo);
+		    } else {
+			    data->is_remote = 1;
+			    strcpy(data->sinfo.status, "Streaming");
+		    }
 		    strncpy (data->sinfo.path, data->path, sizeof(data->sinfo.path));
 		    data->parsed_id3 = 1;
 		}
@@ -667,8 +673,6 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 
 		if (data->seeking)
 			sprintf(info->status, "Seeking...");
-		else
-			*info->status = '\0';
 	}				
 	return 1;
 }
@@ -730,9 +734,15 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 	int pos = 0;
 	ssize_t header_size = 0;
 	while (pos < (size - 10)) {
+		if (pos == 0 && data[pos] == 0x0d && data[pos+1] == 0x0a)
+			pos += 2;
+		if (data[pos] == 0xff && (data[pos+1] == 0xfb || data[pos+1] == 0xfa || data[pos+1] == 0xf3 
+					|| data[pos+1] == 0xe2)) {
+			//alsaplayer_error("found header at %d", pos);
+			return pos;
+		}	
 		if (pos == 0 && data[pos] == 0x0d && data[pos+1] == 0x0a) {
-			//alsaplayer_error("Skipping <cr><lf>");
-			goto dirty_lookup;
+			return -1; // Let MAD figure this out
 		}	
 		if (pos == 0 && (data[pos] == 'I' && data[pos+1] == 'D' && data[pos+2] == '3')) {
 			header_size = (data[pos + 6] << 21) + 
@@ -752,18 +762,6 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 			if (header_size > STREAM_BUFFER_SIZE) {
 				//alsaplayer_error("Header larger than 32K (%d)", header_size);
 				return header_size;
-			}	
-			//printf("MP3 should start at %d\n", header_size);
-			if (data[header_size] != 0xff) {
-				//alsaplayer_error("broken MP3 or unkown TAG! Searching for next 0xFF");
-				while (header_size < size) {
-					if (data[++header_size] == 0xff &&
-							data[header_size+1] == 0xfb) {
-						//alsaplayer_error("Found 0xff 0xfb at %d",  header_size);
-						return header_size;
-					}
-				}
-				alsaplayer_error("Not found in first 32K, bad :(");
 			}	
 			return header_size;
 		} else if (data[pos] == 'R' && data[pos+1] == 'I' &&
@@ -787,22 +785,11 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 			pos++;
 		}				
 	}
-	if (data[0] != 0xff) {
-dirty_lookup:		
-		header_size = 0;
-		while (header_size < size) {
-			if (data[++header_size] == 0xff && 
-					(data[header_size+1] == 0xfb ||
-					 data[header_size+1] == 0xf3)) {
-				//alsaplayer_error("Found ff fb at %d", header_size);
-				return header_size;
-			}
-		}	
-		printf("MAD debug: potential problem file or unhandled info block, next 4 bytes =  %x %x %x %x\n",
-				data[header_size], data[header_size+1],
-				data[header_size+2], data[header_size+3]);
-	}
-	return 0;
+	printf("MAD debug: potential problem file or unhandled info block, next 4 bytes =  %x %x %x %x (index = %d, size = %d)\n",
+			data[header_size], data[header_size+1],
+			data[header_size+2], data[header_size+3],
+			header_size, size);
+	return -1;
 }
 
 
@@ -829,23 +816,33 @@ static int mad_open(input_object *obj, const char *path)
 		obj->local_data = NULL;
 		return 0;
 	}
+	if (!reader_seekable(data->mad_fd)) {
+		obj->flags = 0;
+		data->seekable = 0;
+	} else {
+		obj->flags = P_SEEK;
+		data->seekable = 1;
+	}
+
 	mad_synth_init  (&data->synth);
 	mad_stream_init (&data->stream);
 	mad_frame_init  (&data->frame);
 	memset(&data->xing, 0, sizeof(struct xing));
 	xing_init (&data->xing);
 	data->mad_init = 1;
-	fill_buffer(data, 0);
+	fill_buffer(data, -1);
+	//alsaplayer_error("initial bytes_avail = %d", data->bytes_avail);
 	data->offset = find_initial_frame(data->mad_map, 
 			data->bytes_avail < STREAM_BUFFER_SIZE ? data->bytes_avail :
 			STREAM_BUFFER_SIZE);
 	data->highest_frame = 0;
 	if (data->offset < 0) {
-		fprintf(stderr, "mad_open() couldn't find valid MPEG header\n");
-		return 0;
+		//fprintf(stderr, "mad_open() couldn't find valid MPEG header\n");
+		data->offset = 0;
 	}
 	if (data->offset > data->bytes_avail) {
-		alsaplayer_error("Need to refill buffer");
+		data->seekable = 1;
+		//alsaplayer_error("Need to refill buffer (data->offset = %d)", data->offset);
 		fill_buffer(data, 0);
 		mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
 	} else {
@@ -855,12 +852,24 @@ static int mad_open(input_object *obj, const char *path)
 	}	
 	
 	if ((mad_frame_decode(&data->frame, &data->stream) != 0)) {
-		alsaplayer_error("MAD error: %s", error_str(data->stream.error, data->str));
+		//alsaplayer_error("MAD error: %s", error_str(data->stream.error, data->str));
 		switch (data->stream.error) {
 			case MAD_ERROR_BUFLEN:
 				return 0;
 			case MAD_ERROR_LOSTSYNC:
-				return 0;
+				if (mad_header_decode(&data->frame.header, &data->stream) == -1) {
+					alsaplayer_error("Invalid header");
+				}
+				//alsaplayer_error("Calling mad_frame_decode again.. (%d %d %d)", 
+				//		data->stream.this_frame - data->mad_map,
+				//		data->stream.next_frame - data->mad_map,
+				//		data->bytes_avail);
+				mad_stream_buffer(&data->stream, data->stream.this_frame,
+						data->bytes_avail - (data->stream.this_frame - data->mad_map));
+				data->bytes_avail -= (data->stream.this_frame - data->mad_map);
+				//alsaplayer_error("avail = %d", data->bytes_avail);
+				mad_frame_decode(&data->frame, &data->stream);
+				break;
 			case MAD_ERROR_BADBITALLOC:
 				return 0;
 			case 0x232:				
@@ -871,14 +880,14 @@ static int mad_open(input_object *obj, const char *path)
 				return 0;
 		}
 	}
-	if (xing_parse(&data->xing, data->stream.anc_ptr, data->stream.anc_bitlen) == 0) {
-		// We use the xing data later on
-	}	
+	if (data->stream.error != MAD_ERROR_LOSTSYNC)
+		if (xing_parse(&data->xing, data->stream.anc_ptr, data->stream.anc_bitlen) == 0) {
+			// We use the xing data later on
+		}	
 	mode = (data->frame.header.mode == MAD_MODE_SINGLE_CHANNEL) ?
 		1 : 2;
 	data->samplerate = data->frame.header.samplerate;
 	data->bitrate	= data->frame.header.bitrate;
-
 	mad_synth_frame (&data->synth, &data->frame);
 	{
 		struct mad_pcm *pcm = &data->synth.pcm;			
@@ -899,9 +908,11 @@ static int mad_open(input_object *obj, const char *path)
 		data->filesize -= data->offset;
 
 		reader_seek(data->mad_fd, oldpos, SEEK_SET);
-	
-		time = (data->filesize * 8) / (data->bitrate);
-
+		if (data->bitrate)
+			time = (data->filesize * 8) / (data->bitrate);
+		else
+			time = 0;
+		
 		samples = 32 * MAD_NSBSAMPLES(&data->frame.header);
 
 		obj->frame_size = (int) samples << 2; /* Assume 16-bit stereo */
@@ -915,23 +926,9 @@ static int mad_open(input_object *obj, const char *path)
 		data->seekable = 0;
 	}	else {
 		data->seekable = 1;
-	}				
-	data->frames[0] = 0;
-#if 0
-	/* Reset decoder */
-	data->mad_init = 0;
-	mad_synth_finish (&data->synth);
-	mad_frame_finish (&data->frame);
-	mad_stream_finish(&data->stream);
-
-	mad_synth_init  (&data->synth);
-	mad_stream_init (&data->stream);
-	mad_frame_init  (&data->frame);
-#endif	
+		data->frames[0] = 0;
+	}	
 	data->mad_init = 1;
-	//alsaplayer_error("mp3 offset = %d", data->offset);
-	//fill_buffer(data, 0);
-	//mad_stream_buffer (&data->stream, data->mad_map, data->bytes_avail);
 
 	p = strrchr(path, '/');
 	if (p) {
@@ -940,16 +937,7 @@ static int mad_open(input_object *obj, const char *path)
 		strcpy(data->filename, path);
 	}
 	strcpy(data->path, path);
-
-	if (!reader_seekable(data->mad_fd)) {
-		alsaplayer_error("No seeking allowed");
-		obj->flags = 0;
-		data->seekable = 0;
-	} else {
-		obj->flags = P_SEEK;
-		data->seekable = 1;
-	}
-
+	
 	return 1;
 }
 
