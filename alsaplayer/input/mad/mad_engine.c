@@ -84,7 +84,7 @@ struct mad_local_data {
 	int mad_init;
 	ssize_t offset;
 	ssize_t filesize;
-	int samplerate;
+	unsigned int samplerate;
 	int bitrate;
 	int seekable;
 	int seeking;
@@ -167,6 +167,17 @@ static void fill_buffer(struct mad_local_data *data, long offset)
 		data->bytes_avail += bytes_read;
 	}
 }
+
+static void mad_init_decoder(struct mad_local_data *data)
+{
+	if (!data)
+		return;
+	
+	mad_synth_init  (&data->synth);
+	mad_stream_init (&data->stream);
+	mad_frame_init  (&data->frame);
+}
+
 
 static int mad_frame_seek(input_object *obj, int frame)
 {
@@ -328,6 +339,21 @@ static int mad_play_frame(input_object *obj, char *buf)
 		output = (int16_t *)buf;
 		nsamples = pcm->length;
 		nchannels = pcm->channels;
+		if (nchannels != obj->nr_channels) {
+			alsaplayer_error("ERROR: bad data stream! (channels: %d != %d, frame %d)",
+				nchannels, 
+				obj->nr_channels,
+				data->current_frame);
+			//return 0;
+		}	
+		obj->nr_channels = nchannels;
+		if (data->samplerate != data->frame.header.samplerate) {
+			alsaplayer_error("ERROR: bad data stream! (samplerate: %d != %d, frame %d)",
+				data->samplerate, 
+				data->frame.header.samplerate,
+				data->current_frame);
+		}	
+		data->samplerate = data->frame.header.samplerate;
 		left_ch = pcm->samples[0];
 		right_ch = pcm->samples[1];
 		while (nsamples--) {
@@ -457,7 +483,7 @@ static void parse_id3 (const char *path, stream_info *info)
 	    int f_unsynchronization = buf [5] & (1<<7);
 	    int f_extended_header = buf [5] & (1<<6);
 	    int f_experimental = buf [5] & (1<<5);
-	    unsigned int header_size = from_synchsafe4 (buf + 6);
+	    int header_size = from_synchsafe4 (buf + 6);
 	    int name_size = buf [3] == 2 ? 3 : 4;
 
 	    if (f_extended_header) {
@@ -816,6 +842,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 }
 
 
+
 static int mad_open(input_object *obj, const char *path)
 {
 	struct mad_local_data *data;
@@ -856,17 +883,19 @@ static int mad_open(input_object *obj, const char *path)
 	}
 	obj->flags |= P_REENTRANT;
 
-	mad_synth_init  (&data->synth);
-	mad_stream_init (&data->stream);
-	mad_frame_init  (&data->frame);
+	mad_init_decoder(data);
 	memset(&data->xing, 0, sizeof(struct xing));
 	xing_init (&data->xing);
 	data->mad_init = 1;
 	fill_buffer(data, -1);
 	//alsaplayer_error("initial bytes_avail = %d", data->bytes_avail);
-	data->offset = find_initial_frame(data->mad_map, 
+	if (obj->flags & P_PERFECTSEEK) {
+		data->offset = find_initial_frame(data->mad_map, 
 			data->bytes_avail < STREAM_BUFFER_SIZE ? data->bytes_avail :
 			STREAM_BUFFER_SIZE);
+	} else {
+		data->offset = 0;
+	}	
 	data->highest_frame = 0;
 	if (data->offset < 0) {
 		//fprintf(stderr, "mad_open() couldn't find valid MPEG header\n");
@@ -890,7 +919,9 @@ first_frame:
 				return 0;
 			case MAD_ERROR_LOSTSYNC:
 			case MAD_ERROR_BADEMPHASIS:
-			case MAD_ERROR_BADBITRATE:	
+			case MAD_ERROR_BADBITRATE:
+			case MAD_ERROR_BADLAYER:	
+				
 			case MAD_ERROR_BADSAMPLERATE:	
 				if (mad_header_decode(&data->frame.header, &data->stream) == -1) {
 					alsaplayer_error("Lost synchronisation (%s)", path);
@@ -903,7 +934,7 @@ first_frame:
 				return 0;
 			case MAD_ERROR_BADCRC:
 				alsaplayer_error("MAD_ERROR_BADCRC: %s", error_str(data->stream.error, data->str));
-			case MAD_ERROR_BADBIGVALUES:				
+			case MAD_ERROR_BADBIGVALUES:
 			case MAD_ERROR_BADDATAPTR:
 				break;
 			default:
