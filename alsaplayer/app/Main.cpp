@@ -499,6 +499,10 @@ int main(int argc, char **argv)
 	interface_plugin_info_type interface_plugin_info;
 	interface_plugin *ui;
 
+	if (sscanf(argv[0], "alsaplayer-%s", &use_interface) == 1) {
+		/* Determine interface from the command line */
+		printf("Using interface %s\n", use_interface);
+	}	
 	if (strlen(use_interface)) {
 		if (!(interface_plugin_info = load_interface(use_interface))) {
 			printf("Failed to load interface %s\n", use_interface);
