@@ -301,7 +301,7 @@ static float sndfile_can_handle (const char *name)
 			strstr(fname, ".AU") ||
 			strstr(fname, ".aiff") ||
 			strstr(fname, ".AIFF")) {
-		return 0.1;
+		return 0.8;
 	}
 	return 0.0;
 }

@@ -370,7 +370,7 @@ static float wav_can_handle(const char *name)
 		}
 	}
 */	
-	return 1.0;
+	return 0.2;
 }
 
 static int wav_stream_info(input_object *obj, stream_info *info)
