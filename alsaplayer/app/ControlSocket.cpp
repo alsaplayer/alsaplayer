@@ -203,6 +203,10 @@ static void socket_looper(void *arg)
 					ap_message_add_int32(reply, "ack", 0);
 				}	
 				break;
+			case AP_SHUFFLE_PLAYLIST:
+				playlist->Shuffle();
+				ap_message_add_int32(reply, "ack", 1);
+				break;
 			case AP_STOP:
 				playlist->Stop();
 				ap_message_add_int32(reply, "ack", 1);
@@ -222,6 +226,16 @@ static void socket_looper(void *arg)
 			case AP_CLEAR_PLAYLIST:
 				playlist->Clear();
 				ap_message_add_int32(reply, "ack", 1);
+				break;
+			case AP_SAVE_PLAYLIST:
+				if (getenv("HOME") == NULL) {
+					ap_message_add_int32(reply, "ack", 0);
+				} else {
+					char save_path[PATH_MAX];
+					snprintf(save_path, sizeof(save_path)-1, "%s/.alsaplayer/latest.m3u", getenv("HOME"));
+					playlist->Save(save_path, PL_FORMAT_M3U);
+					ap_message_add_int32(reply, "ack", 1);
+				}
 				break;
 			case AP_QUIT:
 				// Woah, this is very dirty! XXX FIXME XXX

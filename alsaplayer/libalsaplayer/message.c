@@ -919,6 +919,11 @@ int ap_shuffle_playlist(int session)
 	return (ap_do_command_only(session, AP_SHUFFLE_PLAYLIST));
 }
 
+int ap_save_playlist(int session)
+{
+	return (ap_do_command_only(session, AP_SAVE_PLAYLIST));
+}
+
 int ap_quit(int session)
 {
 	return (ap_do_command_only(session, AP_QUIT));
