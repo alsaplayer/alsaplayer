@@ -690,6 +690,7 @@ static int mad_open(input_object *obj, char *path)
 {
 	struct mad_local_data *data;
 	char *p;
+	char fake_read[4];
 	int mode;
 
 	if (!obj)
@@ -704,21 +705,37 @@ static int mad_open(input_object *obj, char *path)
 	memset(data, 0, sizeof(struct mad_local_data));
 
 	if ((data->mad_fd = open(path, O_RDONLY | O_BINARY)) < 0) {
-		//fprintf(stderr, "mad_open() failed\n");
+		fprintf(stderr, "mad_open() failed\n");
+		free(obj->local_data);
+		obj->local_data = NULL;
 		return 0;
 	}
 	if (fstat(data->mad_fd, &data->stat) == -1) {
 		perror("fstat");
+		free(obj->local_data);
+		obj->local_data = NULL;
 		return 0;
 	}
 	if (!data->stat.st_size) {
 		fprintf(stderr, "empty file\n");
+		free(obj->local_data);
+		obj->local_data = NULL;
 		return 0;
 	}	
 	if (!S_ISREG(data->stat.st_mode)) {
 		fprintf(stderr, "%s: Not a regular file\n", path);
+		free(obj->local_data);
+		obj->local_data = NULL;
 		return 0;
 	}
+	/* Check if we can actually read the file (NFS) */
+	if (read(data->mad_fd, fake_read, 1) != 1) {
+		fprintf(stderr, "%s: cannot read this file (NFS trouble?)\n",
+				path);
+		free(obj->local_data);
+		obj->local_data = NULL;
+		return 0;
+	}	
 	data->mad_map = (uint8_t *)mmap(0, data->stat.st_size, PROT_READ, MAP_SHARED, data->mad_fd, 0);
 
 	if (data->mad_map == MAP_FAILED) {

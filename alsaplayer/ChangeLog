@@ -1,10 +1,10 @@
-Wed May 15 12:30:11 CEST 2002
+Thu May 16 00:08:08 CEST 2002
 -----------------------------
-* NEW FLAC input plugin by Drew Hess, see http://flac.sourceforge.net/ for FLAC
 * JACK plugin is now a *real* plugin. Minor changes to the output 
   plugin API to accommodate this.
 * Changes for latest JACK, at least 0.28.2 required now.
 * Add genre and album parsing in MAD plugin (Evgeny)
+* NEW FLAC input plugin by Drew Hess, FLAC details at http://flac.sf.net/
 * Complete reimplentation of socket control API (libalsaplayer)
   This breaks all old libalsaplayer apps, fortunately there aren't that many
   right now. The new API is much more flexible. It is partly based on ideas
@@ -16,7 +16,10 @@ Wed May 15 12:30:11 CEST 2002
 * Force control socket to be read/write for the owner only
 * Fix crashing bug when old visual scopes were present.
 * Stop the mikmod plugin from crashing. This plugin was not 
-  reentrant, and it still isn't, not until libmikmod becomes reentrant :(
+  reentrant, and it still isn't, not until libmikmod can handle multiple
+  files simultaneously :(
+* Fix nasty NFS gotcha bug when attempting to mmap() files we don't have
+  read permission for (bus error)
 
 
 Tue Apr 30 13:43:07 CEST 2002

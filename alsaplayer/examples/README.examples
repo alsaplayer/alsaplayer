@@ -1,10 +1,11 @@
 This directory contains some sample source code for using libalsaplayer
 
-add.c     Add files to a running alsaplayer
-clear.c   Clear playlist
-seek.c    Seek in songs
-speed.c   Set playback speed/pause, negative parameter is allowed ;-)
-time.c    Displays position info for a session
+add.c       Add files to a running alsaplayer
+clear.c     Clear playlist
+seek.c      Seek in songs
+speed.c     Set playback speed/pause, negative parameter is allowed ;-)
+time.c      Displays position info for a session
+relative.c  Jump relative amount of seconds
 
 All these examples can be build as follows:
 
