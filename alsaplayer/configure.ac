@@ -33,7 +33,7 @@ have_nas=no
 have_mikmod=no
 dynload=no
 use_3dnow_asm=no
-prefer_mad=no
+prefer_mad=yes
 
 if test "x$x_includes" = "xNONE"
 then
@@ -81,7 +81,7 @@ DFLAGS="$DFLAGS -DTOP_FOOLING"
 fi
 
 AC_ARG_ENABLE(prefer-mad,
-[ --enable-prefer-mad            prefer MAD plugin over mpg123 ], prefer_mad=yes, prefer_mad=no)
+[  --enable-prefer-mad     prefer MAD plugin over mpg123 (default=yes)], prefer_mad=yes, prefer_mad=no)
 
 if test "$prefer_mad" = yes; then
 	AC_DEFINE(PREFER_MAD)
