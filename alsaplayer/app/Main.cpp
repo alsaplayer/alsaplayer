@@ -68,13 +68,12 @@ int global_quiet = 0;
 
 char *global_session_name = NULL;
 char *global_interface_script = NULL;
+char *global_pluginroot = NULL;
 
 prefs_handle_t *ap_prefs = NULL;
 
 void control_socket_start(Playlist *, interface_plugin *ui);
 void control_socket_stop();
-
-static char addon_dir[512];
 
 static char *default_pcm_device = "default";
 
@@ -125,13 +124,18 @@ void exit_sighandler(int x)
 void load_output_addons(AlsaNode * node, char *module = NULL)
 {
 	void *handle;
-	char path[1024];
+	char path[1024], *pluginroot;
 	struct stat statbuf;
 
 	output_plugin_info_type output_plugin_info;
 
+	if (!global_pluginroot)
+		pluginroot = ADDON_DIR;
+	else
+		pluginroot = global_pluginroot;
+
 	if (module) {
-		snprintf(path, sizeof(path), "%s/output/lib%s_out.so", addon_dir, module);
+		snprintf(path, sizeof(path), "%s/output/lib%s_out.so", pluginroot, module);
 		if (stat(path, &statbuf) != 0)	// Error reading object
 			return;
 		if ((handle = dlopen(path, RTLD_NOW | RTLD_GLOBAL))) {
@@ -156,7 +160,7 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 		}
 	} else {
 		for (int i = 0; default_output_addons[i]; i++) {
-			snprintf(path, sizeof(path)-1, "%s/output/lib%s_out.so", addon_dir,
+			snprintf(path, sizeof(path)-1, "%s/output/lib%s_out.so", pluginroot,
 				default_output_addons[i]);
 			if (stat(path, &statbuf) != 0)
 				continue;
@@ -198,24 +202,29 @@ void load_output_addons(AlsaNode * node, char *module = NULL)
 	alsaplayer_error
 	    ("\nI could not find a suitable output module on your\n"
 	     "system. Make sure they're in \"%s/output/\".\n"
-	     "Use the -o parameter to select one.\n", addon_dir);
+	     "Use the -o parameter to select one.\n", pluginroot);
 }
 
 
 interface_plugin_info_type load_interface(char *name)
 {
 	void *handle;
-	char path[1024];
+	char path[1024], *pluginroot;
 	struct stat statbuf;
 
 	interface_plugin_info_type plugin_info;
 	interface_plugin *ui;
 
+	if (!global_pluginroot)
+		pluginroot = ADDON_DIR;
+	else
+		pluginroot = global_pluginroot;
+
 	if (name) {
 		if (strchr(name, '.'))
 			strncpy(path, name, sizeof(path));
 		else
-			snprintf(path, sizeof(path), "%s/interface/lib%s.so", addon_dir, name);
+			snprintf(path, sizeof(path), "%s/interface/lib%s.so", pluginroot, name);
 #ifdef DEBUG
 		alsaplayer_error("Loading interface plugin: %s\n", path);
 #endif
@@ -266,14 +275,19 @@ static char *copyright_string =
 
 static void list_available_plugins(char *plugindir)
 {
-	char path[1024];
+	char path[1024], *pluginroot;
 	struct stat buf;
 	bool first = true;
 
 	if (!plugindir)
 		return;
 
-	snprintf(path, sizeof(path), "%s/%s", addon_dir, plugindir);
+	if (!global_pluginroot)
+		pluginroot = ADDON_DIR;
+	else
+		pluginroot = global_pluginroot;
+
+	snprintf(path, sizeof(path), "%s/%s", pluginroot, plugindir);
 
 	DIR *dir = opendir(path);
 	dirent *entry;
@@ -284,7 +298,7 @@ static void list_available_plugins(char *plugindir)
 					strcmp(entry->d_name, "..") == 0) {
 				continue;
 			}
-			snprintf(path, sizeof(path), "%s/%s/%s", addon_dir, plugindir, entry->d_name);
+			snprintf(path, sizeof(path), "%s/%s/%s", pluginroot, plugindir, entry->d_name);
 			if (stat(path, &buf)) {
 				continue;
 			}	
@@ -460,10 +474,6 @@ int main(int argc, char **argv)
 	
 	// Init global mutexes
 	pthread_mutex_init(&playlist_sort_seq_mutex, NULL);
-	
-	strncpy(addon_dir, ADDON_DIR, sizeof(addon_dir)-1);
-	addon_dir[sizeof(addon_dir)-1] = 0;
-
 	init_effects();
 
 	homedir = get_homedir();
@@ -526,8 +536,11 @@ int main(int argc, char **argv)
 				use_session = atoi(optarg);
 				break;
 			case 'p':
-				strncpy(addon_dir, optarg, sizeof(addon_dir)-1);
-				addon_dir[sizeof(addon_dir)-1] = 0;
+				if (strlen(optarg) < 512) {
+					global_pluginroot = (char *)
+						malloc(strlen(optarg) + 1 );
+					strcpy(global_pluginroot, optarg);
+				}	
 				break;
 			case 'q':
 				global_quiet = 1;
@@ -579,6 +592,10 @@ int main(int argc, char **argv)
 	if (global_verbose)
 		fprintf(stdout, "%s\n", copyright_string);
 
+	if (!global_pluginroot) {
+		global_pluginroot = ADDON_DIR;
+	}	
+
 	// Check if we need to enqueue the files
 	if (do_enqueue) {
 		char queue_name[2048];
@@ -622,10 +639,9 @@ int main(int argc, char **argv)
 	// Check if we want jack
 	if (strcmp(argv[0], "jackplayer") == 0) {
 		use_output = "jack";
-		device_param = "jack";
 	}
 	// Else do the usual plugin based thing
-	node = new AlsaNode(device_param, do_realtime);
+	node = new AlsaNode(use_output, device_param, do_realtime);
 	if (use_output) {
 		load_output_addons(node, use_output);
 	} else {
@@ -720,13 +736,14 @@ int main(int argc, char **argv)
 						  "fallback_interface",
 						  "text")))) {
 				alsaplayer_error
-					("Failed to load text interface. This is bad (%s,%s)",
+					("Failed to load text interface. This is bad (%s,%s,%s)",
 					 prefs_get_string(ap_prefs, "main",
 						 "default_interface",
 						 "gtk"),
 					 prefs_get_string(ap_prefs, "main",
 						 "default_interface",
-						 "gtk"));
+						 "gtk"),
+					global_pluginroot);
 				goto _fatal_err;
 			}
 		}
@@ -738,6 +755,8 @@ int main(int argc, char **argv)
 		if (global_verbose)
 			fprintf(stdout, "Interface plugin: %s\n",
 					ui->name);
+		if (global_verbose)			
+			alsaplayer_error("Calling ui->init()");			
 		if (!ui->init()) {
 			alsaplayer_error
 				("Failed to load interface plugin. Should fall back to text\n");
@@ -758,16 +777,18 @@ int main(int argc, char **argv)
 	snprintf(prefs_path, sizeof(prefs_path)-1, "%s/.alsaplayer/alsaplayer", homedir);
 	playlist->Save(prefs_path, PL_FORMAT_M3U);
 
+	// Save preferences
+	if (ap_prefs)
+		prefs_save(ap_prefs);
+
 _fatal_err:
 	delete playlist;
 	//delete p;
 	delete node;
 	if (global_session_name)
 		free(global_session_name);
-
-	// Save preferences
-	if (ap_prefs)
-		prefs_save(ap_prefs);
+	if (global_pluginroot)
+		free(global_pluginroot);
 
 	return 0;
 }
