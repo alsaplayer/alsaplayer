@@ -367,6 +367,7 @@ void Playlist::Next(int locking) {
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
 			(*i)->CbUnlock();
 		}
+	}	
 	Lock();
 	for(i = interfaces.begin(); i != interfaces.end(); i++) {
 		(*i)->CbLock();
@@ -564,6 +565,7 @@ void Playlist::Shuffle(int locking) {
 		for(i = interfaces.begin(); i != interfaces.end(); i++) {
 			(*i)->CbUnlock();
 		}
+	}	
 	Lock();
 	for(i = interfaces.begin(); i != interfaces.end(); i++) {
 		(*i)->CbLock();
