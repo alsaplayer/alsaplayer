@@ -73,7 +73,7 @@ dnl Hackety hack stuff
 dnl ==================
 
 AC_ARG_ENABLE(top-fooling,
-[  --enable-top-fooling     enable fooling of top, pretend to be faster ],, enable_top_fooling=no)
+[  --enable-top-fooling    enable fooling of top, pretend to be faster ],, enable_top_fooling=no)
 
 if test "$enable_top_fooling" = yes; then
 DFLAGS="$DFLAGS -DTOP_FOOLING"
@@ -113,7 +113,7 @@ else
 fi
 
 AC_ARG_ENABLE(mikmod,
-[ --enable-mikmod        Enable Mikmod plugin [default=yes]],
+[  --enable-mikmod         Enable Mikmod plugin [default=yes]],
 [if test "$enableval" = "no"
 then
 	if test "$have_mikmod" = "yes"
@@ -124,7 +124,7 @@ fi])
 
 
 AC_ARG_ENABLE(oggvorbis,
-[ --enable-oggvorbis     Enable Ogg Vorbis plugin [default=yes]],
+[  --enable-oggvorbis      Enable Ogg Vorbis plugin [default=yes]],
 [if test "$enableval" = "no"
 then
 	if test "$have_oggvorbis" = "yes"
@@ -138,7 +138,7 @@ AM_CONDITIONAL(HAVE_OGGVORBIS,test "$have_oggvorbis" = "yes")
 audiofile_enable=no
 
 AC_ARG_ENABLE(audiofile,
-[ --enable-audiofile      Enable Audiofile plugin [default=no]],
+[  --enable-audiofile      Enable Audiofile plugin [default=no]],
 [if test "$enableval" = "yes"
 then
 	if test "$have_audiofile" = "yes"
@@ -282,7 +282,7 @@ have_alsa=no
 fi])
 
 AC_ARG_ENABLE(esd,
-[  --enable-esd		  Enable esd driver [default=yes]],
+[  --enable-esd            Enable esd driver [default=yes]],
 [if test "$enableval" = "no"
 then
 have_esd=no
@@ -290,7 +290,7 @@ fi])
 
 
 AC_ARG_ENABLE(sparc,
-[  --enable-sparc     Enable SPARC driver [default=yes]],
+[  --enable-sparc          Enable SPARC driver [default=yes]],
 [if test "$enableval" = "no"
 then
 have_sparc=no
@@ -298,7 +298,7 @@ fi])
 
 
 AC_ARG_ENABLE(oss,
-[  --enable-oss	  	  Enable OSS driver [default=yes]],
+[  --enable-oss            Enable OSS driver [default=yes]],
 [if test "$enableval" = "no"
 then
 have_oss=no
@@ -306,28 +306,28 @@ fi])
 
 
 AC_ARG_ENABLE(sgi,
-[  --enable-sgi	  	  Enable SGI driver [default=yes]],
+[  --enable-sgi            Enable SGI driver [default=yes]],
 [if test "$enableval" = "no"
 then
 have_sgi=no
 fi])
 
 AC_ARG_ENABLE(gtk,
-[  --enable-gtk       Enable GTK graphical interface [default=yes]],
+[  --enable-gtk            Enable GTK graphical interface [default=yes]],
 [if test "$enableval" = "no"
 then
 have_gtk=no
 fi])
 
 AC_ARG_ENABLE(nas,
-[  --enable-nas	  	  Enable NAS driver [default=yes]],
+[  --enable-nas            Enable NAS driver [default=yes]],
 [if test "$enableval" = "no"
 then
 have_nas=no
 fi])
 
 AC_ARG_ENABLE(qt,
-[  --enable-qt          Enable Qt graphical interface [default=no]],
+[  --enable-qt             Enable Qt graphical interface [default=no]],
 [
   if test "x$enableval" = "xno"
   then
@@ -505,6 +505,7 @@ output/null/Makefile
 output/nas/Makefile
 input/Makefile
 input/mpg123/Makefile
+input/mad/Makefile
 input/cdda/Makefile
 input/mikmod/Makefile
 input/wav/Makefile
