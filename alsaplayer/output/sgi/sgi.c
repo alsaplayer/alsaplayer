@@ -73,7 +73,7 @@ static int sgi_write (void *data, int count)
 	return 1;
 }
 
-static int sgi_set_buffer(int fragment_size, int fragment_count, int channels)
+static int sgi_set_buffer(int *fragment_size, int *fragment_count, int *channels)
 {
 	printf("SGI: fragments fixed at 256/256, stereo\n");
 	return 1;

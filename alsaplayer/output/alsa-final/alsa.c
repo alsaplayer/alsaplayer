@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */ 
 
+#define ALSA_PCM_NEW_HW_PARAMS_API
+#define ALSA_PCM_NEW_SW_PARAMS_API
 #include "config.h"
 #include <stdio.h>
 #include <errno.h>
@@ -30,7 +32,7 @@
 
 #define QUEUE_COUNT
 
-static snd_pcm_t *sound_handle;
+static snd_pcm_t *sound_handle = NULL;
 static snd_output_t *errlog;
 static snd_pcm_stream_t stream = SND_PCM_STREAM_PLAYBACK;
 static int frag_size = 2048;
@@ -93,47 +95,66 @@ do { \
 #endif
 
 
-static int alsa_write(void *data, int count)
+/*
+ *  *   Underrun and suspend recovery
+ *   */
+
+static int xrun_recovery(snd_pcm_t *handle, int err)
 {
-	snd_pcm_status_t *status;
-	int err;
-	
-	if (!sound_handle)
+	if (err == -EPIPE) {    /* under-run */
+		err = snd_pcm_prepare(handle);
+		if (err < 0)
+			alsaplayer_error("Can't recovery from underrun, prepare failed: %s", snd_strerror(err));
 		return 0;
-	err = snd_pcm_writei(sound_handle, data, count / 4);
-	if (err == -EPIPE) {
-		snd_pcm_status_alloca(&status);
-		if ((err = snd_pcm_status(sound_handle, status))<0) {
-			alsaplayer_error("xrun. can't determine length");
-		} else {
-			if (snd_pcm_status_get_state(status) == SND_PCM_STATE_XRUN) {
-				struct timeval now, diff, tstamp;
-				gettimeofday(&now, 0);
-				snd_pcm_status_get_trigger_tstamp(status, &tstamp);
-				timersub(&now, &tstamp, &diff);
-				alsaplayer_error("xrun of at least %.3f msecs. resetting stream",
-					diff.tv_sec * 1000 + diff.tv_usec / 1000.0);
-			} else 
-				alsaplayer_error("xrun. can't determine length");
+	} else if (err == -ESTRPIPE) {
+		while ((err = snd_pcm_resume(handle)) == -EAGAIN)
+			sleep(1);       /* wait until the suspend flag is released */
+		if (err < 0) {
+			err = snd_pcm_prepare(handle);
+			if (err < 0)
+				alsaplayer_error("Can't recovery from suspend, prepare failed: %s", snd_strerror(err));
+		}
+		return 0;
+	}
+	return err;
+}
+
+
+
+
+static int alsa_write(void *data, int cnt)
+{
+	snd_pcm_uframes_t fcount;
+	int err;
+
+	fcount = (snd_pcm_uframes_t) (cnt / 4);
+	if (!sound_handle) {
+		alsaplayer_error("WTF?");
+		return 0;
+	}	
+	err = snd_pcm_writei(sound_handle, data, fcount);
+	if (err < 0) {
+		if (xrun_recovery(sound_handle, err) < 0) {
+			alsaplayer_error("alsa: xrun");
+			return 0;
 		}	
-		snd_pcm_prepare(sound_handle);
-		err = snd_pcm_writei(sound_handle, data, count / 4);
-		if (err != count / 4) {
-			alsaplayer_error("ALSA write error: %s", snd_strerror(err));
-			return 0;
-		} else if (err < 0) {
-			alsaplayer_error("ALSA write error: %s", snd_strerror(err));
-			return 0;
+		err = snd_pcm_writei(sound_handle, data, fcount);
+		if (err < 0) {
+			if (xrun_recovery(sound_handle, err) < 0) {
+				alsaplayer_error("alsa: xrun");
+				return 0;
+			}	
 		}	
 	}
 	return 1;
 }
 
 
-static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
+static int alsa_set_buffer(int *fragment_size, int *fragment_count, int *channels)
 {
 	int err;
 	unsigned int val;
+	snd_pcm_uframes_t periodsize;
 	snd_pcm_hw_params_t *hwparams;
 	snd_pcm_hw_params_alloca(&hwparams);
 	if (!sound_handle) {
@@ -142,7 +163,7 @@ static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
 	}	
 	err = snd_pcm_hw_params_any(sound_handle, hwparams);
 	if (err < 0) {
-		puts("error on snd_pcm_hw_params_any");
+		puts("error on snd_pcm_hw_par/ams_any");
 		goto _err;
 	}	
 	err = snd_pcm_hw_params_set_access(sound_handle, hwparams,
@@ -156,49 +177,55 @@ static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
 	if (err < 0) {
 		puts("error on set_format SND_PCM_FORMAT_S16_LE");
 		goto _err;
-	}	
+	}
+	val = output_rate;
 	err = snd_pcm_hw_params_set_rate_near(sound_handle, hwparams,
-					 output_rate, 0);
+					 &val, 0);
 	if (err < 0) {
 		/* Try 48KHZ too */
 		printf("%d HZ not available, trying 48000 HZ\n", output_rate);
-		output_rate = 48000;
+		val = 48000;
 		err = snd_pcm_hw_params_set_rate_near(sound_handle, hwparams,
-				output_rate, 0);
+				&val, 0);
 		printf("error on setting output_rate (%d)\n", output_rate);			
 		goto _err;
-	}	
-	err = snd_pcm_hw_params_set_channels(sound_handle, hwparams, channels);
+	}
+	output_rate = val;
+	
+	err = snd_pcm_hw_params_set_channels(sound_handle, hwparams, *channels);
 	if (err < 0) {
-		printf("error on set_channels (%d)\n", channels);
-		goto _err;
-	}	
-	err = snd_pcm_hw_params_set_period_size(sound_handle, hwparams,
-						fragment_size / 4, 0);
-	if (err < 0) {
-		printf("error on set_period_size (%d)\n", fragment_size / 4);			
+		printf("error on set_channels (%d)\n", *channels);
 		goto _err;
 	}
-	if ((val = snd_pcm_hw_params_get_periods_max(hwparams, 0)) < fragment_count) {
-			fragment_count = val;
-	}
-	err = snd_pcm_hw_params_set_periods(sound_handle, hwparams,
-					    fragment_count, 0);
+	periodsize = (*fragment_size) / 4; /* bytes -> frames for 16-bit,stereo */
+	err = snd_pcm_hw_params_set_period_size_near(sound_handle, hwparams,
+						&periodsize, 0);
 	if (err < 0) {
-		printf("error on set_periods (%d)\n", fragment_count);			
+		printf("error on set_period_size (%d)\n", (int)periodsize);			
 		goto _err;
 	}
+	frag_size = periodsize << 2;
+	
+	val = *fragment_count;
+	err = snd_pcm_hw_params_set_periods_near(sound_handle, hwparams,
+					    &val, 0);
+	if (err < 0) {
+		printf("error on set_periods (%d)\n", val);			
+		goto _err;
+	}
+	frag_count = val;
+	
 	err = snd_pcm_hw_params(sound_handle, hwparams);
 	if (err < 0) {
 		alsaplayer_error("Unable to install hw params:");
 		snd_pcm_hw_params_dump(hwparams, errlog);
 		return 0;
 	}
-	
-	frag_size = fragment_size;
-	frag_count = fragment_count; 
-	nr_channels = channels;
-	
+	nr_channels = *channels;
+
+	*fragment_size = frag_size;
+	*fragment_count = frag_count;
+	//alsaplayer_error("Fragment size/count: %d/%d", *fragment_size, *fragment_count);
 	return 1;
  _err:
 	alsaplayer_error("Unavailable hw params:");
@@ -210,7 +237,7 @@ static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
 static unsigned int alsa_set_sample_rate(unsigned int rate)
 {
 	output_rate = rate;
-	alsa_set_buffer(frag_size, frag_count, nr_channels);
+	alsa_set_buffer(&frag_size, &frag_count, &nr_channels);
 	return output_rate;
 }
 
@@ -220,6 +247,10 @@ static int alsa_get_queue_count(void)
 	snd_pcm_uframes_t avail;
 	int err;
 
+	if (!sound_handle) {
+		alsaplayer_error("No handle in alsa_get_queue_count()");
+		return 0;
+	}	
 	snd_pcm_status_alloca(&status);
 	if ((err = snd_pcm_status(sound_handle, status))<0) {
 		alsaplayer_error("can't determine status");
@@ -231,7 +262,6 @@ static int alsa_get_queue_count(void)
 
 static int alsa_get_latency(void)
 {
-	//alsaplayer_error("frag_size = %d, frag_count = %d", frag_size, frag_count);
 	return (frag_size * frag_count);
 }
 

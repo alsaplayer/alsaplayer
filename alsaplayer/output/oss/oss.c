@@ -70,18 +70,23 @@ static int oss_write(void *data, int count)
 }
 
 
-static int oss_set_buffer(int fragment_size, int fragment_count, int channels)
+static int oss_set_buffer(int *fragment_size, int *fragment_count, int *channels)
 {
-	static int val;
+	int val;
 	int hops;
-
-	for (hops=0; fragment_size >>=1; hops++);
+	int size;
+	int count;
 	
-	val = (fragment_count << 16) + hops;
+	size = *fragment_size;
+	count = *fragment_count;
+	
+	for (hops=0; size >>=1; hops++);
+	
+	val = (count << 16) + hops;
 	ioctl(oss_fd,SNDCTL_DSP_SETFRAGMENT,&val);
 	val = AFMT_S16_NE;
 	ioctl(oss_fd,SNDCTL_DSP_SETFMT,&val);
-	val = channels - 1;
+	val = *channels - 1;
 	ioctl(oss_fd,SNDCTL_DSP_STEREO,&val);
 	ioctl(oss_fd,SNDCTL_DSP_GETBLKSIZE,&val);
 	return 1;

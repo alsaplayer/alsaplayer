@@ -89,7 +89,7 @@ static int esound_write(void *data, int count)
 }
 
 
-static int esound_set_buffer(int fragment_size, int fragment_count, int channels)
+static int esound_set_buffer(int *fragment_size, int *fragment_count, int *channels)
 {
 	printf("ESD: fragments fixed at 256/256, stereo\n");
 	return 1;

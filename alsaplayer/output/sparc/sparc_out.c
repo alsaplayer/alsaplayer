@@ -58,7 +58,7 @@ static int sparc_write(void *data, int count)
 }	
 
 
-static int sparc_set_buffer(int fragment_size, int fragment_count, int channels)
+static int sparc_set_buffer(int *fragment_size, int *fragment_count, int *channels)
 {
 	return 1;
 }

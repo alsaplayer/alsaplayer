@@ -51,7 +51,7 @@ static int null_write(void *data, int count)
 }
 
 
-static int null_set_buffer(int fragment_size, int fragment_count, int channels)
+static int null_set_buffer(int *fragment_size, int *fragment_count, int *channels)
 {
 	return 1;
 }

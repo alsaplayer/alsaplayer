@@ -104,7 +104,7 @@ static int alsa_write(void *data, int count)
 }
 
 
-static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
+static int alsa_set_buffer(int *fragment_size, int *fragment_count, int *channels)
 {
 	snd_pcm_channel_params_t params;
 	snd_pcm_channel_setup_t setup;
@@ -116,14 +116,14 @@ static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
 	params.channel = channel;
 	params.start_mode = SND_PCM_START_FULL;
 	params.stop_mode = SND_PCM_STOP_STOP;
-	params.buf.block.frag_size = fragment_size;
-	params.buf.block.frags_max = fragment_count;
+	params.buf.block.frag_size = *fragment_size;
+	params.buf.block.frags_max = *fragment_count;
 	params.buf.block.frags_min = 1;
 
 	memset(&format, 0, sizeof(format));
 	format.format =  SND_PCM_SFMT_S16_LE;
 	format.rate = output_rate;
-	format.voices = channels;
+	format.voices = *channels;
 	format.interleave = 1;
 	memcpy(&params.format, &format, sizeof(format));
 		
@@ -147,8 +147,8 @@ static int alsa_set_buffer(int fragment_size, int fragment_count, int channels)
 			snd_strerror(err));
 		return 0;
 	}	
-	frag_size = fragment_size;
-	frag_count = fragment_count;
+	frag_size = *fragment_size;
+	frag_count = *fragment_count;
 
 	return 1;
 }

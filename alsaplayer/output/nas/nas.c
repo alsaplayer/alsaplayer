@@ -187,7 +187,7 @@ static int nas_write(void *buf,int len)
     return 1;
 }
 
-static int nas_set_buffer(int fragment_size, int fragment_count, int channels)
+static int nas_set_buffer(int *fragment_size, int *fragment_count, int *channels)
 {
     AuDeviceID      device = AuNone;
     AuElement       elements[2];
@@ -200,7 +200,7 @@ static int nas_set_buffer(int fragment_size, int fragment_count, int channels)
 
     /* alsaplayer_error("nas_set_buffer(%d, %d, %d)", fragment_size, fragment_count, channels); */
    
-    fragment_count = 3;
+    *fragment_count = 3;
     
     if (((char) *(short *)"x")=='x') /* ugly, but painless */
     {
@@ -216,7 +216,7 @@ static int nas_set_buffer(int fragment_size, int fragment_count, int channels)
        if
        ((AuDeviceKind(AuServerDevice(Nas_Info.aud, i)) ==  AuComponentKindPhysicalOutput)
        &&
-       (AuDeviceNumTracks(AuServerDevice(Nas_Info.aud, i)) ==  channels ))
+       (AuDeviceNumTracks(AuServerDevice(Nas_Info.aud, i)) ==  *channels ))
        {
             device = AuDeviceIdentifier(AuServerDevice(Nas_Info.aud, i));
             break;
@@ -232,7 +232,7 @@ static int nas_set_buffer(int fragment_size, int fragment_count, int channels)
         exit(1);
     }
 
-    buf_samples = fragment_size * fragment_count;
+    buf_samples = *fragment_size * *fragment_count;
 
 /* POSSIBLE FIXME: Rate cannot be changed run-time :-( */
 
@@ -240,7 +240,7 @@ static int nas_set_buffer(int fragment_size, int fragment_count, int channels)
                               (unsigned short) Nas_Info.freq /* ai->rate*/ ,
                                                    /* rate */
                               format,              /* format */
-                              channels /*ai->channels*/ ,        /* channels */
+                              *channels /*ai->channels*/ ,        /* channels */
                               AuTrue,              /* ??? */
                               buf_samples,         /* max samples */
                               (AuUint32) (buf_samples / 100
@@ -270,7 +270,7 @@ static int nas_set_buffer(int fragment_size, int fragment_count, int channels)
                            nas_eventHandler,       /* callback */
                            (AuPointer) &Nas_Info);     /* data */
 
-    Nas_Info.buf_size = buf_samples *  channels * AuSizeofFormat(format);
+    Nas_Info.buf_size = buf_samples *  *channels * AuSizeofFormat(format);
     Nas_Info.buf = (char *) malloc(Nas_Info.buf_size);
     if (Nas_Info.buf == NULL) {
         fprintf(stderr, "Unable to allocate input/output buffer of size %ld\n",

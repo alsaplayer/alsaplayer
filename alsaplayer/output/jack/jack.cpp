@@ -261,7 +261,7 @@ static void jack_close()
 }
 
 
-static int jack_set_buffer(int /*fragment_size*/, int /*fragment_count*/, int /*channels*/)
+static int jack_set_buffer(int * /*fragment_size*/, int * /*fragment_count*/, int * /*channels*/)
 {
 	return 1;
 }
