@@ -12,7 +12,7 @@ sparc_outsources =
 
 endif
 
-EXTRA_DIST = sparc.c
+EXTRA_DIST = sparc_out.c
 
 lib_LTLIBRARIES = $(sparc_outltlibs)
 
