@@ -24,13 +24,18 @@ static void usage(void)
 	"shuffle\n"
 	"sort <direction>\n"
 	"stop\n"
+	"prev\"
+	"next\"
 	"pause\n"
 	"cont\n"
 	"seek second\n"
 	"query\n"
 	"title\n"
 	"time\n"
+	"loop-on\n"
+	"loop-off\n"
 	"quit");
+
 	exit(1);
 }
 
@@ -61,6 +66,11 @@ int main(int argc, char *argv[])
 	if (!strcmp(argv[1], "playlist-clear"))
 		return ap_clear_playlist(0) == 1;
 
+#if 0
+	if (!strcmp(argv[1], "playlist-save") && argc == 3)
+		return ap_save_playlist(0, argv[2]) == 1;
+#endif
+
 	if (!strcmp(argv[1], "sort") && argc == 3)
 		return ap_sort(0, argv[2]) == 1;
 
@@ -84,6 +94,12 @@ int main(int argc, char *argv[])
 
 	if (!strcmp(argv[1], "quit"))
 		return ap_quit(0) == 1;
+
+	if (!strcmp(argv[1], "loop-on"))
+		return ap_set_playlist_looping(0, 1) == 1;
+
+	if (!strcmp(argv[1], "loop-off"))
+		return ap_set_playlist_looping(0, 0) == 1;
 
 	if (!strcmp(argv[1], "shuffle"))
 		return ap_shuffle_playlist(0) == 1;
