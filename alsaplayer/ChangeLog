@@ -1,5 +1,7 @@
-Tue Apr  8 18:22:50 CEST 2003
+Sat Apr 19 12:53:53 CEST 2003
 -----------------------------
+* Basic start/stop transport control support in JACK plugin
+* Playlist is set to looping by default
 * Add --pause parameter to pause/unpause a running player
 * Added support for ALSA's dmix device. Improved the alsa plugin.
 * Fixed a pretty silly bug in AlsaNode which caused crashing when adding
