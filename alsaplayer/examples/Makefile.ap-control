@@ -1,6 +1,9 @@
+AP_CFLAGS=`pkg-config alsaplayer --cflags`
+AP_LIBS=`pkg-config alsaplayer --libs`
+
 CC=gcc
-CFLAGS=-Os -Wall -fomit-frame-pointer -I/opt/alsaplayer/include
-LDFLAGS=-L/opt/alsaplayer/lib -lalsaplayer -s
+CFLAGS=-Os -Wall -fomit-frame-pointer $(AP_CFLAGS)
+LDFLAGS=$(AP_LIBS) -s
 
 ap-control:
 
