@@ -41,6 +41,7 @@
 
 typedef struct _input_object
 {
+	int ready;			
 	int flags;
 	int nr_frames;
 	int nr_tracks;
@@ -49,7 +50,6 @@ typedef struct _input_object
 #ifndef NEW_PLAY	
 	SampleBuffer *write_buffer;
 #endif
-
 	void *local_data;
 	pthread_mutex_t	object_mutex;
 } input_object;
