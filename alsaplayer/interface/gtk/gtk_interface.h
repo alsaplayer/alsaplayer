@@ -24,6 +24,8 @@
 
 extern gint windows_x_offset;
 extern gint windows_y_offset;
+extern int global_update;
+extern pthread_t indicator_thread;
 
 void init_main_window(Playlist *, GtkFunction f);
 

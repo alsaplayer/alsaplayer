@@ -23,6 +23,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <string.h>
+#include <pthread.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/stat.h>
@@ -40,13 +41,15 @@
 #include "utilities.h"
 #include "interface_plugin.h"
 
-#define NR_BLOCKS		30
+#define NR_BLOCKS	30
 
 static char addon_dir[1024];
-
+static int going = 0;
+static pthread_mutex_t finish_mutex;
 
 int interface_text_init()
 {
+	pthread_mutex_init(&finish_mutex, NULL);
 	strcpy(addon_dir, ADDON_DIR);
 	return 1;
 }
@@ -54,17 +57,24 @@ int interface_text_init()
 
 int interface_text_running()
 {
-	return 1;
+	if (pthread_mutex_trylock(&finish_mutex) != 0)
+		return 1;
+	pthread_mutex_unlock(&finish_mutex);
+	return 0;
 }
 
 
 int interface_text_stop()
 {
+	going = 0;
+	pthread_mutex_lock(&finish_mutex);
+	pthread_mutex_unlock(&finish_mutex);
 	return 1;
 }
 
 void interface_text_close()
 {
+	pthread_mutex_destroy(&finish_mutex);
 	return;
 }
 
@@ -84,8 +94,12 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 
 	sleep(2);
 
+	going = 1;
+
 	// Fall through console player
-	while((coreplayer = playlist->GetCorePlayer()) &&
+	pthread_mutex_lock(&finish_mutex);
+
+	while(going && (coreplayer = playlist->GetCorePlayer()) &&
 			(coreplayer->IsActive() || coreplayer->IsPlaying() ||
 			 playlist->GetCurrent() != playlist->Length())) {
 		unsigned long secs, t_min, t_sec, c_min, c_sec;
@@ -131,8 +145,9 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 		}
 		dosleep(1000000);
 		fprintf(stdout, "\n\n");
-	}		
+	}	
 	fprintf(stdout, "...done playing\n");
+	pthread_mutex_unlock(&finish_mutex);
 	return 0;
 }
 

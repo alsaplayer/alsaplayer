@@ -249,12 +249,15 @@ void scopes_list_click(GtkWidget *widget, gint row, gint column,
 void scopes_window_ok_cb(GtkWidget *button_widget, gpointer data)
 {
 	gint x, y;
+	static gint s_windows_x_offset = 0;
+	static gint s_windows_y_offset = 0;
+	
 	GtkWidget *widget = (GtkWidget *)data;
         
         gdk_window_get_origin(widget->window, &x, &y);
         if (windows_x_offset >= 0) {
-                x -= windows_x_offset;
-                y -= windows_y_offset;
+                x -= s_windows_x_offset;
+                y -= s_windows_y_offset;
         }       
         gtk_widget_hide(widget);
         gtk_widget_set_uposition(widget, x, y);

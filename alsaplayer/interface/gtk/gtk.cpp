@@ -35,6 +35,7 @@
 
 #include "config.h"
 
+#include "AlsaPlayer.h"
 #include "SampleBuffer.h"
 #include "CorePlayer.h"
 #include "Playlist.h"
@@ -124,6 +125,15 @@ int interface_gtk_running()
 
 int interface_gtk_stop()
 {
+	global_update = -1;
+	pthread_join(indicator_thread, NULL);
+	
+	GDK_THREADS_ENTER();
+	gdk_flush();
+	unload_scope_addons();
+	gtk_main_quit();
+	gdk_flush();
+	GDK_THREADS_LEAVE();
 	return 1;
 }
 

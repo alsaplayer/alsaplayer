@@ -23,7 +23,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 //#define NEW_SCALE
-//#define TESTING
 //#define SUBSECOND_DISPLAY 
 
 #include <algorithm>
@@ -74,18 +73,21 @@ Playlist *playlist = NULL;
 #define ZERO_PITCH_TRESH 2
 
 // Global variables (get rid of these too... ;-) )
-static int global_update = 1;
+int global_update = 1;
+pthread_t indicator_thread;
+/* These are used to contain the size of the window manager borders around
+   our windows, and are used to show/hide windows in the same positions. */
+gint global_effects_show = 0;
+gint global_scopes_show = 0;
+
+
+gint windows_x_offset = -1;
+gint windows_y_offset = -1;
 
 static int global_draw_volume = 1;
 static GtkWidget *play_pix;
 static GdkPixmap *val_ind = NULL;
-static gint global_rb = 1;
 static PlaylistWindowGTK *playlist_window_gtk = NULL;
-
-/* These are used to contain the size of the window manager borders around
-   our windows, and are used to show/hide windows in the same positions. */
-gint windows_x_offset = -1;
-gint windows_y_offset = -1;
 
 static gint main_window_x = 150;
 static gint main_window_y = 175;
@@ -99,15 +101,10 @@ typedef struct  _update_struct {
 	GtkWidget *speed_scale;
 } update_struct;
 
-update_struct global_ustr;
+static update_struct global_ustr;
 
 // Static variables  (to be moved into a class, at some point)
 static GtkWidget *play_dialog;
-static pthread_t indicator_thread;
-
-gint global_effects_show = 0;
-gint global_scopes_show = 0;
-
 static int vol_scale[] = {
 				0,1,2,4,7,12,18,26,35,45,56,69,83,100 };
 
@@ -1107,8 +1104,7 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	gtk_container_add(GTK_CONTAINER(working), pix);
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
 					   GTK_SIGNAL_FUNC(stop_cb), playlist);
-	gtk_button_set_relief(GTK_BUTTON(working), global_rb ? GTK_RELIEF_NONE :
-						  GTK_RELIEF_NORMAL);
+	gtk_button_set_relief(GTK_BUTTON(working), GTK_RELIEF_NONE);
 
 	working = get_widget(main_window, "reverse_button");
 	pix = xpm_label_box(r_play_xpm, main_window);
@@ -1116,7 +1112,7 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	gtk_container_add(GTK_CONTAINER(working), pix);
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
 					   GTK_SIGNAL_FUNC(reverse_play_cb), speed_scale);
-	gtk_button_set_relief(GTK_BUTTON(working), global_rb ? GTK_RELIEF_NONE : GTK_RELIEF_NORMAL);
+	gtk_button_set_relief(GTK_BUTTON(working), GTK_RELIEF_NONE);
 
 	working = get_widget(main_window, "forward_button");
 	pix = xpm_label_box(f_play_xpm, main_window);
@@ -1124,8 +1120,7 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	gtk_container_add(GTK_CONTAINER(working), pix); 
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
 					   GTK_SIGNAL_FUNC(forward_play_cb), speed_scale);
-	gtk_button_set_relief(GTK_BUTTON(working), 
-						  global_rb ? GTK_RELIEF_NONE : GTK_RELIEF_NORMAL);
+	gtk_button_set_relief(GTK_BUTTON(working), GTK_RELIEF_NONE);
 
 	working = get_widget(main_window, "pause_button");
 	pix = xpm_label_box(pause_xpm, main_window);
@@ -1133,8 +1128,7 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	gtk_container_add(GTK_CONTAINER(working), pix);
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
 					   GTK_SIGNAL_FUNC(pause_cb), speed_scale);
-	gtk_button_set_relief(GTK_BUTTON(working), 
-						  global_rb ? GTK_RELIEF_NONE : GTK_RELIEF_NORMAL);
+	gtk_button_set_relief(GTK_BUTTON(working), GTK_RELIEF_NONE);
 
 	working = get_widget(main_window, "prev_button");
 	pix = xpm_label_box(prev_xpm, main_window);
@@ -1142,8 +1136,7 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	gtk_container_add(GTK_CONTAINER(working), pix);
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
 					   GTK_SIGNAL_FUNC(playlist_window_gtk_prev), playlist);
-	gtk_button_set_relief(GTK_BUTTON(working), 
-						  global_rb ? GTK_RELIEF_NONE : GTK_RELIEF_NORMAL);
+	gtk_button_set_relief(GTK_BUTTON(working), GTK_RELIEF_NONE);
 
 	working = get_widget(main_window, "next_button");
 	pix = xpm_label_box(next_xpm, main_window);
@@ -1151,8 +1144,7 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	gtk_container_add(GTK_CONTAINER(working), pix); 
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
 					   GTK_SIGNAL_FUNC(playlist_window_gtk_next), playlist);
-	gtk_button_set_relief(GTK_BUTTON(working), 
-						  global_rb ? GTK_RELIEF_NONE : GTK_RELIEF_NORMAL);
+	gtk_button_set_relief(GTK_BUTTON(working), GTK_RELIEF_NONE);
 
 	working = get_widget(main_window, "play_button");
 	play_pix = xpm_label_box(play_xpm, main_window);
@@ -1160,8 +1152,7 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	gtk_container_add(GTK_CONTAINER(working), play_pix);
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
 					   GTK_SIGNAL_FUNC(play_cb), playlist);
-	gtk_button_set_relief(GTK_BUTTON(working), 
-						  global_rb ? GTK_RELIEF_NONE : GTK_RELIEF_NORMAL);
+	gtk_button_set_relief(GTK_BUTTON(working), GTK_RELIEF_NONE);
 
 	working = get_widget(main_window, "volume_pix_frame");
 	if (working) {
@@ -1227,8 +1218,7 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	gtk_container_add(GTK_CONTAINER(working), pix);
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
 					   GTK_SIGNAL_FUNC(playlist_cb), playlist_window_gtk); 
-	gtk_button_set_relief(GTK_BUTTON(working), 
-						  global_rb ? GTK_RELIEF_NONE : GTK_RELIEF_NORMAL);
+	gtk_button_set_relief(GTK_BUTTON(working), GTK_RELIEF_NONE);
 	
 	working = get_widget(main_window, "cd_button");
 	pix = xpm_label_box(menu_xpm, main_window);
@@ -1236,8 +1226,7 @@ void init_main_window(Playlist *pl, GtkFunction f)
 	gtk_container_add(GTK_CONTAINER(working), pix);
 	//gtk_signal_connect(GTK_OBJECT(working), "clicked",
 	//			GTK_SIGNAL_FUNC(cd_cb), p);
-	gtk_button_set_relief(GTK_BUTTON(working),
-						  global_rb ? GTK_RELIEF_NONE : GTK_RELIEF_NORMAL);
+	gtk_button_set_relief(GTK_BUTTON(working),GTK_RELIEF_NONE);
 
 	working = get_widget(main_window, "info_box"); 
 

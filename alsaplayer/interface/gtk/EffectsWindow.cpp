@@ -40,11 +40,13 @@ void effects_scale_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 void effects_delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
         gint x, y;
+       	static gint e_windows_x_offset = 0;
+	static gint e_windows_y_offset = 0;
 
-        gdk_window_get_origin(widget->window, &x, &y);
-        if (windows_x_offset >= 0) {
-                x -= windows_x_offset;
-                y -= windows_y_offset;
+	gdk_window_get_origin(widget->window, &x, &y);
+	if (windows_x_offset >= 0) {
+                x -= e_windows_x_offset;
+                y -= e_windows_y_offset;
         }	
         gtk_widget_hide(widget);
         gtk_widget_set_uposition(widget, x, y);
