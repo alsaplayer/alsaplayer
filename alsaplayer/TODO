@@ -1,5 +1,7 @@
 TODO list order according to priority, highest first
 
+- AlsaPlayer consistently crashes when using the
+  external API to add songs resp. modify playlists
 - Write proper documentation for the plugin APIs
 - Preferences interface
 - Complete default interface redesign
