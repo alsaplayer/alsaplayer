@@ -422,7 +422,7 @@ Playlist::Playlist(AlsaNode *the_node) {
 	total_time = total_size = 0;
 
 	UnLoopSong();		// Default values
-	UnLoopPlaylist();	// for looping
+	LoopPlaylist();		// for looping
 	UnCrossfade();		// and crossfading
 
 	pthread_mutex_init(&playlist_mutex, NULL);
