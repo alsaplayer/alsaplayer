@@ -36,10 +36,13 @@ extern "C" {
 // Used by scopes and things, so use C-style linkage
 void dosleep(unsigned int);
 void parse_file_uri_free(char *);
+void parse_percent_free(char *);
 char *get_homedir(void);
 char *get_prefsdir(void);
 char *parse_file_uri(const char *);
+char *parse_percent(const char *);
 int is_playlist(const char *);
+int is_uri(const char *);
 
 #ifdef __cplusplus
 }

@@ -77,14 +77,52 @@ char *get_prefsdir(void)
 }
 
 
+void encode_percent_free(char *p)
+{
+	if (p)
+		free(p);
+}
+
+char *encode_percent(const char *furi)
+{
+	char *res;
+	int c, i, o, t;
+	
+	if (!furi)
+		return NULL;
+	/* count the percent signs */
+	c = 0;
+	i = 0;
+	t = strlen(furi);
+	while (i < t) {
+		if (furi[i++] == '%') {
+			c++;
+		}
+	}
+	res = malloc(t + c + 1);
+	if (res) {
+		i = 0;
+		o = 0;
+		while (i  < t) {
+			if (furi[i] == '%') {
+				res[o++] = '%';
+			}
+			res[o++] = furi[i++];
+		}
+	}	
+	return res;
+}
+
 char *parse_file_uri(const char *furi)
 {
 	char *res;
 	char escape[4];
 	int r,w, t, percent, e, val;
+	alsaplayer_error("parsing: %s", furi);
+
 	if (!furi)
 		return NULL;
-	if ((strncmp(furi, "file:", 5) != 0)) {
+	if ((strncmp(furi, "file:", 5) != 0) || !is_uri(furi)) {
 		return NULL;
 	}
 	t=strlen(furi);
@@ -96,10 +134,6 @@ char *parse_file_uri(const char *furi)
 	while (r < t) {
 		switch(furi[r]) {
 			case '%':
-				/*
-				alsaplayer_error("found percent: (%s) (%s)",
-						furi, res);
-				*/				
 				if (percent) {
 					res[w++] = '%';
 					percent = 0;
@@ -128,6 +162,7 @@ char *parse_file_uri(const char *furi)
 		r++;
 		res[w] = 0;
 	}
+	alsaplayer_error("parsed to: %s", res);
 	return res;
 		
 }
@@ -147,6 +182,13 @@ int is_playlist(const char *path)
 		strncasecmp(ext, "m3u", 3) == 0) {
 		return 1;
 	}
+	return 0;
+}
+
+int is_uri(const char *path)
+{
+	if (strstr(path, "://"))
+		return 1;
 	return 0;
 }
 

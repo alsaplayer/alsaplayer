@@ -28,12 +28,17 @@
 
 #include "reader.h"
 #include "string.h"
+#include "utilities.h"
 #include "alsaplayer_error.h"
 
 static void decode_uri(const char *src, char *dst, int len)
 {
     int j;
-    
+   
+    if (!is_uri(src)) {
+	    strncpy(dst, src, len);
+	    return;
+    }	    
     for (j=0; j<len && *src; j++, src++) {
 	if (*src == '%') {
 	    int c;
