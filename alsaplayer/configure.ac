@@ -220,6 +220,14 @@ else
 fi
 
 
+dnl ============
+dnl flac library
+dnl ============
+
+AC_CHECK_LIB(FLAC, FLAC__file_decoder_new,
+     FLC_LDADD="-lFLAC -lm"; have_flac=yes; AC_DEFINE(HAVE_LIBFLC, 1, [Define if you have flac library (-lFLAC)]), have_flac=no; FLC_LDADD=, -lm)
+
+
 AC_ARG_ENABLE(flac,
 [  --enable-flac           Enable flac plugin (default=yes)],
 [if test "$enableval" = "no"
@@ -230,13 +238,6 @@ then
 	fi
 fi])
 
-
-dnl ============
-dnl flac library
-dnl ============
-
-AC_CHECK_LIB(FLAC, FLAC__file_decoder_new,
-     FLC_LDADD="-lFLAC -lm"; have_flac=yes; AC_DEFINE(HAVE_LIBFLC, 1, [Define if you have flac library (-lFLAC)]), have_flac=no; FLC_LDADD=, -lm)
 
 
 dnl ===========
