@@ -353,19 +353,19 @@ static void help()
 		" ]\n"
 		"  -I,--script file        script to pass to interface plugin\n"
 		"  -n,--session n          use this session id [default=0]\n"
+		"  -l,--startvolume vol    start with this volume [default=100]\n"
 		"  -p,--path path          set the path alsaplayer looks for add-ons\n"
 		"  -q,--quiet              quiet operation. less output\n"
 		"  -s,--session-name name  name this session \"name\"\n"
 		"  -v,--version            print version of this program\n"
 		"  --verbose               be verbose about the output\n"
 		"  --nosave                do not save playlist content at exit\n"
-		"  --startvolume vol       start with this volume [default=100]\n"
 		"\n"
 		"Player control (use -n to select another session than the default):\n"
 		"\n"
 		"  -e,--enqueue file(s)  queue files in running alsaplayer\n"
 		"  -E,--replace file(s)  clears and queues files in running alsaplayer\n"
-		"  -l,--volume vol       set software volume [0-100]\n"
+		"  --volume vol          set software volume [0-100]\n"
 		"  --start               start playing\n"
 		"  --stop                stop playing\n"
 		"  --prev                jump to previous track\n"
@@ -476,7 +476,7 @@ int main(int argc, char **argv)
 		{ "fragcount", 1, 0, 'g' },
 		{ "help", 0, 0, 'h' },
 		{ "interface", 1, 0, 'i' },
-		{ "volume", 1, 0, 'l' },
+		{ "volume", 1, 0, 'Y' },
 		{ "session", 1, 0, 'n' },
 		{ "nosave", 0, 0, 'N' },
 		{ "path", 1, 0, 'p' },
@@ -499,7 +499,7 @@ int main(int argc, char **argv)
 		{ "seek", 1, 0, 'X' },
 		{ "relative", 1, 0, 'Z' },
 		{ "clear", 0, 0, 'C' },
-		{ "startvolume", 1, 0, 'Y' },
+		{ "startvolume", 1, 0, 'l' },
 		{ 0, 0, 0, 0 }
 	};	
 		
@@ -584,14 +584,14 @@ int main(int argc, char **argv)
 			case 'i':
 				use_interface = optarg;
 				break;
-			case 'Y':
+			case 'l':
 				start_vol = atoi(optarg);
 				if (start_vol < 0 || start_vol > 100) {
 					alsaplayer_error("volume out of range: using 100");
 					start_vol = 100;
 				}
 				break;
-			case 'l':
+			case 'Y':
 				do_remote_control = 1;
 				do_setvol = 1;
 				use_vol = atoi(optarg);
