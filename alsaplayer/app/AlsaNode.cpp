@@ -77,8 +77,6 @@ void AlsaNode::jack_shutdown (void *arg)
 int AlsaNode::jack_prepare(void *arg)
 {
 	AlsaNode *node = (AlsaNode *)arg;
-	static jack_client_t *zomaar = NULL;
-	static int tel=0;
 	char str[32];
 
 	if (node && strlen(node->dest_port1) && strlen(node->dest_port2)) {

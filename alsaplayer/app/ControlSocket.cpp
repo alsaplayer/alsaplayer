@@ -24,6 +24,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/un.h>
+#include <signal.h>
 #include <pwd.h>
 #include "control.h"
 #include "message.h"
