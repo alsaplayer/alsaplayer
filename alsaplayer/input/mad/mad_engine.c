@@ -778,8 +778,7 @@ static int mad_open(input_object *obj, char *path)
 		samples = 32 * MAD_NSBSAMPLES(&data->frame.header);
 
 		obj->frame_size = (int) samples << 2; /* Assume 16-bit stereo */
-
-		frames = data->samplerate * time / samples;
+		frames = data->samplerate * (time+1) / samples;
 
 		obj->nr_frames = (int) frames;
 		obj->nr_tracks = 1;
