@@ -407,6 +407,7 @@ void Playlist::UnlockInterfaces()
 // Playlist class
 
 Playlist::Playlist(AlsaNode *the_node) {
+	our_node = the_node;
 	player1 = new CorePlayer(the_node);
 	player2 = new CorePlayer(the_node);
 
