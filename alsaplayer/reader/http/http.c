@@ -44,15 +44,16 @@ typedef struct http_desc_t_ {
     int sock;
     long size, pos;
     void *buffer;
-    int begin;		    /* position for first byte of the buffer */
-    int len;		    /* length of the buffered data */
-    int direction;	    /* reading direction */
-    int going;		    /* true if buffer is filling */
-    pthread_t thread;	    /* thread which fill the buffer */
-    pthread_mutex_t buffer_lock;
-    pthread_cond_t read_condition;
-    int error;		    /* error status (0 - none) */
-    int fastmode;	    /* no delay while reading from socket */
+    int begin;			    /* Pos of first byte in the buffer. */
+    int len;			    /* Length of the buffered data. */
+    int direction;		    /* Reading direction. */
+    int going;			    /* True if buffer is filling. */
+    pthread_t thread;		    /* Thread which fill the buffer. */
+    pthread_mutex_t buffer_lock;    /* Lock to share buffer in threads */
+    pthread_cond_t read_condition;  /* Notice reader_read about new block. */
+    pthread_cond_t fast_condition;  /* Give me data as soon as possible. */
+    int error;			    /* Error status (0 - none). */
+    int fastmode;		    /* No delay while reading from socket. */
 } http_desc_t;
 
 /* How much data we should read at once? (bytes)*/
@@ -63,10 +64,25 @@ typedef struct http_desc_t_ {
 int http_buffer_size;
 
 /* --------------------------------------------------------------- */
+/* ----------------------------- MISC FUNCTIONS ------------------ */
+static int cond_timedwait_relative (pthread_cond_t *cond, pthread_mutex_t *mut, unsigned int delay)
+{
+    struct timeval now;
+    struct timespec timeout;
+
+    gettimeofday (&now, NULL);
+	    
+    timeout.tv_sec = now.tv_sec;
+    timeout.tv_nsec = (now.tv_usec + delay) * 1000;
+	    
+    return pthread_cond_timedwait (cond, mut, &timeout);
+}
+
+/* --------------------------------------------------------------- */
 /* ---------------------- NETWORK RELATED FUNCTIONS -------------- */
 
 /* ******************************************************************* */
-/* Parse URI                                                           */
+/* Parse URI.                                                           */
 static int parse_uri (const char *uri, char **host, int *port, char **path) 
 {
     char *slash, *colon;
@@ -111,13 +127,11 @@ static int parse_uri (const char *uri, char **host, int *port, char **path)
     else
 	*path = strdup ("/index.html");
 
-    alsaplayer_error ("HTTP: Parsed URI: host='%s', port=%u, path='%s'\n", *host, *port, *path);
-
     return 0;
 } /* end of: parse_uri */
 
 /* ******************************************************************* */
-/* sleep for data                                                      */
+/* Sleep for data.                                                     */
 static int sleep_for_data (int sock)
 {
     fd_set set;
@@ -136,8 +150,8 @@ static int sleep_for_data (int sock)
     return 0;
 } /* end of: sleep_for_data */
 
-
-/* get response head */
+/* ******************************************************************* */
+/* Receive response head.					       */
 static int get_response_head (int sock, char *response, int max)
 {
     int len = 0;
@@ -166,8 +180,8 @@ static int get_response_head (int sock, char *response, int max)
 } /* end of: get_response_head */
 
 /* ******************************************************************* */
-/* read data from stream                                               */
-/* returns amount of data readed */
+/* Read data from stream.                                              */
+/* Returns amount of data readed.				       */
 static int read_data (int sock, void *ptr, size_t size)
 {
     int len;
@@ -185,27 +199,32 @@ static int read_data (int sock, void *ptr, size_t size)
 
 
 /* ******************************************************************* */
-/* buffer filling thread                                               */
+/* Buffer filling thread.                                              */
 static void buffer_thread (http_desc_t *desc)
 {
-    int going = desc->going;	    /* we should be careful */
+    pthread_mutex_t mut;			/* Temporary mutex. */
+    int going = desc->going;			/* We should be careful. */
+    void *ibuffer = malloc (HTTP_BLOCK_SIZE);	/* Internal thread buffer. */
+
+    /* Init */
+    pthread_mutex_init (&mut, NULL);
     
-    /* Internal thread buffer */
-    void *ibuffer = malloc (HTTP_BLOCK_SIZE);
-    
-    printf ("STARTing thread for %p\n", desc);
-    
+    /* Process while main thread allow it. */
     while (going) {
 	void *newbuf;
 	int readed;
 	
-	printf ("%p]] len0 = %u\n", desc, desc->len);
-
 	/* check for overflow */
 	going = desc->going;
 	if (desc->len > http_buffer_size) {
-	    printf ("%p]] Overflow\n", desc);
-	    dosleep (250000);
+	    /* Notice waiting function that the new block of data has arrived */
+	    pthread_cond_signal (&desc->read_condition);
+
+	    /* Make pause */
+	    pthread_mutex_lock (&mut);
+	    cond_timedwait_relative (&desc->fast_condition, &mut, 300000);
+	    pthread_mutex_unlock (&mut);
+
 	    continue;
 	}
 	
@@ -214,18 +233,14 @@ static void buffer_thread (http_desc_t *desc)
 	
 	/* reasons to stop */
 	if (readed == 0) {
-	    printf ("set going to 0! for %p\n", desc);
 	    desc->going = 0;
 	    going = 0;
 	} else if (readed <0) {
-	    printf ("set going to 0! for errored %p\n", desc);
 	    desc->error = 1;
 	    desc->going = 0;
 	    going = 0;
 	}
 
-	printf ("%p]] readed = %u, error = %u, going = %u\n", desc, readed, desc->error, desc->going);
-	
 	/* These operations are fast. -> doesn't break reader_read */
 	if (readed > 0) {
 	   /* ---------------- lock buffer ( */
@@ -245,21 +260,20 @@ static void buffer_thread (http_desc_t *desc)
 	    pthread_mutex_unlock (&desc->buffer_lock);
 	}
 	
-	printf ("%p]] len1 = %u\n", desc, desc->len);
+	/* Notice waiting function that the new block of data has arrived */
 	pthread_cond_signal (&desc->read_condition);
-	printf ("%p]] len2 = %u\n", desc, desc->len);
-	
-	printf ("%p]] fast mode = %d\n", desc, desc->fastmode);
-	if (going && !desc->fastmode)  dosleep (250000);
+
+	/* Do wait */
+	if (going && !desc->fastmode) {
+	    pthread_mutex_lock (&mut);
+	    cond_timedwait_relative (&desc->fast_condition, &mut, 300000);
+	    pthread_mutex_unlock (&mut);
+	}
 
 	/* Decrement fast mode TTL ;) */
 	if (desc->fastmode)
 	    desc->fastmode--;
-	
-	printf ("%p]] len3 = %u\n", desc, desc->len);
     }
-    
-    printf ("STOPing thread for %p\n", desc);
     
     free (ibuffer);
     pthread_exit (NULL);
@@ -283,7 +297,6 @@ static int reconnect (http_desc_t *desc)
     desc->error = 0;
     
     /* Stop filling thread */
-    printf ("reconnect: %p -- going=%d\n", desc, desc->going);
     if (desc->going) {
 	desc->going = 0;
 	pthread_join (desc->thread, NULL);
@@ -395,8 +408,6 @@ static void http_close(void *d)
 {
     http_desc_t *desc = (http_desc_t*)d;
     
-    printf ("Close %p\n", desc);
-    
     /* stop buffering thread */
     if (desc->going) {
 	desc->going = 0;
@@ -418,7 +429,7 @@ static void *http_open(const char *uri)
 {
     http_desc_t *desc;
     
-    /* Alloc descripor */
+    /* Alloc descripor and init members. */
     desc = malloc (sizeof (http_desc_t));
     desc->sock = 0;
     desc->size = 0;
@@ -429,7 +440,8 @@ static void *http_open(const char *uri)
     desc->direction = 0;  
     pthread_mutex_init (&desc->buffer_lock, NULL);
     pthread_cond_init (&desc->read_condition, NULL);
- 
+    pthread_cond_init (&desc->fast_condition, NULL);
+
     /* Parse URI */
     if (parse_uri (uri, &desc->host, &desc->port, &desc->path))
 	return NULL;
@@ -459,6 +471,9 @@ static int http_init()
 {
     http_buffer_size = prefs_get_int (ap_prefs, "http", "buffer_size", DEFAULT_HTTP_BUFFER_SIZE);
 
+    /* Be sure http.buffer_size is available in config */
+    prefs_set_int (ap_prefs, "http", "buffer_size", http_buffer_size);
+    
     return 1;
 }
 
@@ -466,7 +481,6 @@ static int http_init()
 /* shutdown plugin                                                     */
 static void http_shutdown()
 {
-    prefs_set_int (ap_prefs, "http", "buffer_size", http_buffer_size);
     return;
 }
 
@@ -478,8 +492,6 @@ static size_t http_read (void *ptr, size_t size, void *d)
     pthread_mutex_t mut;    /* temporary mutex. What is for? ;) */
     int tocopy;		    /* how much bytes we got? */
 
-    printf ("%p]] HTTP: Read ptr=%p, size=%d from pos=%ld\n", desc, ptr, size, desc->pos);
- 
     /* Init temp mutex */
     pthread_mutex_init (&mut, NULL);   
 
@@ -493,7 +505,6 @@ static size_t http_read (void *ptr, size_t size, void *d)
 	
 	/* check for error */
 	if (desc->error) {
-	    printf ("error in readdddd\n");
 	    return 0;
 	}
 
@@ -521,10 +532,11 @@ static size_t http_read (void *ptr, size_t size, void *d)
 	
 	/* turn on fast mode */
 	desc->fastmode = 2;
+	pthread_cond_signal (&desc->fast_condition);
 	
 	/* Allow buffer_thread to use buffer */
         pthread_mutex_unlock (&desc->buffer_lock);
-	
+    
 	/* Wait for next portion of data */
 	pthread_mutex_lock (&mut);
 	pthread_cond_wait (&desc->read_condition, &mut);
@@ -567,8 +579,6 @@ static int http_seek (void *d, long offset, int whence)
 {
     http_desc_t *desc = (http_desc_t*)d;
   
-    alsaplayer_error ("%p]] HTTP: seek offset=%ld, whence=%d\n", desc, offset, whence);
-
     if (whence == SEEK_SET)
 	desc->pos = offset;
     else if (whence == SEEK_CUR)
