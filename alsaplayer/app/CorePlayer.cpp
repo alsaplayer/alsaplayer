@@ -762,9 +762,7 @@ input_plugin *
 CorePlayer::GetPlayer(const char *path)
 {
 	// Check we've got a path
-	if (!strlen(path)) {
-		return NULL;
-	}
+	if (!*path) return NULL;
 
 	float best_support = 0.0;
 	input_plugin *best_plugin = NULL;
@@ -830,7 +828,7 @@ bool CorePlayer::Load(const char *path)
 					 "in 2 and double the number of effective frames. This can be\n"
 					 "handled relatively easily in the plugin (hopefully).\n\n"
 					 "We will retreat, as chaos and despair await us on\n"
-					 "on this chosen path........................................", BUF_SIZE);
+					 "this chosen path........................................", BUF_SIZE);
 			result = false;
 			frames_in_buffer = 0;
 			plugin->close(the_object);
@@ -1099,8 +1097,7 @@ void CorePlayer::producer_func(void *data)
 			obj->write_buf = obj->new_write_buf;
 			obj->write_buf->start = obj->new_frame_number;
 		}
-		int val = obj->AvailableBuffers();	
-		if (val < (NR_CBUF-1)) {
+		if (obj->AvailableBuffers() < (NR_CBUF-1)) {
 			switch (obj->read_direction) {
 			 case DIR_FORWARD:
 				frames_read = obj->pcm_worker(obj->write_buf, obj->write_buf->start);

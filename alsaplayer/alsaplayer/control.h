@@ -47,8 +47,8 @@ int ap_prev(int session);
 int ap_ping(int session);
 int ap_quit(int session);
 int ap_clear_playlist(int session);
-int ap_add_path(int session, char *path);
-int ap_add_and_play(int session, char *path);
+int ap_add_path(int session, const char *path);
+int ap_add_and_play(int session, const char *path);
 
 int ap_set_speed(int session, float speed);
 int ap_get_speed(int session, float *val);

@@ -27,15 +27,10 @@
 #include "reader.h"
 #include "string.h"
 
-/* open stream */
+/* open stream, may return NULL */
 static void *file_open(const char *uri)
 {
-    FILE *f;
-
-    f = fopen (&uri[5], "r");
-    if (!f)  return NULL;
-    
-    return f;
+    return fopen (&uri[5], "r");
 }
 
 /* close stream */

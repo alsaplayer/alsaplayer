@@ -727,7 +727,7 @@ int ap_ping(int session)
 	return 0;
 }
 
-int ap_add_and_play(int session, char *path)
+int ap_add_and_play(int session, const char *path)
 {
 	int fd;
 	int32_t *result, ret_val;
@@ -757,7 +757,7 @@ int ap_add_and_play(int session, char *path)
 }
 
 
-int ap_add_path(int session, char *path)
+int ap_add_path(int session, const char *path)
 {
 	int fd;
 	int32_t *result, ret_val;

@@ -46,7 +46,7 @@
 #define P_FILEBASED	8
 
 /**
- * Set this is the stream is a real stream e.g. HTTP or UDP based
+ * Set this if the stream is a real stream e.g. HTTP or UDP based
  */
 #define P_STREAMBASED	16
 
