@@ -1,5 +1,6 @@
 Sun Apr 28 08:53:11 HST 2002
 	readmidi.c: spruce up panel display
+	playmidi.c: improve polyphony reduction
 Sat Apr 27 15:03:40 HST 2002
 	xmap.h: added -- XG voice substitutions
 	cfg.l, playmidi.c, readmidi.c: do XG voice substitutions for GUS patches

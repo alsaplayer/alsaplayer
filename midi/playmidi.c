@@ -1349,6 +1349,7 @@ static void kill_note(int i, struct md *d)
   ctl->note(i);
 }
 
+#if 0
 static int reduce_polyphony_by_one(struct md *d)
 {
   int i=d->voices, lowest=-1; 
@@ -1379,6 +1380,141 @@ static int reduce_polyphony_by_one(struct md *d)
   }
   return 0;
 }
+#else
+
+static int reduce_polyphony_by_one(struct md *d)
+{
+  int i=d->voices, lowest=-1; 
+  int32 lv=0x7FFFFFFF, v;
+
+  /* Look for the decaying note with the lowest volume */
+/* Leave drums, sustains. */
+  i=d->voices;
+  while (i--)
+    {
+      if (d->voice[i].status==VOICE_FREE ||
+	 !d->voice[i].sample->sample_rate /* idea from Eric Welsh */ ||
+	  d->voice[i].sample->note_to_use)
+	    continue;
+      if (d->voice[i].status & ~(VOICE_ON | VOICE_DIE | VOICE_SUSTAINED))
+	{
+	  v=d->voice[i].left_mix;
+	  if ((d->voice[i].panned==PANNED_MYSTERY) && (d->voice[i].right_mix>v))
+	    v=d->voice[i].right_mix;
+	  if (v<lv)
+	    {
+	      lv=v;
+	      lowest=i;
+	    }
+	}
+    }
+  if (lowest != -1) {
+	kill_note(lowest, d);
+	return 1;
+  }
+
+/* Leave drums. */
+  i=d->voices;
+  while (i--)
+    {
+      if (d->voice[i].status==VOICE_FREE ||
+	 !d->voice[i].sample->sample_rate /* idea from Eric Welsh */ ||
+	  d->voice[i].sample->note_to_use)
+	    continue;
+      if (d->voice[i].status & ~(VOICE_ON | VOICE_DIE))
+	{
+	  v=d->voice[i].left_mix;
+	  if ((d->voice[i].panned==PANNED_MYSTERY) && (d->voice[i].right_mix>v))
+	    v=d->voice[i].right_mix;
+	  if (v<lv)
+	    {
+	      lv=v;
+	      lowest=i;
+	    }
+	}
+    }
+
+  if (lowest != -1) {
+	kill_note(lowest, d);
+	return 1;
+  }
+/* Kill drums. */
+  i=d->voices;
+  while (i--)
+    {
+      if (d->voice[i].status==VOICE_FREE ||
+	 !d->voice[i].sample->sample_rate /* idea from Eric Welsh */ ||
+	  d->voice[i].sample->note_to_use)
+	    continue;
+      if (d->voice[i].status & ~(VOICE_ON | VOICE_DIE))
+	{
+	  v=d->voice[i].left_mix;
+	  if ((d->voice[i].panned==PANNED_MYSTERY) && (d->voice[i].right_mix>v))
+	    v=d->voice[i].right_mix;
+	  if (v<lv)
+	    {
+	      lv=v;
+	      lowest=i;
+	    }
+	}
+    }
+
+  if (lowest != -1) {
+	kill_note(lowest, d);
+	return 1;
+  }
+/* Kill ON. */
+  i=d->voices;
+  while (i--)
+    {
+      if (d->voice[i].status==VOICE_FREE ||
+	 !d->voice[i].sample->sample_rate /* idea from Eric Welsh */ ||
+	  d->voice[i].sample->note_to_use)
+	    continue;
+      if (d->voice[i].status & ~VOICE_DIE)
+	{
+	  v=d->voice[i].left_mix;
+	  if ((d->voice[i].panned==PANNED_MYSTERY) && (d->voice[i].right_mix>v))
+	    v=d->voice[i].right_mix;
+	  if (v<lv)
+	    {
+	      lv=v;
+	      lowest=i;
+	    }
+	}
+    }
+
+  if (lowest != -1) {
+	kill_note(lowest, d);
+	return 1;
+  }
+/* Kill All. */
+  i=d->voices;
+  while (i--)
+    {
+      if (d->voice[i].status==VOICE_FREE)
+	    continue;
+      if (d->voice[i].status & ~VOICE_DIE)
+	{
+	  v=d->voice[i].left_mix;
+	  if ((d->voice[i].panned==PANNED_MYSTERY) && (d->voice[i].right_mix>v))
+	    v=d->voice[i].right_mix;
+	  if (v<lv)
+	    {
+	      lv=v;
+	      lowest=i;
+	    }
+	}
+    }
+
+  if (lowest != -1) {
+	kill_note(lowest, d);
+	return 1;
+  }
+  return 0;
+}
+
+#endif
 
 static int reduce_polyphony(int by, struct md *d)
 { int ret = 0;
