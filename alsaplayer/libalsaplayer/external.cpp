@@ -45,7 +45,7 @@ ap_connect_session (int session)
   if ((socket_fd = socket (AF_UNIX, SOCK_STREAM, 0)) != -1) {
     saddr.sun_family = AF_UNIX;
     sprintf (saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
-					"anonymous" : pwd->pw_name, 0);
+					"anonymous" : pwd->pw_name, session);
     if (connect (socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
       return socket_fd;
     }
@@ -54,25 +54,36 @@ ap_connect_session (int session)
 }
 
 
-void
+int
 ap_read_packet (int fd, ap_pkt_t * pkt)
 {
-  read (fd, pkt, sizeof (ap_pkt_t));
+	if (!pkt)
+		return -1;
+	pkt->pld_length = 0;	
+  if (read (fd, pkt, sizeof (ap_pkt_t)) != sizeof (ap_pkt_t))
+		return -1;
   if (pkt->pld_length) {
     pkt->payload = malloc (pkt->pld_length);
-    read (fd, pkt->payload, pkt->pld_length);
+    if (read (fd, pkt->payload, pkt->pld_length) != pkt->pld_length) {
+			free(pkt->payload);
+			return -1;
+		}	
   }
+	return 1;
 }
 
 
-void
+int
 ap_write_packet (int fd, ap_pkt_t pkt)
 {
   pkt.version = AP_CONTROL_VERSION;
-  write (fd, &pkt, sizeof (ap_pkt_t));
+  if (write (fd, &pkt, sizeof (ap_pkt_t)) != sizeof (ap_pkt_t))
+		return -1;
   if (pkt.pld_length) {
-    write (fd, pkt.payload, pkt.pld_length);
+    if (write (fd, pkt.payload, pkt.pld_length) != pkt.pld_length)
+			return -1;
   }
+	return 1;
 }
 
 
@@ -121,7 +132,7 @@ ap_set_int (int session, ap_cmd_t cmd, int val)
   ap_write_packet (fd, pkt);
   close (fd);
 
-	return 0;
+	return 1;
 }
 
 
@@ -138,7 +149,7 @@ ap_set_float (int session, ap_cmd_t cmd, float val)
   ap_write_packet (fd, pkt);
   close (fd);
 
-	return 0;
+	return 1;
 }
 
 
@@ -152,14 +163,16 @@ ap_get_float (int session, ap_cmd_t cmd, float *val)
 
   pkt.cmd = cmd;
   pkt.pld_length = 0;
-  ap_write_packet (fd, pkt);
-  ap_read_packet (fd, &pkt);
+  if (ap_write_packet (fd, pkt) == -1)
+		return -1;
+	if (ap_read_packet (fd, &pkt) == -1)
+		return -1;
   if (pkt.pld_length) {
     *val = *(float *) pkt.payload;
     free (pkt.payload);
   }
   close (fd);
-  return 0;
+  return 1;
 }
 
 
@@ -178,7 +191,7 @@ int ap_set_string(int session, ap_cmd_t cmd, char *str)
 	ap_write_packet(fd, pkt);
 	close(fd);
 	
-	return 0;
+	return 1;
 }
 
 
@@ -201,7 +214,7 @@ ap_get_string(int session, ap_cmd_t cmd, char *result)
 	} else {
 		return -1;
 	}
-	return 0;
+	return 1;
 }
 
 
