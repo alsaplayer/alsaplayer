@@ -574,7 +574,7 @@ int main(int argc, char **argv)
 
 	do {
 		if (!node || !node->ReadyToRun()) {
-			alsaplayer_error("failed to load output add-on. Exiting...");
+			alsaplayer_error("failed to load output add-on. exitting...");
 			return 1;
 		}
 		if (!node->SetSamplingRate(use_freq) || 

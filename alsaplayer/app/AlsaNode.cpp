@@ -154,7 +154,7 @@ AlsaNode::AlsaNode(char *name, int realtime)
 		  strcpy(dest_port2, dest_port1);
 		}
 		if (jack_prepare(this) < 0) {
-			alsaplayer_error("Failed initial connect attempt to jack\n");
+			alsaplayer_error("failed initial connect attempt to jack\n");
 			init = false;
 		}	else {
 			init = true;
