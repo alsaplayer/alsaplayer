@@ -609,19 +609,26 @@ bool CorePlayer::Start()
 void CorePlayer::Stop()
 {
 	Lock();
+
 	if (sub) {
         	delete sub;
         	sub = NULL;
 	}
 	producing = false;
 	streaming = false;
-	pthread_mutex_unlock(&counter_mutex); // Unblock if needed
+
+	/* We don't know locked it or not */
+	pthread_mutex_trylock (&counter_mutex);
+	pthread_mutex_unlock (&counter_mutex);
+
 #ifdef DEBUG	
 	alsaplayer_error("Waiting for producer_thread to finish...");
 #endif
 	//pthread_cancel(producer_thread);
-	pthread_join(producer_thread, NULL); 
+	if (producer_thread)
+	    pthread_join(producer_thread, NULL); 
 	pthread_mutex_destroy(&counter_mutex);
+	
 	pthread_mutex_init(&counter_mutex, NULL);
 	producer_thread = 0;
 	

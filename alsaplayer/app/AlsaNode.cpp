@@ -184,7 +184,7 @@ void AlsaNode::looper(void *pointer)
 		}
 #endif		
 	}
-	delete buffer_data;
+	delete []buffer_data;
 	pthread_mutex_unlock(&node->thread_mutex);
 	pthread_exit(NULL);
 }

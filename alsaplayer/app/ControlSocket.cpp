@@ -157,7 +157,7 @@ void socket_looper(void *arg)
 				break;
 			case AP_ADD_PATH:
 				if ((path = ap_message_find_string(msg, "path1"))) {
-					playlist->Insert(strdup(path), playlist->Length());
+					playlist->Insert(path, playlist->Length());
 				}	
 				ap_message_add_int32(reply, "ack", 1);
 				break;

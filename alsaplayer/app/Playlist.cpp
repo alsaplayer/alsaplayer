@@ -231,13 +231,18 @@ void info_looper(void *data)
 
 	if (!myplayer) return;
 
-
-	//playlist->Lock();
 	std::vector<PlayItem>::iterator p = playlist->queue.begin();
 	count = 0;
-	while (p != playlist->queue.end() && playlist->active) {
+	while (playlist->active) {
+		playlist->Lock ();
+		
+		if (p >= playlist->queue.end()) {
+		    /* Playlist cleared, shrinked or its an end of list */
+		    playlist->Unlock ();
+		    break;
+		}
+		
 		if (!(*p).Parsed()) {
-			
 			if (myplayer->Load((*p).filename.c_str())) { // Examine file
 				t_sec = myplayer->GetCurrentTime(myplayer->GetFrames());
 				if (t_sec) {
@@ -274,12 +279,11 @@ void info_looper(void *data)
 			}
 			playlist->UnlockInterfaces();
 
-		}	
+		}
 		p++;
 		count++;
+		playlist->Unlock ();
 	}	
-
-	//playlist->Unlock();
 
 	delete myplayer;
 	//alsaplayer_error("exit info_looper()");
@@ -442,6 +446,7 @@ Playlist::Playlist(AlsaNode *the_node) {
 	coreplayer = player1;
 	curritem = 0;
 	active = true;
+	paused = false;
 	total_time = total_size = 0;
 
 	UnLoopSong();		// Default values
