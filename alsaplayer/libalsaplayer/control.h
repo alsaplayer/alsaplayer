@@ -34,11 +34,18 @@ int ap_next(int session);
 int ap_prev(int session);
 int ap_ping(int session);
 int ap_clear_playlist(int session);
-char *ap_get_session_name(int session);
+int ap_add_path(int session, char *path);
 
 int ap_set_speed(int session, float speed);
 float *ap_get_speed(int session);
-int ap_add_path(int session, char *path);
+
+char *ap_get_session_name(int session);
+
+char *ap_get_title(int session);
+char *ap_get_artist(int session);
+char *ap_get_album(int session);
+char *ap_get_genre(int session);
+
 
 #ifdef __cplusplus
 }

@@ -419,6 +419,35 @@ int ap_version()
 }
 
 
+int ap_set_speed(int session, float speed)
+{
+	int fd;
+	ap_message_t *msg, *reply;
+	int32_t *result, ret;
+	
+	fd = ap_connect_session(session);
+	if (fd < 0)
+		return 0;
+	msg = ap_message_new();
+	msg->header.cmd = AP_SET_SPEED;
+	ap_message_add_float(msg, "speed", speed);
+	ap_message_send(fd, msg);
+	ap_message_delete(msg);
+	msg = NULL;
+	
+	reply = ap_message_receive(fd);
+	close(fd);
+		
+	if ((result = ap_message_find_int32(reply, "ack"))) {
+		ret = *result;
+		ap_message_delete(reply);
+		return ret;
+	}
+	ap_message_delete(reply);
+	return 0;
+}
+
+
 float *ap_get_speed(int session)
 {
 	int fd;
@@ -450,7 +479,8 @@ float *ap_get_speed(int session)
 }
 
 
-char *ap_get_session_name(int session)
+/* Convenience function for commands that return a single string */
+char *ap_get_single_string_command(int session, int32_t cmd)
 {
 	int fd;
 	ap_message_t *msg, *reply;
@@ -463,7 +493,7 @@ char *ap_get_session_name(int session)
 	
 	msg = ap_message_new();
 
-	msg->header.cmd = AP_GET_SESSION_NAME;
+	msg->header.cmd = cmd;
 	
 	ap_message_send(fd, msg);
 	ap_message_delete(msg);
@@ -473,7 +503,7 @@ char *ap_get_session_name(int session)
 	
 	close(fd);
 	
-	if ((result = ap_message_find_string(reply, "session_name"))) {
+	if ((result = ap_message_find_string(reply, "string"))) {
 		ret = (char *)malloc(strlen(result) + 1);
 		strcpy(ret, result);
 		ap_message_delete(reply);
@@ -481,6 +511,31 @@ char *ap_get_session_name(int session)
 	}
 	ap_message_delete(reply);
 	return NULL;
+}
+
+
+char *ap_get_session_name(int session)
+{
+	return (ap_get_single_string_command(session, AP_GET_SESSION_NAME));
+}
+
+char *ap_get_title(int session)
+{
+	return (ap_get_single_string_command(session, AP_GET_TITLE));
+}
+char *ap_get_artist(int session)
+{
+	return (ap_get_single_string_command(session, AP_GET_ARTIST));
+}
+
+char *ap_get_genre(int session)
+{
+	return (ap_get_single_string_command(session, AP_GET_GENRE));
+}
+
+char *ap_get_album(int session)
+{
+	return (ap_get_single_string_command(session, AP_GET_ALBUM));
 }
 
 
