@@ -101,6 +101,8 @@ int ap_insert(int session, const char*, int pos);
 int ap_remove(int session, int pos);
 int ap_set_current(int session, int pos);
 
+int ap_get_playlist(int session, int *argc, char ***the_list);
+
 #ifdef __cplusplus
 }
 #endif

@@ -1036,6 +1036,17 @@ bool Playlist::Eof()
 	return false;
 }
 
+
+PlayItem *Playlist::GetItem(unsigned item)
+{
+        if(item < 1) item = 1;
+	if(item > queue.size()) {
+		item = queue.size();
+	}
+	return &queue[item-1];
+}
+
+
 // Add a path to list, recursing through (to a maximum of depth subdirectories)
 static void additems(std::vector<std::string> *items, std::string path, int depth) {
 	if(depth < 0) return;

@@ -161,11 +161,11 @@ private:
 	void LockInterfaces();
 	void UnlockInterfaces();
 	
+	bool PlayFile(PlayItem const &);
+public:	
 	void Lock();
 	void Unlock();
 
-	bool PlayFile(PlayItem const &);
-public:	
 	void Stop();
 	bool CanPlay(std::string const &);
 	bool Eof();
@@ -177,7 +177,8 @@ public:
 	// Get CorePLayer object
 	CorePlayer *GetCorePlayer() { return coreplayer; }
 	AlsaNode *GetNode() { return our_node; }
-	
+
+	PlayItem *GetItem(unsigned);
 	// Get the number of items in the playlist (0 if playlist is empty)
 	int Length();
 

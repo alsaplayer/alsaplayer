@@ -49,12 +49,15 @@ static void socket_looper(void *arg)
 	int socket_fd = 0;
 	struct socket_params *sp = (struct socket_params *)arg;
 	Playlist *playlist = sp->playlist;
+	PlayItem *item;
 	interface_plugin *ui = sp->ui;
 	CorePlayer *player;
 	fd_set set;
 	struct sockaddr_un saddr;
 	stream_info info;
 	char session_name[32];
+	char strnum[64];
+	char tmp[512];
 	long total_time;
 	void *data;
 	float *float_val;
@@ -66,6 +69,8 @@ static void socket_looper(void *arg)
 	int session_id = 0;
 	int session_ok = 0;
 	int nr_requests = 0;
+	int playlist_length = 0;
+	int pc = 0;
 	ap_message_t *msg;
 	struct passwd *pwd;
 
@@ -286,6 +291,32 @@ static void socket_looper(void *arg)
 					}
 					ap_message_add_int32(reply, "ack", 1);
 				}
+				break;
+			case AP_GET_PLAYLIST:
+				playlist->Lock();
+				playlist_length = playlist->Length();
+				ap_message_add_int32(reply, "items", playlist->Length());
+				for (pc=1; pc <= playlist_length; pc++) {
+					sprintf(strnum, "%d", pc);
+					item = playlist->GetItem(pc);
+					if (item->title.size()) {
+						sprintf(tmp, "%s %s", item->title.c_str(), 
+			                        item->artist.size() ? (std::string("- ") + 
+						item->artist).c_str() : "");
+						ap_message_add_string(reply, strnum, tmp);
+					} else {
+						sprintf(tmp, "%s", item->filename.c_str());
+						path = strrchr(tmp, '/');
+						if (path) {
+							path++;
+						} else {
+							path = tmp;
+						}	
+						ap_message_add_string(reply, strnum, path);
+					}	
+				}
+				playlist->Unlock();
+				ap_message_add_int32(reply, "ack", 1);
 				break;
 			case AP_IS_PLAYLIST_LOOPING:
 				ap_message_add_int32(reply, "int", playlist->LoopingPlaylist());

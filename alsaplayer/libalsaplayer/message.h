@@ -85,6 +85,8 @@
 #define AP_INSERT                 0xcc33
 #define AP_REMOVE               0xcc34
 #define AP_SET_CURRENT          0xcc35
+
+#define AP_GET_PLAYLIST		0xcc36
 /* Add new commands here */
 
 #ifdef __cplusplus

@@ -1119,6 +1119,64 @@ int ap_set_string_set_int(int session, int32_t cmd, const char* string, int val)
 	return 0;
 }        
 
+int ap_get_playlist(int session, int *argc, char ***the_list) {
+	int fd;
+	char **list;
+	ap_message_t *msg, *reply;
+	int *result, nritems, c, t;
+	char strnum[64];
+	char *res;
+	
+	fd = ap_connect_session(session);
+	if (fd < 0)
+		return 0;
+	msg = ap_message_new();
+	msg->header.cmd = AP_GET_PLAYLIST;
+	
+	ap_message_send(fd, msg);
+	ap_message_delete(msg);
+	msg = NULL;
+
+	reply = ap_message_receive(fd);
+	close(fd);
+	
+	if ((result = ap_message_find_int32(reply, "items"))) {
+		nritems = *result;
+		if (nritems > 0) {
+			*argc = nritems;
+		} else {
+			*argc = 0;
+			ap_message_delete(reply);
+			return 1;
+		}	
+		list = (char **)malloc(sizeof(char *) * nritems);
+		if (!list) {
+			ap_message_delete(reply);
+			return 0;
+		}	
+		for (c=0; c < nritems; c++) {
+			sprintf(strnum, "%d", c+1);
+			res = ap_message_find_string(reply, strnum);
+			if (res) {
+				list[c] = strdup(res);
+				if (!list[c]) {
+					printf("error!");
+					ap_message_delete(reply);
+					// XXX memory leak XXX
+					return 0;
+				}
+				//printf("Got string (%s): %s\n", strnum, list[c]);
+			}
+		}
+		*the_list = list;
+		ap_message_delete(reply);
+		return 1;
+	}
+	ap_message_delete(reply);
+	return 0;
+
+}
+
 int ap_insert(int session, const char* path, int val) {
     return ap_set_string_set_int(session, AP_INSERT, path, val);
 }
