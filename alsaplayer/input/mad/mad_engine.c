@@ -155,13 +155,18 @@ static inline signed int my_scale(mad_fixed_t sample)
 static void fill_buffer(struct mad_local_data *data, long offset)
 {
 	size_t bytes_read;
-	if (offset >= 0)
+	if (data->seekable && offset >= 0) {
 		reader_seek(data->mad_fd, data->offset + offset, SEEK_SET);
-	bytes_read = reader_read(data->mad_map, MAD_BUFSIZE, data->mad_fd);
-	data->bytes_avail = bytes_read;
-	data->map_offset = offset;
+		bytes_read = reader_read(data->mad_map, MAD_BUFSIZE, data->mad_fd);
+		data->bytes_avail = bytes_read;
+		data->map_offset = offset;
+	} else {	
+		memmove(data->mad_map, data->mad_map + MAD_BUFSIZE - data->bytes_avail, data->bytes_avail);
+		bytes_read = reader_read(data->mad_map + data->bytes_avail, MAD_BUFSIZE - data->bytes_avail, data->mad_fd);
+		data->map_offset += (MAD_BUFSIZE - data->bytes_avail);
+		data->bytes_avail += bytes_read;
+	}
 }
-
 
 static int mad_frame_seek(input_object *obj, int frame)
 {
@@ -284,7 +289,7 @@ static int mad_play_frame(input_object *obj, char *buf)
 		//alsaplayer_error("Filling buffer = %d,%d",
 		//		data->bytes_avail,
 		//		data->map_offset + MAD_BUFSIZE - data->bytes_avail);
-		fill_buffer(data, data->map_offset + MAD_BUFSIZE - data->bytes_avail);
+		fill_buffer(data, -1); //data->map_offset + MAD_BUFSIZE - data->bytes_avail);
 		mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
 	} else {
 		//alsaplayer_error("bytes_avail = %d", data->bytes_avail);
@@ -725,10 +730,9 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 	int pos = 0;
 	ssize_t header_size = 0;
 	while (pos < (size - 10)) {
-		if (data[pos] == 0x0d && data[pos+1] == 0x0a) {
+		if (pos == 0 && data[pos] == 0x0d && data[pos+1] == 0x0a) {
 			//alsaplayer_error("Skipping <cr><lf>");
-			pos+=2;
-			continue;
+			goto dirty_lookup;
 		}	
 		if (pos == 0 && (data[pos] == 'I' && data[pos+1] == 'D' && data[pos+2] == '3')) {
 			header_size = (data[pos + 6] << 21) + 
@@ -778,18 +782,19 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 			return -1;
 		} else if (pos == 0 && data[pos] == 'T' && data[pos+1] == 'A' && 
 				data[pos+2] == 'G') {
-			return 128;	/* TAG is fixed 128 bytes */
+			return 128;	/* TAG is fixed 128 bytes, we assume! */
 		}  else {
 			pos++;
 		}				
 	}
 	if (data[0] != 0xff) {
+dirty_lookup:		
 		header_size = 0;
 		while (header_size < size) {
 			if (data[++header_size] == 0xff && 
 					(data[header_size+1] == 0xfb ||
 					 data[header_size+1] == 0xf3)) {
-				//printf("Found ff fb at %d\n", header_size);
+				//alsaplayer_error("Found ff fb at %d", header_size);
 				return header_size;
 			}
 		}	
@@ -840,6 +845,7 @@ static int mad_open(input_object *obj, const char *path)
 		return 0;
 	}
 	if (data->offset > data->bytes_avail) {
+		alsaplayer_error("Need to refill buffer");
 		fill_buffer(data, 0);
 		mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
 	} else {
