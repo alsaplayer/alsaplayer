@@ -20,8 +20,8 @@ INTERFACE PLUGINS
 
 This cool feature allows you to completely customize your user interface.
 I.e. the core of AlsaPlayer is decoupled from the user interface. The default
-GTK+ interface is the best supported one. There is also a text interface if
-you just want to use AlsaPlayer in a text enviroment. 
+GTK+ interface is the best supported one. Among others, there is also a text
+only interface.
 
 
 INPUT PLUGINS
@@ -89,10 +89,11 @@ Work in progress...
 SCOKET CONTROL
 ---------------
 
-AlsAPlayer can now be controlled from an external program. You only need to
+AlsaPlayer can be controlled from an external program. You only need to
 link your application against the supplied libalsaplayer.so and in order
 to control AlsaPlayer from your own applications. Seeking, speed control and
 playlist advancement are only a few of the commands available to you.
+See the "examples" directory for sample implementations.
 
 
 INSTALLATION
@@ -105,6 +106,18 @@ output plugins for your system.
 finished. The various plugins need to be in a specific place on your system.
 If you don't want to install it on your system right away you can always use a
 different --prefix when running configure. 
+
+
+EMBEDDED MODE
+-------------
+
+For target systems with low CPU and RAM ressources you can run configure with
+"CFLAGS=-DEMBEDDED". This reduces CPU and RAM usage but imposes the following
+limitations:
+
+- no mixing of streams; single-stream only
+- no software volume/pan (hardware volume/pan unaffected)
+- no effect plugins
 
 
 RUNNING
