@@ -13,7 +13,9 @@ Tue Feb 26 20:56:34 CET 2002
   MP3 files.
 - Placed the pause button inbetween the -100 and +100 speed buttons. Makes
   more sense since pause is speed 0.
+- Fix NAS detection and nas_set_buffer() function.
 - Some more cleanups to the code.
+
 
 
 Sat Feb 16 12:59:23 CET 2002
