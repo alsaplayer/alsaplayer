@@ -193,11 +193,16 @@ flac_stream_info (input_object * obj, stream_info * info)
     Flac::FlacTag * t = f->tag ();
     if (t && ! t->title ().empty ())
     {
-	// 128 comes from looking at input_plugin.h; this should really 
-	// be defined as a constant somewhere
+	// strncpy limits come from looking at input_plugin.h; these should
+        // really be defined as constants somewhere
 
 	strncpy (info->artist, t->artist ().c_str (), 128);
 	strncpy (info->title, t->title ().c_str (), 128);
+	strncpy (info->album, t->album ().c_str (), 128);
+	strncpy (info->genre, t->genre ().c_str (), 128);
+	strncpy (info->year, t->year ().c_str (), 10);
+	strncpy (info->track, t->track ().c_str (), 10);
+	strncpy (info->comment, t->comment ().c_str (), 128);
     }
     else
     {
@@ -212,6 +217,12 @@ flac_stream_info (input_object * obj, stream_info * info)
 	    info->title[0] = 0;
 	
 	info->artist[0]  = 0;
+	info->title[0]   = 0;
+	info->album[0]   = 0;
+	info->genre[0]   = 0;
+	info->year[0]    = 0;
+	info->track[0]   = 0;
+	info->comment[0] = 0;
     }
     info->status[0] = 0;
 
@@ -263,7 +274,7 @@ input_plugin_info (void)
     memset (&flac_plugin, 0, sizeof(input_plugin));
 
     flac_plugin.version      = INPUT_PLUGIN_VERSION;
-    flac_plugin.name         = "flac player v1.00";
+    flac_plugin.name         = "flac player v1.05";
     flac_plugin.author       = "Drew Hess";
     flac_plugin.init         = flac_init;
     flac_plugin.shutdown     = flac_shutdown;

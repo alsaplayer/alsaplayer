@@ -31,7 +31,7 @@
 #include <math.h>
 #include <string.h>
 #include "FlacFile.h"
-#include "alsaplayer/CorePlayer.h"
+#include "CorePlayer.h"
 
 namespace Flac
 {
