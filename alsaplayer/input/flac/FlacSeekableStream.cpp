@@ -27,8 +27,9 @@
 namespace Flac
 {
 
-FlacSeekableStream::FlacSeekableStream (const std::string & name, reader_type * f)
-    : FlacStream (name, f),
+FlacSeekableStream::FlacSeekableStream (const std::string & name,
+					reader_type * f, bool reportErrors)
+    : FlacStream (name, f, reportErrors),
       _decoder (0)
 {
 } // FlacSeekableStream::FlacSeekableStream
@@ -51,13 +52,13 @@ FlacSeekableStream::open ()
 {
     // it's illegal to call this on an already open stream
     if (_decoder) {
-	alsaplayer_error("FlacSeekableStream::open(): existing decoder");    
+	apError ("FlacSeekableStream::open(): existing decoder");    
 	return false;
     }
 
     _decoder = FLAC__seekable_stream_decoder_new ();
     if (!_decoder) {
-	alsaplayer_error("FlacSeekableStream::open(): error creating FLAC__seekable_stream_decoder");
+	apError ("FlacSeekableStream::open(): error creating FLAC__seekable_stream_decoder");
 	return false;
     }
     bool status = true;
@@ -80,29 +81,30 @@ FlacSeekableStream::open ()
     status &= FLAC__seekable_stream_decoder_set_client_data (_decoder, (void *) this);
 
     if (!status) {
-	alsaplayer_error("FlacSeekableStream::open(): status error, huh?");    
+	apError ("FlacSeekableStream::open(): status error, huh?");    
 	return false;
     }
     status = (FLAC__seekable_stream_decoder_init (_decoder) == FLAC__SEEKABLE_STREAM_DECODER_OK);
     
     if (!status) {
-	alsaplayer_error("FlacSeekableStream::open(): can't initialize seekable stream decoder");    
+	apError ("FlacSeekableStream::open(): can't initialize seekable stream decoder");    
 	return false;
     }
 
     // this will invoke the metaCallBack
     if (!FLAC__seekable_stream_decoder_process_until_end_of_metadata (_decoder)) {
-	alsaplayer_error("FlacSeekableStream::open(): decoder error");    
+	apError ("FlacSeekableStream::open(): decoder error");    
 	return false;
     }
+
     // now that we've opened the stream, tell the engine it's safe to 
     // initialize itself.
     
-    if (_engine && !_engine->init ()) {
-	alsaplayer_error("FlacSeekableStream::open(): engine init failed (_engine = %x)",
-			_engine);    
+    if (!_engine->init ()) {
+	apError ("FlacSeekableStream::open(): engine init failed");
 	return false;
     }
+
     // return the metaCallBack's status
     return _mcbSuccess;
     
@@ -140,45 +142,12 @@ FlacSeekableStream::metaCallBack (const FLAC__SeekableStreamDecoder * decoder,
     FlacSeekableStream * f = (FlacSeekableStream *) client_data;
 
     if (!f)
-	// doh, no way to indicate failure
-	return;
-
-    if (!md || !f->_decoder)
     {
-	f->_mcbSuccess = false;
+	f->apError ("FlacSeekableStream::metaCallBack(): no client data");
 	return;
     }
 
-    // we only care about STREAMINFO metadata blocks
-    if (md->type != FLAC__METADATA_TYPE_STREAMINFO)
-
-	// don't touch _mcbSuccess, it might have been set by
-	// a previous call to metaCallBack with a STREAMINFO metadata
-	// block
-	return;
-
-    // assume the worst!
-    f->_mcbSuccess = false;
-    
-    if (decoder != f->_decoder)
-	return;
-    
-    if (!FlacEngine::supportsBlockSizes (md->data.stream_info.min_blocksize,
-					 md->data.stream_info.max_blocksize))
-	return;
-    if (!FlacEngine::supportsChannels (md->data.stream_info.channels))
-        return;
-    if (!FlacEngine::supportsBps (md->data.stream_info.bits_per_sample))
-	return;
-
-    f->_sampPerBlock = md->data.stream_info.max_blocksize;
-    f->_sampleRate   = md->data.stream_info.sample_rate;
-    f->_channels     = md->data.stream_info.channels;
-    f->_bps          = md->data.stream_info.bits_per_sample;
-    f->_totalSamp    = md->data.stream_info.total_samples;
-
-    f->_mcbSuccess   = true;
-    return;
+    f->realMetaCallBack (md);
 
 } // FlacSeekableStream::metaCallBack
 
@@ -187,37 +156,16 @@ FlacSeekableStream::metaCallBack (const FLAC__SeekableStreamDecoder * decoder,
 void
 FlacSeekableStream::errCallBack (const FLAC__SeekableStreamDecoder * decoder,
 				 FLAC__StreamDecoderErrorStatus status,
-				 void * /*client_data */)
+				 void * client_data)
 {
-    switch (status)
+    FlacSeekableStream * f = (FlacSeekableStream *) client_data;
+    if (!f)
     {
-    case FLAC__STREAM_DECODER_ABORTED:
-	alsaplayer_error ("flac: decoder was aborted by the read callback");
-	break;
-
-    case FLAC__STREAM_DECODER_UNPARSEABLE_STREAM:
-	alsaplayer_error ("flac: decoder encountered reserved fields in the stream");
-	break;
-
-    case FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR:
-	alsaplayer_error ("flac: decoder can't allocate memory");
-	break;
-
-    case FLAC__STREAM_DECODER_ALREADY_INITIALIZED:
-	alsaplayer_error ("flac: decoder was initialized twice");
-	break;
-
-    case FLAC__STREAM_DECODER_INVALID_CALLBACK:
-	alsaplayer_error ("flac: one or more callbacks is not set");
-	break;
-
-    case FLAC__STREAM_DECODER_UNINITIALIZED:
-	alsaplayer_error ("flac: decoder is in the uninitialized state");
-	break;
-
-    default:
-	alsaplayer_error ("flac: an unknown error occurred.\n");
+	f->apError ("FlacStream::errCallBack (): no client data");
+	return;
     }
+
+    f->realErrCallBack ("FLAC", status);
 
 } // FlacSeekableStream::errCallBack
 
@@ -233,12 +181,11 @@ FlacSeekableStream::writeCallBack (const FLAC__SeekableStreamDecoder * /*decoder
 	return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
     
     FlacSeekableStream * f = (FlacSeekableStream *) client_data;
-    if (!f || !f->_engine)
+    if (!f)
 	return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
-    return f->_engine->writeBuf (frame, buffer, f->channels (), f->bps ()) ? 
-	   FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE : 
-	   FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
-    
+
+    return f->realWriteCallBack (frame, buffer);
+
 } // FlacSeekableStream::writeCallBack
 
 

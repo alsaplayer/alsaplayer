@@ -26,6 +26,7 @@ have_opengl=no
 have_audiofile=no
 have_oggvorbis=no
 have_flac=no
+have_oggflac=no
 have_alsa_05x=no
 have_alsa_final=no
 have_oss=no
@@ -227,12 +228,12 @@ dnl ============
 dnl flac library
 dnl ============
 
-AC_CHECK_LIB(FLAC, FLAC__file_decoder_new,
-     FLC_LDADD="-lFLAC -lm"; have_flac=yes; AC_DEFINE(HAVE_LIBFLC, 1, [Define if you have flac library (-lFLAC)]), have_flac=no; FLC_LDADD=, -lm)
+AC_CHECK_LIB(FLAC, FLAC__stream_decoder_new,
+     FLC_LDADD="-lFLAC -lm"; have_flac=yes; AC_DEFINE(HAVE_LIBFLC, 1, [Define if you have FLAC library (-lFLAC)]), have_flac=no; FLC_LDADD=, -lm)
 
 
 AC_ARG_ENABLE(flac,
-[  --enable-flac           Enable flac plugin (default=yes)],
+[  --enable-flac           Enable FLAC plugin (default=yes)],
 [if test "$enableval" = "no"
 then
 	if test "$have_flac" = "yes"
@@ -241,6 +242,24 @@ then
 	fi
 fi])
 
+
+dnl ===============
+dnl OggFLAC library
+dnl ===============
+
+AC_CHECK_LIB(OggFLAC, OggFLAC__stream_decoder_new,
+     OGGFLC_LDADD="-lOggFLAC -logg"; have_oggflac=yes; AC_DEFINE(HAVE_LIBOGGFLC, 1, [Define if you have OggFLAC library (-lOggFLAC)]), have_oggflac=no; OGGFLC_LDADD=, -lOggFLAC -lFLAC -logg -lm)
+
+
+AC_ARG_ENABLE(oggflac,
+[  --enable-oggflac        Enable OggFLAC plugin (default=yes)],
+[if test "$enableval" = "no"
+then
+	if test "$have_oggflac" = "yes"
+	then
+		have_oggflac=no
+	fi
+fi])
 
 
 dnl ===========
@@ -264,6 +283,7 @@ AC_CHECK_LIB(id3tag, id3_file_open,
 CFLAGS=$oldcflags
 
 AC_SUBST(FLC_LDADD)
+AC_SUBST(OGGFLC_LDADD)
 AC_SUBST(MAD_LDADD)
 
 dnl =================
@@ -334,7 +354,8 @@ AC_CHECK_HEADERS(audio/audiolib.h)
 AC_CHECK_HEADERS(libintl.h)
 AC_CHECK_HEADERS(mad.h)
 AC_CHECK_HEADERS(id3tag.h)
-AC_CHECK_HEADERS(FLAC/file_decoder.h)
+AC_CHECK_HEADERS(FLAC/stream_decoder.h)
+AC_CHECK_HEADERS(OggFLAC/stream_decoder.h)
 
 dnl ==========
 dnl ALSA stuff
@@ -533,6 +554,7 @@ AM_CONDITIONAL(HAVE_DOXYGEN, $HAVE_DOXYGEN)
 AM_CONDITIONAL(USE_LIBMAD,test "x$use_libmad" = xyes)
 AM_CONDITIONAL(USE_LIBID3TAG, test "x$use_libid3tag" = xyes)
 AM_CONDITIONAL(HAVE_FLC, test "x$have_flac" = xyes)
+AM_CONDITIONAL(HAVE_OGGFLC, test "x$have_oggflac" = xyes)
 AM_CONDITIONAL(HAVE_JACK,	test "x$have_jack" = xyes)
 AM_CONDITIONAL(HAVE_ALSA_05X, test "x$have_alsa_05x" = xyes)
 AM_CONDITIONAL(HAVE_ALSA_FINAL, test "x$have_alsa_final" = xyes)
@@ -753,7 +775,8 @@ Configuration:
   Build cdda input plugin:            ${ac_cv_header_linux_cdrom_h}
   Build mikmod input plugin:          ${have_mikmod}
   Build audiofile input plugin:       ${have_audiofile}
-  Build flac input plugin:            ${have_flac}
+  Build FLAC input plugin:            ${have_flac}
+  Build OggFLAC input plugin:         ${have_oggflac}
   Build sndfile input plugin:         ${have_sndfile}"
 echo
 

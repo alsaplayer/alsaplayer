@@ -353,10 +353,22 @@ static int vorbis_channels(input_object *obj)
 
 static float vorbis_can_handle(const char *path)
 {
-#if FANCY_CHECKING	
-	FILE *stream;
-	OggVorbis_File vfile;
-#endif	
+#if FANCY_CHECKING		
+        OggVorbis_File vf_temp;
+        reader_type *datasource;
+	int stream;
+	int rc;
+
+	if ((datasource = reader_open(path)) == NULL)
+	    return 0.0;
+
+	memset(&vf_temp, 0, sizeof (vf_temp));
+	stream = (strncmp(path, "http://", 7) == 0) ? 1 : 0;
+	rc = ov_test_callbacks(datasource, &vf_temp, NULL, 0,
+			       stream ? vorbis_stream_callbacks : vorbis_callbacks);
+
+	return rc == 0 ? 1.0 : 0.0;
+#else
 	char *ext;
 
 	ext = strrchr(path, '.');
@@ -370,16 +382,6 @@ static float vorbis_can_handle(const char *path)
 		return 1.0;
 	} else
 		return 0.0;
-#if FANCY_CHECKING		
-	if ((stream = fopen(path, "r")) == NULL) {
-		return 0.0;
-	}		
-	if (ov_open(stream, &vfile, NULL, 0) < 0)	 {
-		fclose(stream);
-		return 0.0;
-	}
-	ov_clear(&vfile);
-	return 1.0;
 #endif		
 }
 

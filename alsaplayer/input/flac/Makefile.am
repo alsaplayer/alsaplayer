@@ -1,10 +1,20 @@
 if HAVE_FLC
 
+if HAVE_OGGFLC
+oggflac_insources = OggFlacStream.cpp OggFlacStream.h
+
+else
+
+oggflac_insources =
+
+endif
+
 flac_inltlibs = libflac_in.la
 flac_inldflags = -export-dynamic -avoid-version
 flac_insources = FlacEngine.cpp FlacPlugin.cpp FlacStream.cpp FlacTag.cpp \
 		 FlacSeekableStream.cpp FlacEngine.h FlacId3Tag.h \
-		 FlacSeekableStream.h FlacStream.h FlacTag.h FlacId3v1Tag.cpp
+		 FlacSeekableStream.h FlacStream.h FlacTag.h FlacId3v1Tag.cpp \
+		 $(oggflac_insources)
 
 else
 
@@ -16,7 +26,8 @@ endif
 
 EXTRA_DIST = FlacEngine.cpp FlacPlugin.cpp FlacStream.cpp FlacTag.cpp \
 	     FlacId3v1Tag.cpp FlacEngine.h FlacStream.h FlacId3Tag.h \
-	     FlacTag.h FlacSeekableStream.cpp FlacSeekableStream.h
+	     FlacTag.h FlacSeekableStream.cpp FlacSeekableStream.h \
+	     OggFlacStream.cpp OggFlacStream.h
 
 lib_LTLIBRARIES = $(flac_inltlibs)
 
@@ -29,5 +40,5 @@ AM_CXXFLAGS = -D_REENTRANT $(COMMON_FLAGS)
 libdir = $(ADDON_DIR)/input
 
 libflac_in_la_LDFLAGS = $(flac_inldflags)
-libflac_in_la_LIBADD = @FLC_LDADD@
+libflac_in_la_LIBADD = @OGGFLC_LDADD@ @FLC_LDADD@
 libflac_in_la_SOURCES= $(flac_insources)

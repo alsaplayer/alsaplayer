@@ -28,9 +28,10 @@
 #include "alsaplayer_error.h"
 
 #include "FlacStream.h"
-#include "FlacSeekableStream.h"
 #include "FlacEngine.h"
+#include "FlacSeekableStream.h"
 #include "FlacTag.h"
+#include "OggFlacStream.h"
 
 static int
 flac_channels (input_object * obj)
@@ -77,7 +78,7 @@ flac_frame_to_centisec (input_object * obj, int frame)
 	return 0;
     
     Flac::FlacStream * f = (Flac::FlacStream *) obj->local_data;
-    if (!f || !f->engine ())
+    if (!f)
 	return 0;
 
     return (long) f->engine ()->frameTime (frame) * 100;
@@ -127,28 +128,30 @@ flac_open (input_object * obj, const char * name)
 
     obj->flags = 0;
     Flac::FlacStream * f = 0;
-    Flac::FlacEngine * e = 0;
     try
     {
-	if (reader_seekable (rdr))
+	if (Flac::FlacStream::isFlacStream (name))
 	{
-	    f = new Flac::FlacSeekableStream (name, rdr);
-	    obj->flags |= P_SEEK | P_PERFECTSEEK;
+	    if (reader_seekable (rdr))
+	    {
+		f = new Flac::FlacSeekableStream (name, rdr);
+		obj->flags |= P_SEEK | P_PERFECTSEEK;
+	    }
+	    else
+		f = new Flac::FlacStream (name, rdr);
 	}
 	else
-	    f = new Flac::FlacStream (name, rdr);
-	e = new Flac::FlacEngine (f);
+	{
+	    f = new Flac::OggFlacStream (name, rdr);
+	}
     }
     catch (...)
     {
 	alsaplayer_error ("flac_open: unable to allocate memory for plugin.");
 	delete f;
-	delete e;
 	reader_close (rdr);
 	return 0;
     }
-
-    f->setEngine (e);
 
     if (f->open ())
     {
@@ -179,7 +182,6 @@ flac_open (input_object * obj, const char * name)
 	alsaplayer_error ("flac_open: unable to open flac stream or "
 			  "unsupported flac stream (%s)", name);
 	delete f;
-	delete e;
 	obj->frame_size  = 0;
 	obj->nr_channels = 0;
 	obj->flags       = 0;
@@ -251,7 +253,8 @@ flac_stream_info (input_object * obj, stream_info * info)
 static float
 flac_can_handle (const char * name)
 {
-    return Flac::FlacStream::isFlacStream (name) ? 1.0 : 0.0;
+    return Flac::FlacStream::isFlacStream (name)    ? 1.0 :
+	Flac::OggFlacStream::isOggFlacStream (name) ? 1.0 : 0.0;
 }
 
 
@@ -292,7 +295,7 @@ input_plugin_info (void)
     memset (&flac_plugin, 0, sizeof(input_plugin));
 
     flac_plugin.version      = INPUT_PLUGIN_VERSION;
-    flac_plugin.name         = "flac player v1.1";
+    flac_plugin.name         = "flac player v1.2";
     flac_plugin.author       = "Drew Hess";
     flac_plugin.init         = flac_init;
     flac_plugin.shutdown     = flac_shutdown;

@@ -52,18 +52,26 @@ class FlacStream
     
  public:
 
-    //--------------------------
-    // Constructor & destructor.
-    //--------------------------
+    //---------------------------------------------------------------
+    // Constructor & destructor.  The reader_type f belongs to the
+    // FlacStream after construction, and it will be closed
+    // upon deletion of the FlacStream object.  If reportErrors is
+    // false, the object will squelch all alsaplayer_error messages.
+    // This is particularly useful when attempting to open streams
+    // to determine whether they're FLAC streams.
+    //---------------------------------------------------------------
 
-    FlacStream (const std::string & name, reader_type * f);
+    FlacStream (const std::string & name,
+		reader_type * f,
+		bool reportErrors = true);
 
     virtual ~FlacStream ();
 
 
     //------------------------------------------------------------------
     // Initialize the stream decoder, installing all callbacks from the
-    // engine.  Returns false if the decoder could not be initialized.
+    // engine.  Returns false if the decoder could not be initialized
+    // or if the engine hasn't been set (see setEngine).
     //------------------------------------------------------------------
 
     virtual bool        open ();
@@ -74,13 +82,6 @@ class FlacStream
     //----------------------------------------------------------
 
     FlacEngine *        engine () const;
-
-
-    //---------------------------------------------
-    // Set the FlacEngine for this stream decoder.
-    //---------------------------------------------
-
-    void                setEngine (FlacEngine * engine);
 
 
     //----------------------------------------------------------------------
@@ -160,7 +161,37 @@ class FlacStream
 
  protected:
 
+    void                        apError (const char * msg);
+    void                        apError (const char * fmt, const char * str);
+
+ protected:
+
     FlacStream ();
+
+
+    //---------------------------------------------------------------------
+    // The following 3 functions do all the real work for the
+    // various callbacks and are shared by all FLAC stream implementations.
+    //---------------------------------------------------------------------
+
+    void         realMetaCallBack (const FLAC__StreamMetadata * md);
+
+    void         realErrCallBack (const char * name,
+				  FLAC__StreamDecoderErrorStatus status);
+
+    FLAC__StreamDecoderWriteStatus 
+                 realWriteCallBack (const FLAC__Frame * frame,
+				    const FLAC__int32 * const buffer[]);
+
+
+    //------------------------------------------------------------
+    // Does all the real work for read callbacks for non-seekable
+    // streams.
+    //------------------------------------------------------------
+
+    FLAC__StreamDecoderReadStatus 
+                 realReadCallBack (FLAC__byte buffer[],
+				   unsigned * bytes);
 
 
  protected:
@@ -168,6 +199,7 @@ class FlacStream
     FlacEngine *  _engine;
     bool          _mcbSuccess;
     reader_type * _datasource;
+    bool          _reportErrors;
 
     //---------------------------------------------------------------------
     // Stream info.  "Samples" always refers to uncompressed audio samples.
@@ -233,12 +265,6 @@ inline FlacEngine *
 FlacStream::engine () const
 {
     return _engine;
-}
-
-inline void
-FlacStream::setEngine (FlacEngine * engine)
-{
-    _engine = engine;
 }
 
 inline void

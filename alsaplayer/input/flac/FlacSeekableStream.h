@@ -41,11 +41,18 @@ class FlacSeekableStream : public FlacStream
 {
  public:
 
-    //-----------------------------
-    // Constructor and destructor.
-    //-----------------------------
+    //------------------------------------------------------------------
+    // Constructor and destructor.  The reader_type f belongs to the
+    // FlacSeekableStream after construction, and it will be closed
+    // upon deletion of the FlacSeekableStream object.  If reportErrors 
+    // is false, the object will squelch all alsaplayer_error messages.
+    // This is particularly useful when attempting to open streams
+    // to determine whether they're FLAC streams.
+    //------------------------------------------------------------------
 
-    FlacSeekableStream (const std::string & name, reader_type * f);
+    FlacSeekableStream (const std::string & name,
+			reader_type * f,
+			bool reportErrors = true);
     
     virtual ~FlacSeekableStream ();
 

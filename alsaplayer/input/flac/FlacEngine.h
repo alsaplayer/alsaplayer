@@ -167,7 +167,7 @@ class FlacEngine
 
     friend class FlacStream;
     friend class FlacSeekableStream;
-
+    friend class OggFlacStream;
 
  private:
 
