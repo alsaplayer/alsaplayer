@@ -587,8 +587,8 @@ int main(int argc, char **argv)
 		}	
 	} else {
 		if (!(interface_plugin_info = load_interface("gtk"))) {
-			if (!(interface_plugin_info = load_interface("cli"))) {
-				alsaplayer_error("Failed to load cli interface. This is bad\n");
+			if (!(interface_plugin_info = load_interface("text"))) {
+				alsaplayer_error("Failed to load text interface. This is bad\n");
 				goto _fatal_err;
 			}
 		}	
@@ -599,7 +599,7 @@ int main(int argc, char **argv)
 		control_socket_start(playlist);
 		printf("Loading Interface plugin: %s\n", ui->name); 
 		if (!ui->init()) {
-			alsaplayer_error("Failed to load gtk+ interface. Should fall back to cli\n");
+			alsaplayer_error("Failed to load gtk+ interface. Should fall back to text\n");
 		} else {	
 			ui->start(playlist, argc, argv);
 			ui->close();
