@@ -22,6 +22,7 @@
 #include "gladesrc.h"
 #include "gtk_interface.h"
 #include "pixmaps/note.xpm"
+#include "error.h"
 #include <pthread.h>
 #include <dlfcn.h>
 
@@ -54,31 +55,56 @@ void scope_entry_destroy_notify(gpointer data)
 	//	delete se;
 }
 
+#define SCOPE_BUFFER	4096
+
 bool  scope_feeder_func(void *arg, void *data, int size) 
 {
+	static char buf[16384];
+	static int fill = 0;
+	static int left = 0;
+	static int warn = 0;
+
 	scope_entry *se = root_scope;
-	
-	CorePlayer *p = (CorePlayer *)arg;
-	unsigned int latency = p->GetLatency();
-	char *point;
+
+	if (size > SCOPE_BUFFER && !warn) {
+		warn = 1;
+		alsaplayer_error("The fragment size must be %d bytes or less for scopes to work", SCOPE_BUFFER);
+		return true;
+	} else 
+		warn = 0;
+
 	buffer_effect(data, size);
-	latency -= (latency % 4);
-	point = delay_feed(latency, size);
-	if (pthread_mutex_trylock(&sl_mutex) != 0) {
-		return true;	// List is being manipulated
+
+	if (fill + size >= SCOPE_BUFFER) {
+		left = SCOPE_BUFFER - fill;
+		memcpy(buf + fill, data, left);
+
+		CorePlayer *p = (CorePlayer *)arg;
+		//unsigned int latency = p->GetLatency();
+		//char *point;
+		//latency -= (latency % 4);
+		//point = delay_feed(latency, size);
+		if (pthread_mutex_trylock(&sl_mutex) != 0) {
+			return true;	// List is being manipulated
+		}	
+		while (se && se->sp && se->active) {
+			if (se->sp->running())
+				//se->sp->set_data((short *)point, size >> 1);
+				se->sp->set_data((short *)buf, SCOPE_BUFFER >> 1);
+			//printf("feeding %s (%d)\n", se->sp->name, size >> 1);
+			if (se->next) 
+				se = se->next;
+			else 
+				break;
+		}
+		// Copy the remainder
+		fill = 0;
+		memcpy(buf + fill, ((char *)data) + left, size - left);
+		pthread_mutex_unlock(&sl_mutex);
+	} else {
+		memcpy(buf + fill, data, size);
+		fill += size;
 	}	
-#if 1
-	while (se && se->sp && se->active) {
-		if (se->sp->running())
-			se->sp->set_data((short *)point, size >> 1);
-		//printf("feeding %s\n", se->sp->name);
-		if (se->next) 
-			se = se->next;
-		else 
-			break;
-	}
-#endif
-	pthread_mutex_unlock(&sl_mutex);
 	return true;
 }
 
