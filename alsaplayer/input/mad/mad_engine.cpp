@@ -472,7 +472,9 @@ static int mad_open(input_object *obj, char *path)
 				mad_stream_init (&data->stream);
 				mad_frame_init  (&data->frame);
 				data->mad_init = 1;
-				data->offset = find_initial_frame(data->mad_map, STREAM_BUFFER_SIZE);
+				data->offset = find_initial_frame(data->mad_map, 
+						data->stat.st_size < STREAM_BUFFER_SIZE ? data->stat.st_size :
+							STREAM_BUFFER_SIZE);
 				data->highest_frame = 0;
 				if (data->offset < 0) {
 								fprintf(stderr, "mad_open() couldn't find valid MPEG header\n");
