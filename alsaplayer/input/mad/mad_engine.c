@@ -894,7 +894,7 @@ static int mad_open(input_object *obj, const char *path)
 	memset(data, 0, sizeof(struct mad_local_data));
 
 	if ((data->mad_fd = reader_open(path, &reader_status, obj)) == NULL) {
-		fprintf(stderr, "mad_open() failed\n");
+		fprintf(stderr, "mad_open(obj, %s) failed\n", path);
 		free(obj->local_data);
 		obj->local_data = NULL;
 		return 0;
