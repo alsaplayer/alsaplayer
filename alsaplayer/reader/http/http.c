@@ -621,10 +621,8 @@ static int http_seek (void *d, long offset, int whence)
     
     if (whence == SEEK_SET)
 	desc->pos = offset;
-    else if (whence == SEEK_CUR)
+    else 
 	desc->pos += offset;
-    else
-	desc->pos = desc->size - offset;
  
     return 0;
 }
