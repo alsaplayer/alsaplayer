@@ -39,6 +39,7 @@ struct vorbis_local_data {
 		OggVorbis_File vf;
 		char path[FILENAME_MAX+1];
 		int last_section;
+		int bigendianp;
 };		
 
 /* The following callbacks are not needed but are here for future
@@ -134,7 +135,8 @@ static int vorbis_play_frame(input_object *obj, char *buf)
 	}		
 	pcm_index = 0;
 	while (bytes_needed > 0) {	
-		ret = ov_read(&data->vf, pcmout + pcm_index, bytes_needed, 0, 2, 1, &current_section);
+		ret = ov_read(&data->vf, pcmout + pcm_index, bytes_needed, 
+			 data->bigendianp, 2, 1, &current_section);
 		switch (ret) {
 			case 0:
 				return 0;
@@ -363,6 +365,7 @@ static int vorbis_open(input_object *obj, char *path)
 		}
 		data = (struct vorbis_local_data *)obj->local_data;
 		data->last_section = -1;
+		data->bigendianp = ('BIG!'==(('B'<<24)+('I'<<16)+('G'<<8)+'!')) ? 0 : 1;
 		memcpy(&data->vf, &vf_temp, sizeof(vf_temp));
 		memcpy(data->path, path, sizeof(data->path)-1);
 		return 1;
