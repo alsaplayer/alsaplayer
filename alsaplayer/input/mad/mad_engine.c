@@ -824,20 +824,22 @@ static int mad_open(input_object *obj, char *path)
 static void mad_close(input_object *obj)
 {
 				struct mad_local_data *data;
-
 				if (!obj)
 								return;
 				data = (struct mad_local_data *)obj->local_data;
 
 				if (data) {
-								if (data->mad_map)
-												munmap(data->mad_map, data->stat.st_size);
-								if (data->mad_fd)
-												close(data->mad_fd);
+								 if (data->mad_fd)
+									 close(data->mad_fd);
+								if (data->mad_map) {
+									if (munmap(data->mad_map, data->stat.st_size) == -1)
+										alsaplayer_error("failed to unmap memory...");
+								}				
 								if (data->mad_init) {
 												mad_synth_finish (&data->synth);
 												mad_frame_finish (&data->frame);
 												mad_stream_finish(&data->stream);
+												data->mad_init = 0;
 								}
 								if (data->frames) {
 												free(data->frames);
