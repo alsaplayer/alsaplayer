@@ -180,7 +180,8 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 			for (i = 0; i < NR_BLOCKS; i++) {
 				fprintf(stdout, "%c", cur_val >= i ? '*':' ');
 			}
-			fprintf(stdout,"]   ");
+			fprintf(stdout,"] (%03d/%03d)  ",
+				playlist->GetCurrent(), playlist->Length());
 			fflush(stdout);
 			dosleep(1000000);
 		}
