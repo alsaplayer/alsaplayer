@@ -18,7 +18,7 @@ endif
 
 EXTRA_DIST = gtk_barfft.c
 
-CFLAGS += -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
+CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
 			-I$(top_srcdir)/app/scopes \
 			@GTK_CFLAGS@ @DFLAGS@
 
