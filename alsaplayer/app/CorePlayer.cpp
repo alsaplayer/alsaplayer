@@ -964,8 +964,12 @@ void CorePlayer::update_pitch()
 }	
 
 
-// FIXME: some documentation needed
-//
+/*
+	FIXME: some documentation needed
+
+	returns the number of samples put into output buffer
+	negative return values indicate errors
+*/
 int CorePlayer::Read32(void *data, int samples)
 {
 	if (repitched) {
@@ -1008,21 +1012,33 @@ int CorePlayer::Read32(void *data, int samples)
 	}
 
 	// provide a fast path implementation for the common case (no pitch)
-	if (use_read_direction == DIR_FORWARD && use_pitch == 0.0) {
-		// do we remain in the current PCM read buffer partition?
-		// (switch to the next buffer if neccessary)
-		if ((check_index + samples) > read_buf->buf->write_index) {
+	if ((use_read_direction == DIR_FORWARD) && (use_pitch == 1.0)) {
+
+		// calculate amount of samples available in current read buffer
+		int samplesInBuffer = read_buf->buf->write_index - check_index;
+
+		if (samplesInBuffer >= samples)
+		{
+			// copy the whole block (usually 4KB) at once
+			memcpy(out_buf, in_buf, samples * 4);
+			tmp_index = samples - 1;
+		}
+		else
+		{
+			// use rest of current block
+			if (samplesInBuffer)
+				memcpy(out_buf, in_buf, samplesInBuffer * 4);
+
+			// get next block
 			read_buf = read_buf->next;
 			pthread_mutex_unlock(&counter_mutex);
 			read_buf->buf->SetReadDirection(DIR_FORWARD);
 			read_buf->buf->ResetRead();
 			in_buf = (int *)read_buf->buf->buffer_data;
-			check_index = 0;
+			check_index = samples - samplesInBuffer;
+			memcpy(out_buf + samplesInBuffer, in_buf, (samples - samplesInBuffer) * 4);
+			tmp_index = -1;
 		}
-
-		// and copy the whole block (usually 4KB) at once
-		memcpy(out_buf, in_buf, samples * 4);
-		tmp_index = samples - 1;
 	}
 	else if (use_read_direction == DIR_FORWARD) {
 		while (buf_index < samples) {
