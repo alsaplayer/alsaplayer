@@ -69,13 +69,18 @@ PlaylistWindowGTK::~PlaylistWindowGTK() {
 	playlist->UnRegister(this);
 }
 
+#include "pixmaps/play_icon.xpm"
+static GdkPixmap *play_pix = (GdkPixmap *)NULL;
+static GdkBitmap *play_mask = (GdkBitmap *)NULL;
+
+
 // Set item currently playing
 // (FIXME - shouldn't just be the currently selected item - indicate with an
 // icon?)
 void PlaylistWindowGTK::CbSetCurrent(unsigned current) {
-#ifdef DEBUG
-	printf("CbSetCurrent(%d)\n", current);
-#endif /* DEBUG */
+	GtkWidget *working;
+	GtkStyle *style;
+#if 0	
 	if (!select_color) {
 		select_color = (GdkColor *)g_malloc(sizeof(GdkColor));
 		if (select_color) {
@@ -94,10 +99,31 @@ void PlaylistWindowGTK::CbSetCurrent(unsigned current) {
 	}
 		
 	gtk_clist_set_foreground(GTK_CLIST(playlist_list), current_entry - 1, default_color);
+#else
+	if (!play_pix) {
+		style = gtk_widget_get_style(GTK_WIDGET(playlist_list));
+		if (!GTK_WIDGET(playlist_window)->window) {
+			gtk_widget_realize(playlist_window);
+			gdk_flush();
+		}	
+		play_pix = gdk_pixmap_create_from_xpm_d(
+			GTK_WIDGET(playlist_window)->window,
+			&play_mask, &style->bg[GTK_STATE_NORMAL],
+			play_icon_xpm);
+	} else {
+		gtk_clist_set_text(GTK_CLIST(playlist_list), current_entry - 1,
+			0, "");
+	}	
+#endif	
 	current_entry = current;	
 	
 	//gtk_clist_select_row(GTK_CLIST(playlist_list), current_entry - 1, 1);
+#if 0	
 	gtk_clist_set_foreground(GTK_CLIST(playlist_list), current_entry - 1, select_color);	
+#else
+	gtk_clist_set_pixmap(GTK_CLIST(playlist_list), current_entry - 1,
+		0, play_pix, play_mask);
+#endif
 }
 
 void PlaylistWindowGTK::CbLock()
