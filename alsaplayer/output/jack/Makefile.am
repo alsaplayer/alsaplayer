@@ -15,6 +15,8 @@ jack_outsources =
 
 endif
 
+EXTRA_DIST = jack.cpp
+
 lib_LTLIBRARIES = $(jack_outltlibs)
 
 COMMON_CFLAGS = -D_REENTRANT -I$(top_builddir) \
