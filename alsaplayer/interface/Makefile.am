@@ -1,1 +1,1 @@
-SUBDIRS = gtk text qt
+SUBDIRS = gtk text

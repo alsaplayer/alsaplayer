@@ -4,9 +4,9 @@ AC_INIT(app/CorePlayer.cpp)
 
 ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
-ALSAPLAYER_MICRO_VERSION=54
+ALSAPLAYER_MICRO_VERSION=55
 
-BETA=
+BETA=-pre1
 
 ALSAPLAYER_VERSION=$ALSAPLAYER_MAJOR_VERSION.$ALSAPLAYER_MINOR_VERSION.${ALSAPLAYER_MICRO_VERSION}${BETA}
 
@@ -20,7 +20,7 @@ dnl =======================================================
 
 have_gtk=no
 have_glib=no
-have_qt=no
+dnl have_qt=no
 have_audiofile=no
 have_oggvorbis=no
 have_alsa_05x=no
@@ -379,18 +379,18 @@ then
 have_nas=no
 fi])
 
-AC_ARG_ENABLE(qt,
-[  --enable-qt             Enable Qt graphical interface [default=no]],
-[
-  if test "x$enableval" = "xno"
-  then
-    have_qt=no
-  else
-    AM_PATH_QT(have_qt=yes, have_qt=no)
-  fi
-],
-[have_qt=no]
-)
+dnl AC_ARG_ENABLE(qt,
+dnl [  --enable-qt             Enable Qt graphical interface [default=no]],
+dnl [
+dnl   if test "x$enableval" = "xno"
+dnl  then
+dnl    have_qt=no
+dnl  else
+dnl    AM_PATH_QT(have_qt=yes, have_qt=no)
+dnl  fi
+dnl ],
+dnl [have_qt=no]
+dnl )
 
 
 AM_CONDITIONAL(HAVE_JACK,	test "x$have_jack" = xyes)
@@ -403,7 +403,7 @@ AM_CONDITIONAL(HAVE_SGI, test "x$have_sgi" = xyes)
 AM_CONDITIONAL(HAVE_NAS, test "x$have_nas" = xyes)
 AM_CONDITIONAL(HAVE_LINUX_CDROM,test "x$ac_cv_header_linux_cdrom_h" = xyes)
 AM_CONDITIONAL(HAVE_GTK, test "x$have_gtk" = xyes)
-AM_CONDITIONAL(HAVE_QT, test "x$have_qt" = xyes)
+dnl AM_CONDITIONAL(HAVE_QT, test "x$have_qt" = xyes)
 AM_CONDITIONAL(HAVE_MIKMOD,test "x$have_mikmod" = xyes)
 AM_CONDITIONAL(PREFER_MAD, test "x$prefer_mad" = "xyes")
 
@@ -470,10 +470,10 @@ then
 		AC_DEFINE(HAVE_GTK)
 fi		
 
-if test "$have_qt" = "yes"
-then
-		AC_DEFINE(HAVE_QT)
-fi		
+dnl if test "$have_qt" = "yes"
+dnl then
+dnl		AC_DEFINE(HAVE_QT)
+dnl fi		
 
 dnl ================================================================
 dnl Special assembly options. Note: Need to fix the above arch code!
@@ -541,7 +541,6 @@ interface/gtk/Makefile
 interface/gtk/pixmaps/Makefile
 interface/gtk/gui/Makefile
 interface/text/Makefile
-interface/qt/Makefile
 scopes/Makefile
 scopes/monoscope/Makefile
 scopes/fftscope/Makefile
@@ -580,7 +579,6 @@ Configuration:
   Install path:                       ${prefix}
   Prefer MAD over mpg123 plugin:      ${prefer_mad}
   Build gtk interface:                ${have_gtk}
-  Build qt interface:                 ${have_qt}
   Build with JACK support:            ${have_jack}
   Build alsa 0.5.x output plugin:     ${have_alsa_05x}
   Build alsa LATEST output plugin:    ${have_alsa_final}
@@ -594,7 +592,7 @@ Configuration:
   Build audiofile input plugin:       ${have_audiofile}"
 echo
 
-if test $have_sparc = "no" -a $have_alsa_05x = "no" -a $have_alsa_final -a $have_oss = "no" -a $have_esd = "no" -a $have_sgi = "no" -a $have_nas = "no"
+if test $have_sparc = "no" -a $have_alsa_05x = "no" -a $have_alsa_final = "no" -a $have_oss = "no" -a $have_esd = "no" -a $have_sgi = "no" -a $have_nas = "no"
 then
 echo "
 **WARNING**: NO OUTPUT MODULES selected. AlsaPlayer won't be
