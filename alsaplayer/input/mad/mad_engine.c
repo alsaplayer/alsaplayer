@@ -433,7 +433,7 @@ void parse_id3(struct id3_tag const *tag, stream_info *sinfo)
 				} else if (strcmp(name, "Year") == 0) {
 					snprintf(sinfo->year, sizeof(sinfo->year), "%s", latin1);
 				} else {
-				    //alsaplayer_error("%s%s: %s", &spaces[namelen], name, latin1);
+					//alsaplayer_error("%s%s: %s", &spaces[namelen], name, latin1);
 				}
 			} else {
 				if (strcmp(info[i].id, "TCOP") == 0 ||
@@ -469,46 +469,8 @@ void parse_id3(struct id3_tag const *tag, stream_info *sinfo)
 		if (latin1 == 0)
 			goto fail;
 
-		ptr = latin1;
-		while (*ptr) {
-			newline = strchr(ptr, '\n');
-			if (newline)
-				*newline = 0;
-
-			if (strlen((char*)ptr) > 66) {
-				id3_latin1_t *linebreak;
-
-				linebreak = ptr + 66;
-
-				while (linebreak > ptr && *linebreak != ' ')
-					--linebreak;
-
-				if (*linebreak == ' ') {
-					if (newline)
-						*newline = '\n';
-
-					newline = linebreak;
-					*newline = 0;
-				}
-			}
-
-			if (first) {
-				char const *name;
-				unsigned int namelen;
-
-				name    = _("Comment");
-				namelen = strlen(name);
-				assert(namelen < sizeof(spaces));
-
-				//alsaplayer_error("%s%s: %s\n", &spaces[namelen], name, ptr);
-				first = 0;
-			}
-			else 
-				;//alsaplayer_error("%s  %s\n", spaces, ptr);
-
-			ptr += strlen((char*)ptr) + (newline ? 1 : 0);
-		}
-
+		snprintf (sinfo->comment, sizeof(sinfo->comment), "%s", latin1);
+		
 		free(latin1);
 		break;
 	}
@@ -561,6 +523,8 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 			snprintf(info->track, sizeof(info->track), "%s", data->sinfo.track);
 		if (strlen(data->sinfo.year))
 			snprintf(info->year, sizeof(info->year), "%s", data->sinfo.year);
+		if (strlen(data->sinfo.comment))
+			snprintf(info->comment, sizeof(info->comment), "%s", data->sinfo.comment);
 #else										
 		sprintf(info->title, "Unparsed: %s", data->filename);				
 #endif

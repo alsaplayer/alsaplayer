@@ -62,6 +62,7 @@
 #define AP_GET_STATUS			0xcc1d
 #define AP_SET_POS_SECOND_RELATIVE	0xcc1e
 #define AP_GET_TITLE			0xcc1f
+#define AP_GET_COMMENT			0xcc20
 /* Add new commands here */
 
 #ifdef __cplusplus

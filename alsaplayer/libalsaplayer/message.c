@@ -638,6 +638,12 @@ int ap_get_genre(int session, char *str)
 				AP_GET_GENRE, str, AP_GENRE_MAX));
 }
 
+int ap_get_comment(int session, char *str)
+{
+	return (ap_get_single_string_command(session,
+				AP_GET_COMMENT, str, AP_COMMENT_MAX));
+}
+
 int ap_get_album(int session, char *str)
 {
 	return (ap_get_single_string_command(session, 

@@ -80,6 +80,7 @@ void info_looper(void *data)
 					(*p).genre = info.genre;
 					(*p).year = info.year;
 					(*p).track = info.track;
+					(*p).comment = info.comment;
 				}
 				myplayer->Unload();	
 			}

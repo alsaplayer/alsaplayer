@@ -255,6 +255,13 @@ void socket_looper(void *arg)
 					ap_message_add_int32(reply, "ack", 1);
 				}
 				break;
+			case AP_GET_COMMENT:
+				if (player) {
+					player->GetStreamInfo(&info);
+					ap_message_add_string(reply, "string", info.comment);
+					ap_message_add_int32(reply, "ack", 1);
+				}
+				break;
 			case AP_GET_GENRE:
 				if (player) {
 					player->GetStreamInfo(&info);

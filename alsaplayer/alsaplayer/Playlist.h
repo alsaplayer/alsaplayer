@@ -51,6 +51,7 @@ class PlayItem
 		std::string genre;
 		std::string year;
 		std::string track;
+		std::string comment;
 		int playtime;
 };
 
