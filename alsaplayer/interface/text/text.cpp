@@ -174,7 +174,11 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 					c_min, c_sec, t_min, t_sec);
 			// Draw nice indicator
 			block_val /= NR_BLOCKS; 
-			cur_val /= block_val;
+
+			if (!block_val)
+				cur_val = 0;
+			else
+				cur_val /= block_val;
 			//printf("%d - %d\n", block_val, cur_val);
 			fprintf(stdout, "[");
 			for (i = 0; i < NR_BLOCKS; i++) {
