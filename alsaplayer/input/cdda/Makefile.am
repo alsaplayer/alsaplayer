@@ -2,7 +2,7 @@ if HAVE_LINUX_CDROM
 
 cddaltlibs = libcdda.la
 cddaldflags = -export-dynamic -avoid-version
-cddasources = cdda_engine.cpp
+cddasources = cdda_engine.cpp cdda.h
 
 else
 
@@ -14,15 +14,16 @@ endif
 
 lib_LTLIBRARIES = $(cddaltlibs)
 
-CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include \
-			@ARCH_CFLAGS@
+CFLAGS = -D_REENTRANT @ARCH_CFLAGS@
 
 CXXFLAGS = $(CFLAGS)
+
+INCLUDES = -I$(top_builddir) -I$(top_srcdir)/include
 
 # autoconf/automake BUG!!
 # LINK = $(CXXLINK)
 
 libdir = $(ADDON_DIR)/input
 
-libcdda_la_LDFLAGS = $(cddaldflags)
 libcdda_la_SOURCES= $(cddasources)
+libcdda_la_LDFLAGS = $(cddaldflags)
