@@ -1,5 +1,5 @@
 * New: lightweight ap-control program (see examples directory) to control
-  alsaplayer operation
+  alsaplayer operation (alpha)
 * New API functions for randomizing and saving the current playlist
 * FLAC plugin converted to reader API (Drew) which means we can now also
   receive remote FLAC streams.
