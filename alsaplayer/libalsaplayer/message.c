@@ -392,13 +392,17 @@ int ap_find_session(char *session_name, int *session)
 						if (ap_get_session_name(i, remote_name)) {
 							if (strcmp(remote_name, session_name) == 0) {
 								*session = i;
+								closedir(dir);
 								return 1;
-							}
-						}
+							} else {
+								i++;
+							}	
+						}	
 					}
 				}
 			}	
-		}	
+		}
+		closedir(dir);
 	}
 	return 0;
 }
