@@ -155,7 +155,7 @@ static inline signed int my_scale(mad_fixed_t sample)
 static void fill_buffer(struct mad_local_data *data, long offset)
 {
 	size_t bytes_read;
-	if (offset >= 0)	
+	if (offset >= 0)
 		reader_seek(data->mad_fd, data->offset + offset, SEEK_SET);
 	bytes_read = reader_read(data->mad_map, MAD_BUFSIZE, data->mad_fd);
 	data->bytes_avail = bytes_read;
@@ -176,83 +176,80 @@ static int mad_frame_seek(input_object *obj, int frame)
 
 	//alsaplayer_error("Frame seek to %d (highest = %d)", frame, data->highest_frame);
 	
-	if (data) {
-		if (!data->seekable)
-			return 0;
+	if (!data || !data->seekable)
+		return 0;
 
-		mad_header_init(&header);
+	mad_header_init(&header);
 
-		data->bytes_avail = 0;
-		if (frame <= data->highest_frame) {
-			skip = 0;
+	data->bytes_avail = 0;
+	if (frame <= data->highest_frame) {
+		skip = 0;
 			
-			if (frame > 4) {
-				skip = 3;
-			}
-			byte_offset = data->frames[frame-skip];
-			// Prepare the buffer for a read
-			//alsaplayer_error("Filling buffer offset = %d (%d)", byte_offset, frame-skip);
-			fill_buffer(data, byte_offset);
-			mad_stream_buffer(&data->stream, data->mad_map,
-					data->bytes_avail);
-			skip++;
-			while (skip != 0) {
-				skip--;
-
-				mad_frame_decode(&data->frame, &data->stream);
-				if (skip == 0)
-					mad_synth_frame (&data->synth, &data->frame);
-			}
-			data->bytes_avail = data->stream.bufend - 
-					data->stream.next_frame;
-			data->current_frame = frame;
-			data->seeking = 0;
-			return data->current_frame;
-		}
-		data->seeking = 1;
-		fill_buffer(data, data->frames[data->highest_frame]);
-		mad_stream_buffer(&data->stream, data->mad_map,
-				data->bytes_avail);
-		while (data->highest_frame < frame) {
-			if (data->bytes_avail < 3072) {
-				fill_buffer(data, data->map_offset + MAD_BUFSIZE - data->bytes_avail);
-				mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
-			}	
-			if (mad_header_decode(&header, &data->stream) == -1) {
-				if (!MAD_RECOVERABLE(data->stream.error)) {
-					fill_buffer(data, 0);
-					mad_stream_buffer(&data->stream,
-							data->mad_map,
-							data->bytes_avail);
-					data->seeking = 0;
-					//alsaplayer_error("Error while seeking (%d, %d)", data->highest_frame,
-					//		data->bytes_avail);
-					return 0;
-				}				
-			}
-			data->frames[++data->highest_frame] =
-				data->map_offset + data->stream.this_frame - data->mad_map;
-			data->bytes_avail = data->stream.bufend - data->stream.next_frame;
-		}
-		data->current_frame = data->highest_frame;
-		if (data->current_frame > 4) {
+		if (frame > 4) {
 			skip = 3;
-			fill_buffer(data, data->frames[data->current_frame-skip]);
-			mad_stream_buffer(&data->stream, data->mad_map,
-					data->bytes_avail);
-			skip++;
-			while (skip != 0) { 
-				skip--;
-				mad_frame_decode(&data->frame, &data->stream);
-				if (skip == 0) 
-					mad_synth_frame (&data->synth, &data->frame);
-				data->bytes_avail = data->stream.bufend -
-					data->stream.next_frame;
-			}
 		}
+		byte_offset = data->frames[frame-skip];
+		// Prepare the buffer for a read
+		//alsaplayer_error("Filling buffer offset = %d (%d)", byte_offset, frame-skip);
+		fill_buffer(data, byte_offset);
+		mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
+		skip++;
+		while (skip != 0) {
+			skip--;
+
+			mad_frame_decode(&data->frame, &data->stream);
+			if (skip == 0)
+				mad_synth_frame (&data->synth, &data->frame);
+		}
+		data->bytes_avail = data->stream.bufend - 
+				data->stream.next_frame;
+		data->current_frame = frame;
 		data->seeking = 0;
 		return data->current_frame;
 	}
+
+	data->seeking = 1;
+	fill_buffer(data, data->frames[data->highest_frame]);
+	mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
+	while (data->highest_frame < frame) {
+		if (data->bytes_avail < 3072) {
+			fill_buffer(data, data->map_offset + MAD_BUFSIZE - data->bytes_avail);
+			mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
+		}	
+		if (mad_header_decode(&header, &data->stream) == -1) {
+			if (!MAD_RECOVERABLE(data->stream.error)) {
+				fill_buffer(data, 0);
+				mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
+				data->seeking = 0;
+				//alsaplayer_error("Error while seeking (%d, %d)", data->highest_frame,
+				//		data->bytes_avail);
+				return 0;
+			}				
+		}
+		data->frames[++data->highest_frame] =
+			data->map_offset + data->stream.this_frame - data->mad_map;
+		data->bytes_avail = data->stream.bufend - data->stream.next_frame;
+	}
+
+	data->current_frame = data->highest_frame;
+	if (data->current_frame > 4) {
+		skip = 3;
+		fill_buffer(data, data->frames[data->current_frame-skip]);
+		mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
+		skip++;
+		while (skip != 0) { 
+			skip--;
+			mad_frame_decode(&data->frame, &data->stream);
+			if (skip == 0) 
+				mad_synth_frame (&data->synth, &data->frame);
+			data->bytes_avail = data->stream.bufend -
+				data->stream.next_frame;
+		}
+	}
+
+	data->seeking = 0;
+	return data->current_frame;
+
 	return 0;
 }
 
@@ -319,6 +316,7 @@ static int mad_play_frame(input_object *obj, char *buf)
 	}				
 
 	mad_synth_frame (&data->synth, &data->frame);
+
 	{
 		pcm = &data->synth.pcm;
 		output = (int16_t *)buf;
