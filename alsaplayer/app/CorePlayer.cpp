@@ -476,6 +476,9 @@ bool CorePlayer::Start(int reset)
 	int output_rate;
 	int tries;
 
+	if (IsPlaying())
+		return false;
+
 	if (!node) {
 		alsaplayer_error("CorePlayer does not have a node");
 		return false;

@@ -143,14 +143,22 @@ void socket_looper(void *arg)
 				break;
 			case AP_PLAY: 
 				if (player) {
-					if (player->GetSpeed() == 0.0) {
-						player->SetSpeed(1.0);
-					}	
 					if (player->IsPlaying()) {
+						if (player->GetSpeed() == 0.0) {
+							player->SetSpeed(1.0);
+							ap_message_add_int32(reply, "ack", 1);
+							break;
+						}
+						player->Seek(0);
+						ap_message_add_int32(reply, "ack", 1);
+						break;
+					} else {
 						ap_message_add_int32(reply, "ack",
-						player->Start());
-					}	
+							player->Start() ? 1 : 0);
+						break;
+					}
 				}
+				ap_message_add_int32(reply, "ack", 0);
 				break;
 			case AP_NEXT: 
 				playlist->Next(1);
