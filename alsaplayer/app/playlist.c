@@ -258,6 +258,11 @@ ap_playlist_info_thread (gpointer data)
     while (1) {
 	ApPlayItem *playitem = g_async_queue_pop (playlist->info_queue);
 
+	/* We may not lock playitem during this, since
+	 * we don't do access by this pointer and
+	 * suppose that the NULL filenamed playitem
+	 * could not change it filename.
+	 */
 	if (ap_playitem_get_filename (playitem) == NULL) {
 	    /* This is the last item.
 	     * It signals us to exit thread.
@@ -278,7 +283,11 @@ ap_playlist_info_thread (gpointer data)
 	 * But now, we just emulate it ;)
 	 */
 	g_print ("info thread fills %p\n", playitem);
+
+	ap_playitem_lock (playitem);
 	ap_playitem_set_title (playitem, "Updated");
+	ap_playitem_unlock (playitem);
+	
 	g_usleep (500000);
 
 	/* Emit "playitem-updated" signal */
@@ -449,7 +458,6 @@ ap_playlist_update_playitem (ApPlaylist	    *playlist,
 {
     g_return_if_fail (AP_IS_PLAYLIST (playlist));
     g_return_if_fail (AP_IS_PLAYITEM (playitem));
-    g_return_if_fail (ap_playitem_get_filename (playitem));
 
     g_object_ref (playitem);
     g_async_queue_push (playlist->info_queue, playitem);

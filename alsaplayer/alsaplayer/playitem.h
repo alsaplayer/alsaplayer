@@ -78,6 +78,8 @@ struct _ApPlayItem {
 
     /*! \brief Playtime of this song. */
     guint	    playtime;
+
+    GMutex	    *mutex;
 };
 
 struct _ApPlayItemClass {
@@ -121,6 +123,9 @@ G_CONST_RETURN gchar*	    ap_playitem_get_comment	(ApPlayItem	*playitem);
 guint			    ap_playitem_get_year	(ApPlayItem	*playitem);
 guint			    ap_playitem_get_track	(ApPlayItem	*playitem);
 guint			    ap_playitem_get_playtime	(ApPlayItem	*playitem);
+
+void			    ap_playitem_lock		(ApPlayItem	*playitem);
+void			    ap_playitem_unlock		(ApPlayItem	*playitem);
 
 #ifdef __cplusplus
 }
