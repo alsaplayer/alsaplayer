@@ -54,8 +54,9 @@ AlsaNode::AlsaNode(char *name, int realtime)
 	use_pcm = name;
 #ifdef USE_JACK	
 	char client_name[32];
+	char dest_port1[32], dest_port2[32];
 	use_jack = 0;
-#endif	
+#endif
 	realtime_sched = realtime;
 	sample_freq = OUTPUT_RATE;
 
@@ -64,8 +65,7 @@ AlsaNode::AlsaNode(char *name, int realtime)
 	}	
 #ifdef USE_JACK
 	sprintf(client_name, "alsaplayer-%d", getpid());
-
-	if (strcmp(name, "jack") == 0) { // Use JACK
+	if (strncmp(name, "jack", 4) == 0) { // Use JACK
 		if ((client = jack_client_new(client_name)) == 0) {
 			alsaplayer_error("jack server not running?");
 			return;
@@ -76,7 +76,7 @@ AlsaNode::AlsaNode(char *name, int realtime)
 			(JackProcessCallback)bufsize, this);
 		jack_set_sample_rate_callback (client, 
 			(JackProcessCallback)srate, this);
-		printf("engine sample rate: %lu\n", jack_get_sample_rate (client));
+		//printf("engine sample rate: %lu\n", jack_get_sample_rate (client));
 
 		my_output_port1 = jack_port_register (client, "out_1",
 				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);		
@@ -86,14 +86,22 @@ AlsaNode::AlsaNode(char *name, int realtime)
 		if (jack_activate (client)) {
 			alsaplayer_error("cannot activate client");
 		}	
-		printf("client activated\n");
+		//printf("client activated\n");
 	
+		strcpy(dest_port1, "alsa_pcm:out_1");
+		strcpy(dest_port2, "alsa_pcm:out_2");
+		if (sscanf(name, "jack %31s %31s", dest_port1, dest_port2) == 1) {
+		  strcpy(dest_port2, dest_port1);
+		}
+
+		printf("connecting to jack ports: %s & %s\n", dest_port1, dest_port2);
+
 		if (jack_connect (client, jack_port_name(my_output_port1),
-				"alsa_pcm:out_1")) {
+				dest_port1)) {
 				alsaplayer_error("cannot connect output port 1");
 		}		
 		if (jack_connect (client, jack_port_name(my_output_port2),
-				"alsa_pcm:out_2")) {
+				dest_port2)) {
 				alsaplayer_error("cannot connect output port 2");
 		}		
 	
@@ -165,7 +173,7 @@ int AlsaNode::bufsize(nframes_t nframes, void *arg)
 {
 	AlsaNode *node = (AlsaNode *)arg;
 
-	printf("the maximum buffer size is now %lu\n", nframes);
+	//printf("the maximum buffer size is now %lu\n", nframes);
 	if (node) {
 		node->fragment_size = nframes;
 		node->nr_fragments = 3;
@@ -178,7 +186,7 @@ int AlsaNode::srate(nframes_t rate, void *arg)
 {
 	AlsaNode *node = (AlsaNode *)arg;
 
-	printf ("the sample rate is now %lu/sec\n", rate);
+	//printf ("the sample rate is now %lu/sec\n", rate);
 	if (node)
 		node->sample_freq = (int)rate;
 	return 0;

@@ -442,7 +442,17 @@ int main(int argc, char **argv)
 	// Check if we want jack
 	if (strcmp(argv[0], "jackplayer") == 0 ||
 			strcmp(use_output, "jack") == 0) {
-		node = new AlsaNode("jack", use_realtime);
+		if (strcmp(use_pcm, default_pcm_device) != 0) {
+			printf("not default\n");
+			char *comma;
+			sprintf(use_output, "jack %s", use_pcm);
+			if (comma = strchr(use_output, ',')) {
+		 	 *comma = ' ';
+			} 
+		} else {
+			sprintf(use_output, "jack");
+		}
+		node = new AlsaNode(use_output, use_realtime);
 	} else { // Else do the usual plugin based thing
 		node = new AlsaNode(use_pcm, use_realtime);
 		if (use_user) {
