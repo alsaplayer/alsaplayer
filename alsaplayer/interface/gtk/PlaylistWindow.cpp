@@ -88,7 +88,8 @@ void PlaylistWindowGTK::CbInsert(std::vector<PlayItem> & items, unsigned positio
 	printf("CbInsert(`%d items', %d)\n", items.size(), position);
 #endif /* DEBUG */
 	
-	
+	std::vector<PlayItem> item_copy = items;
+
 	GiveStatus("Adding files...");
 	gtk_clist_freeze(GTK_CLIST(playlist_list));
 
@@ -97,27 +98,21 @@ void PlaylistWindowGTK::CbInsert(std::vector<PlayItem> & items, unsigned positio
 		std::vector<PlayItem>::const_iterator item;
 		for(item = items.begin(); item != items.end(); item++) {
 			// Make a new item
-			char *list_item[3];
+			gchar *list_item[3];
 			new_list_item(item->filename.c_str(), list_item);
 
 			// Add it to the playlist
-			//int index = gtk_clist_append(GTK_CLIST(playlist_list), list_item);
-			gtk_clist_insert(GTK_CLIST(playlist_list), index, list_item);
+			int index = gtk_clist_append(GTK_CLIST(playlist_list), list_item);
 			gtk_clist_set_shift(GTK_CLIST(playlist_list), index, 1, 2, 2);
 
-			// Make sure it gets freed when item is removed from list
-			gtk_clist_set_row_data_full(GTK_CLIST(playlist_list),
-										index, list_item[2], destroy_notify);
 			index ++;
 		}
 	}
-
     std::string msg = inttostring(items.size()) + " file";
 	if(items.size() != 1) msg += "s";
 	msg += " added";
 
 	GiveStatus(msg);
-
 	gtk_clist_thaw(GTK_CLIST(playlist_list));
 
 }
@@ -159,7 +154,7 @@ void PlaylistWindowGTK::CbClear() {
 
 // Display a status message
 void PlaylistWindowGTK::GiveStatus(std::string status) {
-    gtk_label_set_text(playlist_status, status.c_str());
+    //gtk_label_set_text(playlist_status, status.c_str());
 }
 
 // Show the playlist
@@ -292,27 +287,24 @@ void close_cb(GtkWidget *widget, gpointer data)
 // Make a new item to go in the list
 static void new_list_item(const char *path, gchar **list_item)
 {
-	gchar *new_path = (gchar *)g_malloc(256);
-	if (new_path) strcpy(new_path, path);
+	gchar *dirname;
+	gchar *filename;
+	gchar *new_path = (gchar *)g_strdup(path);
 
+	list_item[0] = NULL;
 	// Strip directory names
-	gchar *filename = strrchr(new_path, '/');
-	if (filename) filename++;
-	else filename = new_path;
+	dirname = strrchr(new_path, '/');
+	if (dirname) {
+			dirname++;
+			filename = (gchar *)g_strdup(dirname);
+	} else
+			filename = (gchar *)g_strdup(new_path);
 
 	// Put data in list_item
-	list_item[0] = NULL;
 	list_item[1] = filename;
 	list_item[2] = new_path;
 }
 
-// Called when an item in list is destroyed - frees data
-static void
-destroy_notify(gpointer data)
-{
-	gchar *path = (gchar *)data;
-	g_free(path);
-}
 
 // Called when files have been selected for adding to playlist
 void add_file_ok(GtkWidget *widget, gpointer data)
@@ -325,7 +317,6 @@ void add_file_ok(GtkWidget *widget, gpointer data)
 	Playlist *playlist = playlist_window_gtk->GetPlaylist();
 	GList *next = file_list->selection;
 
-	printf("In add_file_ok()...\n");
 	if (!playlist) {
 		printf("Invalid playlist pointer...\n");
 		return;
@@ -359,12 +350,10 @@ void add_file_ok(GtkWidget *widget, gpointer data)
 
 	// Insert all the selected paths
 	if (playlist) {
-		printf("About to insert at position %d...\n", playlist->Length());
 		playlist->Insert(paths, playlist->Length());
 	} else {
 		printf("No Playlist data found\n");
 	}
-	printf("Exit add_file_ok()...\n");
 }
 
 // Called when a file has been selected to be loaded as a playlist

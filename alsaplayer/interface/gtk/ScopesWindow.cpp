@@ -38,7 +38,7 @@ void dl_close_scopes()
 
 	while (current) {
 		if (current->sp) {
-			printf("dlclosing %s\n", current->sp->name);
+			//printf("dlclosing %s\n", current->sp->name);
 			dlclose(current->sp->handle);
 		}	
 		current = current->next;
@@ -167,7 +167,7 @@ int apRegisterScopePlugin(scope_plugin *plugin)
 		//root_scope.next = se;
 	}
 	pthread_mutex_unlock(&sl_mutex);
-	fprintf(stdout, "Loading Scope plugin: %s (%x)\n", se->sp->name, se->sp->handle);
+	//fprintf(stdout, "Loading Scope plugin: %s (%x)\n", se->sp->name, se->sp->handle);
 	return 1;
 }
 
