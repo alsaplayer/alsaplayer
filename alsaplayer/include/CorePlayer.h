@@ -85,8 +85,6 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	virtual void ResetBuffer();
 	virtual void SetSpeedMulti(float multi) { pitch_multi = multi; }
 	virtual void update_pitch();
-	virtual bool Open();
-	virtual void Close();
 	static void producer_func(void *data);
 	static bool streamer_func(void *, void *, int);
 	virtual int pcm_worker(sample_buf *dest, int start, int lin=0);
@@ -114,7 +112,6 @@ class CorePlayer // Much more abstraction to come, well maybe not
 																					// -100	= right channel muted
 																					// 100  = left channel muted
 	
-	virtual void SetFile(const char *path);	// Set path to file
 	virtual unsigned long GetCurrentTime(int frame=-1);
 																		// Returns the time position of frame in
 																		// hundreths of seconds
@@ -127,7 +124,8 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	// This one is temporary
 	virtual int GetLatency() { if (node) return node->GetLatency(); else return 0; }
 
-	virtual bool PlayFile(const char *);
+	virtual bool Open(const char *path = NULL);
+	virtual void Close();
 	virtual bool Start(int reset=1);
 	virtual void Stop(int streamer=1);
 	virtual int Seek(int pos);

@@ -86,7 +86,8 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 
 	// Fall through console player
 	while((coreplayer = playlist->GetCorePlayer()) &&
-				(coreplayer->IsActive() || coreplayer->IsPlaying())) {
+				(coreplayer->IsActive() || coreplayer->IsPlaying() ||
+				 playlist->GetCurrent() != playlist->Length())) {
 			unsigned long secs, t_min, t_sec, c_min, c_sec;
 			t_min = t_sec = c_min = c_sec = 0;
 			while (coreplayer->IsActive() || coreplayer->IsPlaying()) {
@@ -95,7 +96,11 @@ int interface_text_start(Playlist *playlist, int argc, char **argv)
 					if (strcmp(info.title, old_info.title) != 0) {
 							fprintf(stdout, "\nPlaying: %s\n", info.title);
 							memcpy(&old_info, &info, sizeof(stream_info));
-					}		
+					}
+					if (coreplayer->GetFrames() == 0 || coreplayer->GetCurrentTime() == 0) {
+						dosleep(100000);
+						continue;
+					}	
 					block_val = secs = coreplayer->GetCurrentTime(coreplayer->GetFrames());
 					t_min = secs / 6000;
 					t_sec = (secs % 6000) / 100;

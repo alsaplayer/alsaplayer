@@ -109,7 +109,7 @@ private:
 	void Looper(void *data);
 public:	
 	void Stop();
-	void PlayFile(PlayItem const &);
+	bool PlayFile(PlayItem const &);
 	bool CanPlay(std::string const &);
 	
 	void Lock();
@@ -124,58 +124,58 @@ public:
 	CorePlayer *GetCorePlayer() { return coreplayer; }
 	
 	// Get the number of items in the playlist (0 if playlist is empty)
-	virtual unsigned Length();
+	unsigned Length();
 
 	// Move to specified item in playlist and play from there
 	// Position 1 is first item, n is last item where n is length of list
-	virtual void Play(unsigned);
+	void Play(unsigned);
 
-	virtual void Next(int locking=0);    // Start playing next item in playlist
-	virtual void Prev(int locking=0);    // Start playing previous item in playlist
-	virtual int GetCurrent() { return curritem; } // Return current item
+	void Next(int locking=0);    // Start playing next item in playlist
+	void Prev(int locking=0);    // Start playing previous item in playlist
+	int GetCurrent() { return curritem; } // Return current item
 	
 	// Insert items at position - 0 = beginning, 1 = after first item, etc
-	virtual void Insert(std::vector<std::string> const &, unsigned);
+	void Insert(std::vector<std::string> const &, unsigned);
 
 	// To insert just one item:
-	virtual void Insert(std::string const &, unsigned);
+	void Insert(std::string const &, unsigned);
 
 	// Add several items and play them immediately
 	// (Avoids possible concurrency problems)
-	virtual void AddAndPlay(std::vector<std::string> const &);
+	void AddAndPlay(std::vector<std::string> const &);
 
 	// Add just one item and play it
-	virtual void AddAndPlay(std::string const &);
+	void AddAndPlay(std::string const &);
 
 	// Remove tracks from position start to end inclusive
 	// Position 1 is first track, n is last track where n is length of list
-	virtual void Remove(unsigned start, unsigned end);
+	void Remove(unsigned start, unsigned end);
 
 	// Shuffle playlist
-	virtual void Shuffle(int locking=0);
+	void Shuffle(int locking=0);
 	
 	// Clear playlist
-	virtual void Clear(int lockig=0);
+	void Clear(int lockig=0);
 
 	// Pause controls
-	virtual bool Paused() { return paused; }
-	virtual void Pause() { paused = true; }
-	virtual void UnPause() { paused = false; }
+	bool Paused() { return paused; }
+	void Pause() { paused = true; }
+	void UnPause() { paused = false; }
 
 	// Crossfade controls
-	virtual bool Crossfading() { return crossfade; }
-	virtual void Crossfade() { crossfade = true; }
-	virtual void UnCrossfade() { crossfade = false; }
+	bool Crossfading() { return crossfade; }
+	void Crossfade() { crossfade = true; }
+	void UnCrossfade() { crossfade = false; }
 	
 	// Loop_Song controls
-	virtual bool LoopingSong() { return loopingSong; }
-	virtual void LoopSong() { loopingSong = true; }
-	virtual void UnLoopSong() { loopingSong = false; }
+	bool LoopingSong() { return loopingSong; }
+	void LoopSong() { loopingSong = true; }
+	void UnLoopSong() { loopingSong = false; }
 
 	// Loop_Playlist controls
-	virtual bool LoopingPlaylist() { return loopingPlaylist; }
-	virtual void LoopPlaylist() { loopingPlaylist = true; }
-	virtual void UnLoopPlaylist() { loopingPlaylist = false; }
+	bool LoopingPlaylist() { return loopingPlaylist; }
+	void LoopPlaylist() { loopingPlaylist = true; }
+	void UnLoopPlaylist() { loopingPlaylist = false; }
 	
 	// Save playlist to file
 	enum plist_result Save(std::string, enum plist_format) const;
@@ -184,10 +184,10 @@ public:
 	enum plist_result Load(std::string const &, unsigned, bool);
 
 	// Register to receive callbacks
-	virtual void Register(PlaylistInterface *);
+	void Register(PlaylistInterface *);
 
 	// Unregister - must do this before a registered interface is deleted
-	virtual void UnRegister(PlaylistInterface *);
+	void UnRegister(PlaylistInterface *);
 };
 
 inline void Playlist::Insert(std::string const &path, unsigned pos) {

@@ -42,6 +42,10 @@
  #endif
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* ########### */
 /* # Structs # */
 /* ########### */
@@ -279,3 +283,7 @@ static int reverseBits(unsigned int initial) {
     }
     return reversed;
 }
+
+#ifdef __cplusplus
+}
+#endif

@@ -124,7 +124,7 @@ void CorePlayer::load_input_addons()
 						dlclose(handle);
 					}	
 				} else {
-					printf("%s\n", dlerror());
+					alsaplayer_error("%s", dlerror());
 				}
 			}	
 		}
@@ -157,7 +157,7 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	the_object = NULL;
 
 	if ((buffer = new sample_buf[NR_BUF]) == NULL) {
-		printf("Out of memory in CorePlayer::CorePlayer\n");
+		alsaplayer_error("Out of memory in CorePlayer::CorePlayer");
 		exit(1);
 	}
 
@@ -231,7 +231,7 @@ void CorePlayer::UnregisterPlugins()
 	pthread_mutex_lock(&player_mutex);
 	for (int i = 0; i < plugin_count; i++) {
 		tmp = &plugins[i];
-		//fprintf(stdout, "Unloading Input plugin: %s\n", tmp->name); 
+		//alsaplayer_error("Unloading Input plugin: %s", tmp->name); 
 		if (tmp->handle) {
 			dlclose(tmp->handle);
 			tmp->handle = NULL;
@@ -279,7 +279,7 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	if (plugin_count == 1) { // First so assign plugin
 		plugin = tmp;
 	}
-	//fprintf(stdout, "Loading Input plugin: %s\n", tmp->name);
+	//alsaplayer_error("Loading Input plugin: %s", tmp->name);
 	pthread_mutex_unlock(&player_mutex);
 	return 1;
 }
@@ -427,20 +427,21 @@ bool CorePlayer::Start(int reset)
 	pthread_create(&producer_thread, NULL,
 		(void * (*)(void *))producer_func, this);
 
+	//alsaplayer_error("Prebuffering...");
 	// Wait for up to 5 seconds
 	tries = 500;
-	while (--tries && !AvailableBuffers()) { 
-		//printf("Waiting for buffers...\n");
+	while (--tries && !AvailableBuffers() && IsPlaying()) { 
+		//alsaplayer_error("Waiting for buffers...");
 		dosleep(10000);
 	}
 
 	sub = new AlsaSubscriber();
 	if (!sub) {
-		printf("Subscriber creation failed :-(\n");
+		alsaplayer_error("Subscriber creation failed :-(\n");
 		return false;
 	}	
 	sub->Subscribe(node);
-	//printf("Starting streamer thread...\n");
+	//alsaplayer_error("Starting streamer thread...");
 	sub->EnterStream(streamer_func, this);
 	pthread_mutex_unlock(&player_mutex);
 	return true;
@@ -458,7 +459,7 @@ void CorePlayer::Stop(int streamer)
 	streaming = false;
 	pthread_mutex_unlock(&counter_mutex); // Unblock if needed
 #ifdef DEBUG	
-	printf("Waiting for producer_thread to finish...\n");
+	alsaplayer_error("Waiting for producer_thread to finish...");
 #endif
 	pthread_cancel(producer_thread);
 	pthread_join(producer_thread, NULL); 
@@ -466,7 +467,7 @@ void CorePlayer::Stop(int streamer)
 	pthread_mutex_init(&counter_mutex, NULL);
 	producer_thread = 0;
 #ifdef DEBUG	
-	printf("producer_func is gone now...\n");
+	alsaplayer_error("producer_func is gone now...");
 #endif
 	ResetBuffer();
 	Close();
@@ -506,13 +507,6 @@ int CorePlayer::FrameSeek(int index)
 }
 
 
-bool CorePlayer::PlayFile(const char *path)
-{
-	Stop();
-	SetFile(path);
-	return Start();
-}
-
 void CorePlayer::Close()
 {
 	if (plugin && the_object && the_object->ready) {
@@ -521,13 +515,6 @@ void CorePlayer::Close()
 	}	
 }
 
-
-void CorePlayer::SetFile(const char *path)
-{
-	pthread_mutex_lock(&player_mutex);
-	strncpy(file_path, path, 1024);
-	pthread_mutex_unlock(&player_mutex);
-}
 
 // Find best plugin to play a file
 input_plugin *
@@ -557,16 +544,21 @@ CorePlayer::GetPlayer(const char *path)
 	return best_plugin;
 }
 
-bool CorePlayer::Open()
+bool CorePlayer::Open(const char *path = NULL)
 {
 	bool result = false;
 	input_plugin *best_plugin;
 	
-	if (!strlen(file_path))
+	if (path == NULL && !strlen(file_path)) {
 		return false;
-		
+	}
+	if (path) {
+		strncpy(file_path, path, 1023);
+		file_path[1023] = 0;
+	}	
+
 	if ((best_plugin = GetPlayer(file_path)) == NULL) {
-		printf("No suitable plugin found for \"%s\"\n", file_path);
+		alsaplayer_error("No suitable plugin found for \"%s\"", file_path);
 		return false;
 	}
 
@@ -590,9 +582,8 @@ void print_buf(sample_buf *start)
 {
 	sample_buf *c = start;
 	for (int i = 0; i < NR_BUF; i++, c = c->next) {
-		printf("%d ", c->start);
+		alsaplayer_error("%d ", c->start);
 	}
-	printf("\n");	
 }
 
 int CorePlayer::SetDirection(int direction)
@@ -718,18 +709,18 @@ int CorePlayer::Read32(void *data, int size)
 				if (read_buf->next->start < 0 ||
 					read_buf->next == write_buf) {
 					if (read_buf->next->start == -2) {
-						//printf("Next in queue (2)\n");
+						//alsaplayer_error("Next in queue (2)");
 						return -2;
 					}	
 					memset(data, 0, size * 4);
 					if (!IsPlaying()) {
-						//printf("blah 1\n");
+						//alsaplayer_error("blah 1");
 						return -1;
 					}
 					return size;
 				} else if (read_buf->next->start !=
 					read_buf->start + frames_in_buffer) {
-					printf("------ WTF!!? %d - %d\n",
+					alsaplayer_error("------ WTF!!? %d - %d",
 					read_buf->next->start,
 					read_buf->start);
 				}
@@ -775,7 +766,7 @@ int CorePlayer::Read32(void *data, int size)
 	}
 	read_buf->buf->Seek(check_index + ((use_read_direction == DIR_FORWARD) ?
 		 tmp_index+1 : -((tmp_index+1) > check_index ? check_index : tmp_index+1)));
-	if (!size) printf("Humm, I copied nothing?\n");
+	if (!size) alsaplayer_error("Humm, I copied nothing?");
 	return size;
 }
 
@@ -801,11 +792,11 @@ int CorePlayer::pcm_worker(sample_buf *dest, int start, int len)
 		the_object->write_buffer = dest->buf;
 #endif		
 		sample_buffer = (char *)dest->buf->GetSamples();
-		while (count > 0) {
+		while (count > 0 && IsPlaying()) {
 			if (!plugin->play_frame(the_object, sample_buffer + bytes_written)) {
 				dest->start = start;
 #ifdef DEBUG
-				printf("frames read = %d\n", frames_read);
+				alsaplayer_error("frames read = %d", frames_read);
 #endif
 				return frames_read;
 			} else {
@@ -833,7 +824,7 @@ void CorePlayer::producer_func(void *data)
 	obj->the_object->write_buffer = NULL;
 #endif	
 #ifdef DEBUG
-	printf("Starting new producer_func...\n");
+	alsaplayer_error("Starting new producer_func...");
 #endif	
 	while (obj->producing) {
 		if (obj->write_buf_changed) {
@@ -857,7 +848,7 @@ void CorePlayer::producer_func(void *data)
 				frames_read = obj->pcm_worker(obj->write_buf, obj->write_buf->start);
 				if (frames_read != obj->frames_in_buffer) {
 					if (obj->write_buf->start >= 0)
-						printf("an ERROR occured or EOF (%d)\n",
+						alsaplayer_error("an ERROR occured or EOF (%d)",
 							obj->write_buf->start);
 					obj->write_buf->prev->start = -2;
 					obj->producing = false;
@@ -869,16 +860,16 @@ void CorePlayer::producer_func(void *data)
 			}
 		} else {
 #if 0
-			printf("producer: going to wait for a free buffer\n");
+			alsaplayer_error("producer: going to wait for a free buffer");
 #endif
 			pthread_mutex_lock(&obj->counter_mutex);
 #if 0
-			printf("producer: unblocked\n");
+			alsaplayer_error("producer: unblocked");
 #endif
 		}	
 	}
 #ifdef DEBUG	
-	printf("Exited producer_func (producing = %d)\n", obj->producing);
+	alsaplayer_error("Exited producer_func (producing = %d)", obj->producing);
 #endif
 	return;
 }
@@ -935,7 +926,7 @@ bool CorePlayer::streamer_func(void *arg, void *data, int size)
 		}		
 		return true;
 	} else {
-		//printf("Exiting from streamer_func...\n");
+		//alsaplayer_error("Exiting from streamer_func...");
 		obj->streaming = false;
 		return false;
 	}	

@@ -65,7 +65,7 @@ Playlist *playlist = NULL;
 #ifdef SUBSECOND_DISPLAY 
 #define UPDATE_TIMEOUT  20000
 #else
-#define UPDATE_TIMEOUT  500000
+#define UPDATE_TIMEOUT  100000
 #endif
 #define BAL_CENTER  100
 #define UPDATE_COUNT    5
@@ -666,7 +666,8 @@ void cd_cb(GtkWidget *widget, gpointer data)
 
 	if (p) {
 		pl->Pause();
-		p->PlayFile("CD.cdda");
+		if (p->Open("CD.cdda"))
+			p->Start();
 		pl->UnPause();
 	}
 }

@@ -30,6 +30,7 @@
 
 #include "scope_plugin.h"
 #include "alsaplayer_error.h"
+#include "utilities.h"
 #include "prefs.h"
 
 #define NUM_BANDS 16
@@ -56,7 +57,9 @@ static pthread_t draw_thread;
 static pthread_mutex_t scope_mutex;
 
 static int fft_buf[2][256];
+
 static void stop_display(int);
+static void oglspectrum_start();
 
 static Window create_window(int width, int height)
 {
@@ -318,7 +321,7 @@ void *draw_thread_func(void *arg)
 
 			draw_bars();
 		}
-		dosleep(SCOPE_SLEEP);
+		dosleep(10000);
 	}
 
 	if (glxcontext)

@@ -626,8 +626,20 @@ int main(int argc, char **argv)
 			newitems.push_back(std::string(argv[last_arg++]));
 		}
 		playlist->Insert(newitems, playlist->Length());
+		sleep(1); // Wait a second
 	}
-
+	
+	// If playlist is empty check if we have a playlist from
+	// the previous run
+	if (!playlist->Length()) {
+		homedir = get_homedir();
+		sprintf(prefs_path, "%s/.alsaplayer/alsaplayer.m3u", homedir);
+		playlist->Pause();
+		playlist->Load(prefs_path, playlist->Length(), false);
+	}	else {
+		playlist->UnPause();
+	}	
+	
 	// Loop song
 	if (use_loopSong) {	 
 	 playlist->LoopSong();
@@ -682,7 +694,12 @@ int main(int argc, char **argv)
 			//dlclose(ui->handle);
 		}
 		control_socket_stop();
-	}	
+	}
+	// Save playlist before exit
+	homedir = get_homedir();
+  sprintf(prefs_path, "%s/.alsaplayer/alsaplayer", homedir);
+	playlist->Save(prefs_path, PL_FORMAT_M3U);
+	
 _fatal_err:	
 	delete playlist;
 	//delete p;

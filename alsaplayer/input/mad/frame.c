@@ -142,7 +142,7 @@ int decode_header(struct mad_header *header, struct mad_stream *stream)
   }
 
   /* layer */
-  header->layer = 4 - mad_bit_read(&stream->ptr, 2);
+  header->layer = (4 - mad_bit_read(&stream->ptr, 2));
 
   if (header->layer == 4) {
     stream->error = MAD_ERROR_BADLAYER;
@@ -194,7 +194,7 @@ int decode_header(struct mad_header *header, struct mad_stream *stream)
     header->private_bits |= MAD_PRIVATE_HEADER;
 
   /* mode */
-  header->mode = 3 - mad_bit_read(&stream->ptr, 2);
+  header->mode = (3 - mad_bit_read(&stream->ptr, 2));
 
   /* mode_extension */
   header->mode_extension = mad_bit_read(&stream->ptr, 2);

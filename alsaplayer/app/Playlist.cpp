@@ -271,6 +271,7 @@ void Playlist::Next(int locking) {
 	    }
 	  }
 	}
+	//printf("Notifying playlists.....\n");
 
 	// Tell the subscribing interfaces about the change
 	if(curritem != olditem) {
@@ -551,6 +552,9 @@ Playlist::Load(std::string const &file, unsigned position, bool force)
 		}
 
 		std::string newfile;
+		if (path[0] == '#') { // Comment, so skip
+			continue;
+		}	
 		if (path[0] == '/') {
 			// Absolute path
 			newfile = std::string(path);
@@ -628,15 +632,18 @@ void Playlist::Stop() {
 	
 }
 
-void Playlist::PlayFile(PlayItem const & item) {
+bool Playlist::PlayFile(PlayItem const & item) {
 #ifdef DEBUG
 	printf("Playlist::PlayFile(\"%s\")\n", item.filename.c_str());
 #endif /* DEBUG */
+	bool result;
 
 	coreplayer->Stop();
-	coreplayer->SetFile(item.filename.c_str());
-	coreplayer->Start();
+	result = coreplayer->Open(item.filename.c_str());
+	if (result)
+		result = coreplayer->Start();
 	UnPause();
+	return result;
 }
 
 // Check if we are able to play a given file
