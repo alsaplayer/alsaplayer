@@ -162,12 +162,33 @@ static int audiofile_play_frame (input_object *obj, char *buf)
 	if (!buffer)
 		return 0;
 
-	bytes_to_read = FRAME_COUNT;
+	bytes_to_read = FRAME_COUNT * obj->nr_channels / 2;
 
 	frames_read = afReadFrames(data->filehandle, AF_DEFAULT_TRACK, buffer,
-		 bytes_to_read / data->frameSize);
-	if (buf)
-		memcpy(buf, buffer,  FRAME_COUNT);
+		 bytes_to_read / data->frameSize) * 2 / obj->nr_channels;
+	if (buf) {
+		if (obj->nr_channels == 2)
+			memcpy(buf, buffer,  FRAME_COUNT);
+		else { /* mono, so double  */
+			int i;
+			if (data->frameSize == 1) {
+				unsigned char *us = (unsigned char *)buffer;
+				short *d = (short *)buf;
+				for (i=0; i < FRAME_COUNT; i+=4) {
+					short c = *d++ = ((*us ^ 0x80) << 8) | *us;
+					us++;
+					*d++ = c;
+				}
+			} else {
+				short *s = (short *)buffer;
+				short *d = (short *)buf;
+				for (i=0; i < FRAME_COUNT; i+=4) {
+						*d++ = *s;
+						*d++ = *s++; /* Copy twice */
+				}
+			}
+		}
+	}
 
 	if (frames_read * data->frameSize < FRAME_COUNT)
 		return 0;
