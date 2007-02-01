@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ALSAPLAYER 1 "9 May 2001"
+.TH ALSAPLAYER 1 "22 June 2005"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -32,49 +32,34 @@ because the original program does not have a manual page.
 .\" respectively.
 \fBalsaplayer\fP is a generic music player that can play back a large
 amount of file formats.
+.PP
+If files are specified on the command line, these files are played.  Otherwise
+alsaplayer plays its playlist from its last run, if any.
 .SH OPTIONS
 These programs follow the usual GNU command line syntax, with long
 options starting with two dashes (`-').
 A summary of options is included below.
 .TP
-.B \-d, \-\-device string
-Select card and device for the alsa plugin [default=hw:0,0]; select
-device file for the oss plugin (you must enter the full path to the
-device here) [default=/dev/dsp].
-.TP
-.B \-f, \-\-fragsize #
-Set fragment size in bytes [default=4096].
-.TP
-.B \-e, \-\-enqueue file(s)
-Enqueue file(s) in a running alsaplayer.
-.TP
-.B \-F, \-\-frequency #
-Set the output frequency [default=44100].
-.TP
-.B \-g, \-\-fragcount #
-Fragment count [default=8].
+.B \-c, \-\-config <file>
+Use the given config file for this session.
 .TP
 .B \-h, \-\-help
 Print this help message.
 .TP
 .B \-i, \-\-interface <interface>
-Load <interface> instead of default one
+Use the specified interface instead of the default one.
 .TP
-.B \-l, \-\-volume #
-Set software volume [0-100].
+.B \-I, \-\-script <file>
+Specify the script to pass to the interface plugin.
 .TP
-.B \-n, \-\-session #
-Select session # [default=0]
+.B \-l, \-\-startvolume <vol>
+Start with this volume [default=1.0].
 .TP
-.B \-p, \-\-path [path]
-Print/set the path alsaplayer looks for add-ons.
+.B \-p, \-\-path <path>
+Set the path alsaplayer looks for add-ons.
 .TP
 .B \-q, \-\-quiet
 Quiet operation, no output.
-.TP
-.B \-r, \-\-realtime
-Enable realtime scheduling.  To use this as a normal user, alsaplayer
-must be SUID root.
 .TP
 .B \-s, \-\-session-name name
 Name this session "name"
@@ -83,10 +68,91 @@ Name this session "name"
 Print version of this program.
 .TP
 .B \-\-verbose
-Print copyright info and plugins which are used amongst other things.
+Be verbose about the output.
 .TP
-.B \-o, \-\-output [alsa|jack|oss|nas|sgi|sparc]
-Use ALSA, JACK, OSS, NAS, SGI or Sparc driver for output
+.B \-\-nosave
+Do not save playlist content at exit.
+.SS Player control:
+.TP
+.B \-n, \-\-session #
+Select session # [default=0]
+.TP
+.B \-e, \-\-enqueue file(s)
+Enqueue file(s) in a running alsaplayer.
+.TP
+.B \-E, \-\-replace file(s)
+Clears and queues file(s) in a running alsaplayer.
+.TP
+.B \-\-status
+Get some information about the session.
+.TP
+.B \-\-volume #
+Set software volume [0.0-1.0].
+.TP
+.B \-\-start
+Start playing.
+.TP
+.B \-\-stop
+Stop playing.
+.TP
+.B \-\-pause
+Pause/unpause playing.
+.TP
+.B \-\-prev
+Jump to the previous track.
+.TP
+.B \-\-next
+Jump to the next track.
+.TP
+.B \-\-seek <second>
+Jump to the specified second in the current track.
+.TP
+.B \-\-relative <second>
+Jump <second> seconds from current position.
+.TP
+.B \-\-speed #
+Set the playback speed.  1.0 = normal speed, -1.0 = normal speed backwards
+.TP
+.B \-\-jump #
+Jump to the specified playlist track.
+.TP
+.B \-\-clear
+Clear the whole playlist
+.TP
+.B \-\-quit
+Quit the sesssion.
+.SS Sound driver options:
+.TP
+.B \-d, \-\-device string
+Select the specific device for the output plugin.  For the ALSA plugin, the
+default is "default".  For the JACK plugin, the default is
+"alsa_pcm:playback_1,alsa_pcm:playback_2".
+.TP
+.B \-f, \-\-fragsize #
+Set fragment size in bytes [default=4096].
+.TP
+.B \-F, \-\-frequency #
+Set the output frequency [default=44100].
+.TP
+.B \-g, \-\-fragcount #
+Fragment count [default=8].
+.TP
+.B \-r, \-\-realtime
+Enable realtime scheduling.  To use this as a normal user, alsaplayer
+must be SUID root.
+.TP
+.B \-o, \-\-output [alsa|esound|jack|nas|null|oss|sgi|sparc]
+Use the specified output driver.
+.SS Experimental options:
+.TP
+.B \-S,\-\-loopsong
+Loop the file.
+.TP
+.B \-P,\-\-looplist
+Loop the playlist.
+.TP
+.B \-x,\-\-crossfade
+Crossfade playlist entries.
 .SH SEE ALSO
 .BR mikmod (1),
 .BR mpg123 (1).
