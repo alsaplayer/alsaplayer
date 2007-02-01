@@ -316,7 +316,6 @@ dnl ==========
 PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.3 gthread-2.0 >= 2.0.3, have_gtk2=yes, have_gtk2=no)
 AC_SUBST(GTK2_LIBS)
 AC_SUBST(GTK2_CFLAGS)
-AM_CONDITIONAL(HAVE_GTK2, test "x$have_gtk2" = xyes)
 
 dnl ==================
 dnl libsndfile library
@@ -565,6 +564,7 @@ AM_CONDITIONAL(HAVE_SGI, test "x$have_sgi" = xyes)
 AM_CONDITIONAL(HAVE_NAS, test "x$have_nas" = xyes)
 AM_CONDITIONAL(HAVE_LINUX_CDROM,test "x$ac_cv_header_linux_cdrom_h" = xyes)
 AM_CONDITIONAL(HAVE_GTK, test "x$have_gtk" = xyes)
+AM_CONDITIONAL(HAVE_GTK2, test "x$have_gtk2" = xyes)
 dnl AM_CONDITIONAL(HAVE_QT, test "x$have_qt" = xyes)
 AM_CONDITIONAL(HAVE_MIKMOD,test "x$have_mikmod" = xyes)
 AM_CONDITIONAL(PREFER_MAD, test "x$prefer_mad" = "xyes")
