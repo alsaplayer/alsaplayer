@@ -564,7 +564,7 @@ static int reconnect (http_desc_t *desc, char *redirect)
 			     "Connection: close\r\n"
 			     "User-Agent: %s/%s\r\n"
 			     "Range: bytes=%ld-\r\n"
-			     "Icy-Metadata:1\r\n"
+			     "Icy-Metadata: 1\r\n"
 			     "\r\n",
 			     desc->path, desc->host, PACKAGE, VERSION,
 			     desc->pos);
