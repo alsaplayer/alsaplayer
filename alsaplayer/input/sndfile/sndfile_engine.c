@@ -234,7 +234,7 @@ static int sndfile_nr_frames (input_object *obj)
 	samples = data->sfinfo.frames;
 
 	if (samples > 0)  {
-		return ((int)data->sfinfo.frames * data->sfinfo.channels *
+		return ((int)data->sfinfo.frames * 2 *
 			     data->width	
 				/ FRAME_SIZE);
 	}
@@ -283,7 +283,7 @@ static  long sndfile_frame_to_sec (input_object *obj, int frame)
 
 	if (!data)
 		return result;
-	result = (unsigned long) (frame * FRAME_SIZE / data->sfinfo.channels /
+	result = (unsigned long) (frame * FRAME_SIZE / 2 /
 			(data->sfinfo.samplerate * data->width / 100));
 
 	return result;
