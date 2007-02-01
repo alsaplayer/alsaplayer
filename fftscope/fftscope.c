@@ -249,6 +249,12 @@ static int init_fftscope()
 	return 1;
 }
 
+/* Are we running? */
+static int fftscope_running()
+{
+	return running;
+}
+
 
 /* Shutdown function. Should deallocate stuff here too */
 static void shutdown_fftscope()
@@ -257,12 +263,6 @@ static void shutdown_fftscope()
 	stop_fftscope();
 }
 
-
-/* Are we running? */
-static int fftscope_running()
-{
-	return running;
-}
 
 
 /* The C struct that contains all our functions */
