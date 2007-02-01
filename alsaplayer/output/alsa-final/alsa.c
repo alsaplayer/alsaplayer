@@ -173,9 +173,9 @@ static int alsa_set_buffer(int *fragment_size, int *fragment_count, int *channel
 		goto _err;
 	}	
 	err = snd_pcm_hw_params_set_format(sound_handle, hwparams,
-					   SND_PCM_FORMAT_S16_LE);
+					   SND_PCM_FORMAT_S16);
 	if (err < 0) {
-		puts("error on set_format SND_PCM_FORMAT_S16_LE");
+		puts("error on set_format SND_PCM_FORMAT_S16");
 		goto _err;
 	}
 	val = output_rate;
