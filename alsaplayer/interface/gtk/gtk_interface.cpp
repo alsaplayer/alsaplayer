@@ -756,10 +756,10 @@ gint indicator_callback(gpointer, int locking)
 		}	
 	} else {
 #ifdef SUBSECOND_DISPLAY
-		sprintf(str, "%02ld:%02ld.%02d/%02d:%02d", c_min, c_sec, c_hsec, t_min, t_sec);
+		sprintf(str, "%02ld:%02ld.%02d / %02d:%02d", c_min, c_sec, c_hsec, t_min, t_sec);
 #else
 		if (nr_frames >= 0) 
-			sprintf(str, "%02ld:%02ld/%02ld:%02ld", c_min, c_sec, t_min, t_sec);
+			sprintf(str, "%02ld:%02ld / %02ld:%02ld", c_min, c_sec, t_min, t_sec);
 #endif
 	}
 	if (val_ind && strcmp(old_str, str) != 0) {
@@ -804,7 +804,7 @@ gint indicator_callback(gpointer, int locking)
 			p++;
 			draw_title(p);
 		} else {
-			draw_title("");
+			draw_title(info.path);
 		}	
 	}
 	update_rect.x = 0;
