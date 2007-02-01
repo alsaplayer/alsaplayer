@@ -916,13 +916,17 @@ int main(int argc, char **argv)
 			goto _fatal_err;
 		}
 	} else {
-		if (!(interface_plugin_info = load_interface(prefs_get_string
-						(ap_prefs, "main", "default_interface", "gtk")))) {
+		char *interface = prefs_get_string
+			(ap_prefs, "main", "default_interface", "gtk");
+		// if we're trying to use the gtk interface, but we have no
+		// $DISPLAY, use the text interface instead
+		if (strcmp (interface, "gtk") == 0 && !getenv("DISPLAY"))
+			interface = "text";
+		if (!(interface_plugin_info = load_interface(interface))) {
 			if (!(interface_plugin_info = load_interface(prefs_get_string
 						 (ap_prefs, "main", "fallback_interface", "text")))) {
 				alsaplayer_error("Failed to load text interface. This is bad (%s,%s,%s)",
-					 prefs_get_string(ap_prefs, "main", "default_interface", "gtk"),
-					 prefs_get_string(ap_prefs, "main", "default_interface", "gtk"),
+					 interface, interface,
 					global_pluginroot);
 				goto _fatal_err;
 			}
