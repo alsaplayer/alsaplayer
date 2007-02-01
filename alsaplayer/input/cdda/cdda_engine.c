@@ -141,13 +141,14 @@ static int cd_read_audio(int cdrom_fd, int lba, int num, unsigned char *buf)
 	return 0;
 }
 
-
+/*
 static char *resttime(int sec)
 {
 	static char buf[BLEN+1];
 	snprintf(buf, BLEN, "%02d:%02d:%02d", sec/3600, (sec/60)%60, sec%60);
 	return buf;
 }
+*/
 
 void toc_fail(struct cd_trk_list *tl)
 {
