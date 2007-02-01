@@ -23,6 +23,7 @@
 
 #include "FlacTag.h"
 #include "FlacId3Tag.h"
+#include "FlacMetadataTag.h"
 
 
 using namespace std;
@@ -34,10 +35,7 @@ namespace Flac
 bool
 FlacTag::hasTag (const std::string & path)
 {
-    if (FlacId3Tag::hasId3 (path))
-	return true;
-
-    return false;
+    return FlacId3Tag::hasId3 (path) || FlacMetadataTag::hasMetadata (path);
 
 } // FlacTag::hasTag
 
@@ -50,6 +48,8 @@ FlacTag::newTag (const std::string & name)
     {
 	if (FlacId3Tag::hasId3 (name))
 	    return new FlacId3Tag (name);
+	else if (FlacMetadataTag::hasMetadata (name))
+	    return new FlacMetadataTag (name);
 
 	return new FlacTag (name);
     }
@@ -67,6 +67,8 @@ FlacTag::tag (const std::string & name)
 {
     if (FlacId3Tag::hasId3 (name))
 	return FlacId3Tag (name);
+    if (FlacMetadataTag::hasMetadata (name))
+	return FlacMetadataTag (name);
 
     return FlacTag (name);
 
