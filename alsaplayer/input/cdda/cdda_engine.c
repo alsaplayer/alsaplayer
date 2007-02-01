@@ -308,7 +308,7 @@ int create_socket (unchar *unchar_address, int int_port)
  */
 char * send_to_server (int server_fd, char *message)
 {
-	ssize_t	total;
+	ssize_t	total, i;
 	int 	len = BUFFER_SIZE * 8;
 	char	*response, temp[len];
 
@@ -328,14 +328,18 @@ char * send_to_server (int server_fd, char *message)
 	total = 0;
 	do
 	{
-		total += read (server_fd, temp + total, len - total);
-		if (total < 0)
+		i = read (server_fd, temp + total, len - total);
+		if (i < 0)
 		{
 			alsaplayer_error("%s\n", strerror (errno));
 			return (NULL);
 		}
+		total += i;
 	}
-	while (total > 2 && temp[total - 2] != '\r');
+	while (total > 2 && temp[total - 2] != '\r' && i != 0);
+
+	if (total < 2)
+		return (NULL);
 
 	temp[total-2] = '\0';		/* temp[total-1] == \r; temp[total] == \n	*/
 	response = strdup (temp);	/* duplicate the response from the server	*/
@@ -404,11 +408,11 @@ char * cddb_save_to_disk(char *subdir, int cdID, char *message)
 	FILE *destination;
 	DIR *thedir; 
 	char *path, *retval;
-	char new[strlen (message)], filename[strlen (message) + 9];
+	char new[strlen (message)], *filename;
 	int i = 0, j = 0;
 
 	/* check if we already have the subdir created */
-	path = (char *) malloc ((strlen (subdir) + strlen (REAL_PATH)) * sizeof (char));
+	path = (char *) malloc ((strlen (subdir) + strlen (REAL_PATH) + 2) * sizeof (char));
 
 	/* print the message sent to the server */
 	sprintf(path, "%s", REAL_PATH);
@@ -453,12 +457,14 @@ char * cddb_save_to_disk(char *subdir, int cdID, char *message)
 		new[j] = message[i];
 
 	/* save it into the disc */
+	filename = (char *) malloc ((strlen (subdir) + strlen (REAL_PATH) + 11) * sizeof (char));
 	sprintf (filename, "%s/%s/%08x", REAL_PATH, subdir, cdID);
 	retval = strdup (filename);
 	if (global_verbose)
 		alsaplayer_error("filename = %s", filename);
 	/* create the file */
 	destination = fopen (filename, "w");
+	free(filename);
 	if (! destination)
 	{
 		alsaplayer_error("error creating file");
@@ -564,8 +570,11 @@ char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_li
 			printf ("OK\n");
 
 	/* get the initial message from the server */
-	n = read (server_fd, server, BUFFER_SIZE);
-	server[n-2] = '\0';
+	n = read (server_fd, server, 80);
+	if (n >= 0)
+		server[n] = '\0';
+	if (n >= 2)
+		server[n-2] = '\0';
 
 	if (global_verbose) {
 		printf ("\n<- %s\n", server);
@@ -625,16 +634,20 @@ char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_li
 		/* copy the 1st match to the category */
 		j = 0; 
 		i++;
-		while (answer[i] != ' ') 
+		while (j < 19 && answer[i] != ' ') 
 			categ[j++] = answer[i++];
 		categ[j++] = '\0';
+		while (answer[i] != ' ') 
+			i++;
 
 		/* get the new cdID given from the CDDB */
 		j = 0; 
 		i++;
-		while (answer[i] != ' ') 
+		while (j < 8 && answer[i] != ' ') 
 			newID[j++] = answer[i++];
 		newID[j++] = '\0';
+		while (answer[i] != ' ') 
+			i++;
 
 	} 
 	else if (! (strncmp (answer, "200", 3)))
@@ -646,16 +659,20 @@ char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_li
 
 		/* copy the match to the category */
 		j = 0;
-		while (answer[i] != ' ') 
+		while (j < 19 && answer[i] != ' ') 
 			categ[j++] = answer[i++];
 		categ[j++] = '\0';
+		while (answer[i] != ' ') 
+			i++;
 
 		/* copy the new cdID */
 		j = 0; 
 		i++;
-		while (answer[i] != ' ') 
+		while (j < 8 && answer[i] != ' ') 
 			newID[j++] = answer[i++];
 		newID[j++] = '\0';
+		while (answer[i] != ' ') 
+			i++;
 	} 
 	else 
 	{
@@ -865,7 +882,7 @@ static int cdda_init(void)
 	char *prefsdir;
 
 	prefsdir = get_prefsdir();
-	REAL_PATH = (char *)malloc(strlen(prefsdir) + 8);
+	REAL_PATH = (char *)malloc((strlen(prefsdir) + 8) * sizeof(char));
 	if (REAL_PATH) {
 		sprintf(REAL_PATH, "%s/cddb", prefsdir);
 		return 1;

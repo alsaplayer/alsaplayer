@@ -25,6 +25,7 @@
 #include <assert.h>
 //#define NEW_SCALE
 //#define SUBSECOND_DISPLAY 
+#include <assert.h>
 
 #include <algorithm>
 #include "utilities.h"

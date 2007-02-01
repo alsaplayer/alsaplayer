@@ -27,6 +27,7 @@
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtkdnd.h>
 #include <glib.h>
+#include <assert.h>
 
 #include <vector>
 #include <algorithm>
@@ -150,10 +151,13 @@ void PlaylistWindowGTK::CbUpdated(void *data,PlayItem & item, unsigned position)
 
 	gtk_clist_freeze(GTK_CLIST(gtkpl->playlist_list));
 	if (item.title.size()) {
-		sprintf(tmp, "%s %s", item.title.c_str(),
-			item.artist.size() ? (std::string("- ") + item.artist).c_str() : "");
+		std::string s = item.title;
+		if (item.artist.size())
+		{
+			s += std::string(" - ") + item.artist;
+		}
 		gtk_clist_set_text(GTK_CLIST(gtkpl->playlist_list), position,
-				1, g_strdup(tmp));
+				1, g_strdup(s.c_str()));
 	}
 	if (item.playtime >= 0) {
 		sprintf(tmp, "%02d:%02d", item.playtime / 60, item.playtime % 60);
@@ -467,14 +471,16 @@ static void new_list_item(const PlayItem *item, gchar **list_item)
 	} else
 			filename = (gchar *)g_strdup(new_path);
 	if (item->title.size()) {
-		sprintf(pt, "%s %s", item->title.c_str(), 
-			item->artist.size() ? (std::string("- ") + item->artist).c_str() :
-				"");
+		std::string s = item->title;
+		if (item->artist.size())
+		{
+			s += std::string(" - ") + item->artist;
+		}
+		list_item[1] = (gchar *)g_strdup(s.c_str());
 	} else {
-		sprintf(pt, "%s", filename);
+		list_item[1] = (gchar *)g_strdup(filename);
 	}	
 	// Put data in list_item
-	list_item[1] = (gchar *)g_strdup(pt);
 	list_item[3] = new_path;
 }
 

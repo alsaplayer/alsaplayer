@@ -712,7 +712,7 @@ static void http_close(void *d)
 static void *http_open(const char *uri, reader_status_type status, void *data)
 {
     http_desc_t *desc;
-    char redirect[1024];
+    char redirect[10240];
     int tries = 0;
  
     /* Alloc descripor and init members. */
