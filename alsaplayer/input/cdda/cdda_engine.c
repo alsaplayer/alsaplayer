@@ -509,7 +509,7 @@ char * cddb_local_lookup (char *path, unsigned int cd_id)
 
 	/* set the cdrom_id */
 	sprintf (cdrom_id, "%08x", cd_id);
-	cdrom_id[9] = '\0';
+	cdrom_id[8] = '\0';
 
 	for (i = 0; i < number; i++) 
 	{
@@ -1142,8 +1142,10 @@ static int cdda_stream_info(input_object *obj, stream_info *info)
 	tl = &data->tl;
 
 	sprintf(info->stream_type, "CD Audio, 44KHz, stereo");
-	sprintf(info->artist, "%s", data->tracks[1].artist);
-	sprintf(info->album, "%s", data->tracks[1].album);
+	if (data->tracks[1].artist)
+	  sprintf(info->artist, "%s", data->tracks[1].artist);
+	if (data->tracks[1].album)
+	  sprintf(info->album, "%s", data->tracks[1].album);
 	info->status[0] = 0;
 	if (data->track_nr < 0)
 		info->title[0] = 0;
