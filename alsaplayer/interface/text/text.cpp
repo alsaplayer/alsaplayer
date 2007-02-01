@@ -141,7 +141,7 @@ int interface_text_start(Playlist *playlist, int /* argc */, char ** /* argv */)
 	// playlist loop
 	if (playlist->Length() == 0) {
 		if (!global_quiet)
-			fprintf(stdout, "Nothing to play.");
+			fprintf(stdout, "Nothing to play.\n");
 		pthread_mutex_unlock(&finish_mutex);
 		return 0;
 	}
