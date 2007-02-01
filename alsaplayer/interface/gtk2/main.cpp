@@ -762,10 +762,10 @@ int interface_gtk2_start(Playlist *playlist, int argc, char **argv)
 	playlist->RegisterNotifier(&notifier, playlist);
 
         // Register playlist
-        tree_view = (GtkTreeView *)lookup_widget(playlist_window, "tree_view");
-        if (tree_view) {
-                playlist_register(playlist, tree_view);
-        } 
+//        tree_view = (GtkTreeView *)lookup_widget(playlist_window, "tree_view");
+//        if (tree_view) {
+//                playlist_register(playlist, tree_view);
+//        } 
 	// Setup drag & drop 
 	gtk_drag_dest_set(toplevel,
 		GTK_DEST_DEFAULT_ALL,

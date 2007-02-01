@@ -7,8 +7,8 @@ gtk2_interfaceldflags = -export-dynamic -avoid-version
 gtk2_interfacesources = support.cpp main.cpp interface.cpp callbacks.cpp \
 	scopes.cpp scopes.h \
 	internal_scope.cpp internal_scope.h \
-	support.h interface.h callbacks.h \
-	playlist.cpp playlist.h
+	support.h interface.h callbacks.h
+#	playlist.cpp playlist.h
 
 else
 
