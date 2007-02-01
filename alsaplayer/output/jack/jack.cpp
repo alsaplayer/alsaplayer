@@ -157,16 +157,10 @@ int jack_prepare(void *arg)
 			if (jack_connect (client, jack_port_name(my_output_port1), dest_port1)) {
 				alsaplayer_error("cannot connect output port 1 (%s)",
 						dest_port1);
-				free(mix_buffer);
-				mix_buffer = NULL;
-				return -1;
 			}               
 			if (jack_connect (client, jack_port_name(my_output_port2), dest_port2)) {
 				alsaplayer_error("cannot connect output port 2 (%s)",
 						dest_port2);
-				free(mix_buffer);
-				mix_buffer = NULL;
-				return -1;
 			}
 		}
 #ifdef TEST_MASTER		
