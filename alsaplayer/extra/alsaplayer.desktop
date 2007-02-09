@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=AlsaPlayer
+GenericName=
+Comment=AlsaPlayer (GTK interface)
+Icon=
+Exec=/usr/bin/alsaplayer -i gtk
+Terminal=false
+Categories=AudioVideo;Audio;Player;
+
+
