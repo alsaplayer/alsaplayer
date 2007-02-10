@@ -1,0 +1,31 @@
+Introduction
+------------
+These are python bindings for the alsaplayer library. The intent
+is to provide a set of bindings that closely mirror the C library,
+leaving more complex functionality for purely python modules.
+
+
+Requirements
+------------
+* python [http://python.org] including development headers and library
+* boost [http://boost.org] with boost.python enabled
+* alsaplayer [http://alsaplayer.org] including development headers and library
+
+
+Building
+--------
+In most cases, you should be able to build everything with this command:
+
+	python setup.py build
+
+In the event that you have headers or libraries in non-standard locations,
+you can edit setup.cfg to add those directories to the appropriate 
+build variables.
+
+Installation
+------------
+You can install the extension module by running:
+
+	python setup.py install
+
+Note that you'll probably need to do this as root.
