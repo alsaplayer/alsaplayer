@@ -20,6 +20,7 @@
 #include <alsaplayer/control.h>
 #include <boost/bind.hpp>
 #include <boost/python.hpp>
+#include <sstream>
 #include <string>
 
 using namespace boost::python;
@@ -27,16 +28,40 @@ using namespace boost::python;
 namespace
 {
 
+  // This is how most of the functions communicate that they
+  // have experienced an error. Instead of returning an
+  // error code, this is thrown.
   struct APException
   {
-    APException(int e) : err(e) {}
+    APException(int e,
+		std::string msg = std::string()) : 
+      err(e),
+      message(msg)
+    {}
+
     int err;
+    std::string message;
   };
   
   void translator(APException const& e) {
-    PyErr_SetString(PyExc_UserWarning, "ALSAPlayerException");
+    std::ostringstream oss;
+
+    oss << "ALSAPlayerException: ";
+    if (!e.message.empty()) 
+      oss << e.message << ", ";
+    oss << "id=" << e.err;
+
+    PyErr_SetString(PyExc_UserWarning, oss.str().c_str());
   }
   
+  /*
+    The rest of these functions serve to put the alsaplayer interface into
+    a more pythonic format. For instance, get-functions return values
+    rather than modify paramters, they throw exceptions on error, they return
+    bools rather than ints where appropriate, and so forth. Otherwise,
+    these are basically a thin layer of the alsaplayer C API
+  */
+
   int find_session(const std::string& name)
   {
     int rval;
@@ -181,6 +206,7 @@ namespace
   
 }
 
+/* This defines the actual alsaplayer module */
 BOOST_PYTHON_MODULE(alsaplayer)
 {
 
