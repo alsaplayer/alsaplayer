@@ -1,0 +1,20 @@
+[0.0.0.6]
+	* Some optimization and cosmetic fixes
+
+[0.0.0.5]
+	* Quick hack for PPC-arch
+
+[0.0.0.4]
+	* APE tags now parsed. This allows by enabling 
+	  HAVE_TAGLIB (enabled by default) in the Makefile.
+	  Needs TagLib ( http://developer.kde.org/~wheeler/taglib.html ) 
+	
+[0.0.0.3]
+	* fixed ading new files (quick and dirty workaround, 
+	  see ape_play_frame and now_play)
+
+[0.0.0.2]
+	* fixed displaying version of ape-file
+
+[0.0.0.1]
+	* Initial release
