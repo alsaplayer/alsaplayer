@@ -15,7 +15,7 @@ midi_insources = midi_engine.c common.c playmidi.c readmidi.c \
 noinst_HEADERS = gtim.h common.h readmidi.h playmidi.h resample.h mix.h instrum.h \
 	tables.h controls.h output.h filter.h md.h cfg.l PC42b.h xmap.h
 
-EXTRA_DIST = bootstrap
+EXTRA_DIST = bootstrap midi_in.1
 
 TIMID_DIR = @TIMIDITY_DIR@
 AM_CFLAGS = -DDEFAULT_PATH=\"$(TIMID_DIR)\"
