@@ -488,7 +488,7 @@ void AlsaNode::StopStreaming()
 	looping = false;
 	pthread_mutex_lock(&thread_mutex);
 	if (thread_running) {
-		if (pthread_join(looper_thread, NULL)) {
+		if (looper_thread != NULL && pthread_join(looper_thread, NULL)) {
 			// Hmmm
 		}
 		thread_running = false;
