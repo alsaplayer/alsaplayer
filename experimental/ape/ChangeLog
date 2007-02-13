@@ -1,3 +1,6 @@
+* Wed Feb 14 2007 Peter Lemenkov <lemenkov@gmail.com>
+- Cosmetic fix for all BE-architectures
+
 [0.0.0.6]
 	* Some optimization and cosmetic fixes
 

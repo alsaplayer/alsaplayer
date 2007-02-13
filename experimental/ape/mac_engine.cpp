@@ -253,13 +253,10 @@ static int ape_play_frame (input_object *obj, char *buf)
 	if (!data)
 		return 0;
 
-#ifdef __powerpc__
-	char buf1[4096];
-	(data->ape_file)->GetData (buf1, 1024, &nRead);
-	for (i = 0; i < (nRead * 2); i++)
-		*((__u16*)(buf+2*i)) = __le16_to_cpu(*((__u16*)(buf1+2*i)));
-#else
 	(data->ape_file)->GetData (buf, 1024, &nRead);
+#ifdef __BIG_ENDIAN
+	for (i = 0; i < (nRead * 2); i++)
+		*((__u16*)(buf+2*i)) = __le16_to_cpu(*((__u16*)(buf+2*i)));
 #endif
 	
 	if (nRead != 0)
