@@ -121,7 +121,7 @@ static int alsa_set_buffer(int *fragment_size, int *fragment_count, int *channel
 	params.buf.block.frags_min = 1;
 
 	memset(&format, 0, sizeof(format));
-	format.format =  SND_PCM_SFMT_S16_LE;
+	format.format =  SND_PCM_SFMT_S16;
 	format.rate = output_rate;
 	format.voices = *channels;
 	format.interleave = 1;
@@ -166,7 +166,7 @@ static int alsa_set_sample_rate(int rate)
 	params.start_mode = SND_PCM_START_FULL;
 	params.stop_mode = SND_PCM_STOP_STOP;
 	memset(&format, 0, sizeof(format));
-	format.format =  SND_PCM_SFMT_S16_LE;
+	format.format =  SND_PCM_SFMT_S16;
 	format.rate = output_rate = rate;
 	format.voices = 2;
 	format.interleave = 1;
