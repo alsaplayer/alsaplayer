@@ -19,7 +19,10 @@
  */
 
 #include <string.h> /* memset */
+
+#ifdef __BIG_ENDIAN
 #include <asm/byteorder.h> /* BE to LE */
+#endif
 
 #include <alsaplayer/alsaplayer_error.h>
 #include <alsaplayer/input_plugin.h>
