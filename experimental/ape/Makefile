@@ -19,6 +19,4 @@ all: $(LINKER_OBJECTS)
 install:
 	cp mac_engine.so $(PREFIX)/lib/alsaplayer/input/
 clean:
-	rm -f 	./*.o \
-		./*~ \
-		./*.so
+	rm -f $(LINKER_OBJECTS) mac_engine.so *~

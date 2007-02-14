@@ -20,9 +20,9 @@
 
 #include <string.h> /* memset */
 
-#ifdef __BIG_ENDIAN
+//#ifdef __BIG_ENDIAN
 #include <asm/byteorder.h> /* BE to LE */
-#endif
+//#endif
 
 #include <alsaplayer/alsaplayer_error.h>
 #include <alsaplayer/input_plugin.h>
@@ -92,9 +92,9 @@ static int ape_open(input_object *obj, const char *path)
 		obj->flags |= P_SEEK;
 		obj->flags |= P_PERFECTSEEK;
 		obj->flags |= P_FILEBASED;
-	} else {
+	} 
+	else 
 		obj->flags |= P_STREAMBASED;
-	}	
 	
 	wchar_t* pUTF16 = GetUTF16FromANSI (path);
 	data->ape_file = CreateIAPEDecompress(pUTF16, &ret);
@@ -115,71 +115,56 @@ static void ape_close(input_object *obj)
 {
 	ape_local_data *data;
 
-	if (!obj)
+	if (!obj || !(obj->local_data))
 		return;
-	if (obj->local_data) {
-		data = (ape_local_data *)obj->local_data;
-		free (data->ape_file);
-		free(obj->local_data);
-		obj->local_data = NULL;
-	}
+	
+	free (((ape_local_data *) obj->local_data)->ape_file);
+	free(obj->local_data);
+	obj->local_data = NULL;
 }
 
 static long ape_frame_to_sec (input_object *obj, int frame)
 {
-	int ret = 0;
-	long	result = 0;
 	ape_local_data	*data;
 
-	if (!obj)
-		return result;
+	if (!obj || !(obj->local_data))
+		return 0;
 
 	data = (ape_local_data *) obj->local_data;
-	if(ret == ERROR_SUCCESS){
-		result = (frame * BLOCK_SIZE) / \
-		      ((data->ape_file)->GetInfo(APE_INFO_SAMPLE_RATE) * \
-		       (data->ape_file)->GetInfo(APE_INFO_CHANNELS) * \
-		       (data->ape_file)->GetInfo(APE_INFO_BYTES_PER_SAMPLE) / 100);
-	}
-	return result;
+	return (frame * BLOCK_SIZE) / \
+	      ((data->ape_file)->GetInfo(APE_INFO_SAMPLE_RATE) * \
+	       (data->ape_file)->GetInfo(APE_INFO_CHANNELS) * \
+	       (data->ape_file)->GetInfo(APE_INFO_BYTES_PER_SAMPLE) / 100);
 }
 
 static int ape_sample_rate(input_object *obj)
 {
-	int ret = 0;
 	ape_local_data *data;
+	
+	if (!obj || !(obj->local_data))
+		return 0;
 
-	data = (ape_local_data *) obj->local_data;
-	if(ret == ERROR_SUCCESS)
-		ret = (data->ape_file)->GetInfo(APE_INFO_SAMPLE_RATE);
-
-	return ret;
+	return (((ape_local_data *) obj->local_data)->ape_file)->GetInfo(APE_INFO_SAMPLE_RATE);
 }
 
 static int ape_channels(input_object *obj)
 {
-	int ret = 0;
-	ape_local_data *data;
+	if (!obj || !(obj->local_data))
+		return 0;
 
-	data = (ape_local_data *) obj->local_data;
-	if(ret == ERROR_SUCCESS)
-		ret = (data->ape_file)->GetInfo(APE_INFO_CHANNELS);
-
-	return ret;
+	return (((ape_local_data *) obj->local_data)->ape_file)->GetInfo(APE_INFO_CHANNELS);
 }
 
 static int ape_stream_info (input_object *obj, stream_info *info)
 {
-	int ret = 0;
 	double			sampleRate;
 	char			*fileType;
 	ape_local_data	*data;
 
-	if (!obj || !info)
+	if (!obj || !(obj->local_data) || !info)
 		return 0;
 
 	data = (ape_local_data *) obj->local_data;
-
 	sprintf(info->stream_type, "%d channels, %dHz %s, version %.2f",
 		(data->ape_file)->GetInfo(APE_INFO_CHANNELS),
 		(data->ape_file)->GetInfo(APE_INFO_SAMPLE_RATE),
@@ -195,20 +180,10 @@ static int ape_stream_info (input_object *obj, stream_info *info)
 
 static int ape_nr_frames(input_object *obj)
 {
-	int ret = 0;
-	ape_local_data *data;
-	int frames	= 0;
-	int64_t	l	= 0;
-
-	if (!obj || !obj->local_data)
+	if (!obj || !(obj->local_data))
 		return 0;
 	
-	data = (ape_local_data *)obj->local_data;
-	
-        l = (data->ape_file)->GetInfo(APE_INFO_WAV_DATA_BYTES);
-	frames = (l / BLOCK_SIZE);	
-
-	return frames;
+	return ((((ape_local_data *) obj->local_data)->ape_file)->GetInfo(APE_INFO_WAV_DATA_BYTES) / BLOCK_SIZE);
 }
 
 static int ape_frame_size(input_object *obj)
@@ -222,49 +197,35 @@ static int ape_frame_size(input_object *obj)
 
 static int ape_frame_seek(input_object *obj, int frame)
 {
-	ape_local_data *data;
 	int64_t pos;
 
-	if (!obj)
+	if (!obj || !(obj->local_data))
 		return 0;
-	data = (ape_local_data *)obj->local_data;
-	if (data) {
-		if (obj->flags & P_STREAMBASED)
-			return 0;
-		if (data->ape_file == NULL)
-			return 0;
+
+	if (obj->flags & P_STREAMBASED)
+		return 0;
+	if (((ape_local_data *) obj->local_data)->ape_file == NULL)
+		return 0;
 	
-		(data->ape_file)->Seek(frame * BLOCK_SIZE / 4); 
-		return frame;
-	}		
-	return 0;
+	(((ape_local_data *) obj->local_data)->ape_file)->Seek(frame * BLOCK_SIZE / 4); 
+	return frame;
 }
 
 static int ape_play_frame (input_object *obj, char *buf)
 {
 	int nRead = 0;
 	int i;
-	char tmp;
 
-	ape_local_data	*data;
-
-	if (!obj)
+	if (!obj || !(obj->local_data))
 		return 0;
 
-	data = (ape_local_data *) obj->local_data;
-
-	if (!data)
-		return 0;
-
-	(data->ape_file)->GetData (buf, 1024, &nRead);
+	(((ape_local_data *) obj->local_data)->ape_file)->GetData (buf, 1024, &nRead);
 #ifdef __BIG_ENDIAN
 	for (i = 0; i < (nRead * 2); i++)
 		*((__u16*)(buf+2*i)) = __le16_to_cpu(*((__u16*)(buf+2*i)));
 #endif
-	
 	if (nRead != 0)
 		return 1;
-
 	return 0;
 }
 
