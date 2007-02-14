@@ -1,6 +1,5 @@
 /*
- *  mac_engine.cpp (C) 2005 by Peter Lemenkov <lemenkov@newmail.ru>
- *  version: 0.0.0.6
+ *  mac_engine.cpp (C) 2005-2007 by Peter Lemenkov <lemenkov@gmail.com>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
