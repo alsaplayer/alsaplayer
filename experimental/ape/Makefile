@@ -11,7 +11,7 @@ LINKER_OBJECTS = mac_engine.o
 # bumps the empty 'make' command
 
 all: $(LINKER_OBJECTS)
-	$(CC) -shared  mac_engine.o $(LINKER_FLAGS) -o mac_engine.so
+	$(CC) -shared mac_engine.o $(LINKER_FLAGS) -o mac_engine.so
 
 .cpp.o:
 	$(CC) -c $(CFLAGS) -o $@ $<

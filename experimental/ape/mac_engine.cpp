@@ -112,8 +112,6 @@ static int ape_open(input_object *obj, const char *path)
 
 static void ape_close(input_object *obj)
 {
-	ape_local_data *data;
-
 	if (!obj || !(obj->local_data))
 		return;
 	
@@ -138,8 +136,6 @@ static long ape_frame_to_sec (input_object *obj, int frame)
 
 static int ape_sample_rate(input_object *obj)
 {
-	ape_local_data *data;
-	
 	if (!obj || !(obj->local_data))
 		return 0;
 
