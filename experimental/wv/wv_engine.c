@@ -1,6 +1,5 @@
 /*
  *  wv_engine.cpp (C) 2006-2007 by Peter Lemenkov <lemenkov@gmail.com>
- *  version: 0.0.0.2
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,12 +30,6 @@
 #include <asm/byteorder.h> /* BE to LE */
 #endif
 
-
-typedef struct tag_wv_local_data
-{
-	WavpackContext *wpc;
-} wv_local_data;
-
 #define BLOCK_SIZE 4096	/* We can use any block size we like */
 
 static int wv_init(void) 
@@ -63,24 +56,15 @@ static float wv_can_handle(const char *path)
 	return 0.0;
 }
 
-
 static int wv_open(input_object *obj, const char *path)
 {
 	char error [128];
 
-	wv_local_data* data;
 	void* datasource = NULL;
 	
 	if (!obj)
 		return 0;
 	
-	obj->local_data = malloc(sizeof(wv_local_data));
-
-	if (!obj->local_data) 
-		return 0;
-
-	data = (wv_local_data*)obj->local_data;
-
 	if ((datasource = reader_open(path, NULL, NULL)) == NULL) 
 		return 0;
 
@@ -92,20 +76,20 @@ static int wv_open(input_object *obj, const char *path)
 	} else 
 		obj->flags |= P_STREAMBASED;
 	
-	data->wpc = WavpackOpenFileInput (path, error, OPEN_TAGS | OPEN_2CH_MAX | OPEN_NORMALIZE, 23);
+	obj->local_data = WavpackOpenFileInput (path, error, OPEN_TAGS | OPEN_2CH_MAX | OPEN_NORMALIZE, 23);
 
-	if (!data->wpc)
+	if (!obj->local_data)
 		return 0;
 	else
 		printf ("WPC: RC[%u], NC[%u], NS[%u], SR[%u], ByPS[%u], V[%u]\n", 
-				WavpackGetReducedChannels (data->wpc), 
-				WavpackGetNumChannels (data->wpc),
-				WavpackGetNumSamples (data->wpc),
-				WavpackGetSampleRate (data->wpc),
-				WavpackGetBytesPerSample (data->wpc),
-				WavpackGetVersion(data->wpc));
+				WavpackGetReducedChannels (obj->local_data), 
+				WavpackGetNumChannels (obj->local_data),
+				WavpackGetNumSamples (obj->local_data),
+				WavpackGetSampleRate (obj->local_data),
+				WavpackGetBytesPerSample (obj->local_data),
+				WavpackGetVersion(obj->local_data));
 	
-	obj->nr_channels = WavpackGetReducedChannels (data->wpc);
+	obj->nr_channels = WavpackGetReducedChannels (obj->local_data);
 	obj->nr_tracks   = 1;
 	obj->frame_size = BLOCK_SIZE;
 
@@ -114,27 +98,20 @@ static int wv_open(input_object *obj, const char *path)
 
 static void wv_close(input_object *obj)
 {
-	wv_local_data *data;
 	if (!obj)
 		return;
 	if (obj->local_data){
-		data = (wv_local_data *)obj->local_data;
-		if (data->wpc)
-			WavpackCloseFile (data->wpc);
-		free(obj->local_data);
+		WavpackCloseFile (obj->local_data);
 		obj->local_data = NULL;
 	}
 }
 
 static long wv_frame_to_sec (input_object *obj, int frame)
 {
-	wv_local_data *data;
-
 	if (!obj || !(obj->local_data))
 		return 0;
 
-	data = (wv_local_data *)obj->local_data;
-	return (frame * BLOCK_SIZE) / (WavpackGetSampleRate (data->wpc) * WavpackGetBytesPerSample (data->wpc) ) * 100;
+	return (frame * BLOCK_SIZE) / (WavpackGetSampleRate (obj->local_data) * WavpackGetBytesPerSample (obj->local_data) ) * 100;
 }
 
 static int wv_sample_rate(input_object *obj)
@@ -142,7 +119,7 @@ static int wv_sample_rate(input_object *obj)
 	if (!obj || !(obj->local_data))
 		return 0;
 
-	return WavpackGetSampleRate (((wv_local_data *)obj->local_data)->wpc);
+	return WavpackGetSampleRate (obj->local_data);
 }
 
 static int wv_channels(input_object *obj)
@@ -155,16 +132,13 @@ static int wv_channels(input_object *obj)
 
 static int wv_stream_info (input_object *obj, stream_info *info)
 {
-	wv_local_data *data;
-	
 	if (!info || !obj || !(obj->local_data))
 		return 0;
 
-	data = (wv_local_data *)obj->local_data;
 	sprintf(info->stream_type, "%d channels, %dHz, version %.2f",
-		WavpackGetNumChannels (data->wpc),
-		WavpackGetSampleRate (data->wpc),
-		WavpackGetVersion(data->wpc));
+		WavpackGetNumChannels (obj->local_data),
+		WavpackGetSampleRate (obj->local_data),
+		WavpackGetVersion(obj->local_data));
 	
 	strcpy(info->status, "");
 	strcpy(info->artist, "");
@@ -178,7 +152,7 @@ static int wv_nr_frames(input_object *obj)
 	if (!obj || !(obj->local_data))
 		return 0;
 
-	return (WavpackGetNumSamples (((wv_local_data *)obj->local_data)->wpc) * WavpackGetBytesPerSample (((wv_local_data *)obj->local_data)->wpc) / BLOCK_SIZE);	
+	return (WavpackGetNumSamples (obj->local_data) * WavpackGetBytesPerSample (obj->local_data) / BLOCK_SIZE);	
 }
 
 static int wv_frame_size(input_object *obj)
@@ -191,13 +165,10 @@ static int wv_frame_size(input_object *obj)
 
 static int wv_frame_seek(input_object *obj, int frame)
 {
-	wv_local_data *data;
-	
 	if (!obj || !(obj->local_data) || obj->flags & P_STREAMBASED)
 		return 0;
 
-	data = (wv_local_data *)obj->local_data;
-	WavpackSeekSample (data->wpc, frame * BLOCK_SIZE / (WavpackGetBytesPerSample (data->wpc)));
+	WavpackSeekSample (obj->local_data, frame * BLOCK_SIZE / (WavpackGetBytesPerSample (obj->local_data)));
 	return frame;
 }
 
@@ -206,20 +177,17 @@ static int wv_play_frame (input_object *obj, char *buf)
 	int i;
 	uint32_t ret;
 
-	wv_local_data *data;
-	
 	if (!obj || !(obj->local_data))
 		return 0;
 
-	data = (wv_local_data *)obj->local_data;
 	int32_t* samples = (int32_t*) calloc (BLOCK_SIZE, sizeof (int32_t));
 
-//	ret = WavpackUnpackSamples (data->wpc, samples, BLOCK_SIZE / WavpackGetBytesPerSample (data->wpc));
-	ret = WavpackUnpackSamples (data->wpc, samples, BLOCK_SIZE / (WavpackGetBytesPerSample (data->wpc) * 2));
-//	ret = WavpackUnpackSamples (data->wpc, samples, BLOCK_SIZE);
+//	ret = WavpackUnpackSamples (obj->local_data, samples, BLOCK_SIZE / WavpackGetBytesPerSample (obj->local_data));
+	ret = WavpackUnpackSamples (obj->local_data, samples, BLOCK_SIZE / (WavpackGetBytesPerSample (obj->local_data) * 2));
+//	ret = WavpackUnpackSamples (obj->local_data, samples, BLOCK_SIZE);
 	
-	if (WavpackGetBytesPerSample (data->wpc) == 2){
-		for (i = 0; i < BLOCK_SIZE / WavpackGetBytesPerSample (data->wpc); i++){
+	if (WavpackGetBytesPerSample (obj->local_data) == 2){
+		for (i = 0; i < BLOCK_SIZE / WavpackGetBytesPerSample (obj->local_data); i++){
 //		for (i = 0; i < BLOCK_SIZE; i++){
 #ifdef __BIG_ENDIAN
 			/*
