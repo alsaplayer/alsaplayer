@@ -1,6 +1,6 @@
 /*
- *  wv_engine.cpp (C) 2006 by Peter Lemenkov <lemenkov@newmail.ru>
- *  version: 0.0.0.1
+ *  wv_engine.cpp (C) 2006-2007 by Peter Lemenkov <lemenkov@gmail.com>
+ *  version: 0.0.0.2
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,6 +26,10 @@
 #include <alsaplayer/reader.h>
 
 #include <wavpack/wavpack.h>
+
+#ifdef __BIG_ENDIAN
+#include <asm/byteorder.h> /* BE to LE */
+#endif
 
 
 typedef struct tag_wv_local_data
@@ -125,91 +129,61 @@ static void wv_close(input_object *obj)
 static long wv_frame_to_sec (input_object *obj, int frame)
 {
 	wv_local_data *data;
-	if (!obj)
+
+	if (!obj || !(obj->local_data))
 		return 0;
 
-	if (obj->local_data){
-		data = (wv_local_data *)obj->local_data;
-		if (data)
-			return (frame * BLOCK_SIZE) / (WavpackGetSampleRate (data->wpc) * WavpackGetBytesPerSample (data->wpc) ) * 100;
-	}
-	return 0;
+	data = (wv_local_data *)obj->local_data;
+	return (frame * BLOCK_SIZE) / (WavpackGetSampleRate (data->wpc) * WavpackGetBytesPerSample (data->wpc) ) * 100;
 }
 
 static int wv_sample_rate(input_object *obj)
 {
-	wv_local_data *data;
-	if (!obj)
+	if (!obj || !(obj->local_data))
 		return 0;
 
-	if (obj->local_data){
-		data = (wv_local_data *)obj->local_data;
-		if (data)
-			return WavpackGetSampleRate (data->wpc);
-	}
-	
-	return 0;
+	return WavpackGetSampleRate (((wv_local_data *)obj->local_data)->wpc);
 }
 
 static int wv_channels(input_object *obj)
 {
-	wv_local_data *data;
-	if (!obj)
+	if (!obj || !(obj->local_data))
 		return 0;
 
-	if (obj->local_data){
-		data = (wv_local_data *)obj->local_data;
-		if (data)
-			return WavpackGetNumChannels (data->wpc);
-	}
-	return 0;
+	return obj->nr_channels;
 }
 
 static int wv_stream_info (input_object *obj, stream_info *info)
 {
-	if (!info)
-		return 0;
-
 	wv_local_data *data;
-	if (!obj)
+	
+	if (!info || !obj || !(obj->local_data))
 		return 0;
 
-	if (obj->local_data){
-		data = (wv_local_data *)obj->local_data;
-		if (data){
-			sprintf(info->stream_type, "%d channels, %dHz, version %.2f",
-				WavpackGetNumChannels (data->wpc),
-				WavpackGetSampleRate (data->wpc),
-				WavpackGetVersion(data->wpc));
+	data = (wv_local_data *)obj->local_data;
+	sprintf(info->stream_type, "%d channels, %dHz, version %.2f",
+		WavpackGetNumChannels (data->wpc),
+		WavpackGetSampleRate (data->wpc),
+		WavpackGetVersion(data->wpc));
 	
-			strcpy(info->status, "");
-			strcpy(info->artist, "");
-			strcpy(info->title, "");
+	strcpy(info->status, "");
+	strcpy(info->artist, "");
+	strcpy(info->title, "");
 
-			return 1;
-		}
-	}
-
-	return 0;
+	return 1;
 }
 
 static int wv_nr_frames(input_object *obj)
 {
-	wv_local_data *data;
-	if (!obj)
+	if (!obj || !(obj->local_data))
 		return 0;
 
-	if (obj->local_data){
-		data = (wv_local_data *)obj->local_data;
-		if (data)
-			return (WavpackGetNumSamples (data->wpc) * WavpackGetBytesPerSample (data->wpc) / BLOCK_SIZE);	
-	}
-	return 0;
+	return (WavpackGetNumSamples (((wv_local_data *)obj->local_data)->wpc) * WavpackGetBytesPerSample (((wv_local_data *)obj->local_data)->wpc) / BLOCK_SIZE);	
 }
 
 static int wv_frame_size(input_object *obj)
 {
-	if (!obj) 
+	if (!obj || !(obj->local_data))
 		return 0;
 
 	return obj->frame_size;
@@ -218,20 +192,13 @@ static int wv_frame_size(input_object *obj)
 static int wv_frame_seek(input_object *obj, int frame)
 {
 	wv_local_data *data;
-	if (!obj)
+	
+	if (!obj || !(obj->local_data) || obj->flags & P_STREAMBASED)
 		return 0;
 
-	if (obj->flags & P_STREAMBASED)
-		return 0;
-
-	if (obj->local_data){
-		data = (wv_local_data *)obj->local_data;
-		if (data){
-			WavpackSeekSample (data->wpc, frame * BLOCK_SIZE / (WavpackGetBytesPerSample (data->wpc)));
-			return frame;
-		}
-	}
-	return 0;
+	data = (wv_local_data *)obj->local_data;
+	WavpackSeekSample (data->wpc, frame * BLOCK_SIZE / (WavpackGetBytesPerSample (data->wpc)));
+	return frame;
 }
 
 static int wv_play_frame (input_object *obj, char *buf)
@@ -240,35 +207,38 @@ static int wv_play_frame (input_object *obj, char *buf)
 	uint32_t ret;
 
 	wv_local_data *data;
-	if (!obj)
+	
+	if (!obj || !(obj->local_data))
 		return 0;
 
-	if (obj->local_data){
-		data = (wv_local_data *)obj->local_data;
-		if (data){
-			int32_t* samples = (int32_t*) calloc (BLOCK_SIZE, sizeof (int32_t));
+	data = (wv_local_data *)obj->local_data;
+	int32_t* samples = (int32_t*) calloc (BLOCK_SIZE, sizeof (int32_t));
 
-//			ret = WavpackUnpackSamples (data->wpc, samples, BLOCK_SIZE / WavpackGetBytesPerSample (data->wpc));
-			ret = WavpackUnpackSamples (data->wpc, samples, BLOCK_SIZE / (WavpackGetBytesPerSample (data->wpc) * 2));
-//			ret = WavpackUnpackSamples (data->wpc, samples, BLOCK_SIZE);
+//	ret = WavpackUnpackSamples (data->wpc, samples, BLOCK_SIZE / WavpackGetBytesPerSample (data->wpc));
+	ret = WavpackUnpackSamples (data->wpc, samples, BLOCK_SIZE / (WavpackGetBytesPerSample (data->wpc) * 2));
+//	ret = WavpackUnpackSamples (data->wpc, samples, BLOCK_SIZE);
 	
-			if (WavpackGetBytesPerSample (data->wpc) == 2){
-				for (i = 0; i < BLOCK_SIZE / WavpackGetBytesPerSample (data->wpc); i++){
-//				for (i = 0; i < BLOCK_SIZE; i++){
-#ifndef __powerpc__
-					buf[2*i]   = samples[i];
-					buf[2*i+1] = samples[i] >> 8;
+	if (WavpackGetBytesPerSample (data->wpc) == 2){
+		for (i = 0; i < BLOCK_SIZE / WavpackGetBytesPerSample (data->wpc); i++){
+//		for (i = 0; i < BLOCK_SIZE; i++){
+#ifdef __BIG_ENDIAN
+			/*
+	tile.tileIndex   = __le16_to_cpu(tile.tileIndex);
+	tile.indexAddon  = __le16_to_cpu(tile.indexAddon);
+	tile.uniqNumber1 = __le32_to_cpu(tile.uniqNumber1);
+	tile.uniqNumber2 = __le32_to_cpu(tile.uniqNumber2);
+	*/
+			buf[2*i]   = samples[i] >> 8;
+			buf[2*i+1] = samples[i];
 #else
-					buf[2*i]   = samples[i] >> 8;
-					buf[2*i+1] = samples[i];
+			buf[2*i]   = samples[i];
+			buf[2*i+1] = samples[i] >> 8;
 #endif
-				}
-			}
-
-//			printf ("WV: ret[%d]\n", ret);
-			free (samples);
 		}
 	}
+
+//	printf ("WV: ret[%d]\n", ret);
+	free (samples);
 
 	if (ret == 0)
 		return 0;
@@ -287,7 +257,7 @@ input_plugin *input_plugin_info (void)
 	memset(&wv_plugin, 0, sizeof(input_plugin));
 
 	wv_plugin.version 	= INPUT_PLUGIN_VERSION;
-	wv_plugin.name 		= "WavPack plugin ver. 0.0.0.1";
+	wv_plugin.name 		= "WavPack plugin ver. 0.0.0.2";
 	wv_plugin.author 	= "Peter Lemenkov";
 	wv_plugin.init 		= wv_init;  // DONE
 	wv_plugin.shutdown 	= wv_shutdown; //DONE
