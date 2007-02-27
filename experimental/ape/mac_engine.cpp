@@ -35,8 +35,6 @@
 
 typedef struct tag_ape_local_data
 {
-	int total_ms;
-	int total_blocks;
 	IAPEDecompress* ape_file;
 } ape_local_data;
 
@@ -102,9 +100,6 @@ static int ape_open(input_object *obj, const char *path)
 	obj->nr_channels = (data->ape_file)->GetInfo(APE_INFO_CHANNELS);
 	obj->nr_tracks   = 1;
 	
-	data->total_ms		= (data->ape_file)->GetInfo(APE_DECOMPRESS_LENGTH_MS);
-	data->total_blocks 	= (data->ape_file)->GetInfo(APE_DECOMPRESS_TOTAL_BLOCKS);
-	
 	obj->frame_size = BLOCK_SIZE;
 
 	return 1;
@@ -130,7 +125,7 @@ static long ape_frame_to_sec (input_object *obj, int frame)
 	data = (ape_local_data *) obj->local_data;
 	return (frame * BLOCK_SIZE) / \
 	      ((data->ape_file)->GetInfo(APE_INFO_SAMPLE_RATE) * \
-	       (data->ape_file)->GetInfo(APE_INFO_CHANNELS) * \
+	       obj->nr_channels * \
 	       (data->ape_file)->GetInfo(APE_INFO_BYTES_PER_SAMPLE) / 100);
 }
 
@@ -147,7 +142,7 @@ static int ape_channels(input_object *obj)
 	if (!obj || !(obj->local_data))
 		return 0;
 
-	return (((ape_local_data *) obj->local_data)->ape_file)->GetInfo(APE_INFO_CHANNELS);
+	return obj->nr_channels;
 }
 
 static int ape_stream_info (input_object *obj, stream_info *info)
@@ -161,7 +156,7 @@ static int ape_stream_info (input_object *obj, stream_info *info)
 
 	data = (ape_local_data *) obj->local_data;
 	sprintf(info->stream_type, "%d channels, %dHz %s, version %.2f",
-		(data->ape_file)->GetInfo(APE_INFO_CHANNELS),
+		obj->nr_channels,
 		(data->ape_file)->GetInfo(APE_INFO_SAMPLE_RATE),
 		"stereo", /* TODO */
 		float ((data->ape_file)->GetInfo(APE_INFO_FILE_VERSION)) / 1000);
@@ -183,10 +178,9 @@ static int ape_nr_frames(input_object *obj)
 
 static int ape_frame_size(input_object *obj)
 {
-	if (!obj) {
-		puts("No frame size!!!!");
+	if (!obj || !(obj->local_data))
 		return 0;
-	}
+	
 	return obj->frame_size;
 }
 
