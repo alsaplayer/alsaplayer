@@ -105,7 +105,7 @@ static long ape_frame_to_sec (input_object *obj, int frame)
 	if (!obj || !(obj->local_data))
 		return 0;
 
-	return (frame * BLOCK_SIZE) / \
+	return (frame * obj->frame_size) / \
 	      (((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_SAMPLE_RATE) * \
 	       obj->nr_channels * \
 	       ((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_BYTES_PER_SAMPLE) / 100);
@@ -153,7 +153,7 @@ static int ape_nr_frames(input_object *obj)
 	if (!obj || !(obj->local_data))
 		return 0;
 	
-	return (((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_WAV_DATA_BYTES) / BLOCK_SIZE);
+	return (((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_WAV_DATA_BYTES) / obj->frame_size);
 }
 
 static int ape_frame_size(input_object *obj)
@@ -174,7 +174,7 @@ static int ape_frame_seek(input_object *obj, int frame)
 	if (obj->flags & P_STREAMBASED)
 		return 0;
 	
-	((IAPEDecompress*) obj->local_data)->Seek(frame * BLOCK_SIZE / 4); 
+	((IAPEDecompress*) obj->local_data)->Seek(frame * obj->frame_size / 4); 
 	return frame;
 }
 
