@@ -19,9 +19,9 @@
 
 #include <string.h> /* memset */
 
-//#ifdef __BIG_ENDIAN
-#include <asm/byteorder.h> /* BE to LE */
-//#endif
+#ifdef __BIG_ENDIAN
+#include <unistd.h> /* swab */
+#endif
 
 #include <alsaplayer/alsaplayer_error.h>
 #include <alsaplayer/input_plugin.h>
@@ -210,8 +210,7 @@ static int ape_play_frame (input_object *obj, char *buf)
 
 	(((ape_local_data *) obj->local_data)->ape_file)->GetData (buf, 1024, &nRead);
 #ifdef __BIG_ENDIAN
-	for (i = 0; i < (nRead * 2); i++)
-		*((__u16*)(buf+2*i)) = __le16_to_cpu(*((__u16*)(buf+2*i)));
+	swab(buf, buf, (nRead * 4));
 #endif
 	if (nRead != 0)
 		return 1;
