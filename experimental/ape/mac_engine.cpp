@@ -33,11 +33,6 @@
 
 #define BLOCK_SIZE 4096	/* We can use any block size we like */
 
-typedef struct tag_ape_local_data
-{
-	IAPEDecompress* ape_file;
-} ape_local_data;
-
 static int ape_init(void) 
 {
 	return 1;
@@ -66,20 +61,11 @@ static int ape_open(input_object *obj, const char *path)
 {
 	int ret = 0;
 
-	ape_local_data *data;
 	void* datasource = NULL;
 	
 	if (!obj)
 		return 0;
 	
-	obj->local_data = malloc(sizeof(ape_local_data));
-
-	if (!obj->local_data) {
-		return 0;
-	}
-
-	data = (ape_local_data *)obj->local_data;
-
 	if ((datasource = reader_open(path, NULL, NULL)) == NULL) {
 		return 0;
 	}
@@ -94,10 +80,10 @@ static int ape_open(input_object *obj, const char *path)
 		obj->flags |= P_STREAMBASED;
 	
 	wchar_t* pUTF16 = GetUTF16FromANSI (path);
-	data->ape_file = CreateIAPEDecompress(pUTF16, &ret);
+	obj->local_data = CreateIAPEDecompress(pUTF16, &ret);
 	free (pUTF16);
 	
-	obj->nr_channels = (data->ape_file)->GetInfo(APE_INFO_CHANNELS);
+	obj->nr_channels = ((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_CHANNELS);
 	obj->nr_tracks   = 1;
 	
 	obj->frame_size = BLOCK_SIZE;
@@ -110,23 +96,19 @@ static void ape_close(input_object *obj)
 	if (!obj || !(obj->local_data))
 		return;
 	
-	free (((ape_local_data *) obj->local_data)->ape_file);
-	free(obj->local_data);
+	free (obj->local_data);
 	obj->local_data = NULL;
 }
 
 static long ape_frame_to_sec (input_object *obj, int frame)
 {
-	ape_local_data	*data;
-
 	if (!obj || !(obj->local_data))
 		return 0;
 
-	data = (ape_local_data *) obj->local_data;
 	return (frame * BLOCK_SIZE) / \
-	      ((data->ape_file)->GetInfo(APE_INFO_SAMPLE_RATE) * \
+	      (((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_SAMPLE_RATE) * \
 	       obj->nr_channels * \
-	       (data->ape_file)->GetInfo(APE_INFO_BYTES_PER_SAMPLE) / 100);
+	       ((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_BYTES_PER_SAMPLE) / 100);
 }
 
 static int ape_sample_rate(input_object *obj)
@@ -134,7 +116,7 @@ static int ape_sample_rate(input_object *obj)
 	if (!obj || !(obj->local_data))
 		return 0;
 
-	return (((ape_local_data *) obj->local_data)->ape_file)->GetInfo(APE_INFO_SAMPLE_RATE);
+	return ((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_SAMPLE_RATE);
 }
 
 static int ape_channels(input_object *obj)
@@ -149,17 +131,15 @@ static int ape_stream_info (input_object *obj, stream_info *info)
 {
 	double			sampleRate;
 	char			*fileType;
-	ape_local_data	*data;
 
 	if (!obj || !(obj->local_data) || !info)
 		return 0;
 
-	data = (ape_local_data *) obj->local_data;
 	sprintf(info->stream_type, "%d channels, %dHz %s, version %.2f",
 		obj->nr_channels,
-		(data->ape_file)->GetInfo(APE_INFO_SAMPLE_RATE),
+		((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_SAMPLE_RATE),
 		"stereo", /* TODO */
-		float ((data->ape_file)->GetInfo(APE_INFO_FILE_VERSION)) / 1000);
+		float (((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_FILE_VERSION)) / 1000);
 	
 	strcpy(info->status, "");
 	strcpy(info->artist, "");
@@ -173,7 +153,7 @@ static int ape_nr_frames(input_object *obj)
 	if (!obj || !(obj->local_data))
 		return 0;
 	
-	return ((((ape_local_data *) obj->local_data)->ape_file)->GetInfo(APE_INFO_WAV_DATA_BYTES) / BLOCK_SIZE);
+	return (((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_WAV_DATA_BYTES) / BLOCK_SIZE);
 }
 
 static int ape_frame_size(input_object *obj)
@@ -193,10 +173,8 @@ static int ape_frame_seek(input_object *obj, int frame)
 
 	if (obj->flags & P_STREAMBASED)
 		return 0;
-	if (((ape_local_data *) obj->local_data)->ape_file == NULL)
-		return 0;
 	
-	(((ape_local_data *) obj->local_data)->ape_file)->Seek(frame * BLOCK_SIZE / 4); 
+	((IAPEDecompress*) obj->local_data)->Seek(frame * BLOCK_SIZE / 4); 
 	return frame;
 }
 
@@ -208,12 +186,13 @@ static int ape_play_frame (input_object *obj, char *buf)
 	if (!obj || !(obj->local_data))
 		return 0;
 
-	(((ape_local_data *) obj->local_data)->ape_file)->GetData (buf, 1024, &nRead);
+	((IAPEDecompress*) obj->local_data)->GetData (buf, 1024, &nRead);
 #ifdef __BIG_ENDIAN
 	swab(buf, buf, (nRead * 4));
 #endif
 	if (nRead != 0)
 		return 1;
+
 	return 0;
 }
 
