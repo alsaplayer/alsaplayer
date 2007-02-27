@@ -1,5 +1,6 @@
 * Tue Feb 27 2007 Peter Lemenkov <lemenkov@gmail.com>
 - Ver. 0.0.0.2
 - Removed unnecessary variables
-
+- Fixed wrong detection of elapsed time
+- Still only 16/2/44100
 

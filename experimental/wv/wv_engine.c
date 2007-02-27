@@ -111,7 +111,7 @@ static long wv_frame_to_sec (input_object *obj, int frame)
 	if (!obj || !(obj->local_data))
 		return 0;
 
-	return (frame * BLOCK_SIZE) / (WavpackGetSampleRate (obj->local_data) * WavpackGetBytesPerSample (obj->local_data) ) * 100;
+	return (frame * obj->frame_size) / (WavpackGetSampleRate (obj->local_data) * WavpackGetBytesPerSample (obj->local_data) * obj->nr_channels) * 100;
 }
 
 static int wv_sample_rate(input_object *obj)
@@ -152,7 +152,7 @@ static int wv_nr_frames(input_object *obj)
 	if (!obj || !(obj->local_data))
 		return 0;
 
-	return (WavpackGetNumSamples (obj->local_data) * WavpackGetBytesPerSample (obj->local_data) / BLOCK_SIZE);	
+	return (WavpackGetNumSamples (obj->local_data) * WavpackGetBytesPerSample (obj->local_data) * obj->nr_channels / obj->frame_size);	
 }
 
 static int wv_frame_size(input_object *obj)
@@ -168,7 +168,7 @@ static int wv_frame_seek(input_object *obj, int frame)
 	if (!obj || !(obj->local_data) || obj->flags & P_STREAMBASED)
 		return 0;
 
-	WavpackSeekSample (obj->local_data, frame * BLOCK_SIZE / (WavpackGetBytesPerSample (obj->local_data)));
+	WavpackSeekSample (obj->local_data, frame * obj->frame_size / (WavpackGetBytesPerSample (obj->local_data)));
 	return frame;
 }
 
@@ -180,15 +180,12 @@ static int wv_play_frame (input_object *obj, char *buf)
 	if (!obj || !(obj->local_data))
 		return 0;
 
-	int32_t* samples = (int32_t*) calloc (BLOCK_SIZE, sizeof (int32_t));
+	int32_t* samples = (int32_t*) calloc (obj->frame_size / WavpackGetBytesPerSample (obj->local_data), sizeof (int32_t));
 
-//	ret = WavpackUnpackSamples (obj->local_data, samples, BLOCK_SIZE / WavpackGetBytesPerSample (obj->local_data));
-	ret = WavpackUnpackSamples (obj->local_data, samples, BLOCK_SIZE / (WavpackGetBytesPerSample (obj->local_data) * 2));
-//	ret = WavpackUnpackSamples (obj->local_data, samples, BLOCK_SIZE);
+	ret = WavpackUnpackSamples (obj->local_data, samples, obj->frame_size / (WavpackGetBytesPerSample (obj->local_data) * obj->nr_channels));
 	
 	if (WavpackGetBytesPerSample (obj->local_data) == 2){
-		for (i = 0; i < BLOCK_SIZE / WavpackGetBytesPerSample (obj->local_data); i++){
-//		for (i = 0; i < BLOCK_SIZE; i++){
+		for (i = 0; i < obj->frame_size / WavpackGetBytesPerSample (obj->local_data); i++){
 #ifdef __BIG_ENDIAN
 			/*
 	tile.tileIndex   = __le16_to_cpu(tile.tileIndex);
