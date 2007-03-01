@@ -135,7 +135,7 @@ static int wv_stream_info (input_object *obj, stream_info *info)
 	if (!info || !obj || !(obj->local_data))
 		return 0;
 
-	sprintf(info->stream_type, "%d channels, %dHz, version %.2f",
+	sprintf(info->stream_type, "%d channels, %dHz, version %u",
 		WavpackGetNumChannels (obj->local_data),
 		WavpackGetSampleRate (obj->local_data),
 		WavpackGetVersion(obj->local_data));
