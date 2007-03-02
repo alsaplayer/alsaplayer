@@ -1,6 +1,5 @@
 /*
- *  tta_engine.cpp (C) 2005 by Peter Lemenkov <lemenkov@newmail.ru>
- *  version: 0.0.0.1
+ *  tta_engine.cpp (C) 2005-2007 by Peter Lemenkov <lemenkov@gmail.com>
  *
  *  WARNING!!! This is a development version - DO NOT USE!
  *
@@ -49,10 +48,8 @@ typedef struct {
 
 #include "ttalib.h"
 
-static tta_info info;	// currently playing file info
 #define BLOCK_SIZE (4608 * 2 * 2)	/* We can use any block size we like */
 static char static_buffer[BLOCK_SIZE];
-int flag = 0;
 
 static int tta_init(void) 
 {
@@ -70,7 +67,7 @@ static float tta_can_handle(const char *path)
 	
 	if (open_tta_file (path, &temp, 0) == 0) {
 		printf("\nTTA Decoder OK - %s\n", get_error_str(temp.STATE));
-		close_tta_file (&info);
+		close_tta_file (&temp);
 		return 1.0;
 	}
 	
@@ -97,107 +94,115 @@ static int tta_open(input_object *obj, const char *path)
 		obj->flags |= P_STREAMBASED;
 	}	
 	
-	if (open_tta_file (path, &info, 0) < 0) {
-		printf("\nTTA Decoder Error - %s\n", get_error_str(info.STATE));
-		close_tta_file (&info);
+	obj->local_data = malloc (sizeof (tta_info));
+
+	if (open_tta_file (path, obj->local_data, 0) < 0) {
+		printf("\nTTA Decoder Error - %s\n", get_error_str(((tta_info*)obj->local_data)->STATE));
+		close_tta_file (obj->local_data);
 		return 0;
 	}
 
 	/*************************/
 	/* printf ("\n\n debug: \n >> NCH: %d\n >> BPS: %d\n >> SAMPLERATE: %d\n >> FRAMELEN: %d\n\n", info.NCH, info.BPS, info.SAMPLERATE, info.FRAMELEN);*/
 	/*************************/
-	obj->nr_channels = info.NCH;
+	obj->nr_channels = ((tta_info*)obj->local_data)->NCH;
 	obj->nr_tracks = 1;
 	
 	obj->frame_size = (BLOCK_SIZE>>1);
 
-	player_init(&info);
+	player_init(obj->local_data);
 
 	return 1;
 }
 
 static void tta_close(input_object *obj)
 {
-	if (!obj)
+	if (!obj || !(obj->local_data))
 		return;
-	if (obj->local_data) {
-		free(obj->local_data);
-		obj->local_data = NULL;
-	}
-	/*******************/
-	close_tta_file (&info);
-	/*******************/
+
+	close_tta_file (obj->local_data);
+	free(obj->local_data);
+	obj->local_data = NULL;
 }
 
 static long tta_frame_to_sec (input_object *obj, int frame)
 {
-	return  (100 * frame * (BLOCK_SIZE>>1)) / (info.SAMPLERATE * info.NCH * (info.BPS>>3));
+	if (!obj || !(obj->local_data))
+		return 0;
+
+	return  (100 * frame * (BLOCK_SIZE>>1)) / (((tta_info*)obj->local_data)->SAMPLERATE * ((tta_info*)obj->local_data)->NCH * (((tta_info*)obj->local_data)->BPS>>3));
 }
 
 static int tta_sample_rate(input_object *obj)
 {
-	return info.SAMPLERATE;
+	if (!obj || !(obj->local_data))
+		return 0;
+
+	return ((tta_info*)obj->local_data)->SAMPLERATE;
 }
 
 static int tta_channels(input_object *obj)
 {
-	return info.NCH;
-}
-
-static int tta_stream_info (input_object *obj, stream_info *inf)
-{
-	if (!obj || !inf)
+	if (!obj || !(obj->local_data))
 		return 0;
 
-	sprintf(inf->stream_type, "%d channels, %dHz %s",
-		info.NCH,
-		info.SAMPLERATE,
+	return ((tta_info*)obj->local_data)->NCH;
+}
+
+static int tta_stream_info (input_object *obj, stream_info *info)
+{
+	if (!obj || !(obj->local_data) || !info)
+		return 0;
+
+	sprintf(info->stream_type, "%d channels, %dHz %s",
+		((tta_info*)obj->local_data)->NCH,
+		((tta_info*)obj->local_data)->SAMPLERATE,
 		"stereo"); /* TODO */
-	strcpy(inf->status, "");
-	strcpy(inf->artist, "");
-	strcpy(inf->title, "");
+	strcpy(info->status, "");
+	strcpy(info->artist, "");
+	strcpy(info->title, "");
 	
 	return 1;
 }
 
 static int tta_nr_frames(input_object *obj)
 {
+	if (!obj || !(obj->local_data))
+		return 0;
+
 	/*
 	printf ("[debug] ret: %d, datalen: %d\n", 
 			(int) (info.DATALENGTH / (BLOCK_SIZE>>1) * info.NCH * (info.BPS>>3) + 0.5),
 			info.DATALENGTH);
 	*/
-	return (int) (info.DATALENGTH / (BLOCK_SIZE>>1) * info.NCH * (info.BPS>>3) + 0.5);
+	return (int) (((tta_info*)obj->local_data)->DATALENGTH / (BLOCK_SIZE>>1) * ((tta_info*)obj->local_data)->NCH * (((tta_info*)obj->local_data)->BPS>>3) + 0.5);
 }
 
 static int tta_frame_size(input_object *obj)
 {
+	if (!obj || !(obj->local_data))
+		return 0;
+
 	return (BLOCK_SIZE>>1);
 }
 
 static int tta_frame_seek(input_object *obj, int frame)
 {
-	set_position ((1000 * frame * (BLOCK_SIZE>>1)) / (info.SAMPLERATE * info.NCH * (info.BPS>>3) * SEEK_STEP));
-	flag = 0;
+	if (!obj || !(obj->local_data))
+		return 0;
+
+	set_position ((1000 * frame * (BLOCK_SIZE>>1)) / (((tta_info*)obj->local_data)->SAMPLERATE * ((tta_info*)obj->local_data)->NCH * (((tta_info*)obj->local_data)->BPS>>3) * SEEK_STEP));
 	return 1;
 }
 
 static int tta_play_frame (input_object *obj, char *buf)
 {
-	if (!obj)
+	if (!obj || !(obj->local_data))
 		return 0;
 
 	memset (buf, 0, sizeof (char) * BLOCK_SIZE>>1);
 	
-	if (flag == 0){
-		get_samples ((unsigned char*)static_buffer);
-		memcpy (buf, static_buffer, BLOCK_SIZE>>1);
-		flag = 1;
-	}
-	else{
-		flag = 0;
-		memcpy (buf, static_buffer + (BLOCK_SIZE>>1), BLOCK_SIZE>>1);
-	}
+	get_samples ((unsigned char*)buf);
 	
 	return 1;
 }
@@ -213,7 +218,7 @@ input_plugin *input_plugin_info (void)
 	memset(&tta_plugin, 0, sizeof(input_plugin));
 
 	tta_plugin.version 	= INPUT_PLUGIN_VERSION;
-	tta_plugin.name 	= "TTA plugin ver. 0.0.0.1";
+	tta_plugin.name 	= "TTA plugin ver. 0.0.0.0";
 	tta_plugin.author 	= "Peter Lemenkov";
 	tta_plugin.init 	= tta_init; 
 	tta_plugin.shutdown 	= tta_shutdown; 
