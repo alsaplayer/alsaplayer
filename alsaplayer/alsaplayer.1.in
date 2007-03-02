@@ -153,9 +153,19 @@ Loop the playlist.
 .TP
 .B \-x,\-\-crossfade
 Crossfade playlist entries.
+.SH NOTE
+With the daemon interface, it is mandatory to add the -s option.
+You must process in two steps to get sound with it. First launch the daemon:
+.B alsaplayer 
+.B -i daemon -s <name>
+and then add some song:
+.B alsaplayer
+.B -e <some.song>
 .SH SEE ALSO
 .BR mikmod (1),
 .BR mpg123 (1).
 .SH AUTHOR
 This manual page was written by Ivo Timmermans <ivo@debian.org>,
 for the Debian GNU/Linux system (but may be used by others).
+NOTE section added by Dominique Michel <dominique_libre@sourceforge.net>
+from the Alsaplayer team.

@@ -1,6 +1,35 @@
 * Modify threading to use conditional waits. More portable
 * GTK2 test interface. Far from functional
 
+Wed Mar 02 2007
+---------------
+* Added a note about the correct use of the daemon interface in the man page.
+
+
+Tue Feb 13 2007
+---------------
+* Fixed thread in AlsaNode.cpp
+* Fixed output format in alsa-0.5 output plugin 
+
+
+Wed Feb 9 2007
+--------------
+* A desktop file
+
+
+Thu Feb 1 2007
+--------------
+* Fixed Makefile to work with gtk gtk2 configure options.
+* Various importants security fixes commited by Debian for its distribution
+  and for the alsaplayer. They include fixes in the http reader, the alsa
+  output plugin, the ccda engine, for reading flac metada tags, for playing
+  correctly mono audiofiles, fix in the text interface and the gtk interface,
+  in the jack output plugin, in the main interface, and in the cdda engine.
+  Those patches solve the vulnerabilities found by Luigy Auriemma (see
+  http://secunia.com/advisories/21422/)
+* A new man page (Thanks to Debian).
+
+
 Fri Dec  5 21:41:50 CET 2003
 ----------------------------
 * Code cleanups
