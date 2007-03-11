@@ -2,8 +2,8 @@
  * filter.h
  *
  * Description:	 TTAv1 filter functions
- * Developed by: Alexander Djourik <sasha@iszf.irk.ru>
- *               Pavel Zhilin <pzh@iszf.irk.ru>
+ * Developed by: Alexander Djourik <ald@true-audio.com>
+ *               Pavel Zhilin <pzh@true-audio.com>
  *
  * Copyright (c) 2004 True Audio Software. All rights reserved.
  *

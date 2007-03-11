@@ -9,8 +9,9 @@ DEBUG =		-Wall -O2
 CFLAGS =	
 CPPFLAGS =	-I$(PREFIX)/include/alsaplayer 
 
-LINKER_FLAGS   = -lalsaplayer
+LINKER_FLAGS   = 
 LINKER_OBJECTS = tta_engine.o \
+		 id3.o \
 		 ttadec.o
 
 all: $(LINKER_OBJECTS)

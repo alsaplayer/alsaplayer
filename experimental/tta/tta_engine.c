@@ -48,7 +48,7 @@ typedef struct {
 
 #include "ttalib.h"
 
-#define BLOCK_SIZE (4608 * 2 * 2)	/* We can use any block size we like */
+#define BLOCK_SIZE 4608 /* We can use any block size we like */
 static char static_buffer[BLOCK_SIZE];
 
 static int tta_init(void) 
@@ -64,15 +64,22 @@ static void tta_shutdown(void)
 static float tta_can_handle(const char *path)
 {
 	tta_info temp;
+	char *ext;	
+	ext = strrchr(path, '.');
 	
-	if (open_tta_file (path, &temp, 0) == 0) {
-		printf("\nTTA Decoder OK - %s\n", get_error_str(temp.STATE));
-		close_tta_file (&temp);
-		return 1.0;
+	if (!ext)
+		return 0.0;
+	ext++;
+	if (!strcasecmp(ext, "tta")){
+		if (open_tta_file (path, &temp, 0) == 0) {
+			printf("TTA Decoder OK\n");
+			close_tta_file (&temp);
+			return 1.0;
+		}
+		printf("TTA Decoder Error\n");
+		close_tta_file (&temp);	
 	}
 	
-	printf("\nTTA Decoder Error - %s\n", get_error_str(temp.STATE));
-	close_tta_file (&temp);	
 	return 0.0;
 }
 
@@ -97,18 +104,18 @@ static int tta_open(input_object *obj, const char *path)
 	obj->local_data = malloc (sizeof (tta_info));
 
 	if (open_tta_file (path, obj->local_data, 0) < 0) {
-		printf("\nTTA Decoder Error - %s\n", get_error_str(((tta_info*)obj->local_data)->STATE));
+		printf("TTA Decoder Error\n");
 		close_tta_file (obj->local_data);
 		return 0;
 	}
 
 	/*************************/
-	/* printf ("\n\n debug: \n >> NCH: %d\n >> BPS: %d\n >> SAMPLERATE: %d\n >> FRAMELEN: %d\n\n", info.NCH, info.BPS, info.SAMPLERATE, info.FRAMELEN);*/
+printf ("\n\n debug: \n >> NCH: %d\n >> BPS: %d\n >> SAMPLERATE: %d\n >> FRAMELEN: %d\n\n", ((tta_info*)obj->local_data)->NCH, ((tta_info*)obj->local_data)->BPS, ((tta_info*)obj->local_data)->SAMPLERATE, ((tta_info*)obj->local_data)->FRAMELEN);
 	/*************************/
 	obj->nr_channels = ((tta_info*)obj->local_data)->NCH;
 	obj->nr_tracks = 1;
 	
-	obj->frame_size = (BLOCK_SIZE>>1);
+	obj->frame_size = BLOCK_SIZE;
 
 	player_init(obj->local_data);
 

@@ -9,12 +9,9 @@ This library provides to decode a multichannel 8,16 and 24
 bits TTA audio files. TTA is a lossless audio format. Being
 "lossless" means that no data/quality is lost in the compression
 - when uncompressed, the data will be identical to the original.
-
-At now, mostly all of the popular lossless compressors gives
-a same compression results (difference about 1-3%). TTA is a
-hardware-oriented format. It means that the TTA format has a
-reasonable compression level, but WAS NOT developed to show
-a top results in comparisons.
+The compression ratios of TTA depend on the type of music file
+being compressed, but the compression size will generally range
+between 30% - 70% of the original.
 
 TTA format supports both of ID3v1/v2 tags. Detailed format
 description is available at http://www.true-audio.com.
@@ -39,8 +36,8 @@ realized also.
 
 * Developers
 
-  Alexander Djourik <sasha@iszf.irk.ru>
-  Pavel Zhilin <pzh@iszf.irk.ru> 
+  Alexander Djourik <ald@true-audio.com>
+  Pavel Zhilin <pzh@true-audio.com>
 
 * Copying
 
@@ -71,5 +68,5 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 * See also
 
-Please visit the TTA homepage at http://www.true-audio.com for the
+Please visit the TTA homepage at http://tta.sourceforge.net for the
 latest in news and downloads.
