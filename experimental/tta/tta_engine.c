@@ -49,10 +49,15 @@ typedef struct {
 #include "ttalib.h"
 
 #define BLOCK_SIZE 4608 /* We can use any block size we like */
-static char static_buffer[BLOCK_SIZE];
+static char* pcm_buffer;;
+int pcm_size_total;
+int pcm_size_played;
 
 static int tta_init(void) 
 {
+	pcm_size_played = 0;
+	pcm_size_total = 0;
+	pcm_buffer = NULL;
 	return 1;
 }
 
@@ -116,6 +121,8 @@ printf ("\n\n debug: \n >> NCH: %d\n >> BPS: %d\n >> SAMPLERATE: %d\n >> FRAMELE
 	obj->nr_tracks = 1;
 	
 	obj->frame_size = BLOCK_SIZE;
+	
+	pcm_buffer = malloc (sizeof (unsigned char) * BLOCK_SIZE * ((tta_info*)obj->local_data)->NCH * ((tta_info*)obj->local_data)->BPS>>3);
 
 	player_init(obj->local_data);
 
@@ -130,6 +137,9 @@ static void tta_close(input_object *obj)
 	close_tta_file (obj->local_data);
 	free(obj->local_data);
 	obj->local_data = NULL;
+
+	if (pcm_buffer)
+		free(pcm_buffer);
 }
 
 static long tta_frame_to_sec (input_object *obj, int frame)
@@ -177,12 +187,7 @@ static int tta_nr_frames(input_object *obj)
 	if (!obj || !(obj->local_data))
 		return 0;
 
-	/*
-	printf ("[debug] ret: %d, datalen: %d\n", 
-			(int) (info.DATALENGTH / (BLOCK_SIZE>>1) * info.NCH * (info.BPS>>3) + 0.5),
-			info.DATALENGTH);
-	*/
-	return (int) (((tta_info*)obj->local_data)->DATALENGTH / (BLOCK_SIZE>>1) * ((tta_info*)obj->local_data)->NCH * (((tta_info*)obj->local_data)->BPS>>3) + 0.5);
+	return (int) ((tta_info*)obj->local_data)->DATALENGTH * ((tta_info*)obj->local_data)->NCH * ((tta_info*)obj->local_data)->BPS>>3 / obj->frame_size;
 }
 
 static int tta_frame_size(input_object *obj)
@@ -190,7 +195,7 @@ static int tta_frame_size(input_object *obj)
 	if (!obj || !(obj->local_data))
 		return 0;
 
-	return (BLOCK_SIZE>>1);
+	return obj->frame_size;
 }
 
 static int tta_frame_seek(input_object *obj, int frame)
@@ -198,18 +203,36 @@ static int tta_frame_seek(input_object *obj, int frame)
 	if (!obj || !(obj->local_data))
 		return 0;
 
-	set_position ((1000 * frame * (BLOCK_SIZE>>1)) / (((tta_info*)obj->local_data)->SAMPLERATE * ((tta_info*)obj->local_data)->NCH * (((tta_info*)obj->local_data)->BPS>>3) * SEEK_STEP));
+	printf ("tta: set_pos [%d]\n", frame);
+
+	set_position ((1000 * frame * BLOCK_SIZE) / ((tta_info*)obj->local_data)->SAMPLERATE * ((tta_info*)obj->local_data)->NCH * (((tta_info*)obj->local_data)->BPS>>3));
 	return 1;
 }
 
 static int tta_play_frame (input_object *obj, char *buf)
 {
+
 	if (!obj || !(obj->local_data))
 		return 0;
 
-	memset (buf, 0, sizeof (char) * BLOCK_SIZE>>1);
+	if (pcm_size_played == 0){
+		memset (buf, 0, sizeof (unsigned char) * BLOCK_SIZE * ((tta_info*)obj->local_data)->NCH * ((tta_info*)obj->local_data)->BPS>>3);
+		pcm_size_total = get_samples (pcm_buffer) * ((tta_info*)obj->local_data)->NCH * ((tta_info*)obj->local_data)->BPS>>3;
+		printf ("tta: play frame 1st time - ret [%u] bytes\n", pcm_size_total);
+	}
+
+
+	memset (buf, 0, sizeof (char) * BLOCK_SIZE);
+	memcpy (buf, pcm_buffer + pcm_size_played, BLOCK_SIZE);
 	
-	get_samples ((unsigned char*)buf);
+	pcm_size_played += BLOCK_SIZE;
+	pcm_size_total -= BLOCK_SIZE;
+
+
+	printf ("tta: play frame played[%d], total[%d]\n", pcm_size_played, pcm_size_total);
+
+	if (pcm_size_total <= 0)
+		pcm_size_played = 0;
 	
 	return 1;
 }
@@ -234,7 +257,7 @@ input_plugin *input_plugin_info (void)
 	tta_plugin.close 	= tta_close;
 	tta_plugin.play_frame 	= tta_play_frame;  /* TODO */
 	tta_plugin.frame_seek 	= tta_frame_seek; /* TODO */
-	tta_plugin.frame_size 	= tta_frame_size; /* TODO */
+	tta_plugin.frame_size 	= tta_frame_size;
 	tta_plugin.nr_frames 	= tta_nr_frames;  /* TODO */
 	tta_plugin.frame_to_sec = tta_frame_to_sec; /* TODO */
 	tta_plugin.sample_rate 	= tta_sample_rate; /* TODO */
