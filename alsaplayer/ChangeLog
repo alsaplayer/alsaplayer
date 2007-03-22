@@ -1,6 +1,12 @@
 * Modify threading to use conditional waits. More portable
 * GTK2 test interface. Far from functional
 
+Thu Mar 22 2007
+---------------
+* Fixed frame size with small wav files in app/CorePlayer.cpp.
+  Thanks to Silvan Calarco for providing the fix.
+
+
 Wed Mar 02 2007
 ---------------
 * Added a note about the correct use of the daemon interface in the man page.

@@ -1152,7 +1152,7 @@ int CorePlayer::pcm_worker(sample_buf *dest, int start)
 #ifdef DEBUG
 			alsaplayer_error("frames read = %d", frames_read);
 #endif
-			return frames_read;
+                        count = 0;
 		} else {
 			bytes_written += plugin->frame_size(the_object); // OPTIMIZE!
 			frames_read++;
