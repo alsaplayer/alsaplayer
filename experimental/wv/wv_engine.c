@@ -92,8 +92,8 @@ static int wv_open(input_object *obj, const char *path)
 	obj->nr_channels = WavpackGetReducedChannels (obj->local_data);
 	obj->nr_tracks   = 1;
 	obj->frame_size = BLOCK_SIZE;
-//	obj->path = (char*)malloc (strlen(path));
-//	strcpy (obj->path, path);
+	obj->path = (char*)malloc (strlen(path));
+	strcpy (obj->path, path);
 
 	return 1;
 }
@@ -106,10 +106,10 @@ static void wv_close(input_object *obj)
 	WavpackCloseFile (obj->local_data);
 	obj->local_data = NULL;
 	
-//	if(obj->path){
-//		free(obj->path);
-//		obj->path = NULL;
-//	}
+	if(obj->path){
+		free(obj->path);
+		obj->path = NULL;
+	}
 }
 
 static long wv_frame_to_sec (input_object *obj, int frame)
@@ -144,7 +144,7 @@ static int wv_stream_info (input_object *obj, stream_info *info)
 	sprintf(info->stream_type, "WavPack version %u", WavpackGetVersion(obj->local_data));
 	
 	strcpy(info->status, "playing...");
-//	strcpy(info->path, obj->path);
+	strcpy(info->path, obj->path);
 
 	WavpackGetTagItem(obj->local_data,"Artist", info->artist, 128);
 	WavpackGetTagItem(obj->local_data,"Title", info->title, 128);

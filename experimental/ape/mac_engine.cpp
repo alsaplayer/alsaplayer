@@ -29,7 +29,10 @@
 
 #include <mac/All.h>
 #include <mac/MACLib.h>
+//#include <mac/APETag.h>
 #include <mac/CharacterHelper.h>
+
+//#include <taglib/tag_c.h>
 
 #define BLOCK_SIZE 4096	/* We can use any block size we like */
 
@@ -85,8 +88,9 @@ static int ape_open(input_object *obj, const char *path)
 	
 	obj->nr_channels = ((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_CHANNELS);
 	obj->nr_tracks   = 1;
-	
 	obj->frame_size = BLOCK_SIZE;
+	obj->path = (char*)malloc (strlen(path));
+	strcpy (obj->path, path);
 
 	return 1;
 }
@@ -98,6 +102,11 @@ static void ape_close(input_object *obj)
 	
 	free (obj->local_data);
 	obj->local_data = NULL;
+	
+	if(obj->path){
+		free(obj->path);
+		obj->path = NULL;
+	}
 }
 
 static long ape_frame_to_sec (input_object *obj, int frame)
@@ -129,21 +138,31 @@ static int ape_channels(input_object *obj)
 
 static int ape_stream_info (input_object *obj, stream_info *info)
 {
-	double			sampleRate;
-	char			*fileType;
-
 	if (!obj || !(obj->local_data) || !info)
 		return 0;
 
-	sprintf(info->stream_type, "%d channels, %dHz %s, version %.2f",
-		obj->nr_channels,
-		((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_SAMPLE_RATE),
-		"stereo", /* TODO */
-		float (((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_FILE_VERSION)) / 1000);
+//	CAPETag *tag = (CAPETag *)((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_TAG);
+//	TagLib_File* tag_file = taglib_file_new(const char *filename);
+
+	sprintf(info->stream_type, "APE version %.2f", float (((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_FILE_VERSION)) / 1000);
 	
-	strcpy(info->status, "");
-	strcpy(info->artist, "");
-	strcpy(info->title, "");
+	strcpy(info->status, "playing...");
+	strcpy(info->artist, "Artist");
+	strcpy(info->title, "Title");
+	strcpy(info->album, "Album");
+	strcpy(info->genre, "Genre");
+	strcpy(info->year, "Year");
+	strcpy(info->track, "Tracknum");
+	strcpy(info->comment, "Comment");
+	strcpy(info->path, obj->path);
+
+	info->channels = obj->nr_channels;
+	info->tracks = 1; // number of tracks
+	info->current_track = 1; // number of current track
+	info->sample_rate = ((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_SAMPLE_RATE);
+	info->bitrate = ((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_AVERAGE_BITRATE);
+
+//	printf ("ape: artist[%s], title[%s], path[%s]\n", info->artist, info->title, info->path);
 
 	return 1;
 }
@@ -207,7 +226,7 @@ input_plugin *input_plugin_info (void)
 	memset(&ape_plugin, 0, sizeof(input_plugin));
 
 	ape_plugin.version 	= INPUT_PLUGIN_VERSION;
-	ape_plugin.name 	= "Monkey's Audio plugin ver. 0.0.0.6";
+	ape_plugin.name 	= "Monkey's Audio plugin ver. 0.0.0.7";
 	ape_plugin.author 	= "Peter Lemenkov";
 	ape_plugin.init 	= ape_init; 
 	ape_plugin.shutdown 	= ape_shutdown;

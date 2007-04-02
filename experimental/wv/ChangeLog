@@ -1,3 +1,6 @@
+* Tue Apr  3 2007 Peter Lemenkov <lemenkov@gmail.com>
+- use of input_object->path 
+
 * Mon Apr  2 2007 Peter Lemenkov <lemenkov@gmail.com>
 - Ver. 0.0.0.3
 - Added initial support for tags

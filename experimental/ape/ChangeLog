@@ -1,3 +1,7 @@
+* Tue Apr  3 2007 Peter Lemenkov <lemenkov@gmail.com>
+- Preparation for using of tags
+- Use of input_object->path
+
 * Tue Feb 27 2007 Peter Lemenkov <lemenkov@gmail.com>
 - Removed unused variables
 - Small cleanups
