@@ -92,18 +92,24 @@ static int wv_open(input_object *obj, const char *path)
 	obj->nr_channels = WavpackGetReducedChannels (obj->local_data);
 	obj->nr_tracks   = 1;
 	obj->frame_size = BLOCK_SIZE;
+//	obj->path = (char*)malloc (strlen(path));
+//	strcpy (obj->path, path);
 
 	return 1;
 }
 
 static void wv_close(input_object *obj)
 {
-	if (!obj)
+	if (!obj || !(obj->local_data))
 		return;
-	if (obj->local_data){
-		WavpackCloseFile (obj->local_data);
-		obj->local_data = NULL;
-	}
+	
+	WavpackCloseFile (obj->local_data);
+	obj->local_data = NULL;
+	
+//	if(obj->path){
+//		free(obj->path);
+//		obj->path = NULL;
+//	}
 }
 
 static long wv_frame_to_sec (input_object *obj, int frame)
@@ -135,14 +141,24 @@ static int wv_stream_info (input_object *obj, stream_info *info)
 	if (!info || !obj || !(obj->local_data))
 		return 0;
 
-	sprintf(info->stream_type, "%d channels, %dHz, version %u",
-		WavpackGetNumChannels (obj->local_data),
-		WavpackGetSampleRate (obj->local_data),
-		WavpackGetVersion(obj->local_data));
+	sprintf(info->stream_type, "WavPack version %u", WavpackGetVersion(obj->local_data));
 	
-	strcpy(info->status, "");
-	strcpy(info->artist, "");
-	strcpy(info->title, "");
+	strcpy(info->status, "playing...");
+//	strcpy(info->path, obj->path);
+
+	WavpackGetTagItem(obj->local_data,"Artist", info->artist, 128);
+	WavpackGetTagItem(obj->local_data,"Title", info->title, 128);
+	WavpackGetTagItem(obj->local_data,"Album", info->album, 128);
+	WavpackGetTagItem(obj->local_data,"Comment", info->comment, 128);
+	WavpackGetTagItem(obj->local_data,"Genre", info->genre, 128);
+	WavpackGetTagItem(obj->local_data,"Track", info->track, 10);
+	WavpackGetTagItem(obj->local_data,"Year", info->year, 10);
+
+	info->channels = obj->nr_channels;
+	info->tracks = 1; // number of tracks
+	info->current_track = 1; // number of current track
+	info->sample_rate = WavpackGetSampleRate (obj->local_data);
+	info->bitrate = (int)WavpackGetAverageBitrate (obj->local_data, obj->nr_channels);
 
 	return 1;
 }
@@ -222,7 +238,7 @@ input_plugin *input_plugin_info (void)
 	memset(&wv_plugin, 0, sizeof(input_plugin));
 
 	wv_plugin.version 	= INPUT_PLUGIN_VERSION;
-	wv_plugin.name 		= "WavPack plugin ver. 0.0.0.2";
+	wv_plugin.name 		= "WavPack plugin ver. 0.0.0.3";
 	wv_plugin.author 	= "Peter Lemenkov";
 	wv_plugin.init 		= wv_init;  // DONE
 	wv_plugin.shutdown 	= wv_shutdown; //DONE
@@ -236,7 +252,7 @@ input_plugin *input_plugin_info (void)
 	wv_plugin.frame_to_sec  = wv_frame_to_sec; // DONE
 	wv_plugin.sample_rate 	= wv_sample_rate; // DONE
 	wv_plugin.channels 	= wv_channels;  // DONE
-	wv_plugin.stream_info 	= wv_stream_info; /* TODO */ 
+	wv_plugin.stream_info 	= wv_stream_info; // TODO
 
 	return &wv_plugin;
 }
