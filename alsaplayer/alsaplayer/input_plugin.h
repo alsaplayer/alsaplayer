@@ -114,6 +114,10 @@ typedef struct _input_object
 	 * allocated data structure to this pointer
 	 */
 	void *local_data;
+	/** Path of the currently played file
+	 * 
+	 */
+	char* path;
 	/**
 	 * The object mutex. Used to lock and unlock the data structures.
 	 * Initialized and called from the HOST.
