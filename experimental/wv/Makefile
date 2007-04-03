@@ -1,4 +1,4 @@
-PREFIX = /usr
+PREFIX? = /usr
 
 # choose suitable compiler
 COMPILATOR = gcc
