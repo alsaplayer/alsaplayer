@@ -1,4 +1,4 @@
-PREFIX = /usr/local
+PREFIX? = /usr/local
 
 # choose suitable compiler
 CC = gcc
