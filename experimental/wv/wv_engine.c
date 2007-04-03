@@ -202,7 +202,7 @@ static int wv_play_frame (input_object *obj, char *buf)
 	
 	if (WavpackGetBytesPerSample (obj->local_data) == 2){
 		for (i = 0; i < obj->frame_size / WavpackGetBytesPerSample (obj->local_data); i++){
-#ifdef __powerpc__
+#ifdef __BIG_ENDIAN__
 			/*
 	tile.tileIndex   = __le16_to_cpu(tile.tileIndex);
 	tile.indexAddon  = __le16_to_cpu(tile.indexAddon);
