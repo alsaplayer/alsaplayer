@@ -206,7 +206,7 @@ static int ape_play_frame (input_object *obj, char *buf)
 		return 0;
 
 	((IAPEDecompress*) obj->local_data)->GetData (buf, 1024, &nRead);
-#ifdef __BIG_ENDIAN
+#ifdef __powerpc__
 	swab(buf, buf, (nRead * 4));
 #endif
 	if (nRead != 0)
