@@ -4,7 +4,7 @@
 
 CC	= gcc
 
-PREFIX = /usr
+PREFIX? = /usr
 DEBUG =		-Wall -O2
 CFLAGS =	
 CPPFLAGS =	-I$(PREFIX)/include/alsaplayer 
@@ -19,5 +19,9 @@ all: $(LINKER_OBJECTS)
 
 .c.o:
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
+
+install:
+	cp tta_engine.so $(PREFIX)/lib/alsaplayer/input/
+
 clean:
 	rm -f *.o *.lo *~ *.so

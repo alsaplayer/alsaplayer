@@ -1,3 +1,6 @@
+* Tue Apr 3 2007 Dominique Michel <dominique_libre@sourceforge.net>
+- Added conditional PREFIX and install target in Makefile
+
 * Fri Mar  2 2007 Peter Lemenkov <lemenkov@gmail.com>
 - Starting ChangeLog
 - Plugin still doesn't works
