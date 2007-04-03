@@ -18,5 +18,8 @@ all: $(LINKER_OBJECTS)
 .cpp.o:
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
 
+install:
+	cp wv_engine.so $(PREFIX)/lib/alsaplayer/input/
+
 clean:
 	rm -f *.so *.o *~

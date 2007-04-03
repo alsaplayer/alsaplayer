@@ -1,5 +1,6 @@
 * Tue Apr 3 2007 Dominique Michel <dominique_libre@sourceforge.net>
 - Conditional PREFIX in Makefile; use "PREFIX=</your_prefix> make"
+- Added target install in Makefile
 
 * Tue Apr  3 2007 Peter Lemenkov <lemenkov@gmail.com>
 - use of input_object->path 
