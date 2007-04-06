@@ -24,6 +24,12 @@
 
 #include "alsaplayer_error.h"
 
+#if !defined(FLAC_API_VERSION_CURRENT) || FLAC_API_VERSION_CURRENT < 8
+#define LEGACY_FLAC
+#else
+#undef LEGACY_FLAC
+#endif
+
 namespace Flac
 {
 
@@ -39,8 +45,13 @@ FlacSeekableStream::~FlacSeekableStream ()
 {
     if (_decoder)
     {
+#ifdef LEGACY_FLAC
 	FLAC__seekable_stream_decoder_finish (_decoder);
 	FLAC__seekable_stream_decoder_delete (_decoder);
+#else
+	FLAC__stream_decoder_finish (_decoder);
+	FLAC__stream_decoder_delete (_decoder);
+#endif
 	_decoder = 0;
     }
 
@@ -56,11 +67,20 @@ FlacSeekableStream::open ()
 	return false;
     }
 
+#ifdef LEGACY_FLAC
     _decoder = FLAC__seekable_stream_decoder_new ();
+#else
+    _decoder = FLAC__stream_decoder_new ();
+#endif
     if (!_decoder) {
+#ifdef LEGACY_FLAC
 	apError ("FlacSeekableStream::open(): error creating FLAC__seekable_stream_decoder");
+#else
+	apError ("FlacSeekableStream::open(): error creating FLAC__stream_decoder");
+#endif
 	return false;
     }
+#ifdef LEGACY_FLAC
     bool status = true;
     status &= FLAC__seekable_stream_decoder_set_read_callback (_decoder,
 							       readCallBack);
@@ -87,12 +107,29 @@ FlacSeekableStream::open ()
     status = (FLAC__seekable_stream_decoder_init (_decoder) == FLAC__SEEKABLE_STREAM_DECODER_OK);
     
     if (!status) {
+#else
+    if (FLAC__stream_decoder_init_stream(_decoder,
+					 readCallBack,
+					 seekCallBack,
+					 tellCallBack,
+					 lengthCallBack,
+					 eofCallBack,
+					 writeCallBack,
+					 metaCallBack,
+					 errCallBack,
+					 (void *) this)
+	!= FLAC__STREAM_DECODER_INIT_STATUS_OK) {
+#endif
 	apError ("FlacSeekableStream::open(): can't initialize seekable stream decoder");    
 	return false;
     }
 
     // this will invoke the metaCallBack
+#ifdef LEGACY_FLAC
     if (!FLAC__seekable_stream_decoder_process_until_end_of_metadata (_decoder)) {
+#else
+    if (!FLAC__stream_decoder_process_until_end_of_metadata (_decoder)) {
+#endif
 	apError ("FlacSeekableStream::open(): decoder error");    
 	return false;
     }
@@ -117,7 +154,11 @@ FlacSeekableStream::processOneFrame ()
     if (!_decoder)
 	return false;
 
+#ifdef LEGACY_FLAC
     return FLAC__seekable_stream_decoder_process_single (_decoder);
+#else
+    return FLAC__stream_decoder_process_single (_decoder);
+#endif
 
 } // FlacSeekableStream::processOneFrame
 
@@ -128,14 +169,22 @@ FlacSeekableStream::seekAbsolute (FLAC__uint64 sample)
     if (!_decoder)
 	return false;
 
+#ifdef LEGACY_FLAC
     return FLAC__seekable_stream_decoder_seek_absolute (_decoder, sample);
+#else
+    return FLAC__stream_decoder_seek_absolute (_decoder, sample);
+#endif
 
 } // FlacSeekableStream::seekAbsolute
 
 
 // static
 void
+#ifdef LEGACY_FLAC
 FlacSeekableStream::metaCallBack (const FLAC__SeekableStreamDecoder * decoder,
+#else
+FlacSeekableStream::metaCallBack (const FLAC__StreamDecoder * decoder,
+#endif
 				  const FLAC__StreamMetadata * md,
 				  void * client_data)
 {
@@ -154,7 +203,11 @@ FlacSeekableStream::metaCallBack (const FLAC__SeekableStreamDecoder * decoder,
 
 // static
 void
+#ifdef LEGACY_FLAC
 FlacSeekableStream::errCallBack (const FLAC__SeekableStreamDecoder * decoder,
+#else
+FlacSeekableStream::errCallBack (const FLAC__StreamDecoder * decoder,
+#endif
 				 FLAC__StreamDecoderErrorStatus status,
 				 void * client_data)
 {
@@ -172,7 +225,11 @@ FlacSeekableStream::errCallBack (const FLAC__SeekableStreamDecoder * decoder,
 
 // static
 FLAC__StreamDecoderWriteStatus
+#ifdef LEGACY_FLAC
 FlacSeekableStream::writeCallBack (const FLAC__SeekableStreamDecoder * /*decoder*/,
+#else
+FlacSeekableStream::writeCallBack (const FLAC__StreamDecoder * /*decoder*/,
+#endif
 				   const FLAC__Frame * frame,
 				   const FLAC__int32 * const buffer[],
 				   void * client_data)
@@ -190,91 +247,177 @@ FlacSeekableStream::writeCallBack (const FLAC__SeekableStreamDecoder * /*decoder
 
 
 // static
+#ifdef LEGACY_FLAC
 FLAC__SeekableStreamDecoderReadStatus
 FlacSeekableStream::readCallBack (const FLAC__SeekableStreamDecoder * /*decoder*/,
+#else
+FLAC__StreamDecoderReadStatus
+FlacSeekableStream::readCallBack (const FLAC__StreamDecoder * /*decoder*/,
+#endif
 				  FLAC__byte buffer[],
 				  unsigned * bytes,
 				  void * client_data)
 {
     if (!client_data)
+#ifdef LEGACY_FLAC
 	return FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_ERROR;
+#else
+	return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+#endif
     FlacSeekableStream * f = (FlacSeekableStream *) client_data;
     if (!f)
+#ifdef LEGACY_FLAC
 	return FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_ERROR;
+#else
+	return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+#endif
 
     *bytes = reader_read (buffer, *bytes, f->_datasource);
+#ifdef LEGACY_FLAC
     return *bytes > 0 ? FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK :
+#else
+    return *bytes > 0 ? FLAC__STREAM_DECODER_READ_STATUS_CONTINUE :
+#endif
 	reader_eof (f->_datasource) ? 
+#ifdef LEGACY_FLAC
 	FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK : 
 	FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_ERROR;
+#else
+	FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM : 
+	FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+#endif
 
 } // FlacSeekableStream::readCallBack
 
 
 // static
+#ifdef LEGACY_FLAC
 FLAC__SeekableStreamDecoderSeekStatus 
 FlacSeekableStream::seekCallBack (const FLAC__SeekableStreamDecoder * /*decoder*/,
+#else
+FLAC__StreamDecoderSeekStatus 
+FlacSeekableStream::seekCallBack (const FLAC__StreamDecoder * /*decoder*/,
+#endif
 				  FLAC__uint64 offset,
 				  void * client_data)
 {
     if (!client_data)
+#ifdef LEGACY_FLAC
 	return FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR;
+#else
+	return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
+#endif
     FlacSeekableStream * f = (FlacSeekableStream *) client_data;
     if (!f)
+#ifdef LEGACY_FLAC
 	return FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR;
+#else
+	return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
+#endif
     
     return reader_seek (f->_datasource, offset, SEEK_SET) == 0 ?
+#ifdef LEGACY_FLAC
 	FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_OK :
 	FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR;
+#else
+	FLAC__STREAM_DECODER_SEEK_STATUS_OK :
+	FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
+#endif
 
 } // FlacSeekableStream::seekCallBack
 
 
 // static
+#ifdef LEGACY_FLAC
 FLAC__SeekableStreamDecoderTellStatus 
 FlacSeekableStream::tellCallBack (const FLAC__SeekableStreamDecoder * /*decoder*/,
+#else
+FLAC__StreamDecoderTellStatus 
+FlacSeekableStream::tellCallBack (const FLAC__StreamDecoder * /*decoder*/,
+#endif
 				  FLAC__uint64 * offset,
 				  void * client_data)
 {
     if (!client_data)
+#ifdef LEGACY_FLAC
 	return FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_ERROR;
+#else
+	return FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
+#endif
     FlacSeekableStream * f = (FlacSeekableStream *) client_data;
     if (!f)
+#ifdef LEGACY_FLAC
 	return FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_ERROR;
+#else
+	return FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
+#endif
 
     long result = reader_tell (f->_datasource);
     if (result == -1)
+#ifdef LEGACY_FLAC
 	return FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_ERROR;
+#else
+	return FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
+#endif
     *offset = result;
+#ifdef LEGACY_FLAC
     return FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_OK;
+#else
+    return FLAC__STREAM_DECODER_TELL_STATUS_OK;
+#endif
     
 } // FlacSeekableStream::tellCallBack
 
 
 // static
+#ifdef LEGACY_FLAC
 FLAC__SeekableStreamDecoderLengthStatus
 FlacSeekableStream::lengthCallBack (const FLAC__SeekableStreamDecoder * /*decoder*/,
+#else
+FLAC__StreamDecoderLengthStatus
+FlacSeekableStream::lengthCallBack (const FLAC__StreamDecoder * /*decoder*/,
+#endif
 				    FLAC__uint64 * len,
 				    void * client_data)
 {
     if (!client_data)
+#ifdef LEGACY_FLAC
 	return FLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_ERROR;
+#else
+	return FLAC__STREAM_DECODER_LENGTH_STATUS_ERROR;
+#endif
     FlacSeekableStream * f = (FlacSeekableStream *) client_data;
     if (!f)
+#ifdef LEGACY_FLAC
 	return FLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_ERROR;
+#else
+	return FLAC__STREAM_DECODER_LENGTH_STATUS_ERROR;
+#endif
 
     long result = reader_length (f->_datasource);
     if (result == -1)
+#ifdef LEGACY_FLAC
 	return FLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_ERROR;
+#else
+	return FLAC__STREAM_DECODER_LENGTH_STATUS_ERROR;
+#endif
     *len = result;
+#ifdef LEGACY_FLAC
     return FLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_OK;
+#else
+    return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
+#endif
 
 } // FlacSeekableStream::lengthCallBack
 
 
 // static
 FLAC__bool
+#ifdef LEGACY_FLAC
 FlacSeekableStream::eofCallBack (const FLAC__SeekableStreamDecoder * /*decoder*/,
+#else
+FlacSeekableStream::eofCallBack (const FLAC__StreamDecoder * /*decoder*/,
+#endif
 				 void * client_data)
 {
     if (!client_data)

@@ -27,6 +27,12 @@
 #include <stdarg.h>
 #include "alsaplayer_error.h"
 
+#if !defined(FLAC_API_VERSION_CURRENT) || FLAC_API_VERSION_CURRENT < 8
+#define LEGACY_FLAC
+#else
+#undef LEGACY_FLAC
+#endif
+
 namespace Flac
 {
 
@@ -115,6 +121,7 @@ FlacStream::open ()
 	apError("FlacStream::open(): error creating FLAC__stream_decoder");
 	return false;
     }
+#ifdef LEGACY_FLAC
     bool status = true;
     status &= FLAC__stream_decoder_set_read_callback (_decoder,
 						      readCallBack);
@@ -133,7 +140,21 @@ FlacStream::open ()
     status = (FLAC__stream_decoder_init (_decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_METADATA);
     
     if (!status) {
-	apError("FlacStream::open(): can't initialize stream decoder");    
+	apError("FlacStream::open(): can't initialize stream decoder");
+#else
+    if (FLAC__stream_decoder_init_stream(_decoder,
+					 readCallBack,
+					 NULL,  /* seek */
+					 NULL,  /* tell */
+					 NULL,  /* length */
+					 NULL,  /* eof */
+					 writeCallBack,
+					 metaCallBack,
+					 errCallBack,
+					 (void *) this)
+	!= FLAC__STREAM_DECODER_INIT_STATUS_OK) {
+	apError("FlacStream::open(): can't initialize stream decoder");
+#endif
 	return false;
     }
 

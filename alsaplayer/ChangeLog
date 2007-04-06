@@ -1,6 +1,14 @@
 * Modify threading to use conditional waits. More portable
 * GTK2 test interface. Far from functional
 
+Wed Apr 6 2007
+--------------
+* Added support for flac-1.3 and flac-1.4 in flac input plugin.
+  Thanks to Jens Maurer for providing the patch.
+  Modified the patch so at alsaplayer still will work well with older
+  flac versions.
+
+
 Thu Mar 22 2007
 ---------------
 * Fixed frame size with small wav files in app/CorePlayer.cpp.
