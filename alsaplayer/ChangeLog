@@ -4,7 +4,9 @@
 Tue Apr 24 2007
 ---------------
 * Added Player fredesktop sub-category in alsaplayer.desktop.
-
+* Fixed the make system so at it will install alsaplayer.desktop.
+* Fixed a bug in the make system (docs/Makefile.am was looking
+  for a wrong file with the uninstall process).
 
 Wed Apr 6 2007
 --------------

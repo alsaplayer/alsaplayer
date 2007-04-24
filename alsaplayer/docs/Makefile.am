@@ -36,7 +36,7 @@ uninstall-local: doxygen-build.stamp
 	if test "$$installfiles" = 'reference/html/*.html'; \
 	then echo '-- Nothing to uninstall' ; \
 	else \
-	  for i in $$installfiles reference/html/doxygen.gif reference/html/doxygen.css; do \
+	  for i in $$installfiles reference/html/doxygen.png reference/html/doxygen.css; do \
 	    echo '-- Unstalling '$$i ; \
 	    rm $(DOC_DIR)/$$i; \
 	  done; \
