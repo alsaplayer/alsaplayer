@@ -8,4 +8,5 @@ Exec=alsaplayer
 TryExec=alsaplayer
 Path=
 Icon=AudioVideo;Audio;Player
-Categories=Application;AudioVideo;Audio;
+Categories=Application;AudioVideo;Audio;Player;
+

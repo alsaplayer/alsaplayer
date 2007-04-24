@@ -1,6 +1,11 @@
 * Modify threading to use conditional waits. More portable
 * GTK2 test interface. Far from functional
 
+Tue Apr 24 2007
+---------------
+* Added Player fredesktop sub-category in alsaplayer.desktop.
+
+
 Wed Apr 6 2007
 --------------
 * Added support for flac-1.3 and flac-1.4 in flac input plugin.
