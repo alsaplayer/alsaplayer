@@ -629,6 +629,14 @@ gboolean key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer data)
 			adj = GTK_RANGE(ustr->speed_scale)->adjustment;
 			gtk_adjustment_set_value(adj, EQ_TEMP_STEP(adj->value, -1));
 			break;
+		case SPEED_COMMA_UP_KEY:
+			adj = GTK_RANGE(ustr->speed_scale)->adjustment;
+			gtk_adjustment_set_value(adj, EQ_TEMP_STEP(adj->value, 0.234600103846));
+			break;
+		case SPEED_COMMA_DOWN_KEY:
+			adj = GTK_RANGE(ustr->speed_scale)->adjustment;
+			gtk_adjustment_set_value(adj, EQ_TEMP_STEP(adj->value, -0.234600103846));
+			break;
 		case VOL_UP_KEY:
       adj = GTK_RANGE(ustr->vol_scale)->adjustment;
       gtk_adjustment_set_value(adj, adj->value + 0.5);
