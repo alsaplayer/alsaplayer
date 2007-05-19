@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ALSAPLAYER 1 "2 March 2007"
+.TH ALSAPLAYER 1 "19 May 2007"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -153,19 +153,64 @@ Loop the playlist.
 .TP
 .B \-x,\-\-crossfade
 Crossfade playlist entries.
-.SH NOTE
+.SH DAEMON INTERFACE
 With the daemon interface, it is mandatory to add the -s option.
 You must process in two steps to get sound with it. First launch the daemon:
-.B alsaplayer 
-.B -i daemon -s <name>
+.TP
+.B alsaplayer -i daemon -s <name>
+.TP
 and then add some song:
-.B alsaplayer
-.B -e <some.song>
+.TP
+.B alsaplayer -e <some.song>
+.SH GTK INTERFACE
+The gtk interface provide some basic keyboard controls:
+.TP
+.B v
+Stop
+.TP
+.B x
+Play
+.TP
+.B c
+Pause
+.TP
+.B b
+Next Song
+.TP
+.B z
+Previous Song
+.TP
+.B g
+Seek Forward
+.TP
+.B a
+Seek Backward
+.TP
+.B f
+Forward Play
+.TP
+.B s
+Reverse Play
+.TP
+.B t
+Speed Up
+.TP
+.B q
+Speed Down
+.TP
+.B r
+Volume Up
+.TP
+.B w
+Volume Down
+.TP
+.B l
+Loop
 .SH SEE ALSO
 .BR mikmod (1),
 .BR mpg123 (1).
 .SH AUTHOR
 This manual page was written by Ivo Timmermans <ivo@debian.org>,
 for the Debian GNU/Linux system (but may be used by others).
-NOTE section added by Dominique Michel <dominique_libre@sourceforge.net>
-from the Alsaplayer team.
+GTK and DAEMON INTERFACE sections added by Dominique Michel 
+<dominique_libre@sourceforge.net> from the Alsaplayer team.
