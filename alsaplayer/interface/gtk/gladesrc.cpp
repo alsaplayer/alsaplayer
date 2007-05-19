@@ -313,11 +313,12 @@ create_playlist_window (void)
   GtkWidget *load_button;
   GtkWidget *save_button;
   GtkWidget *clear_button;
+  GtkWidget *loop_button;
   GtkWidget *playlist_status;
 
   playlist_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_object_set_data (GTK_OBJECT (playlist_window), "playlist_window", playlist_window);
-  gtk_widget_set_usize (playlist_window, 480, 300);
+  gtk_widget_set_usize (playlist_window, 480, 390);
   gtk_window_set_title (GTK_WINDOW (playlist_window), "Queue");
 
   vbox5 = gtk_vbox_new (FALSE, 0);
@@ -456,6 +457,13 @@ create_playlist_window (void)
   gtk_widget_show (clear_button);
   gtk_box_pack_start (GTK_BOX (vbox24), clear_button, FALSE, FALSE, 0);
   gtk_widget_set_usize (clear_button, 70, -2);
+
+  loop_button = gtk_button_new_with_label ("Loop");
+  gtk_widget_ref (loop_button);
+  gtk_object_set_data_full (GTK_OBJECT (playlist_window), "loop_button", loop_button,
+                            (GtkDestroyNotify) gtk_widget_unref);
+  gtk_widget_show (loop_button);
+  gtk_box_pack_start (GTK_BOX (vbox6), loop_button, FALSE, FALSE, 0);
 
   playlist_status = gtk_vbox_new (FALSE, 0);
   gtk_widget_ref (playlist_status);

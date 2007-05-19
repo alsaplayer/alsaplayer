@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <assert.h>
+#include <math.h>
 //#define NEW_SCALE
 //#define SUBSECOND_DISPLAY 
 #include <assert.h>
@@ -36,6 +37,7 @@
 
 #include "support.h"
 #include "gladesrc.h"
+#include "gtk_interface.h"
 #include "pixmaps/f_play.xpm"
 #include "pixmaps/r_play.xpm"
 #include "pixmaps/pause.xpm"
@@ -73,6 +75,8 @@ Playlist *playlist = NULL;
 #define MIN_BAL_TRESH   BAL_CENTER-10   // Center is a special case
 #define MAX_BAL_TRESH   BAL_CENTER+10   // so we build in some slack
 #define ZERO_PITCH_TRESH 2
+#define EQ_TEMP_STEP(freq, step)        freq * pow(2.0000, (float) step / 12.0)
+#define FPS_HACK	32	// number of audio frames
 
 // Global variables (get rid of these too... ;-) )
 int global_update = 1;
@@ -101,9 +105,23 @@ typedef struct  _update_struct {
 	GtkWidget *bal_scale;
 	GtkWidget *pos_scale;
 	GtkWidget *speed_scale;
+	float speed;
 } update_struct;
 
 static update_struct global_ustr;
+
+#define LOOP_OFF	0
+#define LOOP_START_SET	1
+#define LOOP_ON		2
+
+typedef struct  _loop_struct {
+	int state;
+	gfloat start;
+	gfloat end;
+	unsigned int track; // used to exit loop mode when a new song is played
+} loop_struct;
+
+static loop_struct global_loop;
 
 // Static variables  (to be moved into a class, at some point)
 static GtkWidget *play_dialog;
@@ -128,6 +146,15 @@ void draw_volume(float vol);
 void position_notify(void *data, int pos);
 void notifier_lock();
 void notifier_unlock();
+void play_cb(GtkWidget *widget, gpointer data);
+void pause_cb(GtkWidget *, gpointer data);
+void stop_cb(GtkWidget *, gpointer data);
+void loop_cb(GtkWidget *, gpointer data);
+void exit_cb(GtkWidget *, gpointer data);
+void forward_skip_cb(GtkWidget *, gpointer data);
+void reverse_skip_cb(GtkWidget *, gpointer data);
+void forward_play_cb(GtkWidget *, gpointer data);
+void reverse_play_cb(GtkWidget *, gpointer data);
 
 void speed_changed(void *, float speed)
 {
@@ -519,6 +546,161 @@ void smoother(void *data)
 	pthread_exit(NULL);
 }
 
+pthread_t looper_thread;
+pthread_mutex_t looper_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+void looper(void *data)
+{
+	// GtkAdjustment *adj = (GtkAdjustment *)data;
+	loop_struct *loop = &global_loop;
+	update_struct *ustr = &global_ustr;
+	Playlist *pl = (Playlist *)ustr->data;
+	unsigned int track = pl->GetCurrent();
+	CorePlayer *p = pl->GetCorePlayer();
+
+	if (pthread_mutex_trylock(&looper_mutex) != 0) {
+		pthread_exit(NULL);
+	}
+	
+	nice(5);
+	
+	while (loop->state == LOOP_ON && loop->track == track) {
+		if (loop->track != track) {
+			loop->state = LOOP_OFF;
+		} else if(p->GetPosition() >= loop->end) {
+			p->Seek(lroundf(loop->start));
+			// global_update = 1;	
+		} 
+
+		dosleep(10000);
+	}
+	pthread_mutex_unlock(&looper_mutex);
+	pthread_exit(NULL);
+}
+
+gboolean key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer data)
+{
+	GtkAdjustment *adj;
+	update_struct *ustr = &global_ustr;
+	
+	/* key definitions are from enum gtk_keymap */
+  if (event->state && GDK_CONTROL_MASK) {
+	switch(event->keyval) {
+     case GDK_q:
+      exit_cb(NULL,NULL);
+      break; 
+     default:
+      break;
+  }
+  } else {
+	switch(event->keyval) {
+		case STOP_KEY:
+			stop_cb(NULL, ustr->data);
+			break;
+		case PLAY_KEY:
+			play_cb(NULL, ustr->data);
+			break;
+		case PAUSE_KEY:
+			pause_cb(NULL, ustr->speed_scale);
+			break;
+		case NEXT_KEY:
+			playlist_window_gtk_next(NULL, ustr->data);
+			break;
+		case PREV_KEY:
+			playlist_window_gtk_prev(NULL, ustr->data);
+			break;
+		case FWD_KEY:
+			forward_skip_cb(NULL, ustr->pos_scale);
+			break;
+		case BACK_KEY:
+			reverse_skip_cb(NULL, ustr->pos_scale);
+			break;
+		case FWD_PLAY_KEY:
+			forward_play_cb(NULL, ustr->speed_scale);
+			break;
+		case REV_PLAY_KEY:
+			reverse_play_cb(NULL, ustr->speed_scale);
+			break;
+		case SPEED_UP_KEY:
+			adj = GTK_RANGE(ustr->speed_scale)->adjustment;
+			gtk_adjustment_set_value(adj, EQ_TEMP_STEP(adj->value, 1));
+			break;
+		case SPEED_DOWN_KEY:
+			adj = GTK_RANGE(ustr->speed_scale)->adjustment;
+			gtk_adjustment_set_value(adj, EQ_TEMP_STEP(adj->value, -1));
+			break;
+		case VOL_UP_KEY:
+      adj = GTK_RANGE(ustr->vol_scale)->adjustment;
+      gtk_adjustment_set_value(adj, adj->value + 0.5);
+			break;
+			break;
+		case VOL_DOWN_KEY:
+      adj = GTK_RANGE(ustr->vol_scale)->adjustment;
+      gtk_adjustment_set_value(adj, adj->value - 0.5);
+			break;
+		case LOOP_KEY:
+			loop_cb(NULL, ustr->pos_scale);
+			break;
+		default:
+			//printf("Unknown key pressed: %c\n", event->keyval);
+			break;
+	}
+	}
+	return FALSE;
+}
+
+void loop_cb(GtkWidget *, gpointer data)
+{
+	GtkAdjustment *adj = GTK_RANGE(data)->adjustment;
+	update_struct *ustr = &global_ustr;
+	Playlist *pl = (Playlist *)ustr->data;
+	loop_struct *loop = &global_loop;
+	
+	switch(loop->state) {
+		case LOOP_OFF:
+			loop->track = pl->GetCurrent();
+			loop->start = adj->value;
+			loop->state = LOOP_START_SET;
+			break;
+		case LOOP_START_SET:
+			loop->end = adj->value;
+			loop->state = LOOP_ON;
+			pthread_create(&looper_thread, NULL,
+					(void * (*)(void *))looper, adj);
+			pthread_detach(looper_thread);
+			break;
+		case LOOP_ON:
+			loop->state = LOOP_OFF;
+			break;
+		default:
+			break;
+	}
+
+}
+
+void forward_skip_cb(GtkWidget *, gpointer data)
+{
+	GtkAdjustment *adj;
+	update_struct *ustr = &global_ustr;
+	Playlist *pl = (Playlist *)ustr->data;
+	CorePlayer *p = pl->GetCorePlayer();
+
+	adj = GTK_RANGE(data)->adjustment;
+	p->Seek((int)adj->value + 5 * FPS_HACK);
+	global_update = 1;	
+}
+
+void reverse_skip_cb(GtkWidget *, gpointer data)
+{
+	GtkAdjustment *adj;
+	update_struct *ustr = &global_ustr;
+	Playlist *pl = (Playlist *)ustr->data;
+	CorePlayer *p = pl->GetCorePlayer();
+
+	adj = GTK_RANGE(data)->adjustment;
+	p->Seek((int)adj->value - 5 * FPS_HACK);
+	global_update = 1;	
+}
 
 void forward_play_cb(GtkWidget *, gpointer data)
 {
@@ -1121,6 +1303,8 @@ void init_main_window(Playlist *pl)
 
 	gtk_signal_connect (GTK_OBJECT (main_window), "expose_event",
 						GTK_SIGNAL_FUNC (on_expose_event), NULL);
+	gtk_signal_connect(GTK_OBJECT(main_window), "key_press_event",
+		GTK_SIGNAL_FUNC(key_press_cb), main_window);
 
 
 	speed_scale = get_widget(main_window, "pitch_scale"); 

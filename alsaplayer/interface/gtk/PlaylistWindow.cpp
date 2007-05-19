@@ -866,7 +866,7 @@ playlist_window_gtk->load_list = gtk_file_selection_new("Load Playlist");
 	gtk_signal_connect(GTK_OBJECT(working), "clicked",
 		GTK_SIGNAL_FUNC(clear_cb), playlist);
 	gtk_signal_connect(GTK_OBJECT(list), "key_press_event",
-		GTK_SIGNAL_FUNC(key_press_event), list);
+		GTK_SIGNAL_FUNC(key_press_cb), list);
 	gtk_signal_connect(GTK_OBJECT(list), "button_press_event",
 		GTK_SIGNAL_FUNC(button_press_event), list);
 	gtk_signal_connect(GTK_OBJECT(list), "select_row",

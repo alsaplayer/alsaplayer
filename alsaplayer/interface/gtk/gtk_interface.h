@@ -22,10 +22,32 @@
 #include "CorePlayer.h"
 #include "Playlist.h"
 
+#include <gdk/gdkkeysyms.h>
+
 extern gint windows_x_offset;
 extern gint windows_y_offset;
 extern int global_update;
 
 void init_main_window(Playlist *);
+
+
+gboolean key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer data);
+
+enum gtk_keymap {
+	STOP_KEY = GDK_v,
+	PLAY_KEY = GDK_x,
+	PAUSE_KEY = GDK_c,
+	NEXT_KEY = GDK_b,
+	PREV_KEY = GDK_z,
+	FWD_KEY = GDK_g,
+	BACK_KEY = GDK_a,
+	FWD_PLAY_KEY = GDK_f,
+	REV_PLAY_KEY = GDK_s,
+	SPEED_UP_KEY = GDK_t,
+	SPEED_DOWN_KEY = GDK_q,
+	VOL_UP_KEY = GDK_r,
+	VOL_DOWN_KEY = GDK_w,
+	LOOP_KEY = GDK_l
+};
 
 #endif /* _gtk_interface_h_ */
