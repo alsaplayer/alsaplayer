@@ -29,6 +29,7 @@
 
 #include "AlsaPlayer.h"
 #include "CorePlayer.h"
+#include <cstdlib>
 #include <cstdio>
 #include <cstring>
 #include <cassert>
