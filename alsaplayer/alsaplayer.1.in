@@ -193,10 +193,16 @@ Forward Play
 Reverse Play
 .TP
 .B t
-Speed Up
+Speed Up one musical semitone. (handy for changing the key the song is played back in)
 .TP
 .B q
-Speed Down
+Speed Down one musical semitone.
+.TP
+.B h
+Speed Up one comma. (handy to tune the song instead of the guitar when playing at the same time as listening)
+.TP
+.B i
+Speed Down one comma.
 .TP
 .B r
 Volume Up
