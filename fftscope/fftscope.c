@@ -257,12 +257,14 @@ static int fftscope_running()
 
 
 /* Shutdown function. Should deallocate stuff here too */
-static void shutdown_fftscope()
+static void shutdown_fftscope(void)
 {
 	prefs_set_bool(ap_prefs, "fftscope", "active", fftscope_running());
-	stop_fftscope();
-}
 
+	if (fftscope_running()) {
+		stop_fftscope();
+	}
+}
 
 
 /* The C struct that contains all our functions */
@@ -275,7 +277,7 @@ scope_plugin *scope_plugin_info()
 	memset(&fftscope_plugin, 0, sizeof(scope_plugin));
 	fftscope_plugin.version = SCOPE_PLUGIN_VERSION;
 	fftscope_plugin.name = "FFTscope";
-	fftscope_plugin.author = "Andy Lo-A-Foe & Richard Boulton";
+	fftscope_plugin.author = "Andy Lo-A-Foe, Richard Boulton & Dominique Michel";
 	fftscope_plugin.init = init_fftscope;
 	fftscope_plugin.start = start_fftscope;
 	fftscope_plugin.running = fftscope_running;
