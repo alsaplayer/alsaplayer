@@ -54,6 +54,6 @@ dist-hook: dist-hook-local
 	mkdir $(distdir)/reference
 	mkdir $(distdir)/reference/html
 	-cp reference/html/*.html reference/html/*.css \
-	    reference/html/*.gif  $(distdir)/reference/html
+	    reference/html/*.png  $(distdir)/reference/html
 
 .PHONY : dist-hook-local
