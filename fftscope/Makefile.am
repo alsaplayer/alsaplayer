@@ -6,7 +6,7 @@ lib_LTLIBRARIES = $(fftscopeltlibs)
 
 libdir = $(SCOPEPLUGIN_DIR)
 
-CFLAGS = -D_REENTRANT -I$(top_builddir) @GTK_CFLAGS@ @ALSAPLAYER_CFLAGS@
+AM_CFLAGS = -D_REENTRANT -I$(top_builddir) @GTK_CFLAGS@ @ALSAPLAYER_CFLAGS@
 
 libfftscope_la_LDFLAGS = $(fftscopeldflags)
 LIBS =
