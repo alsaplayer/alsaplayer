@@ -1,6 +1,20 @@
 * Modify threading to use conditional waits. More portable
 * GTK2 test interface. Far from functional
 
+Sat May 19 2007
+---------------
+* Updated config.guess and config.sub with latest savannah version.
+* Added missing include in app/CorePlayer so it will compile with never gcc
+  and non gcc compilers. Thanks to Debian for this fix.
+* Applied Debian patch from Viktor Radnai and Paul Brossier. Add basic
+  keyboard navigation (skip, pause, etc.), loop mode (looping inside a
+  selection), pressing play button or key during playback return to the
+  beginning of the song, speed changes one musical semitone a time using
+  the keyboard (handy for changing the key the song is played back in).
+* Added keyboard shortcuts for speed +/- 1 comma (useful to tune the player
+  when playing some musical instrument at the same time).
+* Updated the man page with those keyboard bindings.
+
 Tue Apr 24 2007
 ---------------
 * Added Player fredesktop sub-category in alsaplayer.desktop.
