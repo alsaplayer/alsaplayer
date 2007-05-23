@@ -4,7 +4,7 @@ AC_INIT(app/CorePlayer.cpp)
 
 ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
-ALSAPLAYER_MICRO_VERSION=79
+ALSAPLAYER_MICRO_VERSION=80
 
 BETA=
 
@@ -712,7 +712,7 @@ interface/gtk/pixmaps/Makefile
 interface/gtk/gui/Makefile
 interface/gtk2/Makefile
 interface/gtk2/pixmaps/Makefile
-interface/gtk2/glade/Makefile
+interface/gtk2/gui/Makefile
 interface/text/Makefile
 interface/daemon/Makefile
 interface/xosd/Makefile
