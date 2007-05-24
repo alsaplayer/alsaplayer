@@ -1,6 +1,14 @@
 * Modify threading to use conditional waits. More portable
 * GTK2 test interface. Far from functional
 
+
+
+Wed May 23 2007
+---------------
+* Moved the existing and not working gtk2 interface in interface/gtk2obsolete
+* Committed a new and working gtk2 interface in interface/gtk2
+  This new interface was kindly provide by Madej from Poland.
+
 Sat May 19 2007
 ---------------
 * Updated config.guess and config.sub with latest savannah version.
