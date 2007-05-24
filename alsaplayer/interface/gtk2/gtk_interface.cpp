@@ -1,4 +1,4 @@
-/*  gtk_interface.cpp - gtk+ callbacks, etc
+/*  gtk2_interface.cpp - gtk+ callbacks, etc
  *  Copyright (C) 2002 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -1281,8 +1281,8 @@ void init_main_window(Playlist *pl)
 	pix = xpm_label_box(menu_xpm, main_window);
 	gtk_widget_show(pix);
 	gtk_container_add(GTK_CONTAINER(working), pix);
-	//gtk_signal_connect(GTK_OBJECT(working), "clicked",
-	//			GTK_SIGNAL_FUNC(cd_cb), p);
+	//g_signal_connect(G_OBJECT(working), "clicked",
+	//			G_CALLBACK(cd_cb), p);
 	gtk_button_set_relief(GTK_BUTTON(working),GTK_RELIEF_NONE);
 
 	working = get_widget(main_window, "info_box"); 

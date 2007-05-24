@@ -190,8 +190,7 @@ int apRegisterScopePlugin(scope_plugin *plugin)
 		printf("No scopes_window\n");
 		return 0;
 	}	
-	list = (GtkWidget *)gtk_object_get_data(GTK_OBJECT(scopes_window),
-			"list");
+	list = (GtkWidget *) g_object_get_data(G_OBJECT(scopes_window), "list");
 	se = new scope_entry;
 	se->next = (scope_entry *)NULL;
 	se->sp = plugin;
@@ -323,7 +322,7 @@ static void exclusive_open_cb(GtkWidget *widget, gpointer data)
 }
 
 
-void scopes_list_button_press(GtkWidget *widget, GdkEvent *bevent, gpointer)
+gboolean scopes_list_button_press(GtkWidget *widget, GdkEvent *bevent, gpointer)
 {
 	GtkWidget *menu_item;
 	GtkWidget *the_menu;
@@ -348,16 +347,16 @@ void scopes_list_button_press(GtkWidget *widget, GdkEvent *bevent, gpointer)
 		menu_item = gtk_menu_item_new_with_label("Open");
 		gtk_menu_append(GTK_MENU(the_menu), menu_item);
 		gtk_widget_show(menu_item);
-		gtk_signal_connect(GTK_OBJECT(menu_item), "activate",
-			GTK_SIGNAL_FUNC(open_scope_cb), widget);
+		g_signal_connect(G_OBJECT(menu_item), "activate",
+			G_CALLBACK(open_scope_cb), widget);
 		if (!selection)
 			gtk_widget_set_sensitive(menu_item, false);
 	
 		menu_item = gtk_menu_item_new_with_label("Open exclusively");
 		gtk_menu_append(GTK_MENU(the_menu), menu_item);
 		gtk_widget_show(menu_item);
-		gtk_signal_connect(GTK_OBJECT(menu_item), "activate", 
-			GTK_SIGNAL_FUNC(exclusive_open_cb), widget);
+		g_signal_connect(G_OBJECT(menu_item), "activate", 
+			G_CALLBACK(exclusive_open_cb), widget);
 		if (!selection)
 			gtk_widget_set_sensitive(menu_item, false);
 
@@ -370,15 +369,15 @@ void scopes_list_button_press(GtkWidget *widget, GdkEvent *bevent, gpointer)
 		 menu_item = gtk_menu_item_new_with_label("Close");
 		 gtk_menu_append(GTK_MENU(the_menu), menu_item);
 		 gtk_widget_show(menu_item);
-		 gtk_signal_connect(GTK_OBJECT(menu_item), "activate",
-		 	GTK_SIGNAL_FUNC(close_scope_cb), widget);
+		 g_signal_connect(G_OBJECT(menu_item), "activate",
+		 	G_CALLBACK(close_scope_cb), widget);
 		 if (!selection)
 		 	gtk_widget_set_sensitive(menu_item, false);
 
 		 menu_item = gtk_menu_item_new_with_label("Close all");
 		 gtk_menu_append(GTK_MENU(the_menu), menu_item);
-		 gtk_signal_connect(GTK_OBJECT(menu_item), "activate",
-		 	GTK_SIGNAL_FUNC(close_all_cb), widget);
+		 g_signal_connect(G_OBJECT(menu_item), "activate",
+		 	G_CALLBACK(close_all_cb), widget);
 		 gtk_widget_show(menu_item);
 		 
 			
@@ -386,7 +385,9 @@ void scopes_list_button_press(GtkWidget *widget, GdkEvent *bevent, gpointer)
 			bevent->button.button, bevent->button.time);
 	}
 	
-	//alsaplayer_error("Row = %d, Col = %d", row, col);	
+	//alsaplayer_error("Row = %d, Col = %d", row, col);
+	
+	return FALSE;	
 }
 
 void scopes_list_click(GtkWidget *widget, gint row, gint /* column */,
@@ -433,7 +434,6 @@ void scopes_window_ok_cb(GtkWidget * /*button_widget*/, gpointer data)
         gtk_widget_hide(widget);
         gtk_widget_set_uposition(widget, x, y);
         global_scopes_show = 0;
-
 }
 
 gboolean scopes_window_delete_event(GtkWidget *widget, GdkEvent * /*event*/, gpointer /* data */)
@@ -475,22 +475,22 @@ GtkWidget *init_scopes_window()
 		&style->bg[GTK_STATE_NORMAL], note_xpm);
 	
 
-	gtk_object_set_data(GTK_OBJECT(scopes_window), "list", list);
+	g_object_set_data(G_OBJECT(scopes_window), "list", list);
 	gtk_clist_set_column_width(GTK_CLIST(list), 0, 16);
 	gtk_clist_set_row_height(GTK_CLIST(list), 20);
-	gtk_signal_connect(GTK_OBJECT(list), "select_row",
-		GTK_SIGNAL_FUNC(scopes_list_click), NULL);
-	gtk_signal_connect(GTK_OBJECT(list), "button_press_event",
-		GTK_SIGNAL_FUNC(scopes_list_button_press), NULL);
+	g_signal_connect(G_OBJECT(list), "select_row",
+		G_CALLBACK(scopes_list_click), NULL);
+	g_signal_connect(G_OBJECT(list), "button_press_event",
+		G_CALLBACK(scopes_list_button_press), NULL);
 	working = get_widget(scopes_window, "ok_button");
-	gtk_signal_connect(GTK_OBJECT(working), "clicked",
-		GTK_SIGNAL_FUNC(scopes_window_ok_cb), scopes_window);
+	g_signal_connect(G_OBJECT(working), "clicked",
+		G_CALLBACK(scopes_window_ok_cb), scopes_window);
 
 	// Close/delete signals
-	gtk_signal_connect(GTK_OBJECT(scopes_window), "destroy",
-                GTK_SIGNAL_FUNC(scopes_window_delete_event), NULL);
-	gtk_signal_connect(GTK_OBJECT(scopes_window), "delete_event",
-                GTK_SIGNAL_FUNC(scopes_window_delete_event), NULL);
+	g_signal_connect(G_OBJECT(scopes_window), "destroy",
+                G_CALLBACK(scopes_window_delete_event), NULL);
+	g_signal_connect(G_OBJECT(scopes_window), "delete_event",
+                G_CALLBACK(scopes_window_delete_event), NULL);
 
 	// Init scope list
 	pthread_mutex_init(&sl_mutex, (pthread_mutexattr_t *)NULL);

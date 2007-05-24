@@ -4,7 +4,7 @@ AC_INIT(app/CorePlayer.cpp)
 
 ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
-ALSAPLAYER_MICRO_VERSION=80
+ALSAPLAYER_MICRO_VERSION=78
 
 BETA=
 
@@ -724,6 +724,14 @@ scopes/logbarfft/Makefile
 scopes/synaescope/Makefile
 scopes/blurscope/Makefile
 scopes/opengl_spectrum/Makefile
+scopes2/Makefile
+scopes2/monoscope/Makefile
+scopes2/levelmeter/Makefile
+scopes2/spacescope/Makefile
+scopes2/logbarfft/Makefile
+scopes2/synaescope/Makefile
+scopes2/blurscope/Makefile
+scopes2/opengl_spectrum/Makefile
 output/Makefile
 output/alsa-0.5.x/Makefile
 output/alsa-final/Makefile

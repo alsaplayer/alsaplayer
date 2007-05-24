@@ -73,9 +73,9 @@ GtkWidget *init_effects_window()
 	effects_window = create_effects_window();
 	
 	// Close/delete signals
-	gtk_signal_connect(GTK_OBJECT(effects_window), "destroy",
-                GTK_SIGNAL_FUNC(effects_delete_event), NULL);
-	gtk_signal_connect(GTK_OBJECT(effects_window), "delete_event",
-                GTK_SIGNAL_FUNC(effects_delete_event), NULL);
+	g_signal_connect(G_OBJECT(effects_window), "destroy",
+                G_CALLBACK(effects_delete_event), NULL);
+	g_signal_connect(G_OBJECT(effects_window), "delete_event",
+                G_CALLBACK(effects_delete_event), NULL);
 	return effects_window;
 }

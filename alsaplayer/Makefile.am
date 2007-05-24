@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 SUBDIRS = interface output input scopes app alsaplayer extra docs \
-	libalsaplayer examples m4 reader
+	libalsaplayer examples m4 reader scopes2
 
 EXTRA_DIST = bootstrap alsaplayer.spec
 

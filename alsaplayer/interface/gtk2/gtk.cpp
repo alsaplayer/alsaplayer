@@ -66,7 +66,7 @@ void load_scope_addons()
 
 	scope_plugin_info_type scope_plugin_info;
 
-	snprintf(path, sizeof(path)-1, "%s/scopes", addon_dir);
+	snprintf(path, sizeof(path)-1, "%s/scopes2", addon_dir);
 
 	DIR *dir = opendir(path);
 	dirent *entry;
@@ -77,7 +77,7 @@ void load_scope_addons()
 				strcmp(entry->d_name, "..") == 0) {
 				continue;
 			}
-			sprintf(path, "%s/scopes/%s", addon_dir, entry->d_name);
+			sprintf(path, "%s/scopes2/%s", addon_dir, entry->d_name);
 			//alsaplayer_error(path);
 			if (stat(path, &buf)) continue;
 			if (S_ISREG(buf.st_mode)) {
@@ -114,20 +114,20 @@ void load_scope_addons()
 	}	
 }
 
-int interface_gtk2_init()
+int interface_gtk_init()
 {
 	strcpy(addon_dir, ADDON_DIR);
 	return 1;
 }
 
 
-int interface_gtk2_running()
+int interface_gtk_running()
 {
 	return 1;
 }
 
 
-int interface_gtk2_stop()
+int interface_gtk_stop()
 {
 	global_update = -1;
 	
@@ -139,7 +139,7 @@ int interface_gtk2_stop()
 	return 1;
 }
 
-void interface_gtk2_close()
+void interface_gtk_close()
 {
 	return;
 }
@@ -147,7 +147,7 @@ void interface_gtk2_close()
 
 void dl_close_scopes();
 
-int interface_gtk2_start(Playlist *playlist, int argc, char **argv)
+int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 {
 	char path[256];
 	char *home;
@@ -204,14 +204,14 @@ int interface_gtk2_start(Playlist *playlist, int argc, char **argv)
 interface_plugin default_plugin =
 {
 	INTERFACE_PLUGIN_VERSION,
-	"GTK+ interface v1.2",
-	"Andy Lo A Foe and Madej Os",
+	"GTK+-2.x interface",
+	"Andy Lo A Foe/Madej",
 	NULL,
-	interface_gtk2_init,
-	interface_gtk2_start,
-	interface_gtk2_running,
-	interface_gtk2_stop,
-	interface_gtk2_close
+	interface_gtk_init,
+	interface_gtk_start,
+	interface_gtk_running,
+	interface_gtk_stop,
+	interface_gtk_close
 };
 
 extern "C" {
