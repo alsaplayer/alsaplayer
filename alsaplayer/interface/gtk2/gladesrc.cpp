@@ -55,9 +55,11 @@ create_main_window (void)
 
   main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   g_object_set_data (G_OBJECT (main_window), "main_window", main_window);
-  gtk_widget_set_usize (main_window, 408, 98);
+// deprecated  gtk_widget_set_usize (main_window, 408, 98);
+	gtk_widget_set_size_request(main_window, 408, -1); //set it bigger
   gtk_window_set_title (GTK_WINDOW (main_window), "AlsaPlayer");
-  gtk_window_set_policy (GTK_WINDOW (main_window), TRUE, TRUE, FALSE);
+//deprecated  gtk_window_set_policy (GTK_WINDOW (main_window), TRUE, TRUE, FALSE);
+	gtk_window_set_resizable(GTK_WINDOW (main_window), FALSE);
 
   vbox25 = gtk_vbox_new (FALSE, 0);
   gtk_widget_ref (vbox25);
@@ -133,7 +135,7 @@ create_main_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (cd_button);
   gtk_box_pack_start (GTK_BOX (button_box), cd_button, FALSE, TRUE, 0);
-  gtk_widget_set_usize (cd_button, 26, 24);
+gtk_widget_set_size_request (cd_button, 26, 24);
 
   prev_button = gtk_button_new ();
   gtk_widget_ref (prev_button);
@@ -141,7 +143,7 @@ create_main_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (prev_button);
   gtk_box_pack_start (GTK_BOX (button_box), prev_button, FALSE, TRUE, 0);
-  gtk_widget_set_usize (prev_button, 26, 24);
+gtk_widget_set_size_request (prev_button, 26, 24);
 
   play_button = gtk_button_new ();
   gtk_widget_ref (play_button);
@@ -149,7 +151,7 @@ create_main_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (play_button);
   gtk_box_pack_start (GTK_BOX (button_box), play_button, FALSE, TRUE, 0);
-  gtk_widget_set_usize (play_button, 26, 24);
+gtk_widget_set_size_request (play_button, 26, 24);
 
   stop_button = gtk_button_new ();
   gtk_widget_ref (stop_button);
@@ -157,7 +159,7 @@ create_main_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (stop_button);
   gtk_box_pack_start (GTK_BOX (button_box), stop_button, FALSE, TRUE, 0);
-  gtk_widget_set_usize (stop_button, 26, 24);
+gtk_widget_set_size_request (stop_button, 26, 24);
 
   next_button = gtk_button_new ();
   gtk_widget_ref (next_button);
@@ -165,7 +167,7 @@ create_main_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (next_button);
   gtk_box_pack_start (GTK_BOX (button_box), next_button, FALSE, TRUE, 0);
-  gtk_widget_set_usize (next_button, 26, 24);
+gtk_widget_set_size_request (next_button, 26, 24);
 
   playlist_button = gtk_button_new ();
   gtk_widget_ref (playlist_button);
@@ -173,7 +175,7 @@ create_main_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (playlist_button);
   gtk_box_pack_start (GTK_BOX (button_box), playlist_button, FALSE, TRUE, 0);
-  gtk_widget_set_usize (playlist_button, 26, 24);
+gtk_widget_set_size_request (playlist_button, 26, 24);
 
   audio_control_box = gtk_vbox_new (FALSE, 0);
   gtk_widget_ref (audio_control_box);
@@ -202,7 +204,7 @@ create_main_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (reverse_button);
   gtk_box_pack_start (GTK_BOX (hbox36), reverse_button, TRUE, TRUE, 0);
-  gtk_widget_set_usize (reverse_button, 22, 20);
+gtk_widget_set_size_request (reverse_button, 22, 20);
 
   pause_button = gtk_button_new ();
   gtk_widget_ref (pause_button);
@@ -210,7 +212,7 @@ create_main_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (pause_button);
   gtk_box_pack_start (GTK_BOX (hbox36), pause_button, TRUE, TRUE, 0);
-  gtk_widget_set_usize (pause_button, 22, 20);
+gtk_widget_set_size_request (pause_button, 22, 20);
 
   forward_button = gtk_button_new ();
   gtk_widget_ref (forward_button);
@@ -218,7 +220,7 @@ create_main_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (forward_button);
   gtk_box_pack_start (GTK_BOX (hbox36), forward_button, TRUE, TRUE, 0);
-  gtk_widget_set_usize (forward_button, 22, 20);
+gtk_widget_set_size_request (forward_button, 22, 20);
 
   pitch_scale = gtk_hscale_new (GTK_ADJUSTMENT (gtk_adjustment_new (100, -400, 401, 1, 1, 1)));
   gtk_widget_ref (pitch_scale);
@@ -248,7 +250,7 @@ create_main_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (balance_pic_frame);
   gtk_box_pack_start (GTK_BOX (hbox37), balance_pic_frame, FALSE, TRUE, 0);
-  gtk_widget_set_usize (balance_pic_frame, 30, -2);
+gtk_widget_set_size_request (balance_pic_frame, 30, -1);
 
   bal_scale = gtk_hscale_new (GTK_ADJUSTMENT (gtk_adjustment_new (100, 0, 201, 1, 1, 1)));
   gtk_widget_ref (bal_scale);
@@ -278,7 +280,7 @@ create_main_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (volume_pix_frame);
   gtk_box_pack_start (GTK_BOX (volume_frame), volume_pix_frame, FALSE, TRUE, 0);
-  gtk_widget_set_usize (volume_pix_frame, 18, -2);
+gtk_widget_set_size_request (volume_pix_frame, 18, -1);
 
   vol_scale = gtk_hscale_new (GTK_ADJUSTMENT (gtk_adjustment_new (14, 0, 14, 1, 1, 1)));
   gtk_widget_ref (vol_scale);
@@ -317,7 +319,7 @@ create_playlist_window (void)
 
   playlist_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   g_object_set_data (G_OBJECT (playlist_window), "playlist_window", playlist_window);
-  gtk_widget_set_usize (playlist_window, 480, 300);
+  gtk_window_set_default_size (GTK_WINDOW(playlist_window), 500, 350);
   gtk_window_set_title (GTK_WINDOW (playlist_window), "Queue");
 
   vbox5 = gtk_vbox_new (FALSE, 0);
@@ -391,23 +393,23 @@ create_playlist_window (void)
   gtk_widget_show (vbox6);
   gtk_box_pack_start (GTK_BOX (hbox16), vbox6, FALSE, TRUE, 6);
 
-  add_button = gtk_button_new_with_label ("Add...");
+  add_button = gtk_button_new_from_stock (GTK_STOCK_ADD);
   gtk_widget_ref (add_button);
   g_object_set_data_full (G_OBJECT (playlist_window), "add_button", add_button,
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (add_button);
   gtk_box_pack_start (GTK_BOX (vbox6), add_button, FALSE, TRUE, 0);
-  gtk_widget_set_usize (add_button, 70, 22);
+//my try  gtk_widget_set_usize (add_button, 70, 22);
 
-  del_button = gtk_button_new_with_label ("Remove");
+  del_button = gtk_button_new_from_stock (GTK_STOCK_REMOVE);
   gtk_widget_ref (del_button);
   g_object_set_data_full (G_OBJECT (playlist_window), "del_button", del_button,
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (del_button);
   gtk_box_pack_start (GTK_BOX (vbox6), del_button, FALSE, TRUE, 0);
-  gtk_widget_set_usize (del_button, 70, -2);
+//my try  gtk_widget_set_usize (del_button, 70, -2);
 
-  close_button = gtk_button_new_with_label ("Close");
+  close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
   gtk_widget_ref (close_button);
   g_object_set_data_full (G_OBJECT (playlist_window), "close_button", close_button,
                             (GtkDestroyNotify) gtk_widget_unref);
@@ -428,34 +430,34 @@ create_playlist_window (void)
   gtk_widget_show (vbox24);
   gtk_box_pack_start (GTK_BOX (vbox6), vbox24, FALSE, TRUE, 18);
 
-  label101 = gtk_label_new ("playlist");
+  label101 = gtk_label_new ("PLAYLIST");
   gtk_widget_ref (label101);
   g_object_set_data_full (G_OBJECT (playlist_window), "label101", label101,
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (label101);
   gtk_box_pack_start (GTK_BOX (vbox24), label101, FALSE, FALSE, 4);
 
-  load_button = gtk_button_new_with_label ("Load...");
+  load_button = gtk_button_new_from_stock (GTK_STOCK_OPEN);
   gtk_widget_ref (load_button);
   g_object_set_data_full (G_OBJECT (playlist_window), "load_button", load_button,
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (load_button);
   gtk_box_pack_start (GTK_BOX (vbox24), load_button, FALSE, FALSE, 0);
 
-  save_button = gtk_button_new_with_label ("Save...");
+  save_button = gtk_button_new_from_stock (GTK_STOCK_SAVE);
   gtk_widget_ref (save_button);
   g_object_set_data_full (G_OBJECT (playlist_window), "save_button", save_button,
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (save_button);
   gtk_box_pack_start (GTK_BOX (vbox24), save_button, FALSE, FALSE, 6);
 
-  clear_button = gtk_button_new_with_label ("Clear");
+  clear_button = gtk_button_new_from_stock (GTK_STOCK_CLEAR);
   gtk_widget_ref (clear_button);
   g_object_set_data_full (G_OBJECT (playlist_window), "clear_button", clear_button,
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (clear_button);
   gtk_box_pack_start (GTK_BOX (vbox24), clear_button, FALSE, FALSE, 0);
-  gtk_widget_set_usize (clear_button, 70, -2);
+//my try  gtk_widget_set_usize (clear_button, 70, -2);
 
   playlist_status = gtk_vbox_new (FALSE, 0);
   gtk_widget_ref (playlist_status);
@@ -531,7 +533,7 @@ create_effects_window (void)
 
   effects_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   g_object_set_data (G_OBJECT (effects_window), "effects_window", effects_window);
-  gtk_widget_set_usize (effects_window, 500, 300);
+  gtk_window_set_default_size (GTK_WINDOW(effects_window), 500, 300);
   gtk_window_set_title (GTK_WINDOW (effects_window), "Effects");
 
   vbox23 = gtk_vbox_new (FALSE, 0);
@@ -602,7 +604,7 @@ create_effects_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (ok_button);
   gtk_box_pack_end (GTK_BOX (button_box), ok_button, FALSE, TRUE, 0);
-  gtk_widget_set_usize (ok_button, 80, -2);
+//my try  gtk_widget_set_usize (ok_button, 80, -2);
 
   return effects_window;
 }
@@ -624,6 +626,7 @@ create_scopes_window (void)
 
   scopes_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   g_object_set_data (G_OBJECT (scopes_window), "scopes_window", scopes_window);
+  gtk_window_set_default_size (GTK_WINDOW(scopes_window), 200, 300);
   gtk_window_set_title (GTK_WINDOW (scopes_window), "Scopes");
 
   vbox22 = gtk_vbox_new (FALSE, 0);
@@ -669,7 +672,7 @@ create_scopes_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (scopes_list);
   gtk_container_add (GTK_CONTAINER (scrolledwindow2), scopes_list);
-  gtk_widget_set_usize (scopes_list, 150, 220);
+//my try  gtk_widget_set_usize (scopes_list, 150, 220);
   gtk_clist_set_column_width (GTK_CLIST (scopes_list), 0, 49);
   gtk_clist_set_column_width (GTK_CLIST (scopes_list), 1, 80);
   gtk_clist_column_titles_hide (GTK_CLIST (scopes_list));
@@ -702,7 +705,7 @@ create_scopes_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (ok_button);
   gtk_box_pack_end (GTK_BOX (hbox32), ok_button, FALSE, TRUE, 0);
-  gtk_widget_set_usize (ok_button, 80, -2);
+//my try  gtk_widget_set_usize (ok_button, 80, -2);
 
   return scopes_window;
 }

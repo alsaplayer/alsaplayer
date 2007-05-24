@@ -677,15 +677,18 @@ void dialog_popup(GtkWidget *, gpointer data)
 
 
 
-void key_press_event(GtkWidget *, GdkEvent *event, gpointer data)
+gboolean key_press_event(GtkWidget *, GdkEvent *event, gpointer data)
 {
 	//printf("Key down\n");
+	return FALSE;
 }
 
 
-void button_press_event(GtkWidget *widget, GdkEvent *, gpointer data)
+gboolean button_press_event(GtkWidget *widget, GdkEvent *, gpointer data)
 {
 	gtk_widget_grab_focus(widget);
+	
+	return FALSE;
 }
 
 
@@ -875,12 +878,12 @@ playlist_window_gtk->load_list = gtk_file_selection_new("Load Playlist");
 	working = get_widget(playlist_window, "clear_button");
 	g_signal_connect(G_OBJECT(working), "clicked",
 		G_CALLBACK(clear_cb), playlist);
-//	g_signal_connect(G_OBJECT(list), "key_press_event",
-//		G_CALLBACK(key_press_event), list);
-//	g_signal_connect(G_OBJECT(list), "button_press_event",
-//my try		G_CALLBACK(button_press_event), list);
-//	g_signal_connect(G_OBJECT(list), "select_row",
-//		G_CALLBACK(playlist_click), playlist);
+	g_signal_connect(G_OBJECT(list), "key_press_event",
+		G_CALLBACK(key_press_event), list);
+	g_signal_connect(G_OBJECT(list), "button_press_event",
+		G_CALLBACK(button_press_event), list);
+	g_signal_connect(G_OBJECT(list), "select_row",
+		G_CALLBACK(playlist_click), playlist);
 	working = get_widget(playlist_window, "del_button");
 	g_signal_connect(G_OBJECT(working), "clicked",
                 G_CALLBACK(playlist_remove),

@@ -1,4 +1,4 @@
-SUBDIRS = pixmaps gui
+SUBDIRS = pixmaps
 
 if HAVE_GTK2
 

@@ -1111,7 +1111,7 @@ void init_main_window(Playlist *pl)
 	playlist = pl;
 
 	main_window = create_main_window();
-	gtk_window_set_policy(GTK_WINDOW(main_window), false, false, false);
+//my try	gtk_window_set_policy(GTK_WINDOW(main_window), false, false, false);
 	gtk_window_set_title(GTK_WINDOW(main_window), global_session_name == NULL ?
 		"AlsaPlayer" : global_session_name);
 	gtk_window_set_wmclass(GTK_WINDOW(main_window), "AlsaPlayer", "alsaplayer");
@@ -1122,9 +1122,12 @@ void init_main_window(Playlist *pl)
 	scopes_window = init_scopes_window();
 	play_dialog = gtk_file_selection_new("Play file or URL");
 	gtk_file_selection_hide_fileop_buttons (GTK_FILE_SELECTION (play_dialog));
-//	GtkCList *file_list = GTK_CLIST(GTK_FILE_SELECTION(play_dialog)->file_list);
-	GtkTreeView *file_list = GTK_TREE_VIEW(GTK_FILE_SELECTION(play_dialog)->file_list);
-//	gtk_clist_set_selection_mode(file_list, GTK_SELECTION_EXTENDED);
+/*  play_dialog = gtk_file_chooser_dialog_new("Load Playlist", GTK_WINDOW(main_window), GTK_FILE_CHOOSER_ACTION_OPEN, 
+  																GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+				     											GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+				      										NULL);
+	gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(play_dialog), TRUE);
+*/	GtkTreeView *file_list = GTK_TREE_VIEW(GTK_FILE_SELECTION(play_dialog)->file_list);
 	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(file_list), GTK_SELECTION_MULTIPLE);
 	
 	g_signal_connect(G_OBJECT(
@@ -1137,7 +1140,6 @@ void init_main_window(Playlist *pl)
 					   "clicked", G_CALLBACK(play_file_ok), playlist);
 	gtk_file_selection_set_filename(GTK_FILE_SELECTION(play_dialog), 
 		prefs_get_string(ap_prefs, "gtk2_interface", "default_play_path", "~/")); 
-
 
 	g_signal_connect (G_OBJECT (main_window), "expose_event",
 						G_CALLBACK(on_expose_event), NULL);
