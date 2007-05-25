@@ -1,6 +1,0 @@
-You need to modify the output directories in the alsaplayer glade config if
-you intend to do any glade hacking. After building the project you need to
-run the "fixup" script. This will copy the glade generated source files 
-to the right location.
-
--adnans
