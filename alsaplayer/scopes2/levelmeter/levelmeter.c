@@ -200,10 +200,11 @@ static GtkWidget *init_levelmeter_window(void)
 	color.green = SCOPE_BG_GREEN << 8;
 	gdk_color_alloc(gdk_colormap_get_system(), &color);
 
-	draw_pixmap = gdk_pixmap_new(levelmeter_win->window, 256,40,
-		gdk_visual_get_best_depth());			
-	disp = gdk_pixmap_new(levelmeter_win->window, 256, 18,
-		gdk_visual_get_best_depth());
+	gint depth = gdk_visual_get_system()->depth; 
+//	draw_pixmap = gdk_pixmap_new(levelmeter_win->window, 256,40, gdk_visual_get_best_depth());			
+//	disp = gdk_pixmap_new(levelmeter_win->window, 256, 18, gdk_visual_get_best_depth());
+	draw_pixmap = gdk_pixmap_new(levelmeter_win->window, 256,40, depth);
+	disp = gdk_pixmap_new(levelmeter_win->window, 256, 18, depth);
 	for (i = 0; i < 256; i+=4) {
 		if (i < 128) {	
 			col.red = (i<<1) << 8;
@@ -221,16 +222,18 @@ static GtkWidget *init_levelmeter_window(void)
 		gdk_draw_line(disp,gc,i+2,0,i+2,18);
 		gdk_gc_set_foreground(gc,&color);
 		gdk_draw_line(disp,gc,i+3,0,i+3,18);
-	}	
+	}
+
 	gdk_color_black(gdk_colormap_get_system(),&col);
+
 	gdk_gc_set_foreground(gc,&col);
 	
-	
+
 	area = gtk_drawing_area_new();
 	gtk_container_add(GTK_CONTAINER(levelmeter_win), area);
 	gtk_widget_realize(area);
 	gdk_window_set_background(area->window, &color);
-	
+
 	gdk_window_clear(area->window);
 	gtk_widget_show(area);
 	
@@ -276,7 +279,7 @@ static void stop_levelmeter(void)
 static void run_levelmeter(void *data)
 {
 	nice(SCOPE_NICE);	
-	the_levelmeter(scope_win);	
+	the_levelmeter(scope_win);
 	pthread_mutex_unlock(&levelmeter_mutex);
 	pthread_exit(NULL);
 }
@@ -294,8 +297,10 @@ static void start_levelmeter(void)
 	if (pthread_mutex_trylock(&levelmeter_mutex) != 0) {
 			printf("levelmeter already running\n");
 			return;
-	}		
+	}	
+	
 	gtk_widget_show(scope_win);
+
 	pthread_create(&levelmeter_thread, NULL,
 		(void * (*)(void *))run_levelmeter, NULL);
 }
