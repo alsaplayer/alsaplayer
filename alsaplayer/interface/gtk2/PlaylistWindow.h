@@ -24,6 +24,10 @@
 extern void playlist_window_gtk_prev(GtkWidget *, gpointer);
 extern void playlist_window_gtk_next(GtkWidget *, gpointer);
 
+void dialog_popup(GtkWidget *, gpointer data);
+void playlist_remove(GtkWidget *, gpointer data);
+void playlist_play_current(Playlist *playlist, GtkWidget *list);
+
 class PlaylistWindowGTK
 {
 	private:

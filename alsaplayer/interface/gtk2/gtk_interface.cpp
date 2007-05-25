@@ -25,7 +25,7 @@
 #include <assert.h>
 //#define NEW_SCALE
 //#define SUBSECOND_DISPLAY 
-#include <assert.h>
+#include <math.h>
 
 #include <algorithm>
 #include "utilities.h"
@@ -36,6 +36,7 @@
 
 #include "support.h"
 #include "gladesrc.h"
+#include "gtk_interface.h"
 #include "pixmaps/f_play.xpm"
 #include "pixmaps/r_play.xpm"
 #include "pixmaps/pause.xpm"
@@ -60,6 +61,8 @@
 #include "EffectsWindow.h"
 //#include "Effects.h"
 #include "ScopesWindow.h"
+#include "control.h"
+
 Playlist *playlist = NULL;
 
 // Defines
@@ -73,6 +76,8 @@ Playlist *playlist = NULL;
 #define MIN_BAL_TRESH   BAL_CENTER-10   // Center is a special case
 #define MAX_BAL_TRESH   BAL_CENTER+10   // so we build in some slack
 #define ZERO_PITCH_TRESH 2
+#define EQ_TEMP_STEP(freq, step)        freq * pow(2.0000, (float) step / 12.0)
+#define FPS_HACK	32	// number of audio frames
 
 // Global variables (get rid of these too... ;-) )
 int global_update = 1;
@@ -101,9 +106,23 @@ typedef struct  _update_struct {
 	GtkWidget *bal_scale;
 	GtkWidget *pos_scale;
 	GtkWidget *speed_scale;
+	float speed;
 } update_struct;
 
 static update_struct global_ustr;
+
+#define LOOP_OFF	0
+#define LOOP_START_SET	1
+#define LOOP_ON		2
+
+typedef struct  _loop_struct {
+	int state;
+	gfloat start;
+	gfloat end;
+	unsigned int track; // used to exit loop mode when a new song is played
+} loop_struct;
+
+static loop_struct global_loop;
 
 // Static variables  (to be moved into a class, at some point)
 static GtkWidget *play_dialog;
@@ -128,6 +147,15 @@ void draw_volume(float vol);
 void position_notify(void *data, int pos);
 void notifier_lock();
 void notifier_unlock();
+void play_cb(GtkWidget *widget, gpointer data);
+void pause_cb(GtkWidget *, gpointer data);
+void stop_cb(GtkWidget *, gpointer data);
+void loop_cb(GtkWidget *, gpointer data);
+void exit_cb(GtkWidget *, gpointer data);
+void forward_skip_cb(GtkWidget *, gpointer data);
+void reverse_skip_cb(GtkWidget *, gpointer data);
+void forward_play_cb(GtkWidget *, gpointer data);
+void reverse_play_cb(GtkWidget *, gpointer data);
 
 void speed_changed(void *, float speed)
 {
@@ -529,6 +557,195 @@ void smoother(void *data)
 	pthread_exit(NULL);
 }
 
+pthread_t looper_thread;
+pthread_mutex_t looper_mutex = PTHREAD_MUTEX_INITIALIZER;
+ 
+void looper(void *data)
+{
+	// GtkAdjustment *adj = (GtkAdjustment *)data;
+	loop_struct *loop = &global_loop;
+	update_struct *ustr = &global_ustr;
+	Playlist *pl = (Playlist *)ustr->data;
+	unsigned int track = pl->GetCurrent();
+	CorePlayer *p = pl->GetCorePlayer();
+
+	if (pthread_mutex_trylock(&looper_mutex) != 0) {
+		pthread_exit(NULL);
+	}
+	
+	nice(5);
+	
+	while (loop->state == LOOP_ON && loop->track == track) {
+		if (loop->track != track) {
+			loop->state = LOOP_OFF;
+		} else if(p->GetPosition() >= loop->end) {
+			p->Seek(lroundf(loop->start));
+			// global_update = 1;	
+		} 
+
+		dosleep(10000);
+	}
+	pthread_mutex_unlock(&looper_mutex);
+	pthread_exit(NULL);
+}
+
+gboolean key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer data)
+{
+	GtkAdjustment *adj;
+	update_struct *ustr = &global_ustr;
+
+	PlaylistWindowGTK *playlist_window_gtk = (PlaylistWindowGTK *) data;
+	Playlist *playlist = NULL;
+	GtkWidget *list = NULL;
+
+	playlist = playlist_window_gtk->GetPlaylist();
+	list = playlist_window_gtk->GetPlaylist_list();
+	
+	/* key definitions are from enum gtk_keymap */
+  if (event->state & GDK_CONTROL_MASK) {
+	switch(event->keyval) {
+     case GDK_q:
+      exit_cb(NULL,NULL);
+      break; 
+     default:
+      break;
+  }
+  } else {
+	switch(event->keyval) {
+		case STOP_KEY:
+			stop_cb(NULL, ustr->data);
+			break;
+		case PLAY_KEY:
+			play_cb(NULL, ustr->data);
+			break;
+		case PAUSE_KEY:
+			pause_cb(NULL, ustr->speed_scale);
+			break;
+		case NEXT_KEY:
+			playlist_window_gtk_next(NULL, ustr->data);
+			break;
+		case PREV_KEY:
+			playlist_window_gtk_prev(NULL, ustr->data);
+			break;
+		case FWD_KEY:
+			forward_skip_cb(NULL, ustr->pos_scale);
+			break;
+		case BACK_KEY:
+			reverse_skip_cb(NULL, ustr->pos_scale);
+			break;
+		case FWD_PLAY_KEY:
+			forward_play_cb(NULL, ustr->speed_scale);
+			break;
+		case REV_PLAY_KEY:
+			reverse_play_cb(NULL, ustr->speed_scale);
+			break;
+		case SPEED_UP_KEY:
+			adj = GTK_RANGE(ustr->speed_scale)->adjustment;
+			gtk_adjustment_set_value(adj, EQ_TEMP_STEP(adj->value, 1));
+			break;
+		case SPEED_DOWN_KEY:
+			adj = GTK_RANGE(ustr->speed_scale)->adjustment;
+			gtk_adjustment_set_value(adj, EQ_TEMP_STEP(adj->value, -1));
+			break;
+		case SPEED_COMMA_UP_KEY:
+			adj = GTK_RANGE(ustr->speed_scale)->adjustment;
+			gtk_adjustment_set_value(adj, EQ_TEMP_STEP(adj->value, 0.234600103846));
+			break;
+		case SPEED_COMMA_DOWN_KEY:
+			adj = GTK_RANGE(ustr->speed_scale)->adjustment;
+			gtk_adjustment_set_value(adj, EQ_TEMP_STEP(adj->value, -0.234600103846));
+			break;
+		case VOL_UP_KEY:
+      adj = GTK_RANGE(ustr->vol_scale)->adjustment;
+      gtk_adjustment_set_value(adj, adj->value + 0.5);
+			break;
+			break;
+		case VOL_DOWN_KEY:
+      adj = GTK_RANGE(ustr->vol_scale)->adjustment;
+      gtk_adjustment_set_value(adj, adj->value - 0.5);
+			break;
+		case LOOP_KEY:
+			loop_cb(NULL, ustr->pos_scale);
+			break;
+		
+//old stuff		
+		case GDK_Insert:
+			dialog_popup(widget, (gpointer)
+				playlist_window_gtk->add_file);
+			break;	
+		case GDK_Delete:
+			playlist_remove(widget, data);
+			break;
+		case GDK_Return:
+			playlist_play_current(playlist, list);
+			break;
+		case GDK_Right:
+			// This is a hack, but quite legal
+			ap_set_position_relative(global_session_id, 10);
+			break;
+		case GDK_Left:
+			ap_set_position_relative(global_session_id, -10);
+			break;
+		default:
+			//printf("Unknown key pressed: %c\n", event->keyval);
+			break;
+	}
+	}
+	return FALSE;
+}
+
+void loop_cb(GtkWidget *, gpointer data)
+{
+	GtkAdjustment *adj = GTK_RANGE(data)->adjustment;
+	update_struct *ustr = &global_ustr;
+	Playlist *pl = (Playlist *)ustr->data;
+	loop_struct *loop = &global_loop;
+	
+	switch(loop->state) {
+		case LOOP_OFF:
+			loop->track = pl->GetCurrent();
+			loop->start = adj->value;
+			loop->state = LOOP_START_SET;
+			break;
+		case LOOP_START_SET:
+			loop->end = adj->value;
+			loop->state = LOOP_ON;
+			pthread_create(&looper_thread, NULL,
+					(void * (*)(void *))looper, adj);
+			pthread_detach(looper_thread);
+			break;
+		case LOOP_ON:
+			loop->state = LOOP_OFF;
+			break;
+		default:
+			break;
+	}
+
+}
+
+void forward_skip_cb(GtkWidget *, gpointer data)
+{
+	GtkAdjustment *adj;
+	update_struct *ustr = &global_ustr;
+	Playlist *pl = (Playlist *)ustr->data;
+	CorePlayer *p = pl->GetCorePlayer();
+
+	adj = GTK_RANGE(data)->adjustment;
+	p->Seek((int)adj->value + 5 * FPS_HACK);
+	global_update = 1;	
+}
+
+void reverse_skip_cb(GtkWidget *, gpointer data)
+{
+	GtkAdjustment *adj;
+	update_struct *ustr = &global_ustr;
+	Playlist *pl = (Playlist *)ustr->data;
+	CorePlayer *p = pl->GetCorePlayer();
+
+	adj = GTK_RANGE(data)->adjustment;
+	p->Seek((int)adj->value - 5 * FPS_HACK);
+	global_update = 1;	
+}
 
 void forward_play_cb(GtkWidget *, gpointer data)
 {
@@ -638,7 +855,7 @@ void eject_cb(GtkWidget *, gpointer data)
 
 	if (p) {
 		gtk_widget_show(play_dialog);
-		gdk_window_raise(play_dialog->window);
+// what for ?		gdk_window_raise(play_dialog->window);
 	}
 }	
 
@@ -904,56 +1121,47 @@ void effects_cb(GtkWidget *, gpointer data)
 }
 
 
-void play_file_ok(GtkWidget *, gpointer data)
+void play_file_ok(GtkWidget *play_dialog, gpointer data)
 {
 	Playlist *playlist = (Playlist *)data;
 	CorePlayer *p = playlist->GetCorePlayer();
 
 	if (p) {
-/*		GtkCList *file_list = GTK_CLIST(GTK_FILE_SELECTION(play_dialog)->file_list);
-		GList *next = file_list->selection;
-*/
-		GtkTreeView *file_list = GTK_TREE_VIEW(GTK_FILE_SELECTION(play_dialog)->file_list);
-		GList *next = gtk_tree_selection_get_selected_rows(gtk_tree_view_get_selection(file_list), NULL);
-		
+
+/* file_list = next*/		GSList *file_list = gtk_file_chooser_get_filenames (GTK_FILE_CHOOSER(play_dialog));
+	
 			std::vector<std::string> paths;
-		gchar *current_dir = g_strdup(gtk_file_selection_get_filename(GTK_FILE_SELECTION(play_dialog)));
+			gchar *current_dir = g_strdup(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(play_dialog)));
 		char *path;
-		int index;	
-		int marker = strlen(current_dir)-1;
 		
-		while (marker > 0 && current_dir[marker] != '/')
-			current_dir[marker--] = '\0';
 		// Write default_play_path
 		prefs_set_string(ap_prefs, "gtk2_interface", "default_play_path", current_dir);
-		if (!next) {
-			gchar *sel = g_strdup(gtk_entry_get_text(GTK_ENTRY(GTK_FILE_SELECTION(play_dialog)->selection_entry)));
+/* doesn't really work 
+		if (!file_list) {
+// to be fixed	gchar *sel = g_strdup(gtk_entry_get_text(GTK_ENTRY(GTK_FILE_SELECTION(play_dialog)->selection_entry)));
+			gchar *sel = NULL;			
 			if (sel && strlen(sel)) {
 				if (!strstr(sel, "http://"))
-					paths.push_back(std::string(current_dir) + "/" +					sel);
+					paths.push_back(std::string(current_dir) + "/" + sel);
 				else
 					paths.push_back(sel);
 				GDK_THREADS_LEAVE();
 				playlist->AddAndPlay(paths);
 				GDK_THREADS_ENTER();
-				gtk_entry_set_text(GTK_ENTRY(GTK_FILE_SELECTION(play_dialog)->selection_entry), "");
+//				gtk_entry_set_text(GTK_ENTRY(GTK_FILE_SELECTION(play_dialog)->selection_entry), "");
 				g_free(sel);
 			}	
 			return;
 		}
-	
+*/
 		// Get the selections
-		while (next) {
-		GtkTreeIter iter;
-//			index = GPOINTER_TO_INT(next->data);
-/* my try */ gtk_tree_model_get_iter (gtk_tree_view_get_model(file_list), &iter, (GtkTreePath*)next->data);
-	/* my try*/			gtk_tree_model_get(gtk_tree_view_get_model(file_list), &iter, 0, &path, -1);
-
-//			gtk_clist_get_text(file_list, index, 0, &path);
+		while (file_list) {
+			path = (char *) file_list->data;
+			
 			if (path) {
-				paths.push_back(std::string(current_dir) + "/" + path);
+				paths.push_back(path);
 			}
-			next = next->next;
+			file_list = file_list->next;
 		}
 
 		// Sort them (they're sometimes returned in a slightly odd order)
@@ -965,34 +1173,21 @@ void play_file_ok(GtkWidget *, gpointer data)
 		GDK_THREADS_ENTER();
 		playlist->UnPause();
 		
-//		gtk_clist_unselect_all(file_list);
-			gtk_tree_selection_unselect_all (gtk_tree_view_get_selection(file_list));	
-		g_free(current_dir);
+		gtk_file_chooser_unselect_all (GTK_FILE_CHOOSER(play_dialog));
+		g_slist_free(file_list);	
 	}
 	// Save path
-	gtk_widget_hide(GTK_WIDGET(play_dialog));
+	gtk_widget_hide(play_dialog);
 }
 
-void play_file_cancel(GtkWidget *, gpointer data)
+void play_file_cancel(GtkWidget *play_dialog, gpointer data)
 {
-	gint x,y;
+// do we really need placing window ?
+//	gint x,y;
 
-	gdk_window_get_root_origin(GTK_WIDGET(data)->window, &x, &y);
-	gtk_widget_hide(GTK_WIDGET(data));
-	gtk_widget_hide(GTK_WIDGET(data));
-	gtk_widget_set_uposition(GTK_WIDGET(data), x, y);
-}
-
-
-gboolean play_file_delete_event(GtkWidget *widget, GdkEvent *, gpointer)
-{
-	gint x, y;
-
-	gdk_window_get_root_origin(widget->window, &x, &y);
-	gtk_widget_hide(widget);
-	gtk_widget_set_uposition(widget, x, y);
-
-	return TRUE;
+//	gdk_window_get_root_origin(play_dialog->window, &x, &y);
+	gtk_widget_hide(play_dialog);
+//	gtk_widget_set_uposition(play_dialog, x, y);
 }
 
 void playlist_cb(GtkWidget *, gpointer data)
@@ -1092,6 +1287,14 @@ gint val_area_configure(GtkWidget *widget, GdkEventConfigure *, gpointer)
 	return true;
 }
 
+void play_dialog_cb(GtkDialog *dialog, gint response, gpointer user_data)
+{
+	if (response == GTK_RESPONSE_ACCEPT)
+		play_file_ok(GTK_WIDGET(dialog), (gpointer) user_data);
+	else
+		play_file_cancel(GTK_WIDGET(dialog), NULL);
+}	
+
 void init_main_window(Playlist *pl)
 {
 	GtkWidget *root_menu;
@@ -1120,30 +1323,37 @@ void init_main_window(Playlist *pl)
 
 	effects_window = init_effects_window();	
 	scopes_window = init_scopes_window();
-	play_dialog = gtk_file_selection_new("Play file or URL");
-	gtk_file_selection_hide_fileop_buttons (GTK_FILE_SELECTION (play_dialog));
-/*  play_dialog = gtk_file_chooser_dialog_new("Load Playlist", GTK_WINDOW(main_window), GTK_FILE_CHOOSER_ACTION_OPEN, 
+//	play_dialog = gtk_file_selection_new("Play file or URL");
+//	gtk_file_selection_hide_fileop_buttons (GTK_FILE_SELECTION (play_dialog));
+  play_dialog = gtk_file_chooser_dialog_new("Load Playlist", GTK_WINDOW(main_window), GTK_FILE_CHOOSER_ACTION_OPEN, 
   																GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 				     											GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
 				      										NULL);
 	gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(play_dialog), TRUE);
-*/	GtkTreeView *file_list = GTK_TREE_VIEW(GTK_FILE_SELECTION(play_dialog)->file_list);
-	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(file_list), GTK_SELECTION_MULTIPLE);
+//	GtkTreeView *file_list = GTK_TREE_VIEW(GTK_FILE_SELECTION(play_dialog)->file_list);
+//	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(file_list), GTK_SELECTION_MULTIPLE);
+
+//	GSList *file_list = gtk_file_chooser_get_filenames (GTK_FILE_CHOOSER(play_dialog));
 	
-	g_signal_connect(G_OBJECT(
-								  GTK_FILE_SELECTION(play_dialog)->cancel_button), "clicked",
-					   G_CALLBACK(play_file_cancel), play_dialog);
-	g_signal_connect(G_OBJECT(play_dialog), "delete_event",
-					   G_CALLBACK(play_file_delete_event), play_dialog);
-	g_signal_connect(G_OBJECT(
-								  GTK_FILE_SELECTION(play_dialog)->ok_button),
-					   "clicked", G_CALLBACK(play_file_ok), playlist);
-	gtk_file_selection_set_filename(GTK_FILE_SELECTION(play_dialog), 
-		prefs_get_string(ap_prefs, "gtk2_interface", "default_play_path", "~/")); 
+//	g_signal_connect(G_OBJECT(
+//								  GTK_FILE_SELECTION(play_dialog)->cancel_button), "clicked",
+//					   G_CALLBACK(play_file_cancel), play_dialog);
+//	g_signal_connect(G_OBJECT(play_dialog), "delete_event",
+//					   G_CALLBACK(play_file_delete_event), play_dialog);
+//	g_signal_connect(G_OBJECT(
+//								  GTK_FILE_SELECTION(play_dialog)->ok_button),
+//					   "clicked", G_CALLBACK(play_file_ok), playlist);
+//	gtk_file_selection_set_filename(GTK_FILE_SELECTION(play_dialog), 
+//		prefs_get_string(ap_prefs, "gtk2_interface", "default_play_path", "~/")); 
+
+	g_signal_connect(G_OBJECT(play_dialog), "delete_event", G_CALLBACK(gtk_widget_hide_on_delete), NULL);
+	g_signal_connect(G_OBJECT(play_dialog), "response", G_CALLBACK(play_dialog_cb), playlist);
 
 	g_signal_connect (G_OBJECT (main_window), "expose_event",
 						G_CALLBACK(on_expose_event), NULL);
 
+	gtk_signal_connect(GTK_OBJECT(main_window), "key_press_event",
+		GTK_SIGNAL_FUNC(key_press_cb), (gpointer)playlist_window_gtk);
 
 	speed_scale = get_widget(main_window, "pitch_scale"); 
 

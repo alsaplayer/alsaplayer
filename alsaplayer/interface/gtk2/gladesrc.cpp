@@ -300,11 +300,8 @@ create_playlist_window (void)
   GtkWidget *vbox5;
   GtkWidget *hbox16;
   GtkWidget *scrolledwindow1;
-  GtkWidget *viewport1;
+  GtkListStore *playlist_model;
   GtkWidget *playlist;
-  GtkWidget *label2;
-  GtkWidget *label3;
-  GtkWidget *label100;
   GtkWidget *vbox6;
   GtkWidget *add_button;
   GtkWidget *del_button;
@@ -315,11 +312,12 @@ create_playlist_window (void)
   GtkWidget *load_button;
   GtkWidget *save_button;
   GtkWidget *clear_button;
+  GtkWidget *loop_button;
   GtkWidget *playlist_status;
 
   playlist_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   g_object_set_data (G_OBJECT (playlist_window), "playlist_window", playlist_window);
-  gtk_window_set_default_size (GTK_WINDOW(playlist_window), 500, 350);
+  gtk_window_set_default_size (GTK_WINDOW(playlist_window), 480, 390);
   gtk_window_set_title (GTK_WINDOW (playlist_window), "Queue");
 
   vbox5 = gtk_vbox_new (FALSE, 0);
@@ -345,46 +343,32 @@ create_playlist_window (void)
   gtk_box_pack_start (GTK_BOX (hbox16), scrolledwindow1, TRUE, TRUE, 0);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow1), GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
-  viewport1 = gtk_viewport_new (NULL, NULL);
-  gtk_widget_ref (viewport1);
-  g_object_set_data_full (G_OBJECT (playlist_window), "viewport1", viewport1,
-                            (GtkDestroyNotify) gtk_widget_unref);
-  gtk_widget_show (viewport1);
-  gtk_container_add (GTK_CONTAINER (scrolledwindow1), viewport1);
-  gtk_viewport_set_shadow_type (GTK_VIEWPORT (viewport1), GTK_SHADOW_NONE);
-
-  playlist = gtk_clist_new (3);
+	playlist_model = gtk_list_store_new(3, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_STRING);
+ 
+  playlist = gtk_tree_view_new_with_model(GTK_TREE_MODEL(playlist_model));
   gtk_widget_ref (playlist);
   g_object_set_data_full (G_OBJECT (playlist_window), "playlist", playlist,
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (playlist);
-  gtk_container_add (GTK_CONTAINER (viewport1), playlist);
-  gtk_clist_set_column_width (GTK_CLIST (playlist), 0, 80);
-  gtk_clist_set_column_width (GTK_CLIST (playlist), 1, 80);
-  gtk_clist_set_column_width (GTK_CLIST (playlist), 2, 80);
-  gtk_clist_set_selection_mode (GTK_CLIST (playlist), GTK_SELECTION_EXTENDED);
-  gtk_clist_column_titles_hide (GTK_CLIST (playlist));
+  gtk_container_add (GTK_CONTAINER (scrolledwindow1), playlist);
 
-  label2 = gtk_label_new ("label2");
-  gtk_widget_ref (label2);
-  g_object_set_data_full (G_OBJECT (playlist_window), "label2", label2,
-                            (GtkDestroyNotify) gtk_widget_unref);
-  gtk_widget_show (label2);
-  gtk_clist_set_column_widget (GTK_CLIST (playlist), 0, label2);
-
-  label3 = gtk_label_new ("label3");
-  gtk_widget_ref (label3);
-  g_object_set_data_full (G_OBJECT (playlist_window), "label3", label3,
-                            (GtkDestroyNotify) gtk_widget_unref);
-  gtk_widget_show (label3);
-  gtk_clist_set_column_widget (GTK_CLIST (playlist), 1, label3);
-
-  label100 = gtk_label_new ("label100");
-  gtk_widget_ref (label100);
-  g_object_set_data_full (G_OBJECT (playlist_window), "label100", label100,
-                            (GtkDestroyNotify) gtk_widget_unref);
-  gtk_widget_show (label100);
-  gtk_clist_set_column_widget (GTK_CLIST (playlist), 2, label100);
+	GtkCellRenderer *renderer;
+	GtkTreeViewColumn *column;
+	
+	renderer = gtk_cell_renderer_pixbuf_new();
+	column = gtk_tree_view_column_new_with_attributes("playing", renderer, "pixbuf", 0, NULL);
+	gtk_tree_view_append_column (GTK_TREE_VIEW (playlist), column);
+	
+	renderer = gtk_cell_renderer_text_new();
+	column = gtk_tree_view_column_new_with_attributes("title", renderer, "text", 1, NULL);
+	gtk_tree_view_append_column (GTK_TREE_VIEW (playlist), column);
+	
+	renderer = gtk_cell_renderer_text_new();
+	column = gtk_tree_view_column_new_with_attributes("time", renderer, "text", 2, NULL);
+	gtk_tree_view_append_column (GTK_TREE_VIEW (playlist), column);
+	
+	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(GTK_TREE_VIEW(playlist)), GTK_SELECTION_MULTIPLE);
+	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(playlist), FALSE);
 
   vbox6 = gtk_vbox_new (FALSE, 6);
   gtk_widget_ref (vbox6);
@@ -458,6 +442,13 @@ create_playlist_window (void)
   gtk_widget_show (clear_button);
   gtk_box_pack_start (GTK_BOX (vbox24), clear_button, FALSE, FALSE, 0);
 //my try  gtk_widget_set_usize (clear_button, 70, -2);
+
+  loop_button = gtk_button_new_with_label ("Loop");
+  gtk_widget_ref (loop_button);
+  gtk_object_set_data_full (GTK_OBJECT (playlist_window), "loop_button", loop_button,
+                            (GtkDestroyNotify) gtk_widget_unref);
+  gtk_widget_show (loop_button);
+  gtk_box_pack_start (GTK_BOX (vbox6), loop_button, FALSE, FALSE, 0);
 
   playlist_status = gtk_vbox_new (FALSE, 0);
   gtk_widget_ref (playlist_status);
