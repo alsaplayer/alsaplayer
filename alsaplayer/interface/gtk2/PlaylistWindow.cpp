@@ -109,6 +109,9 @@ void PlaylistWindowGTK::CbSetCurrent(void *data, unsigned current) {
 	PlaylistWindowGTK *gtkpl = (PlaylistWindowGTK *)data;
 	GtkStyle *style;
 	
+	if (current == 0)
+	    return;
+
 	GDK_THREADS_ENTER();
 
 	GtkListStore *list = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(gtkpl->playlist_list)));
