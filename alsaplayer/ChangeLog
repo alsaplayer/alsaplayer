@@ -1,6 +1,11 @@
 * Modify threading to use conditional waits. More portable
 * GTK2 test interface. Far from functional
 
+Mon May 27 2005
+---------------
+* Backported to gtk interface Madej's fix for AP crash with transparency
+  support.
+  
 Sat May 26 2007
 ---------------
 * Changed the default cddb server to cddb.cddb.org
