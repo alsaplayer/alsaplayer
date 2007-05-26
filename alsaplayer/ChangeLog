@@ -1,13 +1,38 @@
 * Modify threading to use conditional waits. More portable
 * GTK2 test interface. Far from functional
 
+Sat May 26 2007
+---------------
+* Changed the default cddb server to cddb.cddb.org
+* Changed default interface to gtk2.
+* Fixed the behaviour of the play button. It work now as explained in the
+  man page.
 
+Fri May 25 2007
+---------------
+* Madej patch: added the same keybindins and loop function in gtk2 as in gtk.
+* Deleted non needed gui folder in gtk2 interface.
+* Removed obsolete gtk2 folder.
+* New Madej patch. Fixed Alsaplayer (gtk2) crash when transparency support is
+  enabled in X.
+* Fixed return value in CbSetCurrent (gtk2 only issue).
+
+Thu May 24 2007
+---------------
+* The desktop file will launch the gtk2 interface.
+* New Madej patch: Add scopes support in the gtk2 interface.
+* Updated onsolete doxygen functions.
+* Madej patch: Lifting of the gtk2 interface.
 
 Wed May 23 2007
 ---------------
 * Moved the existing and not working gtk2 interface in interface/gtk2obsolete
 * Committed a new and working gtk2 interface in interface/gtk2
   This new interface was kindly provide by Madej from Poland.
+
+Tue May 22 2007
+---------------
+* Fixed the CFLAGS to use AM-CFLAGS
 
 Sat May 19 2007
 ---------------
