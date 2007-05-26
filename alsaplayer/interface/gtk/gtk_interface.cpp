@@ -801,13 +801,16 @@ void play_cb(GtkWidget *widget, gpointer data)
 	if (p) {
 		pl->UnPause();
 		if (p->IsPlaying() || !pl->Length()) {
-			eject_cb(widget, data);
-		} else if (!p->IsPlaying() && pl->Length()) {
-			GDK_THREADS_LEAVE();
+//			eject_cb(widget, data);
+    			GDK_THREADS_LEAVE();
 			pl->Play(pl->GetCurrent());
 			GDK_THREADS_ENTER();
-		}	
-	}	
+		} else if (!p->IsPlaying() && pl->Length()) {
+    			GDK_THREADS_LEAVE();
+			pl->Play(pl->GetCurrent());
+			GDK_THREADS_ENTER();
+		}
+    	}	
 }
 
 
