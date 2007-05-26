@@ -917,7 +917,7 @@ int main(int argc, char **argv)
 		}
 	} else {
 		char *interface = prefs_get_string
-			(ap_prefs, "main", "default_interface", "gtk");
+			(ap_prefs, "main", "default_interface", "gtk2");
 		// if we're trying to use the gtk interface, but we have no
 		// $DISPLAY, use the text interface instead
 		if (strcmp (interface, "gtk") == 0 && !getenv("DISPLAY"))
