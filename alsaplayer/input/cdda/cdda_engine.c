@@ -852,7 +852,7 @@ void cddb_update_info(struct cdda_local_data *data)
 	else 
 	{
 		/* if could not, try to get it from the internet connection.. */
-		cddb_servername = prefs_get_string(ap_prefs, "cdda", "cddb_servername", "freedb.freedb.org");
+		cddb_servername = prefs_get_string(ap_prefs, "cdda", "cddb_servername", "cddb.cddb.org");
 		cddb_serverport = prefs_get_string(ap_prefs, "cdda", "cddb_serverport", "888"); 
 		if (global_verbose)
 			alsaplayer_error("CDDB server: %s:%s", cddb_servername, cddb_serverport);	    
