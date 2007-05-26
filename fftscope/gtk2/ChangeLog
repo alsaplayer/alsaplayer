@@ -1,0 +1,17 @@
+Tue May 22 22:21:44 CEST 2007
+-----------------------------
+* Makefile.am use AM_CFLAGS instead of CFLAGS
+
+Mon May 21 21:40:08 CEST 2007
+-----------------------------
+* Fixed quit function.
+
+Thu May 16 15:38:22 CEST 2002
+-----------------------------
+* Remember window status
+* Follow minor API changes
+
+
+Sun Mar 31 15:39:14 CEST 2002
+-----------------------------
+* First packaged release
