@@ -1,13 +1,13 @@
 * Modify threading to use conditional waits. More portable
-* GTK2 test interface. Far from functional
+* The GTK2 interface is in progress. It provide the same level of functionality
+  as the GTK1 one and more will come soon. A big thanks to Madej from Poland
+  for its work on this interface.
 
-Mon May 27 2005
----------------
-* Backported to gtk interface Madej's fix for AP crash with transparency
-  support.
   
 Sat May 26 2007
 ---------------
+* Backported to gtk interface Madej's fix for AP crash with transparency
+  support.
 * Changed the default cddb server to cddb.cddb.org
 * Changed default interface to gtk2.
 * Fixed the behaviour of the play button. It work now as explained in the
@@ -26,7 +26,7 @@ Thu May 24 2007
 ---------------
 * The desktop file will launch the gtk2 interface.
 * New Madej patch: Add scopes support in the gtk2 interface.
-* Updated onsolete doxygen functions.
+* Updated obsolete doxygen functions.
 * Madej patch: Lifting of the gtk2 interface.
 
 Wed May 23 2007
