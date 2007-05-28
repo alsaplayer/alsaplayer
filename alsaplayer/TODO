@@ -8,6 +8,8 @@ TODO list (2007 May 28)
 - gtk2: pause must resume playing at the last speed, not normal speed
 - cdda: fix cddb support
 - gtk: backport the gtk2 changes to gtk when it is possible
+- gtk*: when using console commands to change the speed, the speed is
+  changed but those interfaces are not aware of it. Fix it.
 
 Old TODO list order according to priority, highest first
 
