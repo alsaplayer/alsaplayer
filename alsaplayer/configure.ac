@@ -313,7 +313,7 @@ dnl ==========
 dnl GTK2 stuff
 dnl ==========
 
-PKG_CHECK_MODULES(GTK2_8, gtk+-2.0 >= 2.8.0 gthread-2.0 >= 2.0.3 pango, have_gtk2=yes, have_gtk2=no)
+PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.8.0 gthread-2.0 >= 2.0.3 pango, have_gtk2=yes, have_gtk2=no)
 AC_SUBST(GTK2_LIBS)
 AC_SUBST(GTK2_CFLAGS)
 
