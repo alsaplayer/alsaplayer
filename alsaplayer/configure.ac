@@ -43,7 +43,6 @@ use_libmad=no
 use_libid3tag=no
 prefer_mad=yes
 enable_nls=yes
-enable_opengl=yes
 
 if test "x$x_includes" = "xNONE"
 then
