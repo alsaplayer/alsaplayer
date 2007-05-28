@@ -3,7 +3,12 @@
   as the GTK1 one and more will come soon. A big thanks to Madej from Poland
   for its work on this interface.
 
-  
+Mon May 28 2007
+---------------
+* Fixed GTK2 version to GTK2+-2.8.0 in configure.ac
+* Updated TODO
+* Changed cddb_servername to the correct directory and cddb_serverport to 80
+ 
 Sat May 26 2007
 ---------------
 * Backported to gtk interface Madej's fix for AP crash with transparency

@@ -1,4 +1,15 @@
-TODO list order according to priority, highest first
+TODO list (2007 May 28)
+
+- global: add gettext support
+- global: new preference option to start or not playing at startup
+- gtk2: add tooltips
+- gtk2: preferences interface
+- gtk2: make the loop button in playlist window to work
+- gtk2: pause must resume playing at the last speed, not normal speed
+- cdda: fix cddb support
+- gtk: backport the gtk2 changes to gtk when it is possible
+
+Old TODO list order according to priority, highest first
 
 - Write proper documentation for the plugin APIs
 - Preferences interface

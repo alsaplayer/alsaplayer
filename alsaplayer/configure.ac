@@ -4,9 +4,9 @@ AC_INIT(app/CorePlayer.cpp)
 
 ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
-ALSAPLAYER_MICRO_VERSION=78
+ALSAPLAYER_MICRO_VERSION=80
 
-BETA=
+BETA=-rc1
 
 ALSAPLAYER_VERSION=$ALSAPLAYER_MAJOR_VERSION.$ALSAPLAYER_MINOR_VERSION.${ALSAPLAYER_MICRO_VERSION}${BETA}
 
@@ -165,6 +165,7 @@ dnl ================
 if test "$have_glib" = "no"
 then
 	have_gtk=no
+	have_gtk2=no
 fi
 
 if test "$have_ogg" = "yes"
@@ -312,7 +313,7 @@ dnl ==========
 dnl GTK2 stuff
 dnl ==========
 
-PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.3 gthread-2.0 >= 2.0.3, have_gtk2=yes, have_gtk2=no)
+PKG_CHECK_MODULES(GTK2_8, gtk+-2.0 >= 2.8.0 gthread-2.0 >= 2.0.3 pango, have_gtk2=yes, have_gtk2=no)
 AC_SUBST(GTK2_LIBS)
 AC_SUBST(GTK2_CFLAGS)
 
