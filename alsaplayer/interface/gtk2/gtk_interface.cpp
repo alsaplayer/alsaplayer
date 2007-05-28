@@ -508,7 +508,7 @@ void speed_cb(GtkWidget *widget, gpointer data)
 pthread_t smoother_thread;
 pthread_mutex_t smoother_mutex = PTHREAD_MUTEX_INITIALIZER;
 static float destination = 100.0;
-
+static float speed_pan_position = 100.0;
 
 void smoother(void *data)
 {
@@ -756,12 +756,14 @@ void forward_play_cb(GtkWidget *, gpointer data)
 	adj = GTK_RANGE(data)->adjustment;
 
 	if (smooth_trans) {
-		destination = 100.0;
+		speed_pan_position = 100.0;
+		destination = speed_pan_position;
 		pthread_create(&smoother_thread, NULL,
 				(void * (*)(void *))smoother, adj);
 		pthread_detach(smoother_thread);
-	} else {	
-		gtk_adjustment_set_value(adj, 100.0);
+	} else {
+		speed_pan_position = 100.0;
+		gtk_adjustment_set_value(adj, speed_pan_position);
 	}	
 }
 
@@ -776,12 +778,14 @@ void reverse_play_cb(GtkWidget *, gpointer data)
 	adj = GTK_RANGE(data)->adjustment;
 
 	if (smooth_trans) {
-		destination = -100.0;
+		speed_pan_position = -100.0;
+		destination = speed_pan_position;
 		pthread_create(&smoother_thread, NULL,
 				(void * (*)(void *))smoother, adj);
 		pthread_detach(smoother_thread);
-	} else {	
-		gtk_adjustment_set_value(adj, -100.0);
+	} else {
+		speed_pan_position = -100.0;	
+		gtk_adjustment_set_value(adj, speed_pan_position);
 	}	
 }
 
@@ -792,23 +796,26 @@ void pause_cb(GtkWidget *, gpointer data)
 	int smooth_trans;
 
 	adj = GTK_RANGE(data)->adjustment;
-
+			
 	smooth_trans = prefs_get_bool(ap_prefs, "gtk2_interface", "smooth_transition", 0);
 		
 	if (smooth_trans) {
-		if (destination <= adj->value && destination != 0.0) {
+		//?? if (destination <= adj->value && destination != 0.0) {
+		if (adj->value != 0.0) {
+			speed_pan_position = gtk_adjustment_get_value(adj);
 			destination = 0.0;
 		} else {
-			destination = 100.0;
+			destination = speed_pan_position;
 		}	
 		pthread_create(&smoother_thread, NULL,
 			(void * (*)(void *))smoother, adj);
 		pthread_detach(smoother_thread);
 	} else {
 		if (adj->value != 0.0) {
+			speed_pan_position = gtk_adjustment_get_value(adj);
 			gtk_adjustment_set_value(adj, 0.0);
 		} else {
-			gtk_adjustment_set_value(adj, 100.0);
+			gtk_adjustment_set_value(adj, speed_pan_position);
 		}
 	}	
 }
