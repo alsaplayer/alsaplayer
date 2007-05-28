@@ -691,7 +691,7 @@ gboolean key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer data)
 			break;
 	}
 	}
-	return FALSE;
+	return TRUE;
 }
 
 void loop_cb(GtkWidget *, gpointer data)
@@ -838,7 +838,7 @@ void play_cb(GtkWidget *widget, gpointer data)
 	if (p) {
 		pl->UnPause();
 		if (p->IsPlaying() || !pl->Length()) {
-//			eject_cb(widget, data);
+			eject_cb(widget, data);
 			GDK_THREADS_LEAVE();
 			pl->Play(pl->GetCurrent());
 			GDK_THREADS_ENTER();
@@ -856,7 +856,7 @@ void eject_cb(GtkWidget *, gpointer data)
 	Playlist *pl = (Playlist *)data;
 	CorePlayer *p = pl->GetCorePlayer();
 
-	if (p) {
+	if ((p) && (!pl->Length())) {
 		gtk_widget_show(play_dialog);
 // what for ?		gdk_window_raise(play_dialog->window);
 	}

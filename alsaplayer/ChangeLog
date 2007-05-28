@@ -13,6 +13,12 @@ Sat May 26 2007
 * Fixed the behaviour of the play button. It work now as explained in the
   man page.
 
+Mon May 28 2007
+---------------
+New Madej patches:
+* Added --disable-opengl configure option
+* Fixed keybindings missbehaviour and improved play button
+
 Fri May 25 2007
 ---------------
 * Madej patch: added the same keybindins and loop function in gtk2 as in gtk.
