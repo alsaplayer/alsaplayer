@@ -1,5 +1,11 @@
 TODO list (2007 May 28)
 
+- global: move libalsaplayer to a standalone application with unix-sockets or
+  TCP- (UDP-?) based interface.
+  This will include (list of ideas at that time):
+  - Adding TCP-based comtrol module in parallel with unix-socket based one.
+  - Separating libalsaplayer and checking for crossplatform-readiness.
+  - Separating all interface.
 - global: add gettext support
 - global: new preference option to start or not playing at startup
 - gtk2: add tooltips
