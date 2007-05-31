@@ -19,3 +19,13 @@ new features and also does the Python interface.
 
 Frank Baumgart is keeping a sharp eye on resource usage
 and cleaning up lots of code.
+
+Hubert Chan from Debian for committing critical security fixes
+
+Viktor Radnai and Paul Brossier from Debian made basic keyboard
+navigation and loop mode.
+
+Administration by Dominique Michel <dominique_libre@sourceforge.net>
+It is contribution from other peoples too. If I miss you, please drop
+me a word and I will add you in this file.
+

@@ -1,6 +1,8 @@
 AlsaPlayer - PCM audio player for Linux and compatible OSes
 
-Written by Andy Lo A Foe (andy@alsaplayer.org)
+Original version written by Andy Lo A Foe (andy@alsaplayer.org)
+GZK2 interface written by Madej from Poland.
+Contributions from many other peoples. See the AUTHORS file for details.
 
 See the file COPYING for license details.
 
@@ -20,7 +22,7 @@ INTERFACE PLUGINS
 
 This cool feature allows you to completely customize your user interface.
 I.e. the core of AlsaPlayer is decoupled from the user interface. The default
-GTK+ interface is the best supported one. Among others, there is also a text
+GTK2 interface is the best supported one. Among others, there is also a text
 only interface.
 
 
