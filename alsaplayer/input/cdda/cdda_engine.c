@@ -544,6 +544,32 @@ char * cddb_local_lookup (char *path, unsigned int cd_id)
 	return (NULL);
 }
 
+char*
+cut_html_head(char *answer)
+{
+	if(!answer)
+		return NULL;
+		
+	char *new_answer;
+	int counter = 0, i = 0;
+
+	for (i = 0; i < strlen(answer); i++) {
+		if (*(answer+i) == '\n') {
+			if (counter < 3) {
+				new_answer = strdup(answer+i+1);
+				free(answer);
+				return new_answer;
+			}
+			counter = 0;
+		}
+		
+		counter++;
+	}
+
+	free(answer);
+	return NULL; 
+}
+
 /*
  * search for the song in the CDDB given address/port, returning it's name, or
  * NULL if not found.
@@ -570,37 +596,41 @@ char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_li
 			printf ("OK\n");
 
 	/* get the initial message from the server */
-	n = read (server_fd, server, 80);
-	if (n >= 0)
-		server[n] = '\0';
-	if (n >= 2)
-		server[n-2] = '\0';
-
-	if (global_verbose) {
-		printf ("\n<- %s\n", server);
-		printf ("Saying HELLO to CDDB server ...\n");
+	if (port > 80) {
+		n = read (server_fd, server, 80);
+		if (n >= 0)
+			server[n] = '\0';
+		if (n >= 2)
+			server[n-2] = '\0';
+	
+		if (global_verbose) {
+			printf ("\n<- %s\n", server);
+			printf ("Saying HELLO to CDDB server ...\n");
+		}
 	}
-
 	/* set some settings before saying HELLO to the CDDB server */
 	username = getlogin ();
 	if ((gethostname (hostname, sizeof (hostname))) < 0)
 		snprintf (hostname, sizeof (hostname), "unknown");
 
-	snprintf (msg, sizeof (msg), "cddb hello %s %s %s %s\r\n", username, hostname,PACKAGE, VERSION);
-	answer = send_to_server (server_fd, msg);
-	if (! answer)
-	{
-		alsaplayer_error("bad response from the server\n");
-		close (server_fd);
-		return (NULL);
+	if (port > 80) {
+		snprintf (msg, sizeof (msg), "cddb hello %s %s %s %s\r\n\r\n", username, hostname,PACKAGE, VERSION);
+			
+		answer = send_to_server (server_fd, msg);
+		if (! answer)
+		{
+			alsaplayer_error("bad response from the server\n");
+			close (server_fd);
+			return (NULL);
+		}
 	}
-
 	/* set another settings before querying the CDDB database */
 	tmpbuf[0] = '\0';
 	for (i = 0; i < tl->max; i++) 
 	{
 		/* put the frame offset of the starting location of each track in a string */
-		snprintf (offsets, sizeof (offsets), "%s %d ", tmpbuf, 
+		//snprintf (offsets, sizeof (offsets), "%s %d ", tmpbuf,
+		snprintf (offsets, sizeof (offsets), "%s+%d", tmpbuf, 
 				tl->l_frame[i] + (75 * (tl->l_sec[i] + (60 * tl->l_min[i]))));
 		strcpy (tmpbuf, offsets);
 		counter += tl->l_frame[i] + (75 * tl->l_sec[i] + (60 * tl->l_min[i]));
@@ -609,8 +639,13 @@ char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_li
 	total_secs = tl->l_sec[tl->max] + (tl->l_min[tl->max] * 60);
 
 	/* send it */
-	snprintf (msg, sizeof (msg), "cddb query %08x %d %s %d\r\n", discID, tl->max, offsets, total_secs);
-	free(answer);
+	if (port > 80) 
+		snprintf (msg, sizeof (msg), "cddb query %08x %d %s %d\r\n", discID, tl->max, offsets, total_secs);
+	else
+		snprintf (msg, sizeof (msg), "GET /~cddb/cddb.cgi?cmd=cddb+query+%08x+%d%s+%d&hello=%s+%s+%s+%s&proto=6 HTTP/1.0\r\n\r\n", discID, tl->max, offsets, total_secs, username, hostname,PACKAGE, VERSION);
+	
+	if (answer)
+		free(answer);
 	answer = send_to_server (server_fd, msg);
 	if (! answer)
 	{
@@ -624,6 +659,13 @@ char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_li
 	 * if answer == "211...", found too many matches
 	 * if answer == "202...", found no matches
 	 */
+	
+	if (port <= 80)  
+		answer = cut_html_head(answer);
+	
+	if (!answer)
+		return NULL;
+			 
 	i = 0;
 	if (! (strncmp (answer, "211", 3)))
 	{
@@ -684,7 +726,13 @@ char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_li
 
 	/* read from the server */
 
-	sprintf (msg, "cddb read %s %s\r\n", categ, newID);
+	if (port > 80)
+		sprintf (msg, "cddb read %s %s\r\n", categ, newID);
+	else {
+		server_fd = create_socket ((unchar *) address, port);
+		snprintf (msg, sizeof (msg), "GET /~cddb/cddb.cgi?cmd=cddb+read+%s+%s&hello=%s+%s+%s+%s&proto=6 HTTP/1.0\r\n\r\n", categ, newID, username, hostname,PACKAGE, VERSION);
+	}
+	
 	free(answer);
 	answer = send_to_server(server_fd, msg);
 
