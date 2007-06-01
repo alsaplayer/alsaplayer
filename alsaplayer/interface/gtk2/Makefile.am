@@ -5,9 +5,8 @@ if HAVE_GTK2
 gtk2_interfaceltlibs = libgtk2_interface.la
 gtk2_interfaceldflags = -export-dynamic -avoid-version
 gtk2_interfacesources = EffectsWindow.cpp PlaylistWindow.cpp ScopesWindow.h  \
-	gtk.cpp support.cpp EffectsWindow.h PlaylistWindow.h \
-	gladesrc.cpp ScopesWindow.cpp gladesrc.h support.h \
-	gtk_interface.cpp gtk_interface.h
+	gtk.cpp EffectsWindow.h PlaylistWindow.h ScopesWindow.cpp \
+	gtk_interface.cpp gtk_interface.h AboutWindow.cpp AboutWindow.h
 
 else
 

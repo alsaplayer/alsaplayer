@@ -160,7 +160,7 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 		return 1;
 	}
 
-/* my try */	gdk_threads_init();
+	gdk_threads_init();
 
 	// Scope functions
 	scopes = new AlsaSubscriber();

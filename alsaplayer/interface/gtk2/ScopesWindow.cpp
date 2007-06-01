@@ -18,11 +18,18 @@
  *  $Id: ScopesWindow.cpp 954 2003-04-08 15:23:31Z adnans $
  *
 */ 
+
+#ifdef ENABLE_NLS
+#define _(String) gettext(String)
+#define N_(String) noop_gettext(String)
+#else
+#define _(String) (String)
+#define N_(String) String
+#endif
+
 #include "ScopesWindow.h"
 #include "CorePlayer.h"
 #include "Effects.h"
-#include "support.h"
-#include "gladesrc.h"
 #include "gtk_interface.h"
 #include "pixmaps/note.xpm"
 #include "alsaplayer_error.h"
@@ -32,7 +39,6 @@
 #include <dlfcn.h>
 #include <math.h>
 
-extern int global_scopes_show;
 static GtkWidget *scopes_window = (GtkWidget *)NULL;
 static GdkPixmap *active_pix = (GdkPixmap *)NULL;
 static GdkBitmap *active_mask = (GdkBitmap *)NULL;
@@ -183,14 +189,19 @@ void apUnregiserScopePlugins()
 
 int apRegisterScopePlugin(scope_plugin *plugin)
 {
-	GtkWidget *list;
-	char *list_item[2];
+	GtkWidget *scopes_list;
+	GtkListStore *list;
+	GtkTreeIter iter;
+	
+	scopes_list = (GtkWidget *) g_object_get_data(G_OBJECT(scopes_window), "scopes_list");
+	list = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(scopes_list)));
+	
 	scope_entry *se;
 	if (!scopes_window) {
 		printf("No scopes_window\n");
 		return 0;
 	}	
-	list = (GtkWidget *) g_object_get_data(G_OBJECT(scopes_window), "list");
+	
 	se = new scope_entry;
 	se->next = (scope_entry *)NULL;
 	se->sp = plugin;
@@ -203,11 +214,9 @@ int apRegisterScopePlugin(scope_plugin *plugin)
 	}		
 	se->active = 0;
 
-	// Add new scope to GtkClist
-	list_item[0] = g_strdup(" ");
-	list_item[1] = g_strdup(se->sp->name);
-	int index = gtk_clist_append(GTK_CLIST(list), list_item);
-	gtk_clist_set_row_data_full(GTK_CLIST(list), index, se, scope_entry_destroy_notify);
+	// Add new scope to list
+	gtk_list_store_append (list, &iter);
+	gtk_list_store_set(list, &iter, 0, (gchar *)se, 1, (gchar *)se->sp->name, -1);
 
 	// Init scope
 	se->sp->init(NULL);
@@ -247,155 +256,47 @@ static void close_all_cb(GtkWidget *, gpointer data)
 }
 
 
-static void close_scope_cb(GtkWidget *, gpointer data)
+static void close_scope_cb(GtkWidget *, gpointer user_data)
 {
-	GtkWidget *list = (GtkWidget *)data;
+	GtkWidget *list = (GtkWidget *)user_data;
 	
 	if (list) {
-		if (!GTK_CLIST(list)->selection)
-			return;
-		gint row = GPOINTER_TO_INT(GTK_CLIST(list)->selection->data);
 
-		scope_entry *se = (scope_entry *)
-			gtk_clist_get_row_data(GTK_CLIST(list), row);
+		GtkTreeIter iter;
+		gtk_tree_selection_get_selected(gtk_tree_view_get_selection(GTK_TREE_VIEW(user_data)), NULL, &iter);
+		
+		gchar *data = NULL;
+		gtk_tree_model_get(GTK_TREE_MODEL(gtk_tree_view_get_model(GTK_TREE_VIEW(user_data))), &iter, 0, &data, -1);
+		scope_entry *se = (scope_entry *) data;
+		
 		if (se && se->sp) {
 			GDK_THREADS_LEAVE();
 			se->sp->stop();
 			GDK_THREADS_ENTER();
-		}	
-	}
-}
-
-
-static void open_scope_cb(GtkWidget *, gpointer data)
-{
-	GtkWidget *list = (GtkWidget *)data;
-	
-	if (list) {
-		if (!GTK_CLIST(list)->selection)
-			return;
-		gint row = GPOINTER_TO_INT(GTK_CLIST(list)->selection->data);
-
-		scope_entry *se = (scope_entry *)
-			gtk_clist_get_row_data(GTK_CLIST(list), row);
-		if (se && se->sp) {
-			GDK_THREADS_LEAVE();
-			se->sp->start();
-			GDK_THREADS_ENTER();
-		}	
-	}
-}
-
-
-static void exclusive_open_cb(GtkWidget *widget, gpointer data)
-{
-	GtkWidget *list = (GtkWidget *)data;
-
-	if (list) {
-		scope_entry *current = root_scope;
-		scope_entry *exclusive_one = NULL;
-
-		if (!GTK_CLIST(list)->selection)
-			return;
-
-		gint row = GPOINTER_TO_INT(GTK_CLIST(list)->selection->data);	
-		
-		scope_entry *se = (scope_entry *)
-			gtk_clist_get_row_data(GTK_CLIST(list), row);
-		if (se && se->sp) {
-			while (current) {
-				if (current == se) {
-					exclusive_one = current;
-				}
-				GDK_THREADS_LEAVE();
-				//alsaplayer_error("Stopping \"%s\"", current->sp->name);
-				current->sp->stop();
-				GDK_THREADS_ENTER();
-				current = current->next;
-			}
-			if (exclusive_one && exclusive_one->sp) {
-				//alsaplayer_error("Starting exclusive scope \"%s\"", exclusive_one->sp->name);
-				exclusive_one->sp->start();
-			}
 		}
+		g_free(data);	
 	}
 }
 
 
-gboolean scopes_list_button_press(GtkWidget *widget, GdkEvent *bevent, gpointer)
+static void open_scope_cb(GtkWidget *, gpointer user_data)
 {
-	GtkWidget *menu_item;
-	GtkWidget *the_menu;
-	gint row, col;
-	//alsaplayer_error("Button pressed! (%.2f, %.2f, %d)", bevent->button.x, 
-	//	bevent->button.y, bevent->button.button);
-	gtk_clist_get_selection_info(GTK_CLIST(widget), 
-		(gint)bevent->button.x, (gint)bevent->button.y,
-		&row, &col);
-	if (bevent->button.button == 3) { // Right mouse
-		bool selection;
-
-		gtk_clist_select_row(GTK_CLIST(widget), row, 0);
-
-		if (!GTK_CLIST(widget)->selection)
-			selection = false;
-		else
-			selection = true;
+	GtkTreeIter iter;
+	gtk_tree_selection_get_selected(gtk_tree_view_get_selection(GTK_TREE_VIEW(user_data)), NULL, &iter);
 	
-		// Construct a popup
-		the_menu = gtk_menu_new();
-		menu_item = gtk_menu_item_new_with_label("Open");
-		gtk_menu_append(GTK_MENU(the_menu), menu_item);
-		gtk_widget_show(menu_item);
-		g_signal_connect(G_OBJECT(menu_item), "activate",
-			G_CALLBACK(open_scope_cb), widget);
-		if (!selection)
-			gtk_widget_set_sensitive(menu_item, false);
+	gchar *data = NULL;
+//	gtk_tree_model_get(GTK_TREE_MODEL(gtk_tree_view_get_model(GTK_TREE_VIEW(user_data))), &iter, 0, &data, -1);
+	gtk_tree_model_get(GTK_TREE_MODEL(gtk_tree_view_get_model(GTK_TREE_VIEW(user_data))), &iter, 1, &data, -1);
+//	scope_entry *se = (scope_entry *) data;
+	scope_entry *se = NULL;
 	
-		menu_item = gtk_menu_item_new_with_label("Open exclusively");
-		gtk_menu_append(GTK_MENU(the_menu), menu_item);
-		gtk_widget_show(menu_item);
-		g_signal_connect(G_OBJECT(menu_item), "activate", 
-			G_CALLBACK(exclusive_open_cb), widget);
-		if (!selection)
-			gtk_widget_set_sensitive(menu_item, false);
-
-		// Separator
-		menu_item = gtk_menu_item_new();
-		gtk_menu_append(GTK_MENU(the_menu), menu_item);
-		gtk_widget_show(menu_item);
-
-
-		 menu_item = gtk_menu_item_new_with_label("Close");
-		 gtk_menu_append(GTK_MENU(the_menu), menu_item);
-		 gtk_widget_show(menu_item);
-		 g_signal_connect(G_OBJECT(menu_item), "activate",
-		 	G_CALLBACK(close_scope_cb), widget);
-		 if (!selection)
-		 	gtk_widget_set_sensitive(menu_item, false);
-
-		 menu_item = gtk_menu_item_new_with_label("Close all");
-		 gtk_menu_append(GTK_MENU(the_menu), menu_item);
-		 g_signal_connect(G_OBJECT(menu_item), "activate",
-		 	G_CALLBACK(close_all_cb), widget);
-		 gtk_widget_show(menu_item);
-		 
-			
-		gtk_menu_popup(GTK_MENU(the_menu), NULL, NULL, NULL, NULL,
-			bevent->button.button, bevent->button.time);
+	for(se = root_scope; se != NULL; se=se->next) {
+		int size = (strlen(data) < strlen(se->sp->name))?strlen(data):strlen(se->sp->name);
+		int res = strncmp(data, se->sp->name, size);
+		if (!res)
+			break;
 	}
-	
-	//alsaplayer_error("Row = %d, Col = %d", row, col);
-	
-	return FALSE;	
-}
-
-void scopes_list_click(GtkWidget *widget, gint row, gint /* column */,
-	GdkEvent *bevent, gpointer /* data */)
-{
-	if (bevent && bevent->type == GDK_2BUTTON_PRESS) {
-		scope_entry *se = (scope_entry *)
-			gtk_clist_get_row_data(GTK_CLIST(widget), row);
+		
 		if (se && se->sp) {
 #ifdef STUPID_FLUFF		
 			if (se->active)
@@ -412,92 +313,150 @@ void scopes_list_click(GtkWidget *widget, gint row, gint /* column */,
 			}
 #else
 			se->sp->start();
-#endif			
+#endif
 		}
-	}
+		g_free(data);
 }
 
 
-void scopes_window_ok_cb(GtkWidget * /*button_widget*/, gpointer data)
+static void exclusive_open_cb(GtkWidget *widget, gpointer user_data)
 {
-	gint x, y;
-	static gint s_windows_x_offset = 0;
-	static gint s_windows_y_offset = 0;
+	close_all_cb(NULL, user_data);
+	open_scope_cb(NULL, user_data);
+}
+
+
+gboolean scopes_list_button_press(GtkWidget *widget, GdkEvent *bevent, gpointer)
+{
+	GtkWidget *menu_item;
+	GtkWidget *the_menu;
+
+	if (bevent->button.button == 3) { // Right mouse
+		// Construct a popup
+		the_menu = gtk_menu_new();
+		menu_item = gtk_image_menu_item_new_from_stock(GTK_STOCK_OPEN, NULL);
+		gtk_menu_append(GTK_MENU(the_menu), menu_item);
+		g_signal_connect(G_OBJECT(menu_item), "activate",
+			G_CALLBACK(open_scope_cb), widget);
+
 	
-	GtkWidget *widget = (GtkWidget *)data;
-        
-        gdk_window_get_origin(widget->window, &x, &y);
-        if (windows_x_offset >= 0) {
-                x -= s_windows_x_offset;
-                y -= s_windows_y_offset;
-        }       
-        gtk_widget_hide(widget);
-        gtk_widget_set_uposition(widget, x, y);
-        global_scopes_show = 0;
+		menu_item = gtk_menu_item_new_with_label(_("Open exclusively"));
+		gtk_menu_append(GTK_MENU(the_menu), menu_item);
+		g_signal_connect(G_OBJECT(menu_item), "activate", 
+			G_CALLBACK(exclusive_open_cb), widget);
+
+		// Separator
+		menu_item = gtk_separator_menu_item_new();
+		gtk_menu_append(GTK_MENU(the_menu), menu_item);
+
+
+		 menu_item = gtk_image_menu_item_new_from_stock(GTK_STOCK_CLOSE, NULL);
+		 gtk_menu_append(GTK_MENU(the_menu), menu_item);
+		 g_signal_connect(G_OBJECT(menu_item), "activate",
+		 	G_CALLBACK(close_scope_cb), widget);
+
+		 menu_item = gtk_menu_item_new_with_label(_("Close all"));
+		 gtk_menu_append(GTK_MENU(the_menu), menu_item);
+		 g_signal_connect(G_OBJECT(menu_item), "activate",
+		 	G_CALLBACK(close_all_cb), widget);
+		
+		gtk_widget_show_all(the_menu);
+		
+		gtk_menu_popup(GTK_MENU(the_menu), NULL, NULL, NULL, NULL,
+			bevent->button.button, bevent->button.time);
+	} else if ((bevent->button.button == 1) && (bevent->type == GDK_2BUTTON_PRESS))
+		open_scope_cb(NULL, widget);
+	
+	//alsaplayer_error("Row = %d, Col = %d", row, col);
+	
+	return FALSE;	
 }
-
-gboolean scopes_window_delete_event(GtkWidget *widget, GdkEvent * /*event*/, gpointer /* data */)
-{
-        gint x, y;
-
-        gdk_window_get_origin(widget->window, &x, &y);
-        if (windows_x_offset >= 0) {
-                x -= windows_x_offset;
-                y -= windows_y_offset;
-        }	
-        gtk_widget_hide(widget);
-        gtk_widget_set_uposition(widget, x, y);
-        global_scopes_show = 0;
-
-	return TRUE;
-}
-
 
 void destroy_scopes_window()
 {
 	if (!scopes_window)
 		return;
-	prefs_set_bool(ap_prefs, "gtk2_interface", "scopeswindow_active",
-		global_scopes_show);
+	prefs_set_bool(ap_prefs, "gtk2_interface", "scopeswindow_active", GTK_WIDGET_VISIBLE(scopes_window));
 }
 
-GtkWidget *init_scopes_window()
+gboolean
+scopes_delete_event(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
-	GtkWidget *working;
-	GtkStyle *style;
-
-	scopes_window = create_scopes_window();
-	gtk_widget_realize(scopes_window);
-	GtkWidget *list = get_widget(scopes_window, "scopes_list");
-
-	style = gtk_widget_get_style(list);	
-	active_pix = gdk_pixmap_create_from_xpm_d(scopes_window->window, &active_mask,
-		&style->bg[GTK_STATE_NORMAL], note_xpm);
+	if (GTK_WIDGET_VISIBLE(widget))
+		gtk_widget_hide(widget);
 	
+	return TRUE;	
+}
 
-	g_object_set_data(G_OBJECT(scopes_window), "list", list);
-	gtk_clist_set_column_width(GTK_CLIST(list), 0, 16);
-	gtk_clist_set_row_height(GTK_CLIST(list), 20);
-	g_signal_connect(G_OBJECT(list), "select_row",
-		G_CALLBACK(scopes_list_click), NULL);
-	g_signal_connect(G_OBJECT(list), "button_press_event",
-		G_CALLBACK(scopes_list_button_press), NULL);
-	working = get_widget(scopes_window, "ok_button");
-	g_signal_connect(G_OBJECT(working), "clicked",
-		G_CALLBACK(scopes_window_ok_cb), scopes_window);
+void
+scopes_window_response(GtkDialog *dialog, gint arg1, gpointer user_data)
+{
+	if (arg1 == GTK_RESPONSE_CLOSE) {
+		scopes_delete_event(GTK_WIDGET(dialog), NULL, NULL);
+	}
+}
 
-	// Close/delete signals
-	g_signal_connect(G_OBJECT(scopes_window), "destroy",
-                G_CALLBACK(scopes_window_delete_event), NULL);
-	g_signal_connect(G_OBJECT(scopes_window), "delete_event",
-                G_CALLBACK(scopes_window_delete_event), NULL);
+GtkWidget*
+create_scopes_window(void)
+{
+	GtkWidget *scopes_window;
+	GtkWidget *vbox;
+	GtkWidget *label;
+	GtkWidget *scrolledwindow;
+	GtkWidget *scopes_list;
+	GtkListStore *scopes_model;
+	
+	scopes_window = gtk_dialog_new_with_buttons(_("Scopes"), NULL, GTK_DIALOG_DESTROY_WITH_PARENT,
+												GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE, NULL);
+	
+	gtk_window_set_default_size (GTK_WINDOW(scopes_window), 200, 300);
+	 
+	vbox = GTK_DIALOG(scopes_window)->vbox;
+	 
+	label = gtk_label_new(_("Double click to activate"));
+	gtk_box_pack_start (GTK_BOX(vbox), label, FALSE, FALSE, 3);
+	
+	scrolledwindow = gtk_scrolled_window_new (NULL, NULL);
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+	gtk_box_pack_start (GTK_BOX(vbox), scrolledwindow, TRUE, TRUE, 0);
+	
+	scopes_model = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_STRING);
+ 	scopes_list = gtk_tree_view_new_with_model(GTK_TREE_MODEL(scopes_model));
+ 	g_object_set_data(G_OBJECT(scopes_window), "scopes_list", scopes_list);
+ 	gtk_container_add (GTK_CONTAINER(scrolledwindow), scopes_list);
+	g_object_unref(scopes_model);
+
+	GtkCellRenderer *renderer;
+	GtkTreeViewColumn *column;
+	
+	renderer = gtk_cell_renderer_text_new();
+	column = gtk_tree_view_column_new_with_attributes("data", renderer, "text", 0, NULL);
+	gtk_tree_view_column_set_visible(column, FALSE);
+	gtk_tree_view_append_column (GTK_TREE_VIEW (scopes_list), column);
+	
+	renderer = gtk_cell_renderer_text_new();
+	column = gtk_tree_view_column_new_with_attributes(_("Scope name"), renderer, "text", 1, NULL);
+	gtk_tree_view_append_column (GTK_TREE_VIEW (scopes_list), column);
+			
+	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(GTK_TREE_VIEW(scopes_list)), GTK_SELECTION_SINGLE);
+	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(scopes_list), FALSE);
+	
+	g_signal_connect(G_OBJECT(scopes_window), "delete_event", G_CALLBACK(scopes_delete_event), NULL);
+	g_signal_connect(G_OBJECT(scopes_window), "response", G_CALLBACK(scopes_window_response), NULL);
+	g_signal_connect(G_OBJECT(scopes_list), "button_press_event", G_CALLBACK(scopes_list_button_press), NULL);
+	
+	return scopes_window;
+}
+
+GtkWidget *init_scopes_window(GtkWidget *main_window)
+{
+	scopes_window = create_scopes_window();
 
 	// Init scope list
 	pthread_mutex_init(&sl_mutex, (pthread_mutexattr_t *)NULL);
 
 	if (prefs_get_bool(ap_prefs, "gtk2_interface", "scopeswindow_active", 0)) {
-		gtk_widget_show(scopes_window);
-		global_scopes_show = 1;
+		gtk_widget_show_all(scopes_window);
 	}	
 
 	return scopes_window;

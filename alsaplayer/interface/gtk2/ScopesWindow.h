@@ -4,7 +4,7 @@
 #include <gtk/gtk.h>
 #include "scope_plugin.h"
 
-extern GtkWidget *init_scopes_window();
+extern GtkWidget *init_scopes_window(GtkWidget *main_window);
 extern void destroy_scopes_window();
 extern int apRegisterScopePlugin(scope_plugin *plugin);
 extern void apUnregiserScopePlugins();

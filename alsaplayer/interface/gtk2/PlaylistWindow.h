@@ -24,6 +24,8 @@
 extern void playlist_window_gtk_prev(GtkWidget *, gpointer);
 extern void playlist_window_gtk_next(GtkWidget *, gpointer);
 
+GtkWidget* create_filechooser(GtkWindow *main_window, Playlist *playlist);
+
 void dialog_popup(GtkWidget *, gpointer data);
 void playlist_remove(GtkWidget *, gpointer data);
 void playlist_play_current(Playlist *playlist, GtkWidget *list);
@@ -39,7 +41,7 @@ class PlaylistWindowGTK
 		pthread_mutex_t playlist_list_mutex; // Mutex for list
 		bool showing;
 	public:
-		PlaylistWindowGTK(Playlist *);
+		PlaylistWindowGTK(Playlist *, GtkWidget *);
 		~PlaylistWindowGTK();
 
 		GtkWidget *add_file;
