@@ -1,5 +1,6 @@
 /*  gtk_interface.h
  *  Copyright (C) 1999 Richard Boulton <richard@tartarus.org>
+ *  Copyright (C) 2007 Madej
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
