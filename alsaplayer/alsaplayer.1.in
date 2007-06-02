@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ALSAPLAYER 1 "19 May 2007"
+.TH ALSAPLAYER 1 "1 June 2007"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -35,6 +35,12 @@ amount of file formats.
 .PP
 If files are specified on the command line, these files are played.  Otherwise
 alsaplayer plays its playlist from its last run, if any.
+.SH FILENAME
+Play the specified file(s). Can be a file or an URL.
+.TP
+.B CD.cdda
+Special filename. Play a CD. /dev/cdrom will be used by default. Otherwise,
+AlsapPlayer will use the device specified in your config file (usualy ~/.alsaplayer/config).
 .SH OPTIONS
 These programs follow the usual GNU command line syntax, with long
 options starting with two dashes (`-').
@@ -212,11 +218,125 @@ Volume Down
 .TP
 .B l
 Loop
+.SH PREFERENCES
+AlsaPlayer have a preferences file located in ~/.alsaplayer/config. To modify the preferences setting by hand,
+you must exit from the running program and edit this file. The default value is put in the description below when appropriate:
+.SS General settings
+.TP
+.B main.default_interface=gtk2
+Specify the default interface.
+.TP
+.B main.default_output=alsa
+Specify the default sound server.
+.TP
+.B main.multiopen=true
+Specify if it is possible to run multiple AlsaPlayer instances.
+.TP
+.B main.period_count=8
+Number of periods in the sound buffer
+.TP
+.B main.period_size=4096
+Frames per period in the sound buffer
+.SS Output settings
+.TP
+.B jack.output1=alsa_pcm:playback_1
+Output devive 1 when using JACK sound server
+.TP
+.B jack.output2=alsa_pcm:playback_2
+Output devive 2 when using JACK sound server
+.SS Input settings
+.TP
+.B cdda.cddb_servername=freedb.freedb.org
+Server used by the cdda input module to retrieve the cddb informations.
+.TP
+.B cdda.cddb_serverport=80
+Port used by the cdda input module to retrieve the cddb informations.
+.TP
+.B cdda.device=/dev/cdrom
+Device used by the cdda input module to retrieve the CD.
+.TP
+.B cdda.do_cddb_lookup=true
+Must AlsaPlayer retrieve or not the cddb information.
+.TP
+.B http.buffer_size=1048576
+Size of the input buffer when <filename> is an URL.
+.TP
+.B mad.parse_id3=true
+Parse or not the Id3 tags.
+.SS GTK interface settings
+.TP
+.B gtk_interface.default_play_path=~/
+Default path used by the Add file function
+.TP
+.B gtk_interface.default_playlist_add_path=/
+Default path used by the Add file function in the Playlist window
+.TP
+.B gtk_interface.default_playlist_load_path=/
+Default path used by the Load playlist function
+.TP
+.B gtk_interface.default_playlist_save_path=/
+Default path used by the Save playlist function
+.TP
+.B gtk_interface.playlist_active=false
+Launch or not the playlist window at startup.
+.TP
+.B gtk_interface.sopeswindow_active=false
+Launch or not the scopes selector window at startup.
+.TP
+.B gtk_interface.smooth_transition=false
+Will functions such as pause use a smooth speed transition.
+.SS GTK2 interface settings
+It use the same options as the GTK interface but with "gtk2_" as prefix instead of "gtk_".
+.SS XOSD interface settings
+.TP
+.B xosd_interface.color=#55ff55
+Color used by the XOSD interface.
+.TP
+.B xosd_interface.font=-adobe-helvetica-medium-r-normal-*-24-*-*-*-*-*-*-*
+.TP
+.B xosd_interface.h_offset=20
+Display horizontal offset from the left of the screen
+.TP
+.B xosd_interface.timeout=5
+Set the display time.
+.TP
+.B xosd_interface.v_offset=20
+Display vertical offset from the top of the screen
+.SS Scopes settings
+.TP
+.B blurscope.active=false
+Launch or not the blurscope plugin at startup.
+.TP
+.B fftscope.active=false
+Launch or not the fftscope plugin at startup.
+.TP
+.B levelmeter.active=false
+Launch or not the levelmeter scope plugin at startup.
+.TP
+.B logbarfft.active=false
+Launch or not the logbar scope plugin at startup.
+.TP
+.B opengl_spectrum.active=false
+Launch or not the spectrumgl scope plugin at startup.
+.TP
+.B opengl_spectrum.height=480
+Height of the spectrumgl scope plugin
+.TP
+.B opengl_spectrum.width=640
+Width of the spectrumgl scope plugin
+.TP
+.B opengl_spectrum.active=false
+.TP
+.B spacescope.active=false
+Launch or not the spacescope plugin at startup.
+.TP
+.B synaescope.active=false
+Launch or not the synaescope plugin at startup.
 .SH SEE ALSO
 .BR mikmod (1),
 .BR mpg123 (1).
 .SH AUTHOR
 This manual page was written by Ivo Timmermans <ivo@debian.org>,
 for the Debian GNU/Linux system (but may be used by others).
-GTK and DAEMON INTERFACE sections added by Dominique Michel 
+FILENAME, GTK, DAEMON INTERFACE and PREFERENCES sections added by Dominique Michel 
 <dominique_libre@sourceforge.net> from the Alsaplayer team.
