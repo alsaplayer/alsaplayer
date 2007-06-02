@@ -2,6 +2,21 @@
 * The GTK2 interface is in progress. It provide the same level of functionality
   as the GTK1 one and more will come soon. A big thanks to Madej from Poland
   for its work on this interface.
+Fri May 1 2007
+--------------
+* Madej: lot of code cleaning on the GTK2 interface, about window,
+  tooltips, main window can be resized, loop in playlist work
+* CDA engine: removed directory in server name 
+* Updated TODO list and AUTHORS
+
+Thu May 31 2007
+---------------
+* Madej patch: html handling in cdda_engine
+* Updated AUTHORS file
+
+Tue May 29 2007
+---------------
+* Updated TODO list
 
 Mon May 28 2007
 ---------------
