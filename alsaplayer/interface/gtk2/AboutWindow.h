@@ -1,5 +1,4 @@
-/*  EffectsWindow.h
- *  Copyright (C) 1998 Andy Lo A Foe <andy@alsa-project.org>
+/*  AboutWindow.h
  *  Copyright (C) 2007 Madej
  *
  *  This program is free software; you can redistribute it and/or modify

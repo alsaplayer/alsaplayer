@@ -1,4 +1,4 @@
-/*  EffectsWindow.h
+/*  ScopesWindow.h
  *  Copyright (C) 1998 Andy Lo A Foe <andy@alsa-project.org>
  *  Copyright (C) 2007 Madej
  *
