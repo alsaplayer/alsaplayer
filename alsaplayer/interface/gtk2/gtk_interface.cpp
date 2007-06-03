@@ -57,9 +57,11 @@
 #endif
 #include "pixmaps/play.xpm"
 #include "pixmaps/playlist.xpm"
-//#include "pixmaps/cd.xpm"
+#include "pixmaps/cd.xpm"
 #include "pixmaps/menu.xpm"
 #include "pixmaps/note.xpm"
+#include "pixmaps/loop.xpm"
+#include "pixmaps/looper.xpm"
 
 #include "PlaylistWindow.h"
 
@@ -71,6 +73,8 @@
 //#include "Effects.h"
 #include "ScopesWindow.h"
 #include "control.h"
+
+#include "info_window.h"
 
 Playlist *playlist = NULL;
 
@@ -97,7 +101,6 @@ gint global_effects_show = 0;
 gint windows_x_offset = -1;
 gint windows_y_offset = -1;
 
-static int global_draw_volume = 1;
 static GdkPixmap *val_ind = NULL;
 static PlaylistWindowGTK *playlist_window_gtk = NULL;
 static coreplayer_notifier notifier;
@@ -141,6 +144,8 @@ static int vol_scales[] = {
 #else
 #define INDICATOR_WIDTH 69
 #endif
+
+InfoWindow *infowindow;
 
 ////////////////////////
 // Callback functions //
@@ -207,12 +212,12 @@ void notifier_unlock(void)
 
 void stop_notify(void *data)
 {
-	//alsaplayer_error("Song was stopped");
+	alsaplayer_error("Song was stopped");
 }
 
 void start_notify(void *data)
 {
-	//alsaplayer_error("Song was started");
+	alsaplayer_error("Song was started");
 }
 
 
@@ -243,13 +248,14 @@ gboolean press_event(GtkWidget *, GdkEvent *, gpointer)
 	global_update = 0;
 	return FALSE;
 }
-
+/*
 gboolean volume_move_event(GtkWidget *, GdkEvent *, gpointer)
 {
 	//draw_volume();
 	return FALSE;
 }
-
+*/
+/*
 void draw_title(char *title)
 {
 	update_struct *ustr = &global_ustr;
@@ -287,7 +293,8 @@ void draw_title(char *title)
 	}
 	gdk_flush();
 }
-
+*/
+/*
 void draw_format(char *format)
 {
 	update_struct *ustr = &global_ustr;
@@ -326,45 +333,26 @@ void draw_format(char *format)
 		gtk_widget_draw (ustr->drawing_area, &update_rect);
 	}
 }
-
+*/
 
 void draw_volume(float the_vol)
 {
-	update_struct *ustr = &global_ustr;
-	GdkRectangle update_rect;
-	char str[60];
+	gchar *str;
 
 	int vol = (int) (the_vol * 100); // quick hack
+
+	vol ? str = g_strdup_printf("Volume: %d%%  ", vol) : str = g_strdup_printf("Volume: mute");
 	
-	if (!ustr->vol_scale)
-		return;
-//	adj = GTK_RANGE(ustr->vol_scale)->adjustment;
-
-	int val = vol;
-
-	val ? sprintf(str, "Volume: %d%%  ", val) : sprintf(str, "Volume: mute");
-
-	update_rect.x = 0;
-	update_rect.y = ustr->drawing_area->allocation.height - 20;
-	update_rect.width = 82;
-	update_rect.height = ustr->drawing_area->allocation.height;
-
-	if (val_ind) {	
-			gdk_draw_rectangle(val_ind,
-							ustr->drawing_area->style->black_gc,
-							true, update_rect.x, update_rect.y, update_rect.width, update_rect.height);
-			gdk_draw_string(val_ind, ustr->drawing_area->style->private_font,
-							ustr->drawing_area->style->white_gc, update_rect.x+6, update_rect.y+12, str);
-			gtk_widget_draw (ustr->drawing_area, &update_rect);
-	}
-	gdk_flush();
+	infowindow->set_volume(str);
+	
+	g_free(str);
 }
 
 
-
+/*
 gboolean pan_move_event(GtkWidget *, GdkEvent *, gpointer)
 {
-	global_draw_volume = 0;
+//	global_draw_volume = 0;
 	//draw_balance();
 	return FALSE;
 }
@@ -372,89 +360,51 @@ gboolean pan_move_event(GtkWidget *, GdkEvent *, gpointer)
 
 gboolean pan_release_event(GtkWidget *, GdkEvent *, gpointer)
 {
-	global_draw_volume = 1;
+//	global_draw_volume = 1;
 	return FALSE;
 }
-
+*/
 
 void draw_pan(float the_val)
 {
-	update_struct *ustr = &global_ustr;
-	GdkRectangle update_rect;
-	char str[60];
+	gchar *str;
 	int pan = (int)(the_val * 100.0);
 
 	if (pan < 0) {
-		sprintf(str, "Pan: left %d%%", - pan);
+		str = g_strdup_printf("Pan: left %d%%", - pan);
 	} else if (pan > 0) {
-		sprintf(str, "Pan: right %d%%", pan);
+		str = g_strdup_printf("Pan: right %d%%", pan);
 	} else {
-		sprintf(str, "Pan: center");
+		str = g_strdup_printf("Pan: center");
 	} 
-	update_rect.x = 0;
-	update_rect.y = 20;
-	update_rect.width = 82; 
-	update_rect.height = 20;
-	if (val_ind) {
-			gdk_draw_rectangle(val_ind,
-							ustr->drawing_area->style->black_gc,
-							true, update_rect.x, update_rect.y, 
-							update_rect.width, update_rect.height);
-			gdk_draw_string(val_ind,
-							ustr->drawing_area->style->private_font,
-							ustr->drawing_area->style->white_gc,
-							update_rect.x+6, update_rect.y+12,
-							str);
-			gtk_widget_draw (ustr->drawing_area, &update_rect);
-	}
-	gdk_flush();
+	
+	infowindow->set_balance(str);
+	
+	g_free(str);
 }
 
-
+/*
 gboolean speed_move_event(GtkWidget *, GdkEvent *, gpointer)
 {
 	//draw_speed();
 	return FALSE;
 }
-
+*/
 void draw_speed(float speed)
 {
-	update_struct *ustr = &global_ustr;
-	GtkAdjustment *adj;
-	GdkRectangle update_rect;
-	char str[60];
+	gchar *str;
 	int speed_val;
-	
-	adj = GTK_RANGE(ustr->speed_scale)->adjustment;
 
-	//speed_val = (int)GTK_ADJUSTMENT(adj)->value;
 	speed_val = (int)(speed * 100.0); // We need percentages
 	if (speed_val < ZERO_PITCH_TRESH && speed_val > -ZERO_PITCH_TRESH) {
-		sprintf(str, "Speed: pause");
+		str = g_strdup_printf("Speed: pause");
 	}
 	else
-		sprintf(str, "Speed: %d%%  ", speed_val);
-	update_rect.x = 0; 
-	update_rect.y = 0;
-	update_rect.width = 82;
-	update_rect.height = 20;
-	if (val_ind) {
-			gdk_draw_rectangle(val_ind,
-							ustr->drawing_area->style->black_gc,
-							true,
-							update_rect.x, update_rect.y,
-							update_rect.width,
-							update_rect.height);
-			
-			gdk_draw_string(val_ind,
-							ustr->drawing_area->style->private_font,
-							ustr->drawing_area->style->white_gc,
-							update_rect.x+6, update_rect.y+14,
-							str);
-							
-			gtk_widget_draw (ustr->drawing_area, &update_rect);		
-	}
-	gdk_flush();
+		str = g_strdup_printf("Speed: %d%%  ", speed_val);
+	
+	infowindow->set_speed(str);
+	
+	g_free(str);
 }	
 
 
@@ -480,11 +430,11 @@ gboolean val_release_event(GtkWidget *widget, GdkEvent *, gpointer)
 }
 
 
-gboolean release_event(GtkWidget *widget, GdkEvent *, gpointer)
+gboolean release_event(GtkWidget *widget, GdkEvent *, gpointer data)
 {
 	GtkAdjustment *adj;
-	update_struct *ustr = &global_ustr;
-	Playlist *pl = (Playlist *)ustr->data;
+//	update_struct *ustr = &global_ustr;
+	Playlist *pl = (Playlist *)data;
 	CorePlayer *p = pl->GetCorePlayer();
 
 	adj = GTK_RANGE(widget)->adjustment;
@@ -495,9 +445,9 @@ gboolean release_event(GtkWidget *widget, GdkEvent *, gpointer)
 }
 
 
-gboolean move_event(GtkWidget *, GdkEvent *, gpointer data)
+gboolean move_event(GtkWidget *, GdkEvent *, gpointer)
 {
-	indicator_callback(data, 0);
+	indicator_callback(NULL, 0);
 	return FALSE;
 }
 
@@ -913,7 +863,6 @@ gint indicator_callback(gpointer, int locking)
 	CorePlayer *p;
 	GtkAdjustment *adj;
 	GdkDrawable *drawable;
-	GdkRectangle  update_rect;
 	GdkColor color;
 	stream_info info;
 	char title_string[256];
@@ -1003,8 +952,14 @@ gint indicator_callback(gpointer, int locking)
 			sprintf(str, "%02ld:%02ld / %02ld:%02ld", c_min, c_sec, t_min, t_sec);
 #endif
 	}
+	if (locking)
+			GDK_THREADS_ENTER();
+	infowindow->set_position(str);
+	if (locking)
+			GDK_THREADS_LEAVE();
+			
 //	if (val_ind && strcmp(old_str, str) != 0) {
-	if (val_ind) {
+/*	if (val_ind) {
 //		strcpy(old_str, str);
 		// Painting in pixmap here
 		update_rect.x = ustr->drawing_area->allocation.width-INDICATOR_WIDTH;
@@ -1031,29 +986,34 @@ gint indicator_callback(gpointer, int locking)
 		if (locking)
 			GDK_THREADS_LEAVE();
 	}
-	if (locking)
+*/	if (locking)
 		GDK_THREADS_ENTER();
-	draw_format(info.stream_type);
+	//draw_format(info.stream_type);
+	infowindow->set_format(info.stream_type);
 	if (strlen(info.artist)) {
 		sprintf(title_string, "%s - %s", info.title, info.artist);
-		draw_title(title_string);
+		//draw_title(title_string);
+		infowindow->set_title(title_string);
 	} else if (strlen(info.title)) {
 		sprintf(title_string, "%s", info.title);
-		draw_title(title_string);
+		//draw_title(title_string);
+		infowindow->set_title(title_string);
 	} else {
 		char *p = strrchr(info.path, '/');
 		if (p) {
 			p++;
-			draw_title(p);
+			//draw_title(p);
+			infowindow->set_title(p);
 		} else {
-			draw_title(info.path);
+			//draw_title(info.path);
+			infowindow->set_title(info.path);
 		}	
 	}
-	update_rect.x = 0;
-	update_rect.y = 0;
-	update_rect.width = ustr->drawing_area->allocation.width;
-	update_rect.height = ustr->drawing_area->allocation.height;
-	gdk_flush();
+//	update_rect.x = 0;
+//	update_rect.y = 0;
+//	update_rect.width = ustr->drawing_area->allocation.width;
+//	update_rect.height = ustr->drawing_area->allocation.height;
+//	gdk_flush();
 	if (locking)
 		GDK_THREADS_LEAVE();
 	return true;
@@ -1144,35 +1104,24 @@ void play_file_ok(GtkWidget *play_dialog, gpointer data)
 
 	if (p) {
 
-/* file_list = next*/		GSList *file_list = gtk_file_chooser_get_filenames (GTK_FILE_CHOOSER(play_dialog));
+		GSList *file_list = gtk_file_chooser_get_filenames (GTK_FILE_CHOOSER(play_dialog));
 	
 			std::vector<std::string> paths;
 		char *path;
 		
 		// Write default_play_path
 //		prefs_set_string(ap_prefs, "gtk2_interface", "default_play_path", current_dir);
-/* doesn't really work 
-		if (!file_list) {
-// to be fixed	gchar *sel = g_strdup(gtk_entry_get_text(GTK_ENTRY(GTK_FILE_SELECTION(play_dialog)->selection_entry)));
-			gchar *sel = NULL;			
-			if (sel && strlen(sel)) {
-				if (!strstr(sel, "http://"))
-					paths.push_back(std::string(current_dir) + "/" + sel);
-				else
-					paths.push_back(sel);
-				GDK_THREADS_LEAVE();
-				playlist->AddAndPlay(paths);
-				GDK_THREADS_ENTER();
-//				gtk_entry_set_text(GTK_ENTRY(GTK_FILE_SELECTION(play_dialog)->selection_entry), "");
-				g_free(sel);
-			}	
-			return;
-		}
-*/
+	
 		// Get the selections
+		if (!file_list) {
+			path = gtk_file_chooser_get_uri(GTK_FILE_CHOOSER(play_dialog));
+			if (path) {
+				paths.push_back(path);
+				g_free(path);
+			}
+		}
 		while (file_list) {
 			path = (char *) file_list->data;
-			
 			if (path) {
 				paths.push_back(path);
 			}
@@ -1210,18 +1159,15 @@ void playlist_cb(GtkWidget *, gpointer data)
 	pl->ToggleVisible();
 }
 
-gint alsaplayer_button_press(GtkWidget *widget, GdkEvent *event, gpointer data)
+gboolean alsaplayer_button_press(GtkWidget *widget, GdkEventButton *event, gpointer data)
 {
-	if (event->type == GDK_BUTTON_PRESS) {
-		GdkEventButton *bevent = (GdkEventButton *) event;
+	if (event->button == 3) {
 		gtk_menu_popup (GTK_MENU (data), NULL, NULL, NULL, NULL,
-						bevent->button, bevent->time);
+						event->button, event->time);
 		return true;
 	}
 	return false;
 }
-
-
 
 GtkWidget *get_image_from_xpm(gchar *data[])
 {
@@ -1372,6 +1318,26 @@ create_main_menu(GtkWidget *main_window)
 	
 	return root_menu;	
 }
+
+void loop_button_clicked(GtkWidget *widget, gpointer user_data)
+{
+	Playlist *pl = (Playlist *)user_data;
+
+	if (pl->LoopingPlaylist()) {
+		gtk_tooltips_set_tip(GTK_TOOLTIPS(g_object_get_data(G_OBJECT(widget), "tooltips")), widget, _("Switch off loop"), NULL);
+		pl->UnLoopPlaylist();
+		pl->LoopSong();
+	}
+	else if (pl->LoopingSong()) {
+		gtk_tooltips_set_tip(GTK_TOOLTIPS(g_object_get_data(G_OBJECT(widget), "tooltips")), widget, _("Play playlist in loop"), NULL);
+		pl->UnLoopSong();
+	}
+	else {
+		gtk_tooltips_set_tip(GTK_TOOLTIPS(g_object_get_data(G_OBJECT(widget), "tooltips")), widget, _("Play song in loop"), NULL);
+		pl->LoopPlaylist();
+	}
+}
+
 GtkWidget*
 create_main_window (Playlist *pl)
 {
@@ -1411,7 +1377,10 @@ create_main_window (Playlist *pl)
 	GtkWidget *menu;
 	GtkTooltips *tooltips;
 	GdkPixbuf *window_icon = NULL;
-	
+	GtkWidget *mini_button_box;
+	GtkWidget *loop_button;
+	GtkWidget *looper_button;
+
 	// Dirty trick
 	playlist = pl;
 	
@@ -1438,9 +1407,13 @@ create_main_window (Playlist *pl)
 	info_box = gtk_hbox_new (FALSE, 0);
 	gtk_box_pack_start (GTK_BOX (main_box), info_box, TRUE, TRUE, 0);
 
-	info_window = gtk_drawing_area_new();
+	infowindow = new InfoWindow();
+	info_window = infowindow->GetWindow();
+	
+//	info_window = gtk_drawing_area_new();
+//	gtk_widget_add_events (info_window, GDK_BUTTON_PRESS_MASK);
 	g_object_set_data(G_OBJECT(main_window), "info_window", info_window);
-	gtk_widget_set_size_request (info_window, 408, 40);
+//	gtk_widget_set_size_request (info_window, 408, 40);
 	gtk_box_pack_start (GTK_BOX (info_box), info_window, TRUE, TRUE, 0);
 	
 	pos_scale = gtk_hscale_new (GTK_ADJUSTMENT (gtk_adjustment_new (0, 0, 0, 0, 0, 0)));
@@ -1458,12 +1431,30 @@ create_main_window (Playlist *pl)
 	button_box = gtk_hbox_new (FALSE, 0);
 	gtk_box_pack_start (GTK_BOX (control_box), button_box, FALSE, FALSE, 0);
 
+	mini_button_box = gtk_vbox_new (TRUE, 0);
+	gtk_box_pack_start (GTK_BOX (button_box), mini_button_box, FALSE, FALSE, 0);
+
+	loop_button = gtk_button_new();
+	g_object_set_data(G_OBJECT(loop_button), "tooltips", tooltips);
+	pic = get_image_from_xpm(loop_xpm);
+	gtk_container_add(GTK_CONTAINER(loop_button), pic);
+	gtk_button_set_relief(GTK_BUTTON(loop_button),GTK_RELIEF_NONE);
+	gtk_box_pack_start (GTK_BOX (mini_button_box), loop_button, FALSE, FALSE, 0);
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), loop_button, _("Play playlist in loop"), NULL);
+	
+	looper_button = gtk_button_new();
+	pic = get_image_from_xpm(looper_xpm);
+	gtk_container_add(GTK_CONTAINER(looper_button), pic);
+	gtk_button_set_relief(GTK_BUTTON(looper_button),GTK_RELIEF_NONE);
+	gtk_box_pack_start (GTK_BOX (mini_button_box), looper_button, FALSE, FALSE, 0);
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), looper_button, _("Use looper"), NULL);
+	
 	cd_button = gtk_button_new ();
-	pic = get_image_from_xpm(menu_xpm);
+	pic = get_image_from_xpm(cd_xpm);
 	gtk_container_add(GTK_CONTAINER(cd_button), pic);
 	gtk_button_set_relief(GTK_BUTTON(cd_button),GTK_RELIEF_NONE);
 	gtk_box_pack_start (GTK_BOX (button_box), cd_button, FALSE, FALSE, 0);
-	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), cd_button, _("Main menu"), NULL);
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), cd_button, _("Play CD"), NULL);
 	
 	prev_button = gtk_button_new();
 	pic = get_image_from_xpm(prev_xpm);
@@ -1575,27 +1566,6 @@ create_main_window (Playlist *pl)
 
 	menu = create_main_menu(main_window);
 			
-	/*				CRAP			*/
-	GtkStyle *style;
-	GdkFont *smallfont;
-
-	smallfont = gdk_font_load("-adobe-helvetica-medium-r-normal--10-*-*-*-*-*-*-*");
-
-	if (!smallfont)
-		assert((smallfont = gdk_fontset_load("fixed")) != NULL);
-
-	style = gtk_style_new();
-	style = gtk_style_copy(gtk_widget_get_style(main_window));
-	
-	if (style->private_font)
-		gdk_font_unref(style->private_font);
-	style->private_font = smallfont;
-	gdk_font_ref(style->private_font);
-		
-	gtk_widget_set_style(info_window, style);
-	
-	/***********************************/
-
 	global_ustr.vol_scale = vol_scale;
 	global_ustr.drawing_area = info_window;
 	global_ustr.data = playlist;
@@ -1603,39 +1573,40 @@ create_main_window (Playlist *pl)
 	global_ustr.speed_scale = speed_scale;
 	global_ustr.bal_scale = bal_scale;
 		
-	g_signal_connect (G_OBJECT (vol_scale), "motion_notify_event", G_CALLBACK(volume_move_event), &global_ustr);
-	g_signal_connect (G_OBJECT (vol_scale), "button_press_event", G_CALLBACK(volume_move_event), &global_ustr);
-	
-	g_signal_connect(G_OBJECT(info_window), "configure_event", G_CALLBACK(info_window_configure), (gpointer)main_window);
-	g_signal_connect(G_OBJECT(info_window), "expose_event", G_CALLBACK(pixmap_expose), NULL);
-	
 	g_signal_connect(G_OBJECT(main_window), "delete_event", G_CALLBACK(main_window_delete), NULL);
 	g_signal_connect(G_OBJECT(main_window), "expose_event", G_CALLBACK(on_expose_event), NULL);
 	g_signal_connect(G_OBJECT(main_window), "key_press_event", G_CALLBACK(key_press_cb), (gpointer)playlist_window_gtk);	
+	g_signal_connect(G_OBJECT(main_window), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
+	
+	g_signal_connect(G_OBJECT(playlist_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
   	g_signal_connect(G_OBJECT(playlist_button), "clicked", G_CALLBACK(playlist_cb), playlist_window_gtk); 
-//	g_signal_connect(G_OBJECT(cd_button), "clicked", G_CALLBACK(cd_cb), pl);
+	g_signal_connect(G_OBJECT(cd_button), "clicked", G_CALLBACK(cd_cb), pl);
+	g_signal_connect(G_OBJECT(play_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(play_button), "clicked", G_CALLBACK(play_cb), playlist);
+	g_signal_connect(G_OBJECT(stop_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(stop_button), "clicked", G_CALLBACK(stop_cb), playlist);
+	g_signal_connect(G_OBJECT(next_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(next_button), "clicked", G_CALLBACK(playlist_window_gtk_next), playlist);
+	g_signal_connect(G_OBJECT(prev_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(prev_button), "clicked", G_CALLBACK(playlist_window_gtk_prev), playlist);
+	g_signal_connect(G_OBJECT(reverse_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(reverse_button), "clicked", G_CALLBACK(reverse_play_cb), speed_scale);
+	g_signal_connect(G_OBJECT(pause_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(pause_button), "clicked", G_CALLBACK(pause_cb), speed_scale);
+	g_signal_connect(G_OBJECT(forward_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(forward_button), "clicked", G_CALLBACK(forward_play_cb), speed_scale);
 	g_signal_connect(G_OBJECT(vol_adj), "value_changed", G_CALLBACK(volume_cb), playlist);
-	g_signal_connect(G_OBJECT(pos_scale), "button_release_event", G_CALLBACK(release_event), &global_ustr);
+	g_signal_connect(G_OBJECT(pos_scale), "button_release_event", G_CALLBACK(release_event), playlist);
 	g_signal_connect(G_OBJECT(pos_scale), "button_press_event", G_CALLBACK(press_event), NULL);
-	g_signal_connect(G_OBJECT(pos_scale), "motion_notify_event", G_CALLBACK(move_event), &global_ustr);
-	g_signal_connect(G_OBJECT(speed_scale), "motion_notify_event", G_CALLBACK(speed_move_event), &global_ustr);
-	g_signal_connect(G_OBJECT(speed_scale), "button_press_event", G_CALLBACK(speed_move_event), &global_ustr);
+	g_signal_connect(G_OBJECT(pos_scale), "motion_notify_event", G_CALLBACK(move_event), NULL);
 	g_signal_connect(G_OBJECT(GTK_RANGE(speed_scale)->adjustment), "value_changed", G_CALLBACK(speed_cb), playlist);	
-	g_signal_connect(G_OBJECT(cd_button), "event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
+	g_signal_connect(G_OBJECT(cd_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(GTK_RANGE(bal_scale)->adjustment), "value_changed", G_CALLBACK(pan_cb), playlist);
-	g_signal_connect(G_OBJECT(bal_scale), "motion_notify_event", G_CALLBACK(pan_move_event), &global_ustr);
-	g_signal_connect(G_OBJECT(bal_scale), "button_press_event", G_CALLBACK(pan_move_event), &global_ustr);
-	g_signal_connect(G_OBJECT(bal_scale), "button_release_event", G_CALLBACK(pan_release_event), &global_ustr);
-	
-//	update_info_window(main_window);
-		
+	g_signal_connect(G_OBJECT(loop_button), "clicked", G_CALLBACK(loop_button_clicked), (gpointer)playlist);
+	g_signal_connect(G_OBJECT(loop_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
+	g_signal_connect(G_OBJECT(looper_button), "clicked", G_CALLBACK(loop_cb), (gpointer)pos_scale);
+	g_signal_connect(G_OBJECT(looper_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
+
 	return main_window;
 }
 

@@ -64,9 +64,18 @@ init_about_window(GtkWidget *main_window)
 {
 	GtkWidget *about_window = NULL;
 	GdkPixbuf *about_logo = NULL;
-	const gchar *authors[] = {"Check AUTHORS file", NULL};
+	const gchar *authors[] = {"Core code by Andy Lo A Foe <andy@alsaplayer.org>", 
+								"Project administration and some bug fixes by Dominique Michel <dominique_libre@sourceforge.net>",
+								"Madej for the GTK2 interface, bug fixes, code cleanups etc.",
+								"Hubert Chan from Debian for committing critical security fixes",
+								"Viktor Radnai and Paul Brossier from Debian for basic keyboard navigation and loop mode",
+								"Check AUTHORS file for a more complete list",
+								NULL};
 //	const gchar *artists[] = {"", NULL};
-//	const gchar *documenters[] = {"Documenter 1", "Documenter 2", "Documenter 3", NULL};
+	const gchar *documenters[] = {"Yvo Timmermans from Debian wrote the man page", 
+									"Dominique Michel from alsaplayer.org added the daemon and gtk interfaces sections",
+									"Andy Lo A Foe referenced some part of the source code",
+									NULL};
 	const gchar *license = _("AlsaPlayer is free software; you can redistribute it and/or modify\n\
 it under the terms of the GNU General Public Licence as published by\n\
 the Free Software Foundation; either version 2 of the Licence, or\n\
@@ -93,7 +102,7 @@ along with AlsaPlayer; if not, write to the Free Software Foundation, Inc.,\n\
 	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(about_window), "www.alsaplayer.org");
 	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about_window), authors);
 //	gtk_about_dialog_set_artists(GTK_ABOUT_DIALOG(about_window), artists);
-//	gtk_about_dialog_set_documenters(GTK_ABOUT_DIALOG(about_window), documenters);
+	gtk_about_dialog_set_documenters(GTK_ABOUT_DIALOG(about_window), documenters);
 	gtk_about_dialog_set_translator_credits(GTK_ABOUT_DIALOG(about_window), _("translator-credits"));
 	gtk_about_dialog_set_logo(GTK_ABOUT_DIALOG(about_window), about_logo);
 

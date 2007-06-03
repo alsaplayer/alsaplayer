@@ -213,12 +213,7 @@ void PlaylistWindowGTK::CbInsert(void *data,std::vector<PlayItem> & items, unsig
 			gchar *list_item[4];
 			new_list_item(&(*item), list_item);
 
-			// Add it to the playlist
-//			int index = gtk_clist_insert(GTK_CLIST(gtkpl->playlist_list), position, list_item);
-//			gtk_clist_set_shift(GTK_CLIST(gtkpl->playlist_list), index, 1, 2, 2);
-//			gtk_clist_set_shift(GTK_CLIST(gtkpl->playlist_list), index, 2, 2, 2);
-			
-			gtk_list_store_append (list, &iter);
+			gtk_list_store_insert (list, &iter, position);
 			gtk_list_store_set (list, &iter, 0, NULL, 1, list_item[1], 2, list_item[2], -1);
 			
 			g_free(list_item[0]);
@@ -243,7 +238,6 @@ void PlaylistWindowGTK::CbRemove(void *data, unsigned start, unsigned end)
 	pthread_mutex_lock(&gtkpl->playlist_list_mutex);	
 
 	GDK_THREADS_ENTER();
-//	gtk_clist_freeze(GTK_CLIST(gtkpl->playlist_list));
 
 	GtkListStore *list = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(gtkpl->playlist_list)));
 	GtkTreeIter iter;
@@ -262,7 +256,6 @@ void PlaylistWindowGTK::CbRemove(void *data, unsigned start, unsigned end)
 
 	g_free(start_string);
 	
-//	gtk_clist_thaw(GTK_CLIST(gtkpl->playlist_list));
 	GDK_THREADS_LEAVE();
 
 	pthread_mutex_unlock(&gtkpl->playlist_list_mutex);
@@ -870,6 +863,7 @@ create_playlist_window (PlaylistWindowGTK *playlist_window_gtk, Playlist *pl)
 	
 	renderer = gtk_cell_renderer_text_new();
 	column = gtk_tree_view_column_new_with_attributes("title", renderer, "text", 1, NULL);
+	gtk_tree_view_column_set_expand(column, TRUE);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (playlist), column);
 	
 	renderer = gtk_cell_renderer_text_new();
