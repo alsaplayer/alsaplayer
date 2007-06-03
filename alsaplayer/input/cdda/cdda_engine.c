@@ -1216,9 +1216,9 @@ static int cdda_stream_info(input_object *obj, stream_info *info)
 		info->title[0] = 0;
 	else if (data->track_nr == 0)
 		sprintf(info->title, "Full CD length playback");
-	else
-		sprintf(info->title, "%s", data->tracks[data->track_nr].track);
-
+	else if (data->tracks[data->track_nr].track)
+			sprintf(info->title, "%s", data->tracks[data->track_nr].track);
+	
 	//alsaplayer_error("title = %s\nalbum = %s\nartist = %s",
 	//		info->title, info->album, info->artist);
 	return 1;
