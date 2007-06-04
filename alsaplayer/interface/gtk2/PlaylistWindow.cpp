@@ -521,77 +521,6 @@ static void new_list_item(const PlayItem *item, gchar **list_item)
 }
 
 
-
-/*
-// Called when files have been selected for adding to playlist
-void add_file_ok(GtkWidget *, gpointer data)
-{
-	gchar *sel;
-	PlaylistWindowGTK * playlist_window_gtk = (PlaylistWindowGTK *) data;
-	GtkWidget *add_file = playlist_window_gtk->add_file;
-
-//	GtkCList *file_list = GTK_CLIST(GTK_FILE_SELECTION(add_file)->file_list);
-	GtkTreeView *file_list = GTK_TREE_VIEW(GTK_FILE_SELECTION(add_file)->file_list);
-	Playlist *playlist = playlist_window_gtk->GetPlaylist();
-//	GList *next = file_list->selection;
-	GList *next = gtk_tree_selection_get_selected_rows(gtk_tree_view_get_selection(file_list), NULL);
-	
-	if (!playlist) {
-		return;
-	}	
-	gchar *current_dir =
-		g_strdup(gtk_file_selection_get_filename(GTK_FILE_SELECTION(add_file)));
-
-	int marker = strlen(current_dir)-1;
-	while (marker > 0 && current_dir[marker] != '/') // Get rid of the filename
-		current_dir[marker--] = '\0';
-	prefs_set_string(ap_prefs, "gtk2_interface", "default_playlist_add_path", current_dir);
-
-	std::vector<std::string> paths;
-	
-	if (!next) {
-		sel = g_strdup(gtk_entry_get_text(GTK_ENTRY(GTK_FILE_SELECTION(add_file)->selection_entry)));
-		if (sel && strlen(sel)) {
-			if (!strstr(sel, "http://"))
-				paths.push_back(std::string(current_dir) + "/" + sel);
-			else
-				paths.push_back(sel);
-			GDK_THREADS_LEAVE();
-			playlist->Insert(paths, playlist->Length());
-			GDK_THREADS_ENTER();
-			g_free(sel);
-		}
-		gtk_entry_set_text(GTK_ENTRY(GTK_FILE_SELECTION(add_file)->selection_entry), "");
-		return;
-	}	
-	while (next) { // Walk the selection list
-		char *path;
-		GtkTreeIter iter;
-//		int index = GPOINTER_TO_INT(next->data);
-		
-//		gtk_clist_get_text(file_list, index, 0, &path);
- gtk_tree_model_get_iter (gtk_tree_view_get_model(file_list), &iter, (GtkTreePath*)next->data);
-			gtk_tree_model_get(gtk_tree_view_get_model(file_list), &iter, 0, &path, -1);
-
-		if (path) {
-			paths.push_back(std::string(current_dir) + "/" + path);
-		}
-		next = next->next;
-	}
-	sort(paths.begin(), paths.end());
-		gtk_tree_selection_unselect_all (gtk_tree_view_get_selection(file_list));	
-	g_free(current_dir);
-
-	// Insert all the selected paths
-	if (playlist) {
-		GDK_THREADS_LEAVE();
-		playlist->Insert(paths, playlist->Length());
-		GDK_THREADS_ENTER();
-	} else {
-		printf("No Playlist data found\n");
-	}
-}
-*/
 // Called when a file has been selected to be loaded as a playlist
 void load_list_ok(GtkWidget *widget, gpointer user_data)
 {
@@ -610,6 +539,10 @@ void load_list_ok(GtkWidget *widget, gpointer user_data)
 
 //	std::string file(gtk_file_selection_get_filename(GTK_FILE_SELECTION(playlist_window_gtk->load_list)));
 
+		if (!current) {
+			current = gtk_file_chooser_get_uri(GTK_FILE_CHOOSER(widget));
+		}
+		
 	GDK_THREADS_LEAVE();
 	loaderr = playlist->Load(current, playlist->Length(), false);
 	GDK_THREADS_ENTER();
