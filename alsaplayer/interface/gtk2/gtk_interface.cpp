@@ -322,13 +322,16 @@ void speed_cb(GtkWidget *widget, gpointer data)
 {
 	Playlist *pl = (Playlist *)data;
 	CorePlayer *p = pl->GetCorePlayer();
-	float val =  GTK_ADJUSTMENT(widget)->value;
+	double val =  GTK_ADJUSTMENT(widget)->value;
 	if (val < ZERO_PITCH_TRESH && val > -ZERO_PITCH_TRESH)
 		val = 0;
-	GDK_THREADS_LEAVE();	
-	p->SetSpeed(  (float) val / 100.0);
-	GDK_THREADS_ENTER();
-	draw_speed(val / 100.0);
+	double speed = (double) p->GetSpeed() * 100.0;
+	if ((int)speed != (int)val) {
+		GDK_THREADS_LEAVE();	
+		p->SetSpeed(  (float) val / 100.0);
+		GDK_THREADS_ENTER();
+	}
+		draw_speed(val / 100.0);
 }
 
 pthread_t smoother_thread;
@@ -758,8 +761,15 @@ gint indicator_callback(gpointer, int locking)
 	drawable = ustr->drawing_area->window;
 
 	adj = GTK_RANGE(ustr->speed_scale)->adjustment;
-	//gtk_adjustment_set_value(adj, p->GetSpeed() * 100.0);
-
+	double speed = (double) p->GetSpeed() * 100.0;
+	if ((int)speed != (int)gtk_adjustment_get_value(adj))
+	{
+		if (locking)
+			GDK_THREADS_ENTER();
+		gtk_adjustment_set_value(adj, speed);
+		if (locking)
+				GDK_THREADS_LEAVE();
+	}
 	adj = GTK_RANGE(ustr->pos_scale)->adjustment;
 	if (p->CanSeek()) {
 		adj->lower = 0;
