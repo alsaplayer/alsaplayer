@@ -53,8 +53,7 @@
 // Forward declarations
 
 //static GtkWidget *init_playlist_window(PlaylistWindowGTK *, Playlist *pl, GtkWidget *main_window);
-static void new_list_item(const PlayItem *item, gchar **list_item);
-static int current_entry = -1;
+
 
 // Drag & Drop stuff
 #define TARGET_URI_LIST 0x0001
@@ -64,6 +63,43 @@ static GtkTargetEntry drag_types[] = {
 };
 static int n_drag_types = sizeof(drag_types)/sizeof(drag_types[0]);
 
+static void
+new_list_item(const PlayItem *item, gchar **list_item)
+{
+	gchar *dirname;
+	gchar *filename;
+	gchar *new_path = (gchar *)g_strdup(item->filename.c_str());
+	char pt[1024];
+
+	list_item[0] = NULL;
+
+	if (item->playtime >= 0) {
+		sprintf(pt, "%02d:%02d", (item->playtime > 0) ? item->playtime / 60 : 0,
+			(item->playtime > 0) ? item->playtime % 60 : 0);
+	} else {
+		sprintf(pt, "00:00");
+	}
+	list_item[2] = (gchar *)g_strdup(pt);
+	// Strip directory names
+	dirname = strrchr(new_path, '/');
+	if (dirname) {
+			dirname++;
+			filename = (gchar *)g_strdup(dirname);
+	} else
+			filename = (gchar *)g_strdup(new_path);
+	if (item->title.size()) {
+		std::string s = item->title;
+		if (item->artist.size())
+		{
+			s += std::string(" - ") + item->artist;
+		}
+		list_item[1] = (gchar *)g_strdup(s.c_str());
+	} else {
+		list_item[1] = (gchar *)g_strdup(filename);
+	}	
+	// Put data in list_item
+	list_item[3] = new_path;
+}
 
 static void
 load_dialog_cb(GtkDialog *dialog, gint response, gpointer user_data)
@@ -145,12 +181,41 @@ playlist_delete_event(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 	return TRUE;
 }
 
+static int get_path_number(GtkTreePath *data)
+{
+	int number;
+	gchar *path = gtk_tree_path_to_string(data);
+	gtk_tree_path_free(data);
+	number = atoi(path);
+	g_free(path);
+	
+	return number;
+}
+
+void
+playlist_play_current(GtkWidget *tree, PlaylistWindow *playlist_window)
+{
+		int selected;
+		GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(tree));
+		
+		if (gtk_tree_selection_count_selected_rows(selection) != 1)
+			return;
+			
+		GList* data = gtk_tree_selection_get_selected_rows(selection, NULL);
+		
+		selected = get_path_number((GtkTreePath *)data->data);
+		
+		g_list_free(data);
+				
+		playlist_window->Play(selected + 1);
+}
+
 static gboolean
 list_button_press_event(GtkWidget *widget, GdkEventButton *event, gpointer user_data)
 {
 	PlaylistWindow *playlist_window = (PlaylistWindow *) user_data;
 	if (playlist_window && (event->type == GDK_2BUTTON_PRESS)) {
-		playlist_play_current(playlist_window->GetPlaylist(), widget);
+		playlist_play_current(widget, playlist_window);
 	}
 
 	gtk_widget_grab_focus(widget);
@@ -186,19 +251,8 @@ clear_cb(GtkButton *button, gpointer user_data)
 	}	
 }
 
-static int get_path_number(GtkTreePath *data)
-{
-	int number;
-	gchar *path = gtk_tree_path_to_string(data);
-	gtk_tree_path_free(data);
-	number = atoi(path);
-	g_free(path);
-	
-	return number;
-}
-
-static void
-playlist_remove(GtkButton *button, gpointer user_data)
+void
+playlist_remove(GtkWidget *, gpointer user_data)
 {
 	PlaylistWindow *playlist_window = (PlaylistWindow *) user_data;
 	Playlist *playlist = NULL;
@@ -244,7 +298,7 @@ playlist_remove(GtkButton *button, gpointer user_data)
 		g_list_free(data);
 	}
 }
-
+/*
 static void
 close_cb(GtkButton *button, gpointer user_data)
 {
@@ -253,7 +307,7 @@ close_cb(GtkButton *button, gpointer user_data)
 		playlist_window->Hide();
 	}
 }
-
+*/
 static void
 dnd_drop_event(GtkWidget *widget,
 		GdkDragContext   *drag_context,
@@ -306,13 +360,13 @@ dnd_drop_event(GtkWidget *widget,
 	}               
 	return;
 }
-
+/*
 static void
 playlist_detached(GtkHandleBox *handlebox, GtkWidget *widget, gpointer user_data)
 {
 	gtk_widget_set_size_request(widget, widget->allocation.width, widget->allocation.height);
 }
-                                                        
+*/                                                     
 static GtkWidget*
 create_playlist_window (PlaylistWindow *playlist_window)
 {
@@ -324,14 +378,14 @@ create_playlist_window (PlaylistWindow *playlist_window)
 	GtkWidget *button_box;
 	GtkWidget *add_button;
 	GtkWidget *del_button;
-	GtkWidget *close_button;
+//	GtkWidget *close_button;
 	GtkWidget *shuffle_button;
 	GtkWidget *pl_button_box;
 	GtkWidget *playlist_label;
 	GtkWidget *load_button;
 	GtkWidget *save_button;
 	GtkWidget *clear_button;
-	GtkWidget *loop_button;
+//	GtkWidget *loop_button;
 	GtkWidget *add_file;
 	GtkWidget *load_list;
 	GtkWidget *save_list;
@@ -339,16 +393,17 @@ create_playlist_window (PlaylistWindow *playlist_window)
 		
 	tooltips = gtk_tooltips_new();
 	
-	main_window = gtk_handle_box_new();
-	gtk_handle_box_set_handle_position(GTK_HANDLE_BOX(main_window), GTK_POS_TOP);
-	gtk_handle_box_set_snap_edge(GTK_HANDLE_BOX(main_window), GTK_POS_TOP);
+	main_window = gtk_frame_new(NULL);
+//	gtk_handle_box_set_handle_position(GTK_HANDLE_BOX(main_window), GTK_POS_TOP);
+//	gtk_handle_box_set_snap_edge(GTK_HANDLE_BOX(main_window), GTK_POS_TOP);
 //	gtk_window_set_default_size (GTK_WINDOW(playlist_window), 480, 390);
 //	gtk_window_set_title (GTK_WINDOW (playlist_window), _("Playlist"));
 
-	main_box = gtk_hbox_new(FALSE, 6);
+	main_box = gtk_vbox_new(FALSE, 6);
 	gtk_container_add(GTK_CONTAINER (main_window), main_box);
 
 	scrolledwindow = gtk_scrolled_window_new (NULL, NULL);
+	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwindow), GTK_SHADOW_IN);
 	gtk_box_pack_start (GTK_BOX (main_box), scrolledwindow, TRUE, TRUE, 0);
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
@@ -379,37 +434,37 @@ create_playlist_window (PlaylistWindow *playlist_window)
 	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(GTK_TREE_VIEW(list)), GTK_SELECTION_MULTIPLE);
 	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(list), FALSE);
 
-	button_box = gtk_vbox_new (FALSE, 6);
-	gtk_box_pack_start (GTK_BOX (main_box), button_box, FALSE, TRUE, 6);
+	button_box = gtk_hbox_new (FALSE, 0);
+	gtk_box_pack_start (GTK_BOX (main_box), button_box, FALSE, FALSE, 0);
 
 	add_button = gtk_button_new_from_stock (GTK_STOCK_ADD);
-	gtk_box_pack_start (GTK_BOX (button_box), add_button, FALSE, TRUE, 0);
+	gtk_box_pack_start (GTK_BOX (button_box), add_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), add_button, _("Add a song into the playlist"), NULL);
 
 	del_button = gtk_button_new_from_stock (GTK_STOCK_REMOVE);
-	gtk_box_pack_start (GTK_BOX (button_box), del_button, FALSE, TRUE, 0);
+	gtk_box_pack_start (GTK_BOX (button_box), del_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), del_button, _("Remove the selected song from the playlist"), NULL);
-
+/*
 	close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
-	gtk_box_pack_end (GTK_BOX (button_box), close_button, FALSE, TRUE, 0);
+	gtk_box_pack_end (GTK_BOX (button_box), close_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), close_button, _("Close this window"), NULL);
-
+*/
 	shuffle_button = gtk_button_new_with_label (_("Shuffle"));
 	gtk_box_pack_start (GTK_BOX (button_box), shuffle_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), shuffle_button, _("Randomize the playlist"), NULL);
 
-	pl_button_box = gtk_vbox_new (FALSE, 0);
-	gtk_box_pack_start (GTK_BOX (button_box), pl_button_box, FALSE, TRUE, 18);
+	pl_button_box = gtk_hbox_new (FALSE, 0);
+	gtk_box_pack_end (GTK_BOX (button_box), pl_button_box, FALSE, FALSE, 0);
 
-	playlist_label = gtk_label_new ("PLAYLIST");
-	gtk_box_pack_start (GTK_BOX (pl_button_box), playlist_label, FALSE, FALSE, 3);
+//	playlist_label = gtk_label_new ("PLAYLIST");
+//	gtk_box_pack_start (GTK_BOX (pl_button_box), playlist_label, FALSE, FALSE, 3);
 
 	load_button = gtk_button_new_from_stock (GTK_STOCK_OPEN);
 	gtk_box_pack_start (GTK_BOX (pl_button_box), load_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), load_button, _("Open a playlist"), NULL);
 
 	save_button = gtk_button_new_from_stock (GTK_STOCK_SAVE);
-	gtk_box_pack_start (GTK_BOX (pl_button_box), save_button, FALSE, FALSE, 6);
+	gtk_box_pack_start (GTK_BOX (pl_button_box), save_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), save_button, _("Save the playlist"), NULL);
 
 	clear_button = gtk_button_new_from_stock (GTK_STOCK_CLEAR);
@@ -435,8 +490,8 @@ create_playlist_window (PlaylistWindow *playlist_window)
 //	g_object_set_data(G_OBJECT(save_list), "list", list);
 		
 //	g_signal_connect(G_OBJECT(playlist_window), "destroy", G_CALLBACK(playlist_delete_event), (gpointer)playlist_window);
-	g_signal_connect(G_OBJECT(main_window), "delete_event", G_CALLBACK(playlist_delete_event), (gpointer)playlist_window);
-	g_signal_connect(G_OBJECT(main_window), "key_press_event", G_CALLBACK(key_press_cb), (gpointer)playlist_window);
+//	g_signal_connect(G_OBJECT(main_window), "delete_event", G_CALLBACK(playlist_delete_event), (gpointer)playlist_window);
+//	g_signal_connect(G_OBJECT(main_window), "key_press_event", G_CALLBACK(key_press_cb), (gpointer)playlist_window);
 	g_signal_connect(G_OBJECT(gtk_widget_get_toplevel(main_window)), "drag_data_received", G_CALLBACK(dnd_drop_event), NULL);
 
 	g_signal_connect(G_OBJECT(list), "button_press_event", G_CALLBACK(list_button_press_event), (gpointer)playlist_window);
@@ -444,11 +499,11 @@ create_playlist_window (PlaylistWindow *playlist_window)
 	g_signal_connect(G_OBJECT(add_button), "clicked", G_CALLBACK(dialog_popup), (gpointer)add_file);
 	g_signal_connect(G_OBJECT(clear_button), "clicked", G_CALLBACK(clear_cb), (gpointer)playlist_window);
 	g_signal_connect(G_OBJECT(del_button), "clicked", G_CALLBACK(playlist_remove), (gpointer)playlist_window);
-	g_signal_connect(G_OBJECT(close_button), "clicked",	G_CALLBACK(close_cb), (gpointer)playlist_window);
+//	g_signal_connect(G_OBJECT(close_button), "clicked",	G_CALLBACK(close_cb), (gpointer)playlist_window);
 	g_signal_connect(G_OBJECT(save_button), "clicked", G_CALLBACK(dialog_popup), (gpointer)save_list);
 	g_signal_connect(G_OBJECT(load_button), "clicked", G_CALLBACK(dialog_popup), (gpointer)load_list);
 //	g_signal_connect(G_OBJECT(loop_button), "clicked", G_CALLBACK(loop_cb), NULL);
-	g_signal_connect(G_OBJECT(main_window), "child-detached", G_CALLBACK(playlist_detached), (gpointer)playlist_window);
+//	g_signal_connect(G_OBJECT(main_window), "child-detached", G_CALLBACK(playlist_detached), (gpointer)playlist_window);
 	
 	gtk_widget_grab_focus(GTK_WIDGET(list));
 	
@@ -461,7 +516,10 @@ PlaylistWindow::PlaylistWindow(Playlist *pl) {
 	
 	window = create_playlist_window(this);
 	list = (GtkWidget *)g_object_get_data(G_OBJECT(window), "list");
-
+	
+	width = window->allocation.width;
+	height = window->allocation.height;
+	
 	pthread_mutex_init(&playlist_list_mutex, NULL);
 
 	memset(&pli, 0, sizeof(playlist_interface));
@@ -557,6 +615,8 @@ void PlaylistWindow::CbSetCurrent(void *data, unsigned current) {
 	PlaylistWindow *playlist_window = (PlaylistWindow *)data;
 //	GtkStyle *style;
 
+	static int current_entry = -1;
+	
 	if (current == 0)
 	    return;
 
@@ -714,18 +774,50 @@ void PlaylistWindow::CbClear(void *data)
 	pthread_mutex_unlock(&playlist_window->playlist_list_mutex);
 }
 
-void PlaylistWindow::Show() {
+void PlaylistWindow::Show()
+{
 	if(!GTK_WIDGET_VISIBLE(window)) {
 		gtk_widget_show_all(window);
 	}
 }
 
 // Hide the playlist
-void PlaylistWindow::Hide() {
+void PlaylistWindow::Hide()
+{
 	if(GTK_WIDGET_VISIBLE(window)) {
+		width = window->allocation.width;
+		height = window->allocation.height;
 		gtk_widget_hide(window);
 	}
 }
+
+void PlaylistWindow::Play(int number)
+{
+	GDK_THREADS_LEAVE();
+		playlist->Pause();
+		playlist->Play(number);
+		playlist->UnPause();
+	GDK_THREADS_ENTER();
+}
+
+void PlaylistWindow::PlayPrev()
+{
+	GDK_THREADS_LEAVE();
+		playlist->Pause();
+		playlist->Prev();
+		playlist->UnPause();
+	GDK_THREADS_ENTER();
+}
+
+void PlaylistWindow::PlayNext()
+{
+	GDK_THREADS_LEAVE();
+		playlist->Pause();
+		playlist->Next();
+		playlist->UnPause();
+	GDK_THREADS_ENTER();
+}
+
 /*
 // Toggle visibility
 void PlaylistWindowGTK::ToggleVisible() {
@@ -737,92 +829,11 @@ void PlaylistWindowGTK::ToggleVisible() {
 }
 */
 
-// Called when "prev" button is pressed
-extern void playlist_window_gtk_prev(GtkWidget *, gpointer data) {
-	Playlist * playlist = (Playlist *) data;
-	if(playlist) {
-		playlist->Pause();
-		GDK_THREADS_LEAVE();
-		playlist->Prev();
-		GDK_THREADS_ENTER();
-		playlist->UnPause();
-	}
-}
-
-
-// Called when "next" button is pressed
-void playlist_window_gtk_next(GtkWidget *widget, gpointer data)
-{
-	Playlist * playlist = (Playlist *) data;
-	if(playlist) {
-		playlist->Pause();
-		GDK_THREADS_LEAVE();
-		playlist->Next();
-		GDK_THREADS_ENTER();
-		playlist->UnPause();
-	}
-}
-
-void playlist_play_current(Playlist *playlist, GtkWidget *tree)
-{
-		int selected;
-		GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(tree));
-		
-		if (gtk_tree_selection_count_selected_rows(selection) != 1)
-			return;
-			
-		GList* data = gtk_tree_selection_get_selected_rows(selection, NULL);
-		
-		selected = get_path_number((GtkTreePath *)data->data);
-		
-		g_list_free(data);
-				
-		GDK_THREADS_LEAVE();
-		playlist->Pause();
-		playlist->Play(selected + 1);
-		playlist->UnPause();
-		GDK_THREADS_ENTER();
-}
 
 
 
 // Make a new item to go in the list
-static void new_list_item(const PlayItem *item, gchar **list_item)
-{
-	gchar *dirname;
-	gchar *filename;
-	gchar *new_path = (gchar *)g_strdup(item->filename.c_str());
-	char pt[1024];
 
-	list_item[0] = NULL;
-
-	if (item->playtime >= 0) {
-		sprintf(pt, "%02d:%02d", (item->playtime > 0) ? item->playtime / 60 : 0,
-			(item->playtime > 0) ? item->playtime % 60 : 0);
-	} else {
-		sprintf(pt, "00:00");
-	}
-	list_item[2] = (gchar *)g_strdup(pt);
-	// Strip directory names
-	dirname = strrchr(new_path, '/');
-	if (dirname) {
-			dirname++;
-			filename = (gchar *)g_strdup(dirname);
-	} else
-			filename = (gchar *)g_strdup(new_path);
-	if (item->title.size()) {
-		std::string s = item->title;
-		if (item->artist.size())
-		{
-			s += std::string(" - ") + item->artist;
-		}
-		list_item[1] = (gchar *)g_strdup(s.c_str());
-	} else {
-		list_item[1] = (gchar *)g_strdup(filename);
-	}	
-	// Put data in list_item
-	list_item[3] = new_path;
-}
 
 
 // Called when a file has been selected to be loaded as a playlist

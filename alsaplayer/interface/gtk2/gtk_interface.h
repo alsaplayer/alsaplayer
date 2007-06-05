@@ -31,7 +31,6 @@ extern int global_update;
 
 void init_main_window(Playlist *);
 
-gboolean key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer data);
 void play_dialog_cb(GtkDialog *dialog, gint response, gpointer user_data);
 void dialog_cancel_response(GtkWidget *dialog, gpointer data);
 void loop_cb(GtkWidget *, gpointer data);

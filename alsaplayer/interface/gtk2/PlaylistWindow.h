@@ -22,12 +22,10 @@
 #include "Playlist.h"
 #include <gtk/gtk.h>
 
-extern void playlist_window_gtk_prev(GtkWidget *, gpointer);
-extern void playlist_window_gtk_next(GtkWidget *, gpointer);
-
 GtkWidget* create_filechooser(GtkWindow *main_window, Playlist *playlist);
 
 void playlist_play_current(Playlist *playlist, GtkWidget *list);
+void playlist_remove(GtkWidget *, gpointer user_data);
 
 class PlaylistWindow
 {
@@ -36,6 +34,8 @@ class PlaylistWindow
 		Playlist * playlist;
 		GtkWidget *window;
 		GtkWidget *list;
+		gint width;
+		gint height;
 		pthread_mutex_t playlist_list_mutex;
 	public:
 		PlaylistWindow(Playlist *);
@@ -47,8 +47,16 @@ class PlaylistWindow
 		Playlist *GetPlaylist() { return playlist; }
 		void Show();
 		void Hide();
-		bool IsHidden() { return (bool)!GTK_WIDGET_VISIBLE(window); };
+		bool IsHidden() { return (bool)!GTK_WIDGET_VISIBLE(window); }
 		void Clear();
+		GtkWidget *GetList() { return list; }
+		void Play(int number);
+		void PlayPrev();
+		void PlayNext();
+		
+		gint GetWidth() { return width; }
+		gint GetHeight() { return height; }
+		
 //		GtkWidget *add_file;
 //		GtkWidget *save_list;
 //		GtkWidget *load_list;
@@ -65,7 +73,6 @@ class PlaylistWindow
 		// Other methods
 		
 		 
-		GtkWidget *GetList() { return list; }
 //		void Show();  // Show the playlist window
 //		void Hide();  // Hide the playlist window
 //		void ToggleVisible();  // Show / Hide the playlist window
