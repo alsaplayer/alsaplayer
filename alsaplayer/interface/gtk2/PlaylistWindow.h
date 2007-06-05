@@ -27,27 +27,31 @@ extern void playlist_window_gtk_next(GtkWidget *, gpointer);
 
 GtkWidget* create_filechooser(GtkWindow *main_window, Playlist *playlist);
 
-void dialog_popup(GtkWidget *, gpointer data);
-void playlist_remove(GtkWidget *, gpointer data);
 void playlist_play_current(Playlist *playlist, GtkWidget *list);
 
-class PlaylistWindowGTK
+class PlaylistWindow
 {
 	private:
 		playlist_interface pli;
 		Playlist * playlist;
-		GtkWidget * playlist_window;  // The window containing the list
-		GtkWidget * playlist_list;    // The list itself
-		GtkLabel * playlist_status;   // Label giving status of list
-		pthread_mutex_t playlist_list_mutex; // Mutex for list
-		bool showing;
+		GtkWidget *window;
+		GtkWidget *list;
+		pthread_mutex_t playlist_list_mutex;
 	public:
-		PlaylistWindowGTK(Playlist *, GtkWidget *);
-		~PlaylistWindowGTK();
+		PlaylistWindow(Playlist *);
+		~PlaylistWindow();
 
-		GtkWidget *add_file;
-		GtkWidget *save_list;
-		GtkWidget *load_list;
+		GtkWidget *GetWindow() { return window; }
+		void LoadPlaylist();
+		void SavePlaylist();
+		Playlist *GetPlaylist() { return playlist; }
+		void Show();
+		void Hide();
+		bool IsHidden() { return (bool)!GTK_WIDGET_VISIBLE(window); };
+		void Clear();
+//		GtkWidget *add_file;
+//		GtkWidget *save_list;
+//		GtkWidget *load_list;
 		
 		// Callbacks called by playlist when its state changes
 		static void CbSetCurrent(void *,unsigned);
@@ -59,11 +63,12 @@ class PlaylistWindowGTK
 		static void CbClear(void *);
 
 		// Other methods
-		Playlist *GetPlaylist() { return playlist; } 
-		GtkWidget *GetPlaylist_list() { return playlist_list; }
-		void Show();  // Show the playlist window
-		void Hide();  // Hide the playlist window
-		void ToggleVisible();  // Show / Hide the playlist window
+		
+		 
+		GtkWidget *GetList() { return list; }
+//		void Show();  // Show the playlist window
+//		void Hide();  // Hide the playlist window
+//		void ToggleVisible();  // Show / Hide the playlist window
 };
 
 #endif

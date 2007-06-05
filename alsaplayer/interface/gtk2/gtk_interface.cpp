@@ -101,7 +101,7 @@ gint global_effects_show = 0;
 gint windows_x_offset = -1;
 gint windows_y_offset = -1;
 
-static PlaylistWindowGTK *playlist_window_gtk = NULL;
+static PlaylistWindow *playlist_window = NULL;
 static coreplayer_notifier notifier;
 
 static gint main_window_x = 150;
@@ -228,12 +228,12 @@ gboolean main_window_delete(GtkWidget *, GdkEvent *event, gpointer data)
 	
 	gdk_flush();
 	
-	if (playlist_window_gtk) {
-		Playlist *playlist = playlist_window_gtk->GetPlaylist();
+	if (playlist_window) {
+		Playlist *playlist = playlist_window->GetPlaylist();
 		GDK_THREADS_LEAVE();
 		playlist->UnRegisterNotifier(&notifier);
 		GDK_THREADS_ENTER();
-		delete playlist_window_gtk;
+		delete playlist_window;
 	}	
 	gtk_main_quit();
 	gdk_flush();	
@@ -420,12 +420,12 @@ gboolean key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer data)
 	GtkAdjustment *adj;
 	update_struct *ustr = &global_ustr;
 
-	PlaylistWindowGTK *playlist_window_gtk = (PlaylistWindowGTK *) data;
+	PlaylistWindow *playlist_window = (PlaylistWindow *) data;
 	Playlist *playlist = NULL;
 	GtkWidget *list = NULL;
 
-	playlist = playlist_window_gtk->GetPlaylist();
-	list = playlist_window_gtk->GetPlaylist_list();
+	playlist = playlist_window->GetPlaylist();
+	list = playlist_window->GetList();
 	
 	/* key definitions are from enum gtk_keymap */
   if (event->state & GDK_CONTROL_MASK) {
@@ -495,14 +495,14 @@ gboolean key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer data)
 			break;
 		
 //old stuff		
-		case GDK_Insert:
+/*		case GDK_Insert:
 			dialog_popup(widget, (gpointer)
 				playlist_window_gtk->add_file);
 			break;	
 		case GDK_Delete:
 			playlist_remove(widget, data);
 			break;
-		case GDK_Return:
+*/		case GDK_Return:
 			playlist_play_current(playlist, list);
 			break;
 		case GDK_Right:
@@ -987,8 +987,12 @@ void dialog_cancel_response(GtkWidget *dialog, gpointer data)
 
 void playlist_cb(GtkWidget *, gpointer data)
 {
-	PlaylistWindowGTK *pl = (PlaylistWindowGTK *)data;
-	pl->ToggleVisible();
+	PlaylistWindow *pl = (PlaylistWindow *)data;
+	if (pl->IsHidden())
+		pl->Show();
+	else
+		pl->Hide();
+//	pl->ToggleVisible();
 }
 
 gboolean alsaplayer_button_press(GtkWidget *widget, GdkEventButton *event, gpointer data)
@@ -1213,7 +1217,7 @@ create_main_window (Playlist *pl)
 	gtk_container_add (GTK_CONTAINER (main_frame), main_box);
 
 	info_box = gtk_hbox_new (FALSE, 0);
-	gtk_box_pack_start (GTK_BOX (main_box), info_box, TRUE, TRUE, 0);
+	gtk_box_pack_start (GTK_BOX (main_box), info_box, FALSE, FALSE, 0);
 
 	infowindow = new InfoWindow();
 	info_window = infowindow->GetWindow();
@@ -1362,8 +1366,11 @@ create_main_window (Playlist *pl)
 	gtk_box_pack_start (GTK_BOX (volume_box), vol_scale, TRUE, TRUE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), vol_scale, _("Volume"), _("Change volume"));
 	
-	play_dialog = create_filechooser(GTK_WINDOW(main_window), playlist);
-	playlist_window_gtk = new PlaylistWindowGTK(playlist, main_window);
+	playlist_window = new PlaylistWindow(playlist);
+	play_dialog = NULL;//create_filechooser(GTK_WINDOW(main_window), playlist);
+	
+	gtk_box_pack_start (GTK_BOX (main_box), playlist_window->GetWindow(), TRUE, TRUE, 0);
+	
 //	effects_window = init_effects_window();	
 //	g_object_set_data(G_OBJECT(main_window), "effects_window", effects_window);
 	effects_window = NULL;
@@ -1385,11 +1392,11 @@ create_main_window (Playlist *pl)
 		
 	g_signal_connect(G_OBJECT(main_window), "delete_event", G_CALLBACK(main_window_delete), NULL);
 	g_signal_connect(G_OBJECT(main_window), "expose_event", G_CALLBACK(on_expose_event), NULL);
-	g_signal_connect(G_OBJECT(main_window), "key_press_event", G_CALLBACK(key_press_cb), (gpointer)playlist_window_gtk);	
+	g_signal_connect(G_OBJECT(main_window), "key_press_event", G_CALLBACK(key_press_cb), (gpointer)playlist_window);	
 	g_signal_connect(G_OBJECT(main_window), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	
 	g_signal_connect(G_OBJECT(playlist_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
-  	g_signal_connect(G_OBJECT(playlist_button), "clicked", G_CALLBACK(playlist_cb), playlist_window_gtk); 
+  	g_signal_connect(G_OBJECT(playlist_button), "clicked", G_CALLBACK(playlist_cb), playlist_window); 
 	g_signal_connect(G_OBJECT(cd_button), "clicked", G_CALLBACK(cd_cb), pl);
 	g_signal_connect(G_OBJECT(play_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(play_button), "clicked", G_CALLBACK(play_cb), playlist);
@@ -1432,7 +1439,8 @@ void init_main_window(Playlist *pl)
 	
 	// Check if we should open the playlist
 	if (prefs_get_bool(ap_prefs, "gtk2_interface", "playlist_active", 0)) {
-		playlist_window_gtk->Show();
+//		playlist_window->Show();
+;
 	}	
 
 	memset(&notifier, 0, sizeof(notifier));
