@@ -1,5 +1,6 @@
 TODO list (2007 May 28)
 
+- make a pre-release with the GTK2 interface. Will be done very shortly.
 - global: move libalsaplayer to a standalone application with unix-sockets or
   TCP- (UDP-?) based interface.
   This will include (list of ideas at that time):
@@ -9,11 +10,16 @@ TODO list (2007 May 28)
 - global: add gettext support
 - global: new preference option to start or not playing at startup
 - gtk2: preferences interface
-- gtk2: add new preference option for fonts in the main display
+- gtk2: add new preference option for fonts in the main display: not needed
+  anymore as it have theme support.
 - gtk2: when using console commands to change the speed, the speed is
-  changed but those interfaces are not aware of it. Fix it.
-- gtk: backport the gtk2 changes to gtk when it is possible
+  changed but those interfaces are not aware of it. It is fixed, but same 
+  issue with the volume.
+- gtk: backport the gtk2 changes to gtk when it is possible. Any volunter?
 
+Know bugs:
+- fix the quiet option, see http://bugs.debian.org/cgi-bin/bug-report.cgi?bug=412112
+ 
 Old TODO list order according to priority, highest first
 
 - Write proper documentation for the plugin APIs
