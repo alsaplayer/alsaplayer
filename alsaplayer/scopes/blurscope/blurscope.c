@@ -131,6 +131,7 @@ static void bscope_init(void)
 	
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(window),"Blurscope");
+	gtk_window_set_wmclass (GTK_WINDOW(window), "Blurscope", "AlsaPlayer");
 	gtk_window_set_policy(GTK_WINDOW(window), FALSE, FALSE, FALSE);
 	gtk_widget_realize(window);
 	color.red = SCOPE_BG_RED << 8;
