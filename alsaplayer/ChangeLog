@@ -8,7 +8,34 @@ Wed June 6 2007
 * CDDA engine: patch form Hubert Chan (Debian) that fix the CDDB support on port
   888. Madej's html support on port 80 is left.
 * Madej: 2 patches that fix info display resizing with the font size.
-* Madej: sizes in config file, stop and play icons in playlist, infobox collor changing.
+* Madej: sizes in config file, stop and play icons in playlist, infobox collor
+  changing.
+
+Tue June 5 2007
+---------------
+* Madej patch: fix the speed awarness of the GTK2 interface. When the speed is
+  changed from a console, 2 clicks on pause with resume playing at the last used
+  speed.
+* One more from Madej: The playlist window schrink-expand with the playlist
+  button.
+* Madej: Playlist is now in the main window.
+
+Mon June 4 2007
+---------------
+* New patch from Madej for GTK2: new info window.
+
+Sun June 3 2007
+---------------
+* Madej: Added lables in the GTK2 interface, second loop function for songs and
+  info window.
+* Madej: Fix for the cdda engine, cddb use html on port 80.
+
+Sat June 2 2007
+---------------
+* Updated/added the copyright and license information..
+* Added filename description and preferences section in the man page.
+* Changed contact information. Please use "Dominique Michel" 
+ <dominique@tuxfamily.org> now.
 
 Fri June 1 2007
 --------------
