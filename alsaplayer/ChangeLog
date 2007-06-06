@@ -2,11 +2,17 @@
 * The GTK2 interface is in progress. It provide the same level of functionality
   as the GTK1 one and more will come soon. A big thanks to Madej from Poland
   for its work on this interface.
+
+Wed June 6 2007
+---------------
+* CDDA engine: patch form Hubert Chan (Debian) that fix the CDDB support on port
+  888. Madej's html support on port 80 is left.
+
 Fri May 1 2007
 --------------
 * Madej: lot of code cleaning on the GTK2 interface, about window,
   tooltips, main window can be resized, loop in playlist work
-* CDA engine: removed directory in server name 
+* CDDA engine: removed directory in server name 
 * Updated TODO list and AUTHORS
 
 Thu May 31 2007

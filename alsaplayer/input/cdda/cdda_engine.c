@@ -309,45 +309,58 @@ int create_socket (unchar *unchar_address, int int_port)
 char * send_to_server (int server_fd, char *message)
 {
 	ssize_t	total, i;
-	int 	len = BUFFER_SIZE * 8;
-	char	*response, temp[len];
+	int 	len = BUFFER_SIZE;
+	char	*response, *temp;
+
+	temp = (char *) malloc(BUFFER_SIZE);
 
 	/* write 'message' to the server */
 	if (send (server_fd, message, strlen (message), MSG_DONTWAIT) < 0) 
 	{
 		alsaplayer_error("%s: %s\n", message, strerror (errno));
+		free (temp);
 		return (NULL);
 	}
 
-#ifdef DEBUG
+	if (global_verbose) {
 	/* print the message sent to the server */
 	alsaplayer_error("-> %s", message);
-#endif
+	}
 
 	/* read the response from the server */
 	total = 0;
 	do
 	{
-		i = read (server_fd, temp + total, len - total);
+		i = read (server_fd, temp + total, BUFFER_SIZE);
 		if (i < 0)
 		{
 			alsaplayer_error("%s\n", strerror (errno));
+			free (temp);
 			return (NULL);
 		}
 		total += i;
+		if (total + BUFFER_SIZE > len)
+		{
+			temp = (char *) realloc(temp, len + BUFFER_SIZE);
+			len += BUFFER_SIZE;
+		}
 	}
 	while (total > 2 && temp[total - 2] != '\r' && i != 0);
 
 	if (total < 2)
+	{
+		free (temp);
 		return (NULL);
+	}
 
 	temp[total-2] = '\0';		/* temp[total-1] == \r; temp[total] == \n	*/
 	response = strdup (temp);	/* duplicate the response from the server	*/
+	free(temp);
 
-#ifdef DEBUG
+	if (global_verbose) {
 	/* print the message sent to the server */
 	alsaplayer_error("<- %s", response);
-#endif
+	}
 
 	return (response);
 }
@@ -577,11 +590,11 @@ cut_html_head(char *answer)
 char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_list *tl)
 {
 	int port = atoi (char_port);
-	int server_fd, i, j, n;
+	int server_fd, i, j;
 	int total_secs = 0, counter = 0;
 	char *answer = NULL, *username, *filename, categ[20], newID[9];
 	char msg[BUFFER_SIZE], offsets[BUFFER_SIZE], tmpbuf[BUFFER_SIZE];
-	char hostname[MAXHOSTNAMELEN], server[80];
+	char hostname[MAXHOSTNAMELEN], separator='+';
 
 	/* try to create a socket to the server */
 	if (global_verbose)
@@ -597,16 +610,11 @@ char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_li
 
 	/* get the initial message from the server */
 	if (port > 80) {
-		n = read (server_fd, server, 80);
-		if (n >= 0)
-			server[n] = '\0';
-		if (n >= 2)
-			server[n-2] = '\0';
-	
+		answer = send_to_server (server_fd, "");
 		if (global_verbose) {
-			printf ("\n<- %s\n", server);
 			printf ("Saying HELLO to CDDB server ...\n");
 		}
+		free (answer);
 	}
 	/* set some settings before saying HELLO to the CDDB server */
 	username = getlogin ();
@@ -623,6 +631,7 @@ char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_li
 			close (server_fd);
 			return (NULL);
 		}
+		separator=' ';
 	}
 	/* set another settings before querying the CDDB database */
 	tmpbuf[0] = '\0';
@@ -630,7 +639,7 @@ char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_li
 	{
 		/* put the frame offset of the starting location of each track in a string */
 		//snprintf (offsets, sizeof (offsets), "%s %d ", tmpbuf,
-		snprintf (offsets, sizeof (offsets), "%s+%d", tmpbuf, 
+		snprintf (offsets, sizeof (offsets), "%s%c%d", tmpbuf, separator,
 				tl->l_frame[i] + (75 * (tl->l_sec[i] + (60 * tl->l_min[i]))));
 		strcpy (tmpbuf, offsets);
 		counter += tl->l_frame[i] + (75 * tl->l_sec[i] + (60 * tl->l_min[i]));
