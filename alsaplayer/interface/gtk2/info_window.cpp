@@ -39,7 +39,6 @@ create_info_window()
 	GtkWidget *position_label;
 	
 	frame = gtk_frame_new(NULL);
-	gtk_widget_set_size_request(frame, 500, 50);
 	main_box = gtk_layout_new(NULL, NULL);
 
 	g_object_set_data(G_OBJECT(frame), "layout", main_box);
@@ -47,7 +46,7 @@ create_info_window()
 	
 	speed_label = gtk_label_new(NULL);
 	g_object_set_data(G_OBJECT(frame), "speed_label", speed_label);
-	gtk_layout_put(GTK_LAYOUT(main_box), speed_label, 0, 0);
+	gtk_layout_put(GTK_LAYOUT(main_box), speed_label, 2, 0);
 		
 	balance_label = gtk_label_new(NULL);
 	g_object_set_data(G_OBJECT(frame), "balance_label", balance_label);
@@ -107,16 +106,20 @@ void InfoWindow::set_positions()
 {
 	gint x, y, width, height;
 	
-	if ((labelheight < 2) || (leftwidth < 2) || (rightwidth < 2)) {
+	if ((labelheight < 2) || (leftwidth < 2) || (rightwidth < 2) || (labelheight != volume->allocation.height)) {
 		leftwidth = (speed->allocation.width > balance->allocation.width)? speed->allocation.width:balance->allocation.width;
 		rightwidth = (volume->allocation.width > position->allocation.width)? volume->allocation.width:position->allocation.width;
-		labelheight = title->allocation.height;
+		labelheight = volume->allocation.height;
+		
+		gtk_widget_set_size_request(window, -1, labelheight * 2 + labelheight / 3);
 	}
 	
 	width = layout->allocation.width;
 	height = layout->allocation.height;
 	
-	x = 0;
+	//speed has fixed position
+	// 2 px padding
+	x = 2;
 	y = height - labelheight;
 	gtk_layout_move(GTK_LAYOUT(layout), balance, x, y);
 	
@@ -130,11 +133,11 @@ void InfoWindow::set_positions()
 	gtk_widget_set_size_request (format, width - x - rightwidth - labelheight, -1);
 	gtk_layout_move(GTK_LAYOUT(layout), format, x, y);
 	
-	x = width - volume->allocation.width;
+	x = width - volume->allocation.width -2;
 	y = 0;
 	gtk_layout_move(GTK_LAYOUT(layout), volume, x, y);
 	
-	x = width - position->allocation.width;
+	x = width - position->allocation.width - 2;
 	y = height - labelheight;
 	gtk_layout_move(GTK_LAYOUT(layout), position, x, y);
 	
