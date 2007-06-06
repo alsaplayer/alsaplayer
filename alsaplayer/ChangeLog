@@ -8,8 +8,9 @@ Wed June 6 2007
 * CDDA engine: patch form Hubert Chan (Debian) that fix the CDDB support on port
   888. Madej's html support on port 80 is left.
 * Madej: 2 patches that fix info display resizing with the font size.
+* Madej: sizes in config file, stop and play icons in playlist, infobox collor changing.
 
-Fri May 1 2007
+Fri June 1 2007
 --------------
 * Madej: lot of code cleaning on the GTK2 interface, about window,
   tooltips, main window can be resized, loop in playlist work

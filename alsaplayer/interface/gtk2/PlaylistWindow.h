@@ -41,22 +41,27 @@ class PlaylistWindow
 		PlaylistWindow(Playlist *);
 		~PlaylistWindow();
 
-		GtkWidget *GetWindow() { return window; }
+		gint current_entry;
+
 		void LoadPlaylist();
 		void SavePlaylist();
-		Playlist *GetPlaylist() { return playlist; }
 		void Show();
 		void Hide();
 		bool IsHidden() { return (bool)!GTK_WIDGET_VISIBLE(window); }
 		void Clear();
-		GtkWidget *GetList() { return list; }
 		void Play(int number);
 		void PlayPrev();
 		void PlayNext();
+		void SetStop();
+		void SetPlay();
+
+		GtkWidget *GetWindow() { return window; }
+		Playlist *GetPlaylist() { return playlist; }
+		GtkWidget *GetList() { return list; }
 		
 		gint GetWidth() { return width; }
 		gint GetHeight() { return height; }
-		
+		gint GetCurrententry() { return current_entry; }
 //		GtkWidget *add_file;
 //		GtkWidget *save_list;
 //		GtkWidget *load_list;

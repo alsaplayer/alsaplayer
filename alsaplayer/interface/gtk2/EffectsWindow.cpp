@@ -19,7 +19,6 @@
 #include "EffectsWindow.h"
 #include "gtk_interface.h"
 
-extern int global_effects_show;
 extern int global_reverb_delay;
 extern int global_reverb_feedback;
 
@@ -49,7 +48,6 @@ void effects_delete_event(GtkWidget *widget, GdkEvent *, gpointer data)
         }	
         gtk_widget_hide(widget);
         gtk_widget_set_uposition(widget, x, y);
-        global_effects_show = 0;
 }
 
 
@@ -152,7 +150,6 @@ create_effects_window (void)
                             (GtkDestroyNotify) gtk_widget_unref);
   gtk_widget_show (ok_button);
   gtk_box_pack_end (GTK_BOX (button_box), ok_button, FALSE, TRUE, 0);
-//my try  gtk_widget_set_usize (ok_button, 80, -2);
 
   return effects_window;
 }

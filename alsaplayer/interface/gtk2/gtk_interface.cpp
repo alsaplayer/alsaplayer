@@ -96,16 +96,9 @@ Playlist *playlist = NULL;
 int global_update = 1;
 /* These are used to contain the size of the window manager borders around
    our windows, and are used to show/hide windows in the same positions. */
-gint global_effects_show = 0;
-
-gint windows_x_offset = -1;
-gint windows_y_offset = -1;
 
 static PlaylistWindow *playlist_window = NULL;
 static coreplayer_notifier notifier;
-
-static gint main_window_x = 150;
-static gint main_window_y = 175;
 
 typedef struct  _update_struct {
 	gpointer data;
@@ -211,19 +204,27 @@ void notifier_unlock(void)
 
 void stop_notify(void *data)
 {
-	alsaplayer_error("Song was stopped");
+	PlaylistWindow *playlist_window = (PlaylistWindow *) data;
+	playlist_window->SetStop();
 }
 
 void start_notify(void *data)
 {
-	alsaplayer_error("Song was started");
+//	PlaylistWindow::SetCurrentCb does it so this is useless
+//	PlaylistWindow *playlist_window = (PlaylistWindow *) data;
+//	playlist_window->SetPlay();
 }
 
 
-gboolean main_window_delete(GtkWidget *, GdkEvent *event, gpointer data)
+gboolean main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	global_update = -1;
 
+	PlaylistWindow *playlist_window = (PlaylistWindow *) data;
+	
+	prefs_set_int(ap_prefs, "gtk2_interface", "width", widget->allocation.width);
+	prefs_set_int(ap_prefs, "gtk2_interface", "height", widget->allocation.height);
+	
 	// Remove notifier
 	
 	gdk_flush();
@@ -910,46 +911,30 @@ void exit_cb(GtkWidget *, gpointer data)
 	GDK_THREADS_ENTER();
 }
 
-void scopes_cb(GtkWidget *, gpointer data)
+void scopes_cb(GtkWidget *, gpointer user_data)
 {
-	GtkWidget *win = (GtkWidget *)data;
-/*	int x, y;
-	if (global_scopes_show) {
-		gdk_window_get_origin(win->window, &x, &y);
-		if (windows_x_offset >= 0) {
-			x -= windows_x_offset;
-			y -= windows_y_offset;
-		}
-*/
+	GtkWidget *win = (GtkWidget *) user_data;
+
 		if (GTK_WIDGET_VISIBLE(win)){
 			gtk_widget_hide(win);
-//		gtk_widget_set_uposition(win, x, y);
 		}
 	else 
 		gtk_widget_show_all(win);
 
 }
 
-
-void effects_cb(GtkWidget *, gpointer data)
+/*
+void effects_cb(GtkWidget *, gpointer user_data)
 {
-	GtkWidget *win = (GtkWidget *)data;
-	int x, y;
+	GtkWidget *win = (GtkWidget *) user_data;
 
-	if (global_effects_show) {
-		gdk_window_get_origin(win->window, &x, &y);
-		if (windows_x_offset >= 0) {
-			x -= windows_x_offset;
-			y -= windows_y_offset;
+		if (GTK_WIDGET_VISIBLE(win)){
+			gtk_widget_hide(win);
 		}
-		gtk_widget_hide(win);
-		gtk_widget_set_uposition(win, x, y);
-	} else {
+	else 
 		gtk_widget_show_all(win);
-	}
-	global_effects_show = 1 - global_effects_show;
 }
-
+*/
 
 void play_file_ok(GtkWidget *play_dialog, gpointer data)
 {
@@ -1008,10 +993,10 @@ void dialog_cancel_response(GtkWidget *dialog, gpointer data)
 }
 
 static void
-playlist_button_cb(GtkButton *button, gpointer user_data)
+playlist_button_cb(GtkWidget *button, gpointer user_data)
 {
 	PlaylistWindow *pl = (PlaylistWindow *) user_data;
-	GtkWidget *window = gtk_widget_get_toplevel(GTK_WIDGET(button));
+	GtkWidget *window = gtk_widget_get_toplevel(button);
 	GdkGeometry geometry;
 	
 	if (pl->IsHidden()) {
@@ -1060,26 +1045,6 @@ GtkWidget *get_image_from_xpm(gchar *data[])
 	return image;
 }
 
-
-gboolean on_expose_event (GtkWidget * widget, GdkEvent *event, gpointer data)
-{
-  gint x, y;
-
-  if (windows_x_offset == -1)
-    {
-      gdk_window_get_origin (widget->window, &x, &y);
-      windows_x_offset = x - main_window_x;
-      /* Make sure offset seems reasonable. If not, set it to -2 so we don't
-         try this again later. */
-      if (windows_x_offset < 0 || windows_x_offset > 50)
-        windows_x_offset = -2;
-      else
-        windows_y_offset = y - main_window_y;
-    }
-    return FALSE;
-}
-
-
 void
 update_info_window(GtkWidget *main_window)
 {
@@ -1118,7 +1083,7 @@ create_main_menu(GtkWidget *main_window)
 	GtkWidget *menu_item;
 	
 	GtkWidget *scopes_window = GTK_WIDGET(g_object_get_data(G_OBJECT(main_window), "scopes_window"));
-	GtkWidget *effects_window = GTK_WIDGET(g_object_get_data(G_OBJECT(main_window), "effects_window"));
+//	GtkWidget *effects_window = GTK_WIDGET(g_object_get_data(G_OBJECT(main_window), "effects_window"));
 	GtkWidget *about_window = GTK_WIDGET(g_object_get_data(G_OBJECT(main_window), "about_window"));
 	
 	root_menu = gtk_menu_new();
@@ -1134,8 +1099,8 @@ create_main_menu(GtkWidget *main_window)
 
 	menu_item = gtk_menu_item_new_with_label(_("Effects..."));
 	gtk_menu_append(GTK_MENU(root_menu), menu_item);
-	g_signal_connect(G_OBJECT(menu_item), "activate",
-					   G_CALLBACK(effects_cb), effects_window);
+//	g_signal_connect(G_OBJECT(menu_item), "activate",
+//					   G_CALLBACK(effects_cb), effects_window);
 	gtk_widget_set_sensitive(menu_item, FALSE);
 
 	menu_item = gtk_image_menu_item_new_from_stock(GTK_STOCK_ABOUT, NULL);
@@ -1283,10 +1248,7 @@ create_main_window (Playlist *pl)
 	infowindow = new InfoWindow();
 	info_window = infowindow->GetWindow();
 	
-//	info_window = gtk_drawing_area_new();
-//	gtk_widget_add_events (info_window, GDK_BUTTON_PRESS_MASK);
 	g_object_set_data(G_OBJECT(main_window), "info_window", info_window);
-//	gtk_widget_set_size_request (info_window, 408, 40);
 	gtk_box_pack_start (GTK_BOX (info_box), info_window, TRUE, TRUE, 0);
 	
 	pos_scale = gtk_hscale_new (GTK_ADJUSTMENT (gtk_adjustment_new (0, 0, 0, 0, 0, 0)));
@@ -1428,6 +1390,7 @@ create_main_window (Playlist *pl)
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), vol_scale, _("Volume"), _("Change volume"));
 	
 	playlist_window = new PlaylistWindow(playlist);
+	g_object_set_data(G_OBJECT(main_window), "playlist_window", playlist_window);
 	play_dialog = NULL;//create_filechooser(GTK_WINDOW(main_window), playlist);
 	
 	gtk_box_pack_start (GTK_BOX (main_box), playlist_window->GetWindow(), TRUE, TRUE, 0);
@@ -1451,8 +1414,7 @@ create_main_window (Playlist *pl)
 
 	g_signal_connect(G_OBJECT(main_window), "expose-event", G_CALLBACK(configure_window), (gpointer)infowindow);
 		
-	g_signal_connect(G_OBJECT(main_window), "delete_event", G_CALLBACK(main_window_delete), NULL);
-	g_signal_connect(G_OBJECT(main_window), "expose_event", G_CALLBACK(on_expose_event), NULL);
+	g_signal_connect(G_OBJECT(main_window), "delete_event", G_CALLBACK(main_window_delete), (gpointer)playlist_window);
 	g_signal_connect(G_OBJECT(main_window), "key_press_event", G_CALLBACK(key_press_cb), (gpointer)playlist_window);	
 	g_signal_connect(G_OBJECT(main_window), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	
@@ -1485,8 +1447,8 @@ create_main_window (Playlist *pl)
 	g_signal_connect(G_OBJECT(looper_button), "clicked", G_CALLBACK(loop_cb), (gpointer)pos_scale);
 	g_signal_connect(G_OBJECT(looper_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 
-	infowindow->set_background_color(NULL);
-	infowindow->set_font_color(NULL);
+	infowindow->set_background_color("#000000");
+	infowindow->set_font_color("#ffffff");
 	
 	return main_window;
 }
@@ -1494,15 +1456,22 @@ create_main_window (Playlist *pl)
 void init_main_window(Playlist *pl)
 {
 	GtkWidget *main_window;
-
+	gint width, height;
+	
 	main_window = create_main_window(pl);
 	gtk_widget_show_all(main_window);
 	
-	// Check if we should open the playlist
-	if (prefs_get_bool(ap_prefs, "gtk2_interface", "playlist_active", 0)) {
-//		playlist_window->Show();
-;
+	PlaylistWindow *playlist_window = (PlaylistWindow *) g_object_get_data(G_OBJECT(main_window), "playlist_window");
+	
+	if (!prefs_get_bool(ap_prefs, "gtk2_interface", "playlist_active", 0)) {
+		playlist_button_cb(main_window, playlist_window);
 	}	
+
+	width = prefs_get_int(ap_prefs, "gtk2_interface", "width", 0);
+	height = prefs_get_int(ap_prefs, "gtk2_interface", "height", 0);
+	
+	if (width && height)	
+		gtk_window_resize(GTK_WINDOW(main_window), width, height);
 
 	memset(&notifier, 0, sizeof(notifier));
 	notifier.speed_changed = speed_changed;
@@ -1513,6 +1482,6 @@ void init_main_window(Playlist *pl)
 	notifier.position_notify = position_notify;
 
 	GDK_THREADS_LEAVE();
-	playlist->RegisterNotifier(&notifier, NULL);
+	playlist->RegisterNotifier(&notifier, (void *)playlist_window);
 	GDK_THREADS_ENTER();
 }

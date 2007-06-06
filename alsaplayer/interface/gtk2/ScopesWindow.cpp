@@ -217,7 +217,7 @@ int apRegisterScopePlugin(scope_plugin *plugin)
 
 	// Add new scope to list
 	gtk_list_store_append (list, &iter);
-	gtk_list_store_set(list, &iter, 0, (gchar *)se, 1, (gchar *)se->sp->name, -1);
+	gtk_list_store_set(list, &iter, 0, (gpointer)se, 1, (gchar *)se->sp->name, -1);
 
 	// Init scope
 	se->sp->init(NULL);
@@ -421,7 +421,7 @@ create_scopes_window(void)
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
 	gtk_box_pack_start (GTK_BOX(vbox), scrolledwindow, TRUE, TRUE, 0);
 	
-	scopes_model = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_STRING);
+	scopes_model = gtk_list_store_new(2, G_TYPE_POINTER, G_TYPE_STRING);
  	scopes_list = gtk_tree_view_new_with_model(GTK_TREE_MODEL(scopes_model));
  	g_object_set_data(G_OBJECT(scopes_window), "scopes_list", scopes_list);
  	gtk_container_add (GTK_CONTAINER(scrolledwindow), scopes_list);
@@ -429,11 +429,6 @@ create_scopes_window(void)
 
 	GtkCellRenderer *renderer;
 	GtkTreeViewColumn *column;
-	
-	renderer = gtk_cell_renderer_text_new();
-	column = gtk_tree_view_column_new_with_attributes("data", renderer, "text", 0, NULL);
-	gtk_tree_view_column_set_visible(column, FALSE);
-	gtk_tree_view_append_column (GTK_TREE_VIEW (scopes_list), column);
 	
 	renderer = gtk_cell_renderer_text_new();
 	column = gtk_tree_view_column_new_with_attributes(_("Scope name"), renderer, "text", 1, NULL);

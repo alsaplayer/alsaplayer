@@ -163,24 +163,22 @@ void InfoWindow::set_speed(const gchar *text)
 	gtk_label_set_text (GTK_LABEL(speed), text);
 }
 
-// to be done
-void InfoWindow::set_background_color(const gchar*)
+void InfoWindow::set_background_color(const gchar* str)
 {
 	GdkColor color;
-	color.red = 0;
-	color.green = 0;
-	color.blue = 0;
 	
+	if (!gdk_color_parse(str, &color))
+		return;
+
 	gtk_widget_modify_bg(layout, GTK_STATE_NORMAL, &color);
 }
 
-// to be done
-void InfoWindow::set_font_color(const gchar*)
+void InfoWindow::set_font_color(const gchar* str)
 {
 	GdkColor color;
-	color.red = 65535;
-	color.green = 65535;
-	color.blue = 65535;
+	
+	if (!gdk_color_parse(str, &color))
+		return;
 	
 	gtk_widget_modify_fg(volume, GTK_STATE_NORMAL, &color);
 	gtk_widget_modify_fg(position, GTK_STATE_NORMAL, &color);
