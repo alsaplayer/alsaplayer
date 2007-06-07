@@ -44,14 +44,13 @@
 #include <glib.h>
 
 #include "gtk_interface.h"
+/*
 #include "pixmaps/f_play.xpm"
 #include "pixmaps/r_play.xpm"
 #include "pixmaps/pause.xpm"
 #include "pixmaps/next.xpm"
 #include "pixmaps/prev.xpm"
 #include "pixmaps/stop.xpm"
-#include "pixmaps/volume_icon.xpm"
-#include "pixmaps/balance_icon.xpm"
 #if 0
 #include "pixmaps/eject.xpm"
 #endif
@@ -59,9 +58,12 @@
 #include "pixmaps/playlist.xpm"
 #include "pixmaps/cd.xpm"
 #include "pixmaps/menu.xpm"
-#include "pixmaps/note.xpm"
 #include "pixmaps/loop.xpm"
 #include "pixmaps/looper.xpm"
+*/
+#include "pixmaps/note.xpm"
+#include "pixmaps/volume_icon.xpm"
+#include "pixmaps/balance_icon.xpm"
 
 #include "PlaylistWindow.h"
 
@@ -1190,6 +1192,15 @@ next_button_clicked(GtkButton *, gpointer user_data)
 		playlist_window->PlayNext();
 }
 
+GdkPixbuf *
+reverse_pic(GdkPixbuf *p)
+{
+	GdkPixbuf *n;
+	
+	n = gdk_pixbuf_flip(p, TRUE);
+	return n;	
+}
+
 GtkWidget*
 create_main_window (Playlist *pl)
 {
@@ -1285,56 +1296,64 @@ create_main_window (Playlist *pl)
 
 	loop_button = gtk_button_new();
 	g_object_set_data(G_OBJECT(loop_button), "tooltips", tooltips);
-	pic = get_image_from_xpm(loop_xpm);
+//	pic = get_image_from_xpm(loop_xpm);
+	pic = gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_MENU);
 	gtk_container_add(GTK_CONTAINER(loop_button), pic);
 	gtk_button_set_relief(GTK_BUTTON(loop_button),GTK_RELIEF_NONE);
 	gtk_box_pack_start (GTK_BOX (mini_button_box), loop_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), loop_button, _("Play playlist in loop"), NULL);
 	
 	looper_button = gtk_button_new();
-	pic = get_image_from_xpm(looper_xpm);
+//	pic = get_image_from_xpm(looper_xpm);
+	pic = gtk_image_new_from_stock(GTK_STOCK_GOTO_LAST, GTK_ICON_SIZE_MENU);
 	gtk_container_add(GTK_CONTAINER(looper_button), pic);
 	gtk_button_set_relief(GTK_BUTTON(looper_button),GTK_RELIEF_NONE);
 	gtk_box_pack_start (GTK_BOX (mini_button_box), looper_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), looper_button, _("Use looper"), NULL);
 	
 	cd_button = gtk_button_new ();
-	pic = get_image_from_xpm(cd_xpm);
+//	pic = get_image_from_xpm(cd_xpm);
+	pic = gtk_image_new_from_stock(GTK_STOCK_CDROM, GTK_ICON_SIZE_BUTTON);
 	gtk_container_add(GTK_CONTAINER(cd_button), pic);
 	gtk_button_set_relief(GTK_BUTTON(cd_button),GTK_RELIEF_NONE);
 	gtk_box_pack_start (GTK_BOX (button_box), cd_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), cd_button, _("Play CD"), NULL);
 	
 	prev_button = gtk_button_new();
-	pic = get_image_from_xpm(prev_xpm);
+//	pic = get_image_from_xpm(prev_xpm);
+	pic = gtk_image_new_from_stock(GTK_STOCK_MEDIA_PREVIOUS, GTK_ICON_SIZE_BUTTON);
 	gtk_container_add(GTK_CONTAINER(prev_button), pic);
 	gtk_button_set_relief(GTK_BUTTON(prev_button), GTK_RELIEF_NONE);
 	gtk_box_pack_start (GTK_BOX (button_box), prev_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), prev_button, _("Previous track"), _("Go to track before the current one on the list"));
 	
 	play_button = gtk_button_new ();
-	pic = get_image_from_xpm(play_xpm);
+//	pic = get_image_from_xpm(play_xpm);
+	pic = gtk_image_new_from_stock(GTK_STOCK_MEDIA_PLAY, GTK_ICON_SIZE_BUTTON);
 	gtk_container_add(GTK_CONTAINER(play_button), pic);
 	gtk_button_set_relief(GTK_BUTTON(play_button), GTK_RELIEF_NONE);
 	gtk_box_pack_start (GTK_BOX (button_box), play_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), play_button, _("Play"), _("Play current track on the list or open filechooser if list is empty"));
 
 	stop_button = gtk_button_new ();
-	pic = get_image_from_xpm(stop_xpm);
+//	pic = get_image_from_xpm(stop_xpm);
+	pic = gtk_image_new_from_stock(GTK_STOCK_MEDIA_STOP, GTK_ICON_SIZE_BUTTON);
 	gtk_container_add(GTK_CONTAINER(stop_button), pic);
 	gtk_button_set_relief(GTK_BUTTON(stop_button), GTK_RELIEF_NONE);
 	gtk_box_pack_start (GTK_BOX (button_box), stop_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), stop_button, _("Stop"), NULL);
 		
 	next_button = gtk_button_new ();
-	pic = get_image_from_xpm(next_xpm);
+//	pic = get_image_from_xpm(next_xpm);
+	pic = gtk_image_new_from_stock(GTK_STOCK_MEDIA_NEXT, GTK_ICON_SIZE_BUTTON);
 	gtk_container_add(GTK_CONTAINER(next_button), pic);
 	gtk_button_set_relief(GTK_BUTTON(next_button), GTK_RELIEF_NONE);
 	gtk_box_pack_start (GTK_BOX (button_box), next_button, FALSE, TRUE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), next_button, _("Next track"), _("Play the track after the current one on the list"));
 
 	playlist_button = gtk_button_new ();
-	pic = get_image_from_xpm(playlist_xpm);
+//	pic = get_image_from_xpm(playlist_xpm);
+	pic = gtk_image_new_from_stock(GTK_STOCK_INDEX, GTK_ICON_SIZE_BUTTON);
 	gtk_container_add(GTK_CONTAINER(playlist_button), pic);
 	gtk_button_set_relief(GTK_BUTTON(playlist_button), GTK_RELIEF_NONE);
 	gtk_box_pack_start (GTK_BOX (button_box), playlist_button, FALSE, TRUE, 0);
@@ -1347,21 +1366,29 @@ create_main_window (Playlist *pl)
 	gtk_box_pack_start (GTK_BOX (audio_control_box), pitch_box, FALSE, FALSE, 0);
 
 	reverse_button = gtk_button_new ();
-	pic = get_image_from_xpm(r_play_xpm);
+//	pic = get_image_from_xpm(r_play_xpm);
+	pic = gtk_image_new();
+	GdkPixbuf *pb = gtk_widget_render_icon(pic, GTK_STOCK_MEDIA_PLAY, GTK_ICON_SIZE_MENU, NULL);
+	GdkPixbuf *npb = reverse_pic(pb);
+	g_object_unref(pb);
+	pic = gtk_image_new_from_pixbuf(npb);
+	g_object_unref(npb);
 	gtk_container_add(GTK_CONTAINER(reverse_button), pic);
 	gtk_button_set_relief(GTK_BUTTON(reverse_button), GTK_RELIEF_NONE);
 	gtk_box_pack_start (GTK_BOX (pitch_box), reverse_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), reverse_button, _("Normal speed backwards"), _("Play track backwards with normal speed"));
 
 	pause_button = gtk_button_new ();
-	pic = get_image_from_xpm(pause_xpm);
+//	pic = get_image_from_xpm(pause_xpm);
+	pic = gtk_image_new_from_stock(GTK_STOCK_MEDIA_PAUSE, GTK_ICON_SIZE_MENU);
 	gtk_container_add(GTK_CONTAINER(pause_button), pic);
 	gtk_button_set_relief(GTK_BUTTON(pause_button), GTK_RELIEF_NONE);
 	gtk_box_pack_start (GTK_BOX (pitch_box), pause_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), pause_button, _("Pause/Unpause"), NULL);
 
 	forward_button = gtk_button_new ();
-	pic = get_image_from_xpm(f_play_xpm);
+//	pic = get_image_from_xpm(f_play_xpm);
+	pic = gtk_image_new_from_stock(GTK_STOCK_MEDIA_PLAY, GTK_ICON_SIZE_MENU);
 	gtk_container_add(GTK_CONTAINER(forward_button), pic); 
 	gtk_button_set_relief(GTK_BUTTON(forward_button), GTK_RELIEF_NONE);
 	gtk_box_pack_start (GTK_BOX (pitch_box), forward_button, FALSE, FALSE, 0);
