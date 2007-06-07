@@ -332,7 +332,7 @@ void speed_cb(GtkWidget *widget, gpointer data)
 		p->SetSpeed(  (float) val / 100.0);
 		GDK_THREADS_ENTER();
 	}
-		draw_speed(val / 100.0);
+//		draw_speed(val / 100.0);
 }
 
 pthread_t smoother_thread;
@@ -714,11 +714,15 @@ void volume_cb(GtkWidget *widget, gpointer data)
 	CorePlayer *p = pl->GetCorePlayer();
 
 	if (p) {
-		GDK_THREADS_LEAVE();
-		p->SetVolume(((float) adj->value) / 100.0);
-		GDK_THREADS_ENTER();
+
 		
-		}
+	double volume = (double) p->GetVolume() * 100.0;
+	if ((int)volume != (int)adj->value) {
+		GDK_THREADS_LEAVE();	
+		p->SetVolume(  (float) adj->value / 100.0);
+		GDK_THREADS_ENTER();
+	}
+	}
 }
 
 
@@ -768,6 +772,16 @@ gint indicator_callback(gpointer, int locking)
 		if (locking)
 			GDK_THREADS_ENTER();
 		gtk_adjustment_set_value(adj, speed);
+		if (locking)
+				GDK_THREADS_LEAVE();
+	}
+	adj = GTK_RANGE(ustr->vol_scale)->adjustment;
+	double volume = (double) p->GetVolume() * 100.0;
+	if ((int)volume != (int)gtk_adjustment_get_value(adj))
+	{
+		if (locking)
+			GDK_THREADS_ENTER();
+		gtk_adjustment_set_value(adj, volume);
 		if (locking)
 				GDK_THREADS_LEAVE();
 	}

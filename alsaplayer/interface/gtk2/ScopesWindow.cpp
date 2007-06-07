@@ -384,7 +384,7 @@ gboolean
 scopes_delete_event(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
 	if (GTK_WIDGET_VISIBLE(widget))
-		gtk_widget_hide(widget);
+		gtk_widget_hide_all(widget);
 	
 	return TRUE;	
 }

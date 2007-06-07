@@ -167,16 +167,8 @@ create_filechooser(GtkWindow *main_window, PlaylistWindow *playlist_window)
 	return filechooser;
 }
 
-static gboolean
-playlist_delete_event(GtkWidget *widget, GdkEvent *event, gpointer user_data)
-{
-	PlaylistWindow *playlist_window = (PlaylistWindow *) user_data;
-	if (playlist_window)
-		playlist_window->Hide();
-	return TRUE;
-}
-
-static int get_path_number(GtkTreePath *data)
+static int
+get_path_number(GtkTreePath *data)
 {
 	int number;
 	gchar *path = gtk_tree_path_to_string(data);
@@ -719,13 +711,12 @@ void PlaylistWindow::Show()
 	}
 }
 
-// Hide the playlist
 void PlaylistWindow::Hide()
 {
 	if(GTK_WIDGET_VISIBLE(window)) {
 		width = window->allocation.width;
 		height = window->allocation.height;
-		gtk_widget_hide(window);
+		gtk_widget_hide_all(window);
 	}
 }
 
