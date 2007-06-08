@@ -590,7 +590,7 @@ bool CorePlayer::Start()
 	last_read = -1;
 	output_rate = node->SamplingRate();
 	input_rate = plugin->sample_rate(the_object);
-	
+
 	if (input_rate == output_rate)
 		SetSpeedMulti(1.0);
 	else
@@ -752,8 +752,9 @@ float CorePlayer::GetSpeed()
 {
 	if (repitched) { // Pitch was changed so return this instead
 		return pitch_point;
-	}	
-	return (read_direction == DIR_FORWARD ? pitch : -pitch);
+	}
+	float ret_pitch = pitch / pitch_multi;
+	return (read_direction == DIR_FORWARD ? ret_pitch : -ret_pitch);
 }
 
 

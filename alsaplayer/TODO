@@ -10,11 +10,6 @@ TODO list (2007 May 28)
 - global: add gettext support
 - global: new preference option to start or not playing at startup
 - gtk2: preferences interface
-- gtk2: add new preference option for fonts in the main display: not needed
-  anymore as it have theme support.
-- gtk2: when using console commands to change the speed, the speed is
-  changed but those interfaces are not aware of it. It is fixed, but same 
-  issue with the volume.
 - gtk: backport the gtk2 changes to gtk when it is possible. Any volunter?
 
 Know bugs:

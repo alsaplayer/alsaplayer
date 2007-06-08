@@ -3,6 +3,16 @@
   as the GTK1 one and more will come soon. A big thanks to Madej from Poland
   for its work on this interface.
 
+Fri June 8 2007
+---------------
+* Madej patch: fix weird speed behaviour when resuming from pause with jack output.
+
+Thu June 7 2007
+---------------
+* Maedj work: GTK2: the buttons use gtk themes.
+* Madej patch: Fix the volume awarness of the gtk2 interface. It will react
+  correctly to volume change from the console.
+  
 Wed June 6 2007
 ---------------
 * CDDA engine: patch form Hubert Chan (Debian) that fix the CDDB support on port
