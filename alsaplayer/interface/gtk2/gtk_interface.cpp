@@ -128,7 +128,7 @@ typedef struct  _loop_struct {
 static loop_struct global_loop;
 
 // Static variables  (to be moved into a class, at some point)
-static GtkWidget *play_dialog;
+//static GtkWidget *play_dialog;
 
 static int vol_scales[] = {
 				0,1,2,4,7,12,18,26,35,45,56,69,83,100 };
@@ -679,16 +679,14 @@ void eject_cb(GtkWidget *, gpointer);
 
 void play_cb(GtkWidget *widget, gpointer data)
 {
-	Playlist *pl = (Playlist *)data;
+	PlaylistWindow *playlist_window = (PlaylistWindow *)data;
+	Playlist *pl = playlist_window->GetPlaylist();
 	CorePlayer *p = pl->GetCorePlayer();
 	if (p) {
 		pl->UnPause();
-		if (p->IsPlaying() || !pl->Length()) {
+		if (!pl->Length()) {
 			eject_cb(widget, data);
-			GDK_THREADS_LEAVE();
-			pl->Play(pl->GetCurrent());
-			GDK_THREADS_ENTER();
-		} else if (!p->IsPlaying() && pl->Length()) {
+		} else if (pl->Length()) {
 			GDK_THREADS_LEAVE();
 			pl->Play(pl->GetCurrent());
 			GDK_THREADS_ENTER();
@@ -699,12 +697,12 @@ void play_cb(GtkWidget *widget, gpointer data)
 
 void eject_cb(GtkWidget *, gpointer data)
 {
-	Playlist *pl = (Playlist *)data;
+	PlaylistWindow *playlist_window = (PlaylistWindow *)data;
+	Playlist *pl = playlist_window->GetPlaylist();
 	CorePlayer *p = pl->GetCorePlayer();
 
 	if ((p) && (!pl->Length())) {
-		gtk_widget_show_all(play_dialog);
-// what for ?		gdk_window_raise(play_dialog->window);
+		playlist_window->AddFile();
 	}
 }	
 
@@ -952,62 +950,6 @@ void effects_cb(GtkWidget *, gpointer user_data)
 }
 */
 
-void play_file_ok(GtkWidget *play_dialog, gpointer data)
-{
-	Playlist *playlist = (Playlist *)data;
-	CorePlayer *p = playlist->GetCorePlayer();
-
-	if (p) {
-
-		GSList *file_list = gtk_file_chooser_get_filenames (GTK_FILE_CHOOSER(play_dialog));
-	
-			std::vector<std::string> paths;
-		char *path;
-		
-		// Write default_play_path
-//		prefs_set_string(ap_prefs, "gtk2_interface", "default_play_path", current_dir);
-	
-		// Get the selections
-		if (!file_list) {
-			path = gtk_file_chooser_get_uri(GTK_FILE_CHOOSER(play_dialog));
-			if (path) {
-				paths.push_back(path);
-				g_free(path);
-			}
-		}
-		while (file_list) {
-			path = (char *) file_list->data;
-			if (path) {
-				paths.push_back(path);
-			}
-			file_list = file_list->next;
-		}
-
-		// Sort them (they're sometimes returned in a slightly odd order)
-		sort(paths.begin(), paths.end());
-
-		// Add selections to the queue, and start playing them
-		GDK_THREADS_LEAVE();
-		playlist->AddAndPlay(paths);
-		GDK_THREADS_ENTER();
-		playlist->UnPause();
-		
-		gtk_file_chooser_unselect_all (GTK_FILE_CHOOSER(play_dialog));
-		g_slist_free(file_list);	
-	}
-	// Save path
-}
-
-void dialog_cancel_response(GtkWidget *dialog, gpointer data)
-{
-// do we really need placing window ?
-//	gint x,y;
-
-//	gdk_window_get_root_origin(play_dialog->window, &x, &y);
-	gtk_widget_hide(dialog);
-//	gtk_widget_set_uposition(play_dialog, x, y);
-}
-
 static void
 playlist_button_cb(GtkWidget *button, gpointer user_data)
 {
@@ -1075,14 +1017,6 @@ update_info_window(GtkWidget *main_window)
 	
 	indicator_callback(NULL, 0);
 }
-
-void play_dialog_cb(GtkDialog *dialog, gint response, gpointer user_data)
-{
-	if (response == GTK_RESPONSE_ACCEPT)
-		play_file_ok(GTK_WIDGET(dialog), (gpointer) user_data);
-	
-	dialog_cancel_response(GTK_WIDGET(dialog), NULL);
-}	
 
 void about_cb(GtkMenuItem *item, gpointer user_data)
 {
@@ -1432,7 +1366,7 @@ create_main_window (Playlist *pl)
 	
 	playlist_window = new PlaylistWindow(playlist);
 	g_object_set_data(G_OBJECT(main_window), "playlist_window", playlist_window);
-	play_dialog = NULL;//create_filechooser(GTK_WINDOW(main_window), playlist);
+//	play_dialog = NULL;//create_filechooser(GTK_WINDOW(main_window), playlist);
 	
 	gtk_box_pack_start (GTK_BOX (main_box), playlist_window->GetWindow(), TRUE, TRUE, 0);
 	
@@ -1463,7 +1397,7 @@ create_main_window (Playlist *pl)
   	g_signal_connect(G_OBJECT(playlist_button), "clicked", G_CALLBACK(playlist_button_cb), playlist_window); 
 	g_signal_connect(G_OBJECT(cd_button), "clicked", G_CALLBACK(cd_cb), pl);
 	g_signal_connect(G_OBJECT(play_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
-	g_signal_connect(G_OBJECT(play_button), "clicked", G_CALLBACK(play_cb), playlist);
+	g_signal_connect(G_OBJECT(play_button), "clicked", G_CALLBACK(play_cb), (gpointer) playlist_window);
 	g_signal_connect(G_OBJECT(stop_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(stop_button), "clicked", G_CALLBACK(stop_cb), playlist);
 	g_signal_connect(G_OBJECT(next_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);

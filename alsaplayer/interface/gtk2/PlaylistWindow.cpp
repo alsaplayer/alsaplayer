@@ -59,6 +59,17 @@ static GtkTargetEntry drag_types[] = {
 static int n_drag_types = sizeof(drag_types)/sizeof(drag_types[0]);
 
 static void
+dialog_cancel_response(GtkWidget *dialog, gpointer data)
+{
+// do we really need placing window ?
+//	gint x,y;
+
+//	gdk_window_get_root_origin(play_dialog->window, &x, &y);
+	gtk_widget_hide(dialog);
+//	gtk_widget_set_uposition(play_dialog, x, y);
+}
+
+static void
 new_list_item(const PlayItem *item, gchar **list_item)
 {
 	gchar *dirname;
@@ -150,6 +161,62 @@ create_playlist_save(GtkWindow *main_window, PlaylistWindow *playlist_window)
 	return filechooser;
 }
 
+static void
+play_file_ok(GtkWidget *play_dialog, gpointer data)
+{
+	Playlist *playlist = (Playlist *)data;
+	CorePlayer *p = playlist->GetCorePlayer();
+
+	if (p) {
+
+		GSList *file_list = gtk_file_chooser_get_filenames (GTK_FILE_CHOOSER(play_dialog));
+	
+			std::vector<std::string> paths;
+		char *path;
+		
+		// Write default_play_path
+//		prefs_set_string(ap_prefs, "gtk2_interface", "default_play_path", current_dir);
+	
+		// Get the selections
+		if (!file_list) {
+			path = gtk_file_chooser_get_uri(GTK_FILE_CHOOSER(play_dialog));
+			if (path) {
+				paths.push_back(path);
+				g_free(path);
+			}
+		}
+		while (file_list) {
+			path = (char *) file_list->data;
+			if (path) {
+				paths.push_back(path);
+			}
+			file_list = file_list->next;
+		}
+
+		// Sort them (they're sometimes returned in a slightly odd order)
+		sort(paths.begin(), paths.end());
+
+		// Add selections to the queue, and start playing them
+		GDK_THREADS_LEAVE();
+		playlist->AddAndPlay(paths);
+		GDK_THREADS_ENTER();
+		playlist->UnPause();
+
+		gtk_file_chooser_unselect_all (GTK_FILE_CHOOSER(play_dialog));
+		g_slist_free(file_list);	
+	}
+	// Save path
+}
+
+static void
+play_dialog_cb(GtkDialog *dialog, gint response, gpointer user_data)
+{
+	if (response == GTK_RESPONSE_ACCEPT)
+		play_file_ok(GTK_WIDGET(dialog), (gpointer) user_data);
+	
+	dialog_cancel_response(GTK_WIDGET(dialog), NULL);
+}	
+
 static GtkWidget*
 create_filechooser(GtkWindow *main_window, PlaylistWindow *playlist_window)
 {
@@ -233,6 +300,7 @@ clear_cb(GtkButton *button, gpointer user_data)
 	PlaylistWindow *playlist_window = (PlaylistWindow *) user_data;
 	if (playlist_window) {
 		GDK_THREADS_LEAVE();
+		playlist_window->GetPlaylist()->Stop();
 		playlist_window->GetPlaylist()->Clear();
 		GDK_THREADS_ENTER();
 	}	
@@ -457,7 +525,7 @@ PlaylistWindow::PlaylistWindow(Playlist *pl) {
 	window = create_playlist_window(this);
 	list = (GtkWidget *)g_object_get_data(G_OBJECT(window), "list");
 	
-	current_entry = -1;
+	current_entry = 1;
 	width = window->allocation.width;
 	height = window->allocation.height;
 	
@@ -551,7 +619,6 @@ static GdkPixbuf *current_stop_pix = NULL;
 
 void PlaylistWindow::CbSetCurrent(void *data, unsigned current)
 {
-	
 	PlaylistWindow *playlist_window = (PlaylistWindow *)data;
 	
 	if (current == 0)
@@ -561,7 +628,7 @@ void PlaylistWindow::CbSetCurrent(void *data, unsigned current)
 
 	GtkListStore *list = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(playlist_window->GetList())));
 	GtkTreeIter iter;
-		
+
 	if (!current_play_pix) {	
 		current_play_pix = gdk_pixbuf_new_from_xpm_data((const char **)current_play_xpm);
 		current_stop_pix = gdk_pixbuf_new_from_xpm_data((const char **)current_stop_xpm);
@@ -783,4 +850,10 @@ void PlaylistWindow::SetPlay()
 		g_free(current_string);		
 		GDK_THREADS_LEAVE();
 	}
+}
+
+void PlaylistWindow::AddFile()
+{
+	GtkWidget *add = GTK_WIDGET(g_object_get_data(G_OBJECT(this->window), "add_file"));
+	gtk_widget_show_all(add);
 }

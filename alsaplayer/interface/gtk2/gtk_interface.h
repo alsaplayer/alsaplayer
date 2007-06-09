@@ -30,9 +30,6 @@ extern gint windows_y_offset;
 extern int global_update;
 
 void init_main_window(Playlist *);
-
-void play_dialog_cb(GtkDialog *dialog, gint response, gpointer user_data);
-void dialog_cancel_response(GtkWidget *dialog, gpointer data);
 void loop_cb(GtkWidget *, gpointer data);
 
 enum gtk_keymap {

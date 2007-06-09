@@ -3,6 +3,11 @@
   as the GTK1 one and more will come soon. A big thanks to Madej from Poland
   for its work on this interface.
 
+Sat June 9 2007
+---------------
+* Maedj patch: restore open file dialog on the play button when the playlist
+  is empty; clicking on clear will stop playing; fixed some warnings.
+  
 Fri June 8 2007
 ---------------
 * Madej patch: fix weird speed behaviour when resuming from pause with jack output.
