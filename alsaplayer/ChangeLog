@@ -7,6 +7,9 @@ Sat June 9 2007
 ---------------
 * Maedj patch: restore open file dialog on the play button when the playlist
   is empty; clicking on clear will stop playing; fixed some warnings.
+* Madej: fix strange speed behaviour when unpausing with jack and smooth
+  transition; changed mouse wheel behaviour: scroll up with increase the volume
+  or the speed, the balance will go to the right.
   
 Fri June 8 2007
 ---------------

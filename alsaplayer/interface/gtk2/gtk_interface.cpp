@@ -315,6 +315,24 @@ gboolean release_event(GtkWidget *widget, GdkEvent *, gpointer data)
 }
 
 
+gboolean button_release_event(GtkWidget *widget, GdkEvent *event, gpointer user_data)
+{
+	if (event->type != GDK_SCROLL)
+		return FALSE;
+		
+	GdkEventScroll *sevent = (GdkEventScroll *) event;
+	GtkAdjustment *adj = GTK_RANGE(widget)->adjustment;
+	
+	gdouble value = gtk_adjustment_get_value(adj);
+	if ((sevent->direction == GDK_SCROLL_UP) || (sevent->direction == GDK_SCROLL_RIGHT)) {
+		gtk_adjustment_set_value(adj,  value+1.0); 
+	} else if ((sevent->direction == GDK_SCROLL_DOWN) || (sevent->direction == GDK_SCROLL_LEFT)) {
+		gtk_adjustment_set_value(adj,  value-1.0);
+	}
+	
+	return TRUE;
+}
+
 gboolean move_event(GtkWidget *, GdkEvent *, gpointer)
 {
 	indicator_callback(NULL, 0);
@@ -640,7 +658,8 @@ void pause_cb(GtkWidget *, gpointer data)
 	smooth_trans = prefs_get_bool(ap_prefs, "gtk2_interface", "smooth_transition", 0);
 		
 	if (smooth_trans) {
-		if (destination <= adj->value && destination != 0.0) {
+//		if (destination <= adj->value && destination != 0.0) {
+		if (adj->value != 0.0) {
 			speed_pan_position = gtk_adjustment_get_value(adj);
 			destination = 0.0;
 		} else {
@@ -1411,12 +1430,15 @@ create_main_window (Playlist *pl)
 	g_signal_connect(G_OBJECT(forward_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(forward_button), "clicked", G_CALLBACK(forward_play_cb), speed_scale);
 	g_signal_connect(G_OBJECT(vol_adj), "value_changed", G_CALLBACK(volume_cb), playlist);
+	g_signal_connect(G_OBJECT(vol_scale), "event", G_CALLBACK(button_release_event), NULL);
 	g_signal_connect(G_OBJECT(pos_scale), "button_release_event", G_CALLBACK(release_event), playlist);
 	g_signal_connect(G_OBJECT(pos_scale), "button_press_event", G_CALLBACK(press_event), NULL);
 	g_signal_connect(G_OBJECT(pos_scale), "motion_notify_event", G_CALLBACK(move_event), NULL);
-	g_signal_connect(G_OBJECT(GTK_RANGE(speed_scale)->adjustment), "value_changed", G_CALLBACK(speed_cb), playlist);	
+	g_signal_connect(G_OBJECT(GTK_RANGE(speed_scale)->adjustment), "value_changed", G_CALLBACK(speed_cb), playlist);
+	g_signal_connect(G_OBJECT(speed_scale), "event", G_CALLBACK(button_release_event), NULL);
 	g_signal_connect(G_OBJECT(cd_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(GTK_RANGE(bal_scale)->adjustment), "value_changed", G_CALLBACK(pan_cb), playlist);
+	g_signal_connect(G_OBJECT(bal_scale), "event", G_CALLBACK(button_release_event), NULL);
 	g_signal_connect(G_OBJECT(loop_button), "clicked", G_CALLBACK(loop_button_clicked), (gpointer)playlist);
 	g_signal_connect(G_OBJECT(loop_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(looper_button), "clicked", G_CALLBACK(loop_cb), (gpointer)pos_scale);
