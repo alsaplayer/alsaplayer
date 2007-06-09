@@ -5,7 +5,7 @@
 
 Sat June 9 2007
 ---------------
-* Maedj patch: restore open file dialog on the play button when the playlist
+* Madej patch: restore open file dialog on the play button when the playlist
   is empty; clicking on clear will stop playing; fixed some warnings.
 * Madej: fix strange speed behaviour when unpausing with jack and smooth
   transition; changed mouse wheel behaviour: scroll up with increase the volume
@@ -17,7 +17,7 @@ Fri June 8 2007
 
 Thu June 7 2007
 ---------------
-* Maedj work: GTK2: the buttons use gtk themes.
+* Madej work: GTK2: the buttons use gtk themes.
 * Madej patch: Fix the volume awarness of the gtk2 interface. It will react
   correctly to volume change from the console.
   
