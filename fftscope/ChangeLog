@@ -1,3 +1,7 @@
+Sun June 10 2007
+----------------
+* Fixed Makefile.am to work with the gtk2 folder and 'make dist'
+
 Sat May 26 2007
 ---------------
 * FftScope for GTK2 initial commit

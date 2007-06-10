@@ -19,7 +19,13 @@ Make sure you have AlsaPlayer installed, including the development files
 on your system. You will have to restart a running alsaplayer for the new
 scope to show up.
 
+If you want to install only the GTK2 version of FftScope, cd into the gtk2
+folder before processing.
 
 Author
 ------
 You can reach me at andy@alsaplayer.org
+
+Maintainer
+----------
+dominique@tuxfamily.org

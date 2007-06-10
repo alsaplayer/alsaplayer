@@ -2,6 +2,8 @@ fftscopeltlibs = libfftscope.la
 fftscopeldflags = -export-dynamic -avoid-version @GTK_LIBS@
 fftscopesources = fftscope.c
 
+SUBDIRS = gtk2
+
 lib_LTLIBRARIES = $(fftscopeltlibs)
 
 libdir = $(SCOPEPLUGIN_DIR)
@@ -13,4 +15,5 @@ LIBS =
 
 libfftscope_la_SOURCES= $(fftscopesources)
 
-EXTRA_DIST = bootstrap fftscope.png
+EXTRA_DIST = bootstrap fftscope.png gtk2
+
