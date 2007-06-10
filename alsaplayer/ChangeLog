@@ -1,7 +1,7 @@
 * Modify threading to use conditional waits. More portable
 * The GTK2 interface is in progress. It provide the same level of functionality
   as the GTK1 one and more will come soon. A big thanks to Madej from Poland
-  for its work on this interface.
+  for his work on this interface.
 
 Sat June 9 2007
 ---------------
@@ -77,6 +77,8 @@ Mon May 28 2007
 * Fixed GTK2 version to GTK2+-2.8.0 in configure.ac
 * Updated TODO
 * Changed cddb_servername to the correct directory and cddb_serverport to 80
+* New Madej patch: Added --disable-opengl configure option
+* Fixed keybindings missbehaviour and improved play button
  
 Sat May 26 2007
 ---------------
@@ -86,12 +88,6 @@ Sat May 26 2007
 * Changed default interface to gtk2.
 * Fixed the behaviour of the play button. It work now as explained in the
   man page.
-
-Mon May 28 2007
----------------
-New Madej patches:
-* Added --disable-opengl configure option
-* Fixed keybindings missbehaviour and improved play button
 
 Fri May 25 2007
 ---------------
