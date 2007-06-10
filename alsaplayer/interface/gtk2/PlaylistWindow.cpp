@@ -547,11 +547,12 @@ PlaylistWindow::~PlaylistWindow()
 {
 	int hidden = IsHidden()?0:1;
 	prefs_set_bool(ap_prefs, "gtk2_interface", "playlist_active", hidden);
+	prefs_set_int(ap_prefs, "gtk2_interface", "playlist_height", this->height);
 	
-	Hide();
-	Clear();
+	this->Hide();
+	this->Clear();
 	
-	playlist->UnRegister(&pli);
+	this->playlist->UnRegister(&pli);
 }
 
 void PlaylistWindow::LoadPlaylist()

@@ -7,6 +7,7 @@ Sun June 10 2007
 ----------------
 * Madej: fixed Credits window to look better.
 * Removed unwanted wmclass from GTK2 and scopes2.
+* Madej: Added playlist height options in preferences.
 
 Sat June 9 2007
 ---------------

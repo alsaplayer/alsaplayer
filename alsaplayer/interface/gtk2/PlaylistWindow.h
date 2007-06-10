@@ -41,7 +41,7 @@ class PlaylistWindow
 		PlaylistWindow(Playlist *);
 		~PlaylistWindow();
 
-		guint current_entry;
+		gint current_entry;
 
 		void LoadPlaylist();
 		void SavePlaylist();
@@ -62,6 +62,7 @@ class PlaylistWindow
 		
 		gint GetWidth() { return this->width; }
 		gint GetHeight() { return this->height; }
+		void SetHeight(gint h) { this->height = h; }
 		gint GetCurrententry() { return this->current_entry; }
 //		GtkWidget *add_file;
 //		GtkWidget *save_list;

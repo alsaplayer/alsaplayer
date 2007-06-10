@@ -314,7 +314,6 @@ gboolean release_event(GtkWidget *widget, GdkEvent *, gpointer data)
 	return FALSE;
 }
 
-
 gboolean button_release_event(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
 	if (event->type != GDK_SCROLL)
@@ -1209,9 +1208,9 @@ create_main_window (Playlist *pl)
 	window_icon = gdk_pixbuf_new_from_xpm_data((const char **)note_xpm);
 	gtk_window_set_default_icon (window_icon);
 	g_object_unref(G_OBJECT(window_icon));
-		
-	gtk_window_set_title(GTK_WINDOW(main_window), "AlsaPlayer");
 
+	gtk_window_set_title(GTK_WINDOW(main_window), "AlsaPlayer");
+	
 	main_frame = gtk_frame_new (NULL);
 	gtk_frame_set_shadow_type (GTK_FRAME (main_frame), GTK_SHADOW_OUT);
 	gtk_container_add (GTK_CONTAINER (main_window), main_frame);
@@ -1435,6 +1434,7 @@ create_main_window (Playlist *pl)
 	g_signal_connect(G_OBJECT(pos_scale), "motion_notify_event", G_CALLBACK(move_event), NULL);
 	g_signal_connect(G_OBJECT(GTK_RANGE(speed_scale)->adjustment), "value_changed", G_CALLBACK(speed_cb), playlist);
 	g_signal_connect(G_OBJECT(speed_scale), "event", G_CALLBACK(button_release_event), NULL);
+	g_signal_connect(G_OBJECT(speed_scale), "event", G_CALLBACK(button_release_event), NULL);
 	g_signal_connect(G_OBJECT(cd_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(GTK_RANGE(bal_scale)->adjustment), "value_changed", G_CALLBACK(pan_cb), playlist);
 	g_signal_connect(G_OBJECT(bal_scale), "event", G_CALLBACK(button_release_event), NULL);
@@ -1452,23 +1452,25 @@ create_main_window (Playlist *pl)
 void init_main_window(Playlist *pl)
 {
 	GtkWidget *main_window;
-	gint width, height;
+	gint width, height, plheight;
 	
 	main_window = create_main_window(pl);
 	gtk_widget_show_all(main_window);
 	
 	PlaylistWindow *playlist_window = (PlaylistWindow *) g_object_get_data(G_OBJECT(main_window), "playlist_window");
-	
-	if (!prefs_get_bool(ap_prefs, "gtk2_interface", "playlist_active", 0)) {
-		playlist_button_cb(main_window, playlist_window);
-	}	
 
 	width = prefs_get_int(ap_prefs, "gtk2_interface", "width", 0);
 	height = prefs_get_int(ap_prefs, "gtk2_interface", "height", 0);
+	plheight = prefs_get_int(ap_prefs, "gtk2_interface", "playlist_height", 0);
+	
+	if (!prefs_get_bool(ap_prefs, "gtk2_interface", "playlist_active", 0)) {
+		playlist_button_cb(main_window, playlist_window);
+		playlist_window->SetHeight(plheight);
+	}	
 	
 	if (width && height)	
 		gtk_window_resize(GTK_WINDOW(main_window), width, height);
-
+	
 	memset(&notifier, 0, sizeof(notifier));
 	notifier.speed_changed = speed_changed;
 	notifier.pan_changed = pan_changed;
