@@ -64,17 +64,18 @@ init_about_window(GtkWidget *main_window)
 {
 	GtkWidget *about_window = NULL;
 	GdkPixbuf *about_logo = NULL;
-	const gchar *authors[] = {"Core code by Andy Lo A Foe <andy@alsaplayer.org>", 
-								"Project administration and some bug fixes by Dominique Michel <dominique_libre@sourceforge.net>",
-								"Madej for the GTK2 interface, bug fixes, code cleanups etc.",
-								"Hubert Chan from Debian for committing critical security fixes",
-								"Viktor Radnai and Paul Brossier from Debian for basic keyboard navigation and loop mode",
-								"Check AUTHORS file for a more complete list",
+	const gchar *authors[] = {"Andy Lo A Foe\t\t\t<andy@alsaplayer.org>", 
+								"Dominique Michel\t\t<dominique@tuxfamilly.org>",
+								"Madej",
+								"\nPatches:",
+								"Hubert Chan",
+								"Viktor Radnai and Paul Brossier",
+								"\nCheck AUTHORS file for a more complete list",
 								NULL};
 //	const gchar *artists[] = {"", NULL};
-	const gchar *documenters[] = {"Yvo Timmermans from Debian wrote the man page", 
-									"Dominique Michel from alsaplayer.org added the daemon and gtk interfaces sections",
-									"Andy Lo A Foe referenced some part of the source code",
+	const gchar *documenters[] = {"Yvo Timmermans", 
+									"Dominique Michel",
+									"Andy Lo A Foe",
 									NULL};
 	const gchar *license = _("AlsaPlayer is free software; you can redistribute it and/or modify\n\
 it under the terms of the GNU General Public Licence as published by\n\
