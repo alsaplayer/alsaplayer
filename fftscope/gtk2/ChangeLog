@@ -1,3 +1,7 @@
+Sun June 10 2007
+----------------
+* Removed unwanted wmclass
+
 Sat May 26 2007
 ---------------
 * FftScope for GTK2 initial commit
