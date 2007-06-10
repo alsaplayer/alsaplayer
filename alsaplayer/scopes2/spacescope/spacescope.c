@@ -128,7 +128,6 @@ GtkWidget *init_spacescope_window(void)
 	spacescope_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(spacescope_win), "Spacescope");
 	gtk_widget_set_usize(spacescope_win, SPACE_WH, SPACE_WH);	
-	gtk_window_set_wmclass (GTK_WINDOW(spacescope_win), "Spacescope", "AlsaPlayer");
 	gtk_window_set_policy (GTK_WINDOW (spacescope_win), FALSE, FALSE, TRUE);  
 
 	gtk_widget_realize(spacescope_win);

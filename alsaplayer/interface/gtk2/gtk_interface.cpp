@@ -1210,8 +1210,7 @@ create_main_window (Playlist *pl)
 	gtk_window_set_default_icon (window_icon);
 	g_object_unref(G_OBJECT(window_icon));
 		
-	gtk_window_set_title(GTK_WINDOW(main_window), global_session_name == NULL ? "AlsaPlayer" : global_session_name);
-	gtk_window_set_wmclass(GTK_WINDOW(main_window), "AlsaPlayer", "alsaplayer");
+	gtk_window_set_title(GTK_WINDOW(main_window), "AlsaPlayer");
 
 	main_frame = gtk_frame_new (NULL);
 	gtk_frame_set_shadow_type (GTK_FRAME (main_frame), GTK_SHADOW_OUT);

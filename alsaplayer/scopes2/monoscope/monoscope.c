@@ -208,7 +208,6 @@ GtkWidget *init_monoscope_window(void)
 	monoscope_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(monoscope_win), "Monoscope");
 	gtk_widget_set_usize(monoscope_win, 256,128);
-	gtk_window_set_wmclass (GTK_WINDOW(monoscope_win), "Monoscope", "AlsaPlayer");
 	gtk_window_set_policy (GTK_WINDOW (monoscope_win), FALSE, FALSE, FALSE);
 
 	gtk_widget_realize(monoscope_win);

@@ -466,7 +466,6 @@ static GtkWidget *init_synaescope_window(void)
 	synaescope_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(synaescope_win), "Synaescope");
 	gtk_widget_set_usize(synaescope_win, syn_width, syn_height);
-	gtk_window_set_wmclass (GTK_WINDOW(synaescope_win), "Synaescope", "AlsaPlayer");
 	gtk_window_set_policy (GTK_WINDOW (synaescope_win), FALSE, FALSE, FALSE);
 	style = gtk_style_copy(gtk_widget_get_style(GTK_WIDGET(synaescope_win)));
 	

@@ -186,7 +186,6 @@ static GtkWidget *init_levelmeter_window(void)
 	levelmeter_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(levelmeter_win), "Levelmeter");
 	gtk_widget_set_usize(levelmeter_win, 255, 40);	
-	gtk_window_set_wmclass (GTK_WINDOW(levelmeter_win), "Levelmeter", "AlsaPlayer");
 	gtk_window_set_policy (GTK_WINDOW (levelmeter_win), FALSE, FALSE, FALSE);  
 	gtk_widget_set_events(levelmeter_win, GDK_BUTTON_PRESS_MASK);	
 	gtk_widget_realize(levelmeter_win);
