@@ -142,8 +142,6 @@ static GtkWidget *init_fftscope_window()
 	fftscope_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(fftscope_win), "FFTscope");
 	gtk_widget_set_usize(fftscope_win, 256, SCOPE_HEIGHT);
-	gtk_window_set_wmclass(GTK_WINDOW(fftscope_win), "FFTscope",
-			       "AlsaPlayer");
 	gtk_window_set_policy(GTK_WINDOW(fftscope_win), FALSE, FALSE,
 			      FALSE);
 	style =
