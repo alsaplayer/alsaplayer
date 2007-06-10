@@ -8,6 +8,8 @@ Sun June 10 2007
 * Madej: fixed Credits window to look better.
 * Removed unwanted wmclass from GTK2 and scopes2.
 * Madej: Added playlist height options in preferences.
+* Madej: Fix for quit function: it will save the prefs both when quiting from
+  the title bar and the quit menu.
 
 Sat June 9 2007
 ---------------

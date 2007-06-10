@@ -218,11 +218,12 @@ void start_notify(void *data)
 }
 
 
-gboolean main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
+static gboolean
+main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
 	global_update = -1;
 
-	PlaylistWindow *playlist_window = (PlaylistWindow *) data;
+	PlaylistWindow *playlist_window = (PlaylistWindow *) g_object_get_data(G_OBJECT(widget), "playlist_window");
 	
 	prefs_set_int(ap_prefs, "gtk2_interface", "width", widget->allocation.width);
 	prefs_set_int(ap_prefs, "gtk2_interface", "height", widget->allocation.height);
@@ -926,21 +927,9 @@ void cd_cb(GtkWidget *, gpointer data)
 }
 
 
-void exit_cb(GtkWidget *, gpointer data)
+void exit_cb(GtkWidget *, gpointer user_data)
 {
-	GtkFunction f = (GtkFunction)data;
-	global_update = -1;
-	gdk_flush();
-	if (f) { // Oh my, a very ugly HACK indeed! But it works
-		GDK_THREADS_LEAVE();
-		f(NULL);
-		GDK_THREADS_ENTER();
-	}
-	// This is more HACK stuff, but then again GTK IS A BIG FREAKING HACK!
-	GDK_THREADS_LEAVE();
-	gtk_main_quit();
-	gdk_flush();
-	GDK_THREADS_ENTER();
+	main_window_delete(GTK_WIDGET(user_data), NULL, NULL);
 }
 
 void scopes_cb(GtkWidget *, gpointer user_data)
@@ -1090,7 +1079,7 @@ create_main_menu(GtkWidget *main_window)
 	menu_item = gtk_image_menu_item_new_from_stock(GTK_STOCK_QUIT, NULL);
 	gtk_menu_append(GTK_MENU(root_menu), menu_item);
 	g_signal_connect(G_OBJECT(menu_item), "activate",
-					   G_CALLBACK(exit_cb), NULL);
+					   G_CALLBACK(exit_cb), (gpointer)main_window);
 
 	gtk_widget_show_all(GTK_WIDGET(root_menu));					   	
 	
@@ -1406,7 +1395,7 @@ create_main_window (Playlist *pl)
 
 	g_signal_connect(G_OBJECT(main_window), "expose-event", G_CALLBACK(configure_window), (gpointer)infowindow);
 		
-	g_signal_connect(G_OBJECT(main_window), "delete_event", G_CALLBACK(main_window_delete), (gpointer)playlist_window);
+	g_signal_connect(G_OBJECT(main_window), "delete_event", G_CALLBACK(main_window_delete), NULL);
 	g_signal_connect(G_OBJECT(main_window), "key_press_event", G_CALLBACK(key_press_cb), (gpointer)playlist_window);	
 	g_signal_connect(G_OBJECT(main_window), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	
