@@ -350,7 +350,7 @@ playlist_remove(GtkWidget *, gpointer user_data)
 }
 
 static void
-dnd_drop_event(GtkWidget *widget,
+dnd_received(GtkWidget *widget,
 		GdkDragContext   *drag_context,
 		gint              x,
 		gint              y,
@@ -363,8 +363,18 @@ dnd_drop_event(GtkWidget *widget,
 	char *filename = NULL;
 	char *p, *s, *res;
 
-	if (!data)
+	if (!data) {
 		return;
+	}
+	GtkTreePath *path = NULL;
+	gint pos = -1;
+	
+	gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(widget), x, y, &path, NULL, NULL, NULL);
+	if (path) {
+		gchar *position = gtk_tree_path_to_string(path);
+		pos = atoi(position);
+		g_free(position);
+	} 
 	
 	switch(info) {
 		case TARGET_URI_LIST:
@@ -376,19 +386,24 @@ dnd_drop_event(GtkWidget *widget,
 				if ((p=s=strstr(filename, "\r\n"))) {
 					*s = '\0';
 					p = s+2;
-				}	
+				}
 				if (strlen(filename)) {
-					//alsaplayer_error("Adding: %s", filename);
-					res = parse_file_uri(filename);
+					if ((*filename == 'h') && (*(filename+1) == 't') && (*(filename+2) == 't') && (*(filename+3) == 'p'))
+						res = g_strdup(filename);
+					else
+						res = g_filename_from_uri(filename, NULL ,NULL);
 					if (res) {
 						GDK_THREADS_LEAVE();
 						if (is_playlist(res)) {
 							ap_add_playlist(global_session_id, res);
 						} else {
-							ap_add_path(global_session_id, res);
+							if (pos < 0)
+								ap_add_path(global_session_id, res);
+							else
+								ap_insert(global_session_id, res, pos);
 						}	
 						GDK_THREADS_ENTER();
-						parse_file_uri_free(res);
+						g_free(res);
 					}	
 				}
 				filename = p;
@@ -398,10 +413,93 @@ dnd_drop_event(GtkWidget *widget,
 		default:
 			alsaplayer_error("Unknown drop!");
 			break;
-	}               
+	}
+	
+	gtk_tree_path_free(path);
+	
 	return;
 }
-                                                   
+
+static void
+dnd_get(GtkWidget *widget,
+		GdkDragContext *drag_context,
+		GtkSelectionData *data,
+		guint info,
+		guint time,
+		gpointer user_data)
+{
+	GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget));
+		
+	GList *file_list = gtk_tree_selection_get_selected_rows(selection, NULL);
+	
+	if (!file_list)
+		return;
+		
+	GList *next, *start;
+	gint selected = 0;
+	gchar path[260];	//has to be allocated hopefully no longer than 256
+	gint i = 0;
+		
+	next = start = file_list;
+		
+	while (next->next != NULL) {
+		next = next->next;
+		i++;
+	}
+		
+	gchar *uris[i+2];
+	i = 0;
+	
+	while (start != NULL) {
+		selected = get_path_number((GtkTreePath *)start->data);
+		ap_get_file_path_for_track(global_session_id, path, selected+1);
+		if (is_uri(path))
+			uris[i] = g_strdup(path);
+		else
+			uris[i] = g_filename_to_uri(path, NULL, NULL);
+		i++;
+		start=start->next;
+	}
+	uris[i] = NULL;
+	
+	g_list_free(file_list);
+		 
+	if (!gtk_selection_data_set_uris(data, uris))
+		g_print("dnd get error\n");
+
+	for (--i; i >= 0; i--)
+		g_free(uris[i]);
+} 
+
+static void dnd_delete(GtkWidget *widget, GdkDragContext *drag_context, gpointer user_data)
+{
+	GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget));
+		
+	GList *file_list = gtk_tree_selection_get_selected_rows(selection, NULL);
+	
+	gint selected = 0;
+	
+	if (!file_list)
+		return;
+	
+	GList *next, *start; 
+	
+	next = start = file_list;
+		
+	while (next->next != NULL)
+		next = next->next;
+		
+	while(next != start->prev) {
+		selected = get_path_number((GtkTreePath *)next->data);
+		GDK_THREADS_LEAVE();
+		ap_remove(global_session_id, selected+1);
+		GDK_THREADS_ENTER();
+		next = next->prev;
+	}
+	
+	g_list_free(file_list);	
+}
+
 static GtkWidget*
 create_playlist_window (PlaylistWindow *playlist_window)
 {
@@ -440,6 +538,7 @@ create_playlist_window (PlaylistWindow *playlist_window)
  
 	list = gtk_tree_view_new_with_model(GTK_TREE_MODEL(playlist_model));
 	g_object_set_data(G_OBJECT(main_window), "list", list);
+	gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(list), TRUE);
 	g_object_unref(playlist_model);
   
 	gtk_container_add (GTK_CONTAINER (scrolledwindow), list);
@@ -493,7 +592,9 @@ create_playlist_window (PlaylistWindow *playlist_window)
 	gtk_box_pack_start (GTK_BOX (pl_button_box), clear_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), clear_button, _("Remove the current playlist"), NULL);
 
-	gtk_drag_dest_set(main_window, GTK_DEST_DEFAULT_ALL,
+	gtk_drag_dest_set(list, GTK_DEST_DEFAULT_ALL,
+						drag_types, n_drag_types, (GdkDragAction) (GDK_ACTION_MOVE | GDK_ACTION_COPY));
+	gtk_drag_source_set(list, GDK_BUTTON1_MASK,
 						drag_types, n_drag_types, (GdkDragAction) (GDK_ACTION_MOVE | GDK_ACTION_COPY));
 
 	add_file = create_filechooser(GTK_WINDOW(NULL), playlist_window);
@@ -503,8 +604,10 @@ create_playlist_window (PlaylistWindow *playlist_window)
 	save_list = create_playlist_save(GTK_WINDOW(NULL), playlist_window);
 	g_object_set_data(G_OBJECT(main_window), "save_list", save_list);
 	
-	g_signal_connect(G_OBJECT(gtk_widget_get_toplevel(main_window)), "drag_data_received", G_CALLBACK(dnd_drop_event), NULL);
-
+	g_signal_connect(G_OBJECT(list), "drag_data_received", G_CALLBACK(dnd_received), NULL);
+	g_signal_connect(G_OBJECT(list), "drag_data_get", G_CALLBACK(dnd_get), NULL);
+	g_signal_connect(G_OBJECT(list), "drag_data_delete", G_CALLBACK(dnd_delete), NULL);
+	
 	g_signal_connect(G_OBJECT(list), "button_press_event", G_CALLBACK(list_button_press_event), (gpointer)playlist_window);
 	g_signal_connect(G_OBJECT(shuffle_button), "clicked", G_CALLBACK(shuffle_cb), (gpointer)playlist_window);
 	g_signal_connect(G_OBJECT(add_button), "clicked", G_CALLBACK(dialog_popup), (gpointer)add_file);

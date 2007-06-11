@@ -6,6 +6,8 @@
 Mon June 11 2007
 ----------------
 * Added fflush function in daemon interface, fix bug 1052028.
+* Madej patch: initial drag and drop support in playlist (copy and move
+  (with shift)).
 
 Sun June 10 2007
 ----------------
