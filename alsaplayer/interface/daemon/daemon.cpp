@@ -142,6 +142,7 @@ int daemon_start(Playlist *playlist, int /*argc*/, char ** /*argv*/)
 	}
 	if (ap_get_session_name(global_session_id, session_name)) {
 		fprintf(stdout, "Session \"%s\" is ready.\n", session_name);
+		fflush(stdout);
 	}
 
 	// wait for finish, signalled via pipe

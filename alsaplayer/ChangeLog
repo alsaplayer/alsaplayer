@@ -3,6 +3,10 @@
   as the GTK1 one and more will come soon. A big thanks to Madej from Poland
   for his work on this interface.
 
+Mon June 11 2007
+----------------
+* Added fflush function in daemon interface, fix bug 1052028.
+
 Sun June 10 2007
 ----------------
 * Madej: fixed Credits window to look better.
