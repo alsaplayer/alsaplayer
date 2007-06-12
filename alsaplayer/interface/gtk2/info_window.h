@@ -56,6 +56,6 @@ class InfoWindow
 		//set apperance
 		void set_background_color(const gchar*);
 		void set_font_color(const gchar*);
-		
+		void set_fonts(const gchar*);
 };
 #endif /*INFO_WINDOW_H_*/

@@ -17,6 +17,7 @@
 */ 
 
 #include "info_window.h"
+#include "prefs.h"
 
 #ifdef ENABLE_NLS
 #define _(String) gettext(String)
@@ -85,82 +86,88 @@ InfoWindow::InfoWindow()
 	leftwidth = 0;
 	rightwidth = 0;
 	labelheight = 0;
-		
+	
+	gchar *val = prefs_get_string(ap_prefs, "gtk2_interface", "background_colour", "#000000");
+	this->set_background_color(val);
+	val = prefs_get_string(ap_prefs, "gtk2_interface", "font_colour", "#ffffff");
+	this->set_font_color(val);
+	val = prefs_get_string(ap_prefs, "gtk2_interface", "fonts", "");
+	this->set_fonts(val);
 }
 
 InfoWindow::~InfoWindow()
 {
-	gtk_widget_destroy(window);
+	gtk_widget_destroy(this->window);
 }
 
 void InfoWindow::set_volume(const gchar *text)
 {
-	gtk_label_set_text (GTK_LABEL(volume), text);
+	gtk_label_set_text (GTK_LABEL(this->volume), text);
 }
 
 void InfoWindow::set_balance(const gchar *text)
 {
-	gtk_label_set_text (GTK_LABEL(balance), text);
+	gtk_label_set_text (GTK_LABEL(this->balance), text);
 }
 void InfoWindow::set_positions()
 {
 	gint x, y, width, height;
 	
-	if ((labelheight < 2) || (leftwidth < 2) || (rightwidth < 2) || (labelheight != volume->allocation.height)) {
-		leftwidth = (speed->allocation.width > balance->allocation.width)? speed->allocation.width:balance->allocation.width;
-		rightwidth = (volume->allocation.width > position->allocation.width)? volume->allocation.width:position->allocation.width;
-		labelheight = volume->allocation.height;
+	if ((this->labelheight < 2) || (this->leftwidth < 2) || (this->rightwidth < 2) || (this->labelheight != this->volume->allocation.height)) {
+		this->leftwidth = (this->speed->allocation.width > this->balance->allocation.width)? this->speed->allocation.width:this->balance->allocation.width;
+		this->rightwidth = (this->volume->allocation.width > this->position->allocation.width)? this->volume->allocation.width:this->position->allocation.width;
+		this->labelheight = this->volume->allocation.height;
 		
-		gtk_widget_set_size_request(window, -1, labelheight * 2 + labelheight / 3);
+		gtk_widget_set_size_request(this->window, -1, this->labelheight * 2 + this->labelheight / 3);
 	}
 	
-	width = layout->allocation.width;
-	height = layout->allocation.height;
+	width = this->layout->allocation.width;
+	height = this->layout->allocation.height;
 	
 	//speed has fixed position
 	// 2 px padding
 	x = 2;
-	y = height - labelheight;
-	gtk_layout_move(GTK_LAYOUT(layout), balance, x, y);
+	y = height - this->labelheight;
+	gtk_layout_move(GTK_LAYOUT(this->layout), this->balance, x, y);
 	
-	x = leftwidth + labelheight;
+	x = this->leftwidth + this->labelheight;
 	y = 0;
-	gtk_widget_set_size_request (title, width - x - rightwidth - labelheight, -1);
-	gtk_layout_move(GTK_LAYOUT(layout), title, x, y);
+	gtk_widget_set_size_request (this->title, width - x - this->rightwidth - this->labelheight, -1);
+	gtk_layout_move(GTK_LAYOUT(this->layout), this->title, x, y);
 
-	x = leftwidth + labelheight;
-	y = height - labelheight;
-	gtk_widget_set_size_request (format, width - x - rightwidth - labelheight, -1);
-	gtk_layout_move(GTK_LAYOUT(layout), format, x, y);
+	x = this->leftwidth + this->labelheight;
+	y = height - this->labelheight;
+	gtk_widget_set_size_request (this->format, width - x - this->rightwidth - this->labelheight, -1);
+	gtk_layout_move(GTK_LAYOUT(this->layout), this->format, x, y);
 	
-	x = width - volume->allocation.width -2;
+	x = width - this->volume->allocation.width -2;
 	y = 0;
-	gtk_layout_move(GTK_LAYOUT(layout), volume, x, y);
+	gtk_layout_move(GTK_LAYOUT(this->layout), this->volume, x, y);
 	
-	x = width - position->allocation.width - 2;
-	y = height - labelheight;
-	gtk_layout_move(GTK_LAYOUT(layout), position, x, y);
+	x = width - this->position->allocation.width - 2;
+	y = height - this->labelheight;
+	gtk_layout_move(GTK_LAYOUT(this->layout), this->position, x, y);
 	
 }
 
 void InfoWindow::set_position(const gchar *text)
 {
-	gtk_label_set_text (GTK_LABEL(position), text);
+	gtk_label_set_text (GTK_LABEL(this->position), text);
 }
 
 void InfoWindow::set_title(const gchar *text)
 {
-	gtk_label_set_text (GTK_LABEL(title), text);
+	gtk_label_set_text (GTK_LABEL(this->title), text);
 }
 
 void InfoWindow::set_format(const gchar *text)
 {
-	gtk_label_set_text (GTK_LABEL(format), text);
+	gtk_label_set_text (GTK_LABEL(this->format), text);
 }
 
 void InfoWindow::set_speed(const gchar *text)
 {
-	gtk_label_set_text (GTK_LABEL(speed), text);
+	gtk_label_set_text (GTK_LABEL(this->speed), text);
 }
 
 void InfoWindow::set_background_color(const gchar* str)
@@ -170,7 +177,7 @@ void InfoWindow::set_background_color(const gchar* str)
 	if (!gdk_color_parse(str, &color))
 		return;
 
-	gtk_widget_modify_bg(layout, GTK_STATE_NORMAL, &color);
+	gtk_widget_modify_bg(this->layout, GTK_STATE_NORMAL, &color);
 }
 
 void InfoWindow::set_font_color(const gchar* str)
@@ -180,10 +187,26 @@ void InfoWindow::set_font_color(const gchar* str)
 	if (!gdk_color_parse(str, &color))
 		return;
 	
-	gtk_widget_modify_fg(volume, GTK_STATE_NORMAL, &color);
-	gtk_widget_modify_fg(position, GTK_STATE_NORMAL, &color);
-	gtk_widget_modify_fg(title, GTK_STATE_NORMAL, &color);
-	gtk_widget_modify_fg(format, GTK_STATE_NORMAL, &color);
-	gtk_widget_modify_fg(speed, GTK_STATE_NORMAL, &color);
-	gtk_widget_modify_fg(balance, GTK_STATE_NORMAL, &color);
+	gtk_widget_modify_fg(this->volume, GTK_STATE_NORMAL, &color);
+	gtk_widget_modify_fg(this->position, GTK_STATE_NORMAL, &color);
+	gtk_widget_modify_fg(this->title, GTK_STATE_NORMAL, &color);
+	gtk_widget_modify_fg(this->format, GTK_STATE_NORMAL, &color);
+	gtk_widget_modify_fg(this->speed, GTK_STATE_NORMAL, &color);
+	gtk_widget_modify_fg(this->balance, GTK_STATE_NORMAL, &color);
+}
+
+void InfoWindow::set_fonts(const gchar* str)
+{
+	PangoFontDescription *fonts;
+	
+	fonts = pango_font_description_from_string(str);
+	
+	gtk_widget_modify_font(this->volume, fonts);
+	gtk_widget_modify_font(this->position, fonts);
+	gtk_widget_modify_font(this->title, fonts);
+	gtk_widget_modify_font(this->format, fonts);
+	gtk_widget_modify_font(this->speed, fonts);
+	gtk_widget_modify_font(this->balance, fonts);
+	
+	pango_font_description_free(fonts);
 }

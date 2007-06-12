@@ -72,6 +72,7 @@
 #include "Playlist.h"
 #include "EffectsWindow.h"
 #include "AboutWindow.h"
+#include "PreferencesWindow.h"
 //#include "Effects.h"
 #include "ScopesWindow.h"
 #include "control.h"
@@ -127,11 +128,8 @@ typedef struct  _loop_struct {
 
 static loop_struct global_loop;
 
-// Static variables  (to be moved into a class, at some point)
-//static GtkWidget *play_dialog;
-
-static int vol_scales[] = {
-				0,1,2,4,7,12,18,26,35,45,56,69,83,100 };
+//static int vol_scales[] = {
+//				0,1,2,4,7,12,18,26,35,45,56,69,83,100 };
 
 #ifdef SUBSECOND_DISPLAY
 #define INDICATOR_WIDTH 85
@@ -1025,7 +1023,17 @@ update_info_window(GtkWidget *main_window)
 	indicator_callback(NULL, 0);
 }
 
-void about_cb(GtkMenuItem *item, gpointer user_data)
+static void
+preferences_cb(GtkMenuItem *item, gpointer user_data)
+{
+	if (!GTK_WIDGET_VISIBLE(GTK_WIDGET(user_data)))
+		gtk_widget_show_all(GTK_WIDGET(user_data));
+	else
+		gtk_widget_hide_all(GTK_WIDGET(user_data));
+}
+
+static void
+about_cb(GtkMenuItem *item, gpointer user_data)
 {
 	if (!GTK_WIDGET_VISIBLE(GTK_WIDGET(user_data)))
 		about_dialog_show(GTK_WIDGET(user_data));
@@ -1033,7 +1041,7 @@ void about_cb(GtkMenuItem *item, gpointer user_data)
 		gtk_widget_hide(GTK_WIDGET(user_data));
 }
 
-GtkWidget*
+static GtkWidget*
 create_main_menu(GtkWidget *main_window)
 {
 	GtkWidget *root_menu;
@@ -1042,12 +1050,14 @@ create_main_menu(GtkWidget *main_window)
 	GtkWidget *scopes_window = GTK_WIDGET(g_object_get_data(G_OBJECT(main_window), "scopes_window"));
 //	GtkWidget *effects_window = GTK_WIDGET(g_object_get_data(G_OBJECT(main_window), "effects_window"));
 	GtkWidget *about_window = GTK_WIDGET(g_object_get_data(G_OBJECT(main_window), "about_window"));
+	GtkWidget *preferences_window = GTK_WIDGET(g_object_get_data(G_OBJECT(main_window), "preferences_window"));
 	
 	root_menu = gtk_menu_new();
 
 	menu_item = gtk_image_menu_item_new_from_stock(GTK_STOCK_PREFERENCES, NULL);
 	gtk_menu_append(GTK_MENU(root_menu), menu_item);
-	gtk_widget_set_sensitive(menu_item, FALSE);
+	g_signal_connect(G_OBJECT(menu_item), "activate",
+					   G_CALLBACK(preferences_cb), preferences_window);
 	
 	menu_item = gtk_menu_item_new_with_label(_("Scopes..."));
 	gtk_menu_append(GTK_MENU(root_menu), menu_item);
@@ -1184,7 +1194,8 @@ create_main_window (Playlist *pl)
 	GtkWidget *mini_button_box;
 	GtkWidget *loop_button;
 	GtkWidget *looper_button;
-
+	GtkWidget *preferences_window;
+	
 	// Dirty trick
 	playlist = pl;
 	
@@ -1213,7 +1224,7 @@ create_main_window (Playlist *pl)
 	infowindow = new InfoWindow();
 	info_window = infowindow->GetWindow();
 	
-	g_object_set_data(G_OBJECT(main_window), "info_window", info_window);
+	g_object_set_data(G_OBJECT(main_window), "info_window", infowindow);
 	gtk_box_pack_start (GTK_BOX (info_box), info_window, TRUE, TRUE, 0);
 	
 	pos_scale = gtk_hscale_new (GTK_ADJUSTMENT (gtk_adjustment_new (0, 0, 0, 0, 0, 0)));
@@ -1372,8 +1383,7 @@ create_main_window (Playlist *pl)
 	
 	playlist_window = new PlaylistWindow(playlist);
 	g_object_set_data(G_OBJECT(main_window), "playlist_window", playlist_window);
-//	play_dialog = NULL;//create_filechooser(GTK_WINDOW(main_window), playlist);
-	
+
 	gtk_box_pack_start (GTK_BOX (main_box), playlist_window->GetWindow(), TRUE, TRUE, 0);
 	
 //	effects_window = init_effects_window();	
@@ -1383,7 +1393,9 @@ create_main_window (Playlist *pl)
 	g_object_set_data(G_OBJECT(main_window), "scopes_window", scopes_window);
 	about_window = init_about_window(main_window);	
 	g_object_set_data(G_OBJECT(main_window), "about_window", about_window);
-
+	preferences_window = init_preferences_window(main_window);
+	g_object_set_data(G_OBJECT(main_window), "preferences_window", preferences_window);
+	
 	menu = create_main_menu(main_window);
 			
 	global_ustr.vol_scale = vol_scale;
@@ -1432,9 +1444,6 @@ create_main_window (Playlist *pl)
 	g_signal_connect(G_OBJECT(looper_button), "clicked", G_CALLBACK(loop_cb), (gpointer)pos_scale);
 	g_signal_connect(G_OBJECT(looper_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 
-	infowindow->set_background_color("#000000");
-	infowindow->set_font_color("#ffffff");
-	
 	return main_window;
 }
 
