@@ -3,6 +3,10 @@
   as the GTK1 one and more will come soon. A big thanks to Madej from Poland
   for his work on this interface.
 
+Wed June 13 2007
+----------------
+* Madej: Add mute and center button, fix horrible crash when pressing Enter.
+
 Tue June 12 2007
 ----------------
 * Madej patch: GTK2, initial commit of a preferences window.

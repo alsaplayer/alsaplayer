@@ -537,7 +537,7 @@ key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 			playlist_remove(NULL, user_data);
 			break;
 		case GDK_Return:
-			playlist_play_current(playlist, list);
+			playlist_play_current(list, playlist_window);
 			break;
 		case GDK_Right:
 			// This is a hack, but quite legal
@@ -1152,6 +1152,27 @@ reverse_pic(GdkPixbuf *p)
 	return n;	
 }
 
+static void
+volume_button_cb(GtkButton *, gpointer user_data)
+{
+	static gdouble volume = 0.0;
+	
+	gdouble vol = gtk_adjustment_get_value(gtk_range_get_adjustment(GTK_RANGE(user_data)));
+	
+	if (vol != 0.0) {
+		gtk_adjustment_set_value(gtk_range_get_adjustment(GTK_RANGE(user_data)), 0.0);
+		volume = vol;
+	}
+	else
+		gtk_adjustment_set_value(gtk_range_get_adjustment(GTK_RANGE(user_data)), volume);
+}
+
+static void
+balance_button_cb(GtkButton *, gpointer user_data)
+{
+	gtk_adjustment_set_value(gtk_range_get_adjustment(GTK_RANGE(user_data)), 100.0);
+}
+
 GtkWidget*
 create_main_window (Playlist *pl)
 {
@@ -1177,10 +1198,10 @@ create_main_window (Playlist *pl)
 	GtkWidget *speed_scale;
 	GtkWidget *bal_vol_box;
 	GtkWidget *bal_box;
-	GtkWidget *balance_pic;
+	GtkWidget *balance_button;
 	GtkWidget *bal_scale;
 	GtkWidget *volume_box;
-	GtkWidget *volume_pic;
+	GtkWidget *volume_button;
 	GtkAdjustment *vol_adj;
 	GtkWidget *vol_scale;
 	GtkWidget *pic;
@@ -1356,10 +1377,14 @@ create_main_window (Playlist *pl)
 
 	bal_box = gtk_hbox_new (FALSE, 0);
 	gtk_box_pack_start (GTK_BOX (bal_vol_box), bal_box, TRUE, TRUE, 0);
-
-	balance_pic = get_image_from_xpm(balance_icon_xpm);
-	gtk_box_pack_start (GTK_BOX (bal_box), balance_pic, FALSE, FALSE, 0);
-
+	
+	balance_button = gtk_button_new();
+	pic = get_image_from_xpm(balance_icon_xpm);
+	gtk_container_add(GTK_CONTAINER(balance_button), pic); 
+	gtk_button_set_relief(GTK_BUTTON(balance_button), GTK_RELIEF_NONE);
+	gtk_box_pack_start (GTK_BOX (bal_box), balance_button, FALSE, FALSE, 0);
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), balance_button, _("Center balance"), NULL);
+	
 	bal_scale = gtk_hscale_new (GTK_ADJUSTMENT (gtk_adjustment_new (100, 0, 201, 1, 1, 1)));
 	g_object_set_data(G_OBJECT(main_window), "bal_scale", bal_scale);
 	gtk_adjustment_set_value(GTK_RANGE(bal_scale)->adjustment, 100.0);
@@ -1370,9 +1395,13 @@ create_main_window (Playlist *pl)
 	volume_box = gtk_hbox_new (FALSE, 0);
 	gtk_box_pack_start (GTK_BOX (bal_vol_box), volume_box, TRUE, TRUE, 0);
 
-	volume_pic = get_image_from_xpm(volume_icon_xpm);
-	gtk_box_pack_start (GTK_BOX (volume_box), volume_pic, FALSE, FALSE, 0);
-
+	volume_button = gtk_button_new();
+	pic = get_image_from_xpm(volume_icon_xpm);
+	gtk_container_add(GTK_CONTAINER(volume_button), pic); 
+	gtk_button_set_relief(GTK_BUTTON(volume_button), GTK_RELIEF_NONE);
+	gtk_box_pack_start (GTK_BOX (volume_box), volume_button, FALSE, FALSE, 0);
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), volume_button, _("Mute/Unmute"), NULL);
+	
 	vol_adj = GTK_ADJUSTMENT(gtk_adjustment_new (100, 0, 101, 1, 1, 1));
 	gtk_adjustment_set_value(vol_adj, (pl->GetCorePlayer())->GetVolume() * 100.0);
 	vol_scale = gtk_hscale_new (vol_adj);
@@ -1410,6 +1439,11 @@ create_main_window (Playlist *pl)
 	g_signal_connect(G_OBJECT(main_window), "delete_event", G_CALLBACK(main_window_delete), NULL);
 	g_signal_connect(G_OBJECT(main_window), "key_press_event", G_CALLBACK(key_press_cb), (gpointer)playlist_window);	
 	g_signal_connect(G_OBJECT(main_window), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
+	
+	g_signal_connect(G_OBJECT(volume_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
+	g_signal_connect(G_OBJECT(volume_button), "clicked", G_CALLBACK(volume_button_cb), (gpointer)vol_scale);
+	g_signal_connect(G_OBJECT(balance_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);	
+	g_signal_connect(G_OBJECT(balance_button), "clicked", G_CALLBACK(balance_button_cb), (gpointer) bal_scale);
 	
 	g_signal_connect(G_OBJECT(playlist_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
   	g_signal_connect(G_OBJECT(playlist_button), "clicked", G_CALLBACK(playlist_button_cb), playlist_window); 

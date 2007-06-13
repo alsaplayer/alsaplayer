@@ -22,11 +22,6 @@
 #include "Playlist.h"
 #include <gtk/gtk.h>
 
-GtkWidget* create_filechooser(GtkWindow *main_window, Playlist *playlist);
-
-void playlist_play_current(Playlist *playlist, GtkWidget *list);
-void playlist_remove(GtkWidget *, gpointer user_data);
-
 class PlaylistWindow
 {
 	private:
@@ -84,5 +79,9 @@ class PlaylistWindow
 //		void Hide();  // Hide the playlist window
 //		void ToggleVisible();  // Show / Hide the playlist window
 };
+
+GtkWidget* create_filechooser(GtkWindow *main_window, Playlist *playlist);
+void playlist_play_current(GtkWidget *tree, PlaylistWindow *playlist_window);
+void playlist_remove(GtkWidget *, gpointer user_data);
 
 #endif

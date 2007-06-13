@@ -437,7 +437,7 @@ dnd_get(GtkWidget *widget,
 		
 	GList *next, *start;
 	gint selected = 0;
-	gchar path[260];	//has to be allocated hopefully no longer than 256
+	gchar path[AP_FILE_PATH_MAX];
 	gint i = 0;
 		
 	next = start = file_list;
