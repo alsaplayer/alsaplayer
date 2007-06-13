@@ -5,7 +5,8 @@
 
 Wed June 13 2007
 ----------------
-* Madej: Add mute and center button, fix horrible crash when pressing Enter.
+* Madej: Added mute and center button, fixed drag and drop as well as an
+  horrible crash when pressing Enter.
 
 Tue June 12 2007
 ----------------
