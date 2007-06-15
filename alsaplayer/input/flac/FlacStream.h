@@ -191,7 +191,7 @@ class FlacStream
 
     FLAC__StreamDecoderReadStatus 
                  realReadCallBack (FLAC__byte buffer[],
-				   unsigned * bytes);
+				   size_t * bytes);
 
 
  protected:
@@ -233,7 +233,7 @@ class FlacStream
     static FLAC__StreamDecoderReadStatus
 	readCallBack (const FLAC__StreamDecoder * decoder,
 		      FLAC__byte buffer[],
-		      unsigned * bytes,
+		      size_t * bytes,
 		      void * client_data);
 
     static void errCallBack (const FLAC__StreamDecoder * decoder,

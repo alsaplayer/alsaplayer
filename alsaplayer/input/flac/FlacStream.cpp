@@ -321,7 +321,7 @@ FlacStream::writeCallBack (const FLAC__StreamDecoder *,
 
 
 FLAC__StreamDecoderReadStatus
-FlacStream::realReadCallBack (FLAC__byte buffer[], unsigned * bytes)
+FlacStream::realReadCallBack (FLAC__byte buffer[], size_t * bytes)
 {
     *bytes = reader_read (buffer, *bytes, _datasource);
     return *bytes > 0 ? FLAC__STREAM_DECODER_READ_STATUS_CONTINUE :
@@ -336,7 +336,7 @@ FlacStream::realReadCallBack (FLAC__byte buffer[], unsigned * bytes)
 FLAC__StreamDecoderReadStatus
 FlacStream::readCallBack (const FLAC__StreamDecoder *,
 			  FLAC__byte buffer[],
-			  unsigned * bytes,
+			  size_t * bytes,
 			  void * client_data)
 {
     if (!client_data)

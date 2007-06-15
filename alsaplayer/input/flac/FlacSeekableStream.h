@@ -114,7 +114,7 @@ class FlacSeekableStream : public FlacStream
 	readCallBack (const FLAC__StreamDecoder * decoder,
 #endif
 		      FLAC__byte buffer[],
-		      unsigned * bytes,
+		      size_t * bytes,
 		      void * client_data);
 
 #ifdef LEGACY_FLAC
