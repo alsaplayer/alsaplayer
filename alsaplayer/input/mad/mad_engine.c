@@ -24,6 +24,11 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#ifdef HAVE_GTK2
+#include <glib.h>
+#endif
+
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -430,14 +435,33 @@ static unsigned int from_synchsafe3 (unsigned char *buf)
 /* Fill filed */
 static void fill_from_id3v2 (char *dst, char *src, int max, int size)
 {
-	/* FIXME: UTF8 internal support */
+	// it can be iso8851-1==0 utf16==1 utf16be==2 and utf8==3
+	if (( *src < 0) || (*src > 3))
+		return;
+
+	char *conv = NULL;
 
 	int min = size-1 > max ? max : size-1;
-
-	if (*src == 0) {
-		/* ISO-8859-1 */
-		strncpy (dst, src+1, min);
-	}
+	
+#ifdef HAVE_GTK2
+	if (*src == 0)
+		conv = g_convert((const gchar *)src+1, (gssize) size, "UTF-8", "ISO-8859-1", NULL, NULL, NULL);
+	else if (*src == 1)
+		conv = g_convert((const gchar *)src+1, (gssize) size, "UTF-8", "UTF-16", NULL, NULL, NULL);
+	else if (*src == 2)
+		conv = g_convert((const gchar *)src+1, (gssize) size, "UTF-8", "UTF-16BE", NULL, NULL, NULL);
+ 	else
+		conv = g_strndup(src+1, size);
+#else
+//	alsaplayer_error ("Warning: Without glib2 you get different encodings.");
+	conv = strndup(src+1, size);
+#endif
+		
+	strncpy (dst, conv, min);
+	
+	if (conv)
+		free(conv);
+	
 }
 
 static char *genres[] = {
@@ -495,13 +519,15 @@ static void parse_id3 (const char *path, stream_info *info)
 		int f_experimental = buf [5] & (1<<5);
 		int header_size = from_synchsafe4 (buf + 6);
 		int name_size = buf [3] == 2 ? 3 : 4;
-
+		int ext_size = 0;
+		
 		if (f_extended_header) {
-			alsaplayer_error ("FIXME: Extended header found in mp3."
-					"Please contact alsaplayer team.\n"
-					"Filename: %s", path);
-			reader_close (fd);
-			return;
+//			alsaplayer_error ("FIXME: Extended header found in mp3."
+//					"Please contact alsaplayer team.\n"
+//					"Filename: %s", path);
+	//		reader_close (fd);
+	//		return;
+			ext_size = 1;	//stupid but should do
 		}
 
 		if (f_unsynchronization) {
@@ -520,10 +546,29 @@ static void parse_id3 (const char *path, stream_info *info)
 			return;
 		}
 
+			if (ext_size) {
+				char b[4];
+				if (reader_read (b, 4, fd) != 4) {
+						reader_close(fd);
+						return;
+				}
+				if (major_version == 2)
+					ext_size = from_synchsafe3 (b);
+				else
+					ext_size = from_synchsafe4 (b);
+				
+				if (reader_seek (fd, ext_size - 4, SEEK_CUR) < 0) {
+					reader_close (fd);
+					return;
+				}
+			
+			}
+			
 		/* -- -- read frames -- -- */
 		while (reader_tell (fd) <= header_size + 10) {
 			unsigned int size;
-
+			
+			
 			/* Get name of this frame */
 			if (reader_read (buf, name_size, fd) != (unsigned)name_size) {
 				reader_close (fd);
@@ -556,12 +601,41 @@ static void parse_id3 (const char *path, stream_info *info)
 			}
 
 			/* skip frame flags */
-			if (reader_seek (fd, 2, SEEK_CUR) == -1) {
+//			if (reader_seek (fd, 1, SEEK_CUR) == -1) {
+//				reader_close (fd);
+//				return;
+//			}
+
+			int start = 0;		
+			// read them
+			char b[2];
+			if (reader_read (b, 2, fd) != 2) {
 				reader_close (fd);
 				return;
+			} else {
+			
+				if (b[1] & (1 << 6)) {
+//					printf ("Grouping added\n");
+					start++;
+				}
+				if (b[1] & (1 << 3)) {
+//					printf ("Compression added\n");
+				}
+				if (b[1] & (1 << 2)) {
+//					printf ("Encryption added\n");
+				}
+				if (b[1] & (1 << 1)) {
+//					printf ("Unsynch added\n");
+				}
+				if (b[1] & (1 << 0)) {
+//					printf ("Length added\n");
+					start+=4;
+				}	
 			}
-
-			if (size>=1024) {
+				
+				
+				
+				if (size>=1024) {
 				/* I will not support such long tags...
 				 * Only if someone ask for it...
 				 * not now... */
@@ -574,6 +648,7 @@ static void parse_id3 (const char *path, stream_info *info)
 				continue;
 			}
 
+
 			/* read info */
 			if (reader_read (buf + name_size, size, fd) != size) {
 				reader_close (fd);
@@ -584,29 +659,29 @@ static void parse_id3 (const char *path, stream_info *info)
 			/* Lets use it. */
 			if (name_size == 4) {
 				if (memcmp (buf, "TIT2", 4)==0)
-					fill_from_id3v2 (info->title, buf + name_size,
-							sizeof (info->title), size);
+					fill_from_id3v2 (info->title, buf + name_size + start,
+							sizeof (info->title), size - start);
 				else if (memcmp (buf, "TPE1", 4)==0)
-					fill_from_id3v2 (info->artist, buf + name_size,
-							sizeof (info->artist), size);
+					fill_from_id3v2 (info->artist, buf + name_size + start,
+							sizeof (info->artist), size - start);
 				else if (memcmp (buf, "TALB", 4)==0)
-					fill_from_id3v2 (info->album, buf + name_size,
-							sizeof (info->album), size);
+					fill_from_id3v2 (info->album, buf + name_size + start,
+							sizeof (info->album), size - start);
 				else if (memcmp (buf, "TYER", 4)==0)
-					fill_from_id3v2 (info->year, buf + name_size,
-							sizeof (info->year), size);
+					fill_from_id3v2 (info->year, buf + name_size + start,
+							sizeof (info->year), size - start);
 				else if (memcmp (buf, "COMM", 4)==0)
-					fill_from_id3v2 (info->comment, buf + name_size,
-							sizeof (info->comment), size);
+					fill_from_id3v2 (info->comment, buf + name_size + start,
+							sizeof (info->comment), size - start);
 				else if (memcmp (buf, "TRCK", 4)==0)
-					fill_from_id3v2 (info->track, buf + name_size,
-							sizeof (info->track), size);
+					fill_from_id3v2 (info->track, buf + name_size + start,
+							sizeof (info->track), size - start);
 				else if (memcmp (buf, "TCON", 4)==0) {
 					/* Genre */
 					/* TODO: Optimize duplicated code */
 					unsigned int gindex;
 
-					if (sscanf (buf + name_size+1, "(%u)", &gindex)==1) {
+					if (sscanf (buf + name_size + start +1, "(%u)", &gindex)==1) {
 						if (gindex==255)
 							*info->genre = '\0';
 						else if (sizeof (genres)/sizeof(char*) <= gindex)
@@ -614,8 +689,8 @@ static void parse_id3 (const char *path, stream_info *info)
 						else
 							snprintf (info->genre, sizeof (info->genre), "%s", genres[gindex]);
 					} else
-						fill_from_id3v2 (info->genre, buf + name_size,
-								sizeof (info->genre), size);
+						fill_from_id3v2 (info->genre, buf + name_size + start,
+								sizeof (info->genre), size - start);
 				}
 			} /* end of 'if name_size == 4' */
 
