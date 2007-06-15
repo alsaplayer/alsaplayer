@@ -14,6 +14,7 @@ Fri June 15 2007
 * Madej: adds some new dialogs (which are not really in use yet), changes behaviour
   when we remove files, remove some warnings, fixes memory leak (must be still in
   gtk1), brings back insert button.
+* Madej: adds back folders prefs in gtk2.
   
 Wed June 13 2007
 ----------------

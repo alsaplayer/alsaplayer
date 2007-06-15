@@ -128,6 +128,10 @@ create_playlist_load(GtkWindow *main_window, PlaylistWindow *playlist_window)
 				      											NULL);
 	gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(filechooser), FALSE);
 	
+	gchar *path = prefs_get_string(ap_prefs, "gtk2_interface", "default_playlist_load_path", ".");
+	if (g_path_is_absolute (path))
+		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(filechooser), path);
+	
 	g_signal_connect(G_OBJECT(filechooser), "delete_event", G_CALLBACK(gtk_widget_hide_on_delete), NULL);
 	g_signal_connect(G_OBJECT(filechooser), "response", G_CALLBACK(load_dialog_cb), (gpointer) playlist_window);
 	
@@ -155,6 +159,10 @@ create_playlist_save(GtkWindow *main_window, PlaylistWindow *playlist_window)
 				      											NULL);
 	gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(filechooser), FALSE);
 	
+	gchar *path = prefs_get_string(ap_prefs, "gtk2_interface", "default_playlist_save_path", ".");
+	if (g_path_is_absolute (path))
+		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(filechooser), path);
+	
 	g_signal_connect(G_OBJECT(filechooser), "delete_event", G_CALLBACK(gtk_widget_hide_on_delete), NULL);
 	g_signal_connect(G_OBJECT(filechooser), "response", G_CALLBACK(save_dialog_cb), (gpointer) playlist_window);
 	
@@ -171,12 +179,15 @@ play_file_ok(GtkWidget *play_dialog, gpointer data)
 
 		GSList *file_list = gtk_file_chooser_get_filenames (GTK_FILE_CHOOSER(play_dialog));
 	
-			std::vector<std::string> paths;
+		std::vector<std::string> paths;
 		char *path;
 		
-		// Write default_play_path
-//		prefs_set_string(ap_prefs, "gtk2_interface", "default_play_path", current_dir);
-	
+		if (file_list) {
+			gchar *dir = g_path_get_dirname((gchar *) file_list->data);
+
+			prefs_set_string(ap_prefs, "gtk2_interface", "default_playlist_add_path", dir);		
+			g_free(dir);
+		}
 		// Get the selections
 		if (!file_list) {
 			path = gtk_file_chooser_get_uri(GTK_FILE_CHOOSER(play_dialog));
@@ -237,6 +248,10 @@ create_filechooser(GtkWindow *main_window, PlaylistWindow *playlist_window)
 				      											NULL);
 	gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(filechooser), TRUE);
 	
+	gchar *path = prefs_get_string(ap_prefs, "gtk2_interface", "default_playlist_add_path", ".");
+	if (g_path_is_absolute (path))
+		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(filechooser), path);
+
 	checkbutton = gtk_check_button_new_with_label(_("Do not close the window after adding files"));
 	gtk_box_pack_end(GTK_BOX(GTK_DIALOG(filechooser)->vbox), checkbutton, FALSE, FALSE, 0);
 	g_object_set_data(G_OBJECT(filechooser), "check_button", checkbutton);
@@ -685,12 +700,12 @@ void PlaylistWindow::LoadPlaylist()
 	GtkWidget *widget = GTK_WIDGET(g_object_get_data(G_OBJECT(window), "load_list"));
 	gchar *current = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(widget));
 	
-//	int marker = strlen(current_dir)-1;
-//	while (marker > 0 && current_dir[marker] != '/') // Get rid of the filename
-//		current_dir[marker--] = '\0';
-//	prefs_set_string(ap_prefs, "gtk2_interface", "default_playlist_load_path", current);
+		if (current) {
+			gchar *dir = g_path_get_dirname(current);
 
-//	std::string file(gtk_file_selection_get_filename(GTK_FILE_SELECTION(playlist_window_gtk->load_list)));
+			prefs_set_string(ap_prefs, "gtk2_interface", "default_playlist_load_path", dir);
+			g_free(dir);
+		}
 
 		if (!current) {
 			current = gtk_file_chooser_get_uri(GTK_FILE_CHOOSER(widget));
@@ -719,7 +734,15 @@ void PlaylistWindow::SavePlaylist()
 	
 	gchar *current = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(widget));
 
-//	prefs_set_string(ap_prefs, "gtk2_interface", "default_playlist_save_path", current_dir);
+		if (current) {
+			gchar *dir = g_path_get_dirname(current);
+
+			prefs_set_string(ap_prefs, "gtk2_interface", "default_playlist_save_path", dir);
+			g_free(dir);
+			
+		}
+		
+
 		
 	enum plist_result saveerr;
 	saveerr = playlist->Save(current, PL_FORMAT_M3U);
