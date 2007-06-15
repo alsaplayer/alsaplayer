@@ -51,4 +51,8 @@ enum gtk_keymap {
 	LOOP_KEY = GDK_l
 };
 
+void ap_message_error(GtkWidget *parent, const gchar *message);
+void ap_message_warning(GtkWidget *parent, const gchar *message);
+gboolean ap_message_question(GtkWidget *parent, const gchar *message);
+
 #endif /* _gtk_interface_h_ */

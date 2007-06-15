@@ -143,7 +143,6 @@ InfoWindow *infowindow;
 // Callback functions //
 ////////////////////////
 
-
 gint indicator_callback(gpointer data, int locking);
 void draw_speed(float speed);
 void draw_pan(float pan);
@@ -211,10 +210,73 @@ void stop_notify(void *data)
 void start_notify(void *data)
 {
 //	PlaylistWindow::SetCurrentCb does it so this is useless
+
 //	PlaylistWindow *playlist_window = (PlaylistWindow *) data;
 //	playlist_window->SetPlay();
 }
 
+static void
+ap_message_delete(GtkWidget *widget, GdkEvent *event, gpointer user_data)
+{
+	gtk_widget_destroy(widget);
+}
+
+static void
+ap_message_response(GtkDialog *dialog, gint arg1, gpointer user_data)
+{
+	if (arg1 == GTK_RESPONSE_CLOSE)
+		gtk_widget_destroy(GTK_WIDGET(dialog));	
+} 
+                                                        
+void ap_message_error(GtkWidget *parent, const gchar *message)
+{
+	GtkWidget *md;
+
+	md = gtk_message_dialog_new(GTK_WINDOW(parent), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, _("Error !"));
+		
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(md), message);
+	
+	g_signal_connect(G_OBJECT(md), "delete-event", G_CALLBACK(ap_message_delete), NULL);
+	g_signal_connect(G_OBJECT(md), "response", G_CALLBACK(ap_message_delete), NULL);
+	
+	gtk_widget_show_all(md);
+}
+
+void ap_message_warning(GtkWidget *parent, const gchar *message)
+{
+	GtkWidget *md;
+	
+	md = gtk_message_dialog_new(GTK_WINDOW(parent), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_WARNING, GTK_BUTTONS_CLOSE, _("Warning !"));
+	
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(md), message);
+
+	g_signal_connect(G_OBJECT(md), "delete-event", G_CALLBACK(ap_message_delete), NULL);	
+	g_signal_connect(G_OBJECT(md), "response", G_CALLBACK(ap_message_delete), NULL);
+	gtk_widget_show_all(md);
+}
+
+gboolean ap_message_question(GtkWidget *parent, const gchar *message)
+{
+	GtkWidget *md;
+	gboolean res = FALSE;
+	
+	md = gtk_message_dialog_new(GTK_WINDOW(parent), (GtkDialogFlags) (GTK_DIALOG_MODAL|GTK_DIALOG_DESTROY_WITH_PARENT), GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO, _("Excuse me !"));
+	
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(md), message);	
+
+	g_signal_connect(G_OBJECT(md), "delete-event", G_CALLBACK(ap_message_delete), NULL);
+	
+	gint response = gtk_dialog_run(GTK_DIALOG(md));
+	
+	if (response == GTK_RESPONSE_YES)
+		res = TRUE;
+	else
+		res = FALSE;
+	
+	gtk_widget_destroy(md);
+	
+	return res;	
+}
 
 static gboolean
 main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer user_data)
@@ -371,8 +433,6 @@ void smoother(void *data)
 	nice(5);
 	
 	if (adj) {
-		//alsaplayer_error("going from %.2f to %.2f",
-		//	adj->value, destination);
 		cur_val = adj->value;
 		while (!done) {
 			temp = cur_val - destination;
@@ -454,7 +514,7 @@ key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
   if (event->state & GDK_CONTROL_MASK) {
 	switch(event->keyval) {
      case GDK_q:
-      exit_cb(NULL,NULL);
+      exit_cb(NULL,(gpointer) gtk_widget_get_toplevel(widget));
       break; 
      default:
       break;
@@ -529,11 +589,10 @@ key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 			break;
 		
 //old stuff		
-/*		case GDK_Insert:
-			dialog_popup(widget, (gpointer)
-				playlist_window_gtk->add_file);
+		case GDK_Insert:
+			playlist_window->AddFile();
 			break;	
-*/		case GDK_Delete:
+		case GDK_Delete:
 			playlist_remove(NULL, user_data);
 			break;
 		case GDK_Return:
@@ -883,7 +942,7 @@ gint indicator_callback(gpointer, int locking)
 		GDK_THREADS_ENTER();
 	infowindow->set_format(info.stream_type);
 	if (strlen(info.artist)) {
-		sprintf(title_string, "%s - %s", info.title, info.artist);
+		sprintf(title_string, "%s - %s", info.artist, info.title);
 		infowindow->set_title(title_string);
 	} else if (strlen(info.title)) {
 		sprintf(title_string, "%s", info.title);

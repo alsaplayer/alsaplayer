@@ -85,26 +85,26 @@ new_list_item(const PlayItem *item, gchar **list_item)
 	} else {
 		sprintf(pt, "00:00");
 	}
-	list_item[2] = (gchar *)g_strdup(pt);
+	list_item[3] = (gchar *)g_strdup(pt);
 	// Strip directory names
-	dirname = strrchr(new_path, '/');
+	dirname = strrchr(new_path, '/');	// do not free
 	if (dirname) {
 			dirname++;
 			filename = (gchar *)g_strdup(dirname);
 	} else
 			filename = (gchar *)g_strdup(new_path);
-	if (item->title.size()) {
-		std::string s = item->title;
-		if (item->artist.size())
-		{
-			s += std::string(" - ") + item->artist;
-		}
-		list_item[1] = (gchar *)g_strdup(s.c_str());
-	} else {
-		list_item[1] = (gchar *)g_strdup(filename);
-	}	
-	// Put data in list_item
-	list_item[3] = new_path;
+	if (item->title.size())
+		list_item[2] = g_strdup(item->title.c_str());
+	else
+		list_item[2] = g_strdup(filename);
+
+	if (item->artist.size())
+		list_item[1] = g_strdup((gchar *)item->artist.c_str());
+	else
+		list_item[1] = g_strdup(_("Unknown"));
+		
+	g_free(new_path);
+	g_free(filename);
 }
 
 static void
@@ -194,7 +194,8 @@ play_file_ok(GtkWidget *play_dialog, gpointer data)
 		}
 
 		// Sort them (they're sometimes returned in a slightly odd order)
-		sort(paths.begin(), paths.end());
+		// don't sort them put them as they come
+		//		sort(paths.begin(), paths.end());
 
 		// Add selections to the queue, and start playing them
 		GDK_THREADS_LEAVE();
@@ -338,8 +339,12 @@ playlist_remove(GtkWidget *, gpointer user_data)
 		selected = get_path_number((GtkTreePath *)next->data);
 			GDK_THREADS_LEAVE();
 			if (playlist->GetCurrent() == selected+1) {
-				playlist->Stop();
-				playlist->Next();
+				if (playlist->Length() == 1)
+					playlist->Stop();
+				else if (playlist->Length() == selected+1)
+					playlist->Prev();
+				else
+					playlist->Next();
 			}
 			playlist->Remove(selected+1, selected+1);
 			GDK_THREADS_ENTER();
@@ -378,7 +383,6 @@ dnd_received(GtkWidget *widget,
 	
 	switch(info) {
 		case TARGET_URI_LIST:
-			//alsaplayer_error("TARGET_URI_LIST drop (%d,%d)", x, y);
 			uri = (char *)malloc(strlen((const char *)data->data)+1);
 			strcpy(uri, (const char *)data->data);
 			filename = uri;
@@ -411,8 +415,8 @@ dnd_received(GtkWidget *widget,
 			free(uri);
 			break;
 		default:
-			alsaplayer_error("Unknown drop!");
-			break;
+			ap_message_error(gtk_widget_get_toplevel(widget), _("Unknown drop!"));
+		break;
 	}
 	
 	gtk_tree_path_free(path);
@@ -465,7 +469,7 @@ dnd_get(GtkWidget *widget,
 	g_list_free(file_list);
 		 
 	if (!gtk_selection_data_set_uris(data, uris))
-		g_print("dnd get error\n");
+		ap_message_error(gtk_widget_get_toplevel(widget), _("Cannot set uris"));
 
 	for (--i; i >= 0; i--)
 		g_free(uris[i]);
@@ -534,7 +538,7 @@ create_playlist_window (PlaylistWindow *playlist_window)
 	gtk_box_pack_start (GTK_BOX (main_box), scrolledwindow, TRUE, TRUE, 0);
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
-	playlist_model = gtk_list_store_new(3, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_STRING);
+	playlist_model = gtk_list_store_new(4, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
  
 	list = gtk_tree_view_new_with_model(GTK_TREE_MODEL(playlist_model));
 	g_object_set_data(G_OBJECT(main_window), "list", list);
@@ -549,14 +553,18 @@ create_playlist_window (PlaylistWindow *playlist_window)
 	renderer = gtk_cell_renderer_pixbuf_new();
 	column = gtk_tree_view_column_new_with_attributes("playing", renderer, "pixbuf", 0, NULL);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
-	
+
 	renderer = gtk_cell_renderer_text_new();
-	column = gtk_tree_view_column_new_with_attributes("title", renderer, "text", 1, NULL);
+	column = gtk_tree_view_column_new_with_attributes("artist", renderer, "text", 1, NULL);
+	gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
+		
+	renderer = gtk_cell_renderer_text_new();
+	column = gtk_tree_view_column_new_with_attributes("title", renderer, "text", 2, NULL);
 	gtk_tree_view_column_set_expand(column, TRUE);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
 	
 	renderer = gtk_cell_renderer_text_new();
-	column = gtk_tree_view_column_new_with_attributes("time", renderer, "text", 2, NULL);
+	column = gtk_tree_view_column_new_with_attributes("time", renderer, "text", 3, NULL);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (list), column);
 	
 	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(GTK_TREE_VIEW(list)), GTK_SELECTION_MULTIPLE);
@@ -681,11 +689,11 @@ void PlaylistWindow::LoadPlaylist()
 	GDK_THREADS_ENTER();
 	
 	if(loaderr == E_PL_DUBIOUS) {
-		// FIXME - pop up a dialog and check if we really want to load
-		alsaplayer_error("Dubious whether file is a playlist - trying anyway");
-		GDK_THREADS_LEAVE();
-		loaderr = playlist->Load(current, playlist->Length(), true);
-		GDK_THREADS_ENTER();
+		if (ap_message_question(gtk_widget_get_toplevel(this->window), _("It doesn't look like playlist !\nAre you sure you want to proceed ?"))) {
+			GDK_THREADS_LEAVE();
+			loaderr = playlist->Load(current, playlist->Length(), true);
+			GDK_THREADS_ENTER();
+		}
 	}
 	if(loaderr) {
 		// FIXME - pass playlist_window to this routine
@@ -724,7 +732,6 @@ static GdkPixbuf *current_stop_pix = NULL;
 void PlaylistWindow::CbSetCurrent(void *data, unsigned current)
 {
 	PlaylistWindow *playlist_window = (PlaylistWindow *)data;
-	
 	if (current == 0)
 	    return;
 
@@ -751,18 +758,14 @@ void PlaylistWindow::CbSetCurrent(void *data, unsigned current)
 	gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list), &iter, current_string);
 	gtk_list_store_set (list, &iter, 0, current_play_pix, -1);
 	g_free(current_string);
-	
 	GDK_THREADS_LEAVE();
 }
 
 
 void PlaylistWindow::CbUpdated(void *data,PlayItem & item, unsigned position) {
 	PlaylistWindow *playlist_window = (PlaylistWindow *)data;
-	char tmp[1024];
 
-	//alsaplayer_error("About to lock list");
 	pthread_mutex_lock(&playlist_window->playlist_list_mutex);
-	//alsaplayer_error("Locked");
 
 	GDK_THREADS_ENTER();
 
@@ -772,25 +775,17 @@ void PlaylistWindow::CbUpdated(void *data,PlayItem & item, unsigned position) {
 	gchar *position_string = g_strdup_printf("%d", position);
 	gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list), &iter, position_string);
 
-	if (item.title.size()) {
-		std::string s = item.title;
-		if (item.artist.size())
-		{
-			s += std::string(" - ") + item.artist;
-		}
-		gchar *data =  g_strdup(s.c_str());
-		gtk_list_store_set (list, &iter, 1, data, -1);
-		g_free(data);
-	}
-	if (item.playtime >= 0) {
-		sprintf(tmp, "%02d:%02d", item.playtime / 60, item.playtime % 60);
-		
-		gchar *data =  g_strdup(tmp);
-		gtk_list_store_set (list, &iter, 2, data, -1);
-		g_free(data);
 
-	}	
-		
+	gchar *list_item[4];
+	new_list_item(&item, list_item);
+
+	gtk_list_store_set (list, &iter, 0, NULL, 1, list_item[1], 2, list_item[2], 3, list_item[3], -1);
+			
+	g_free(list_item[0]);
+	g_free(list_item[1]);
+	g_free(list_item[2]);
+	g_free(list_item[3]);	
+
 	g_free(position_string);
 	
 	GDK_THREADS_LEAVE();
@@ -801,8 +796,6 @@ void PlaylistWindow::CbUpdated(void *data,PlayItem & item, unsigned position) {
 void PlaylistWindow::CbInsert(void *data,std::vector<PlayItem> & items, unsigned position) {
 	PlaylistWindow *playlist_window = (PlaylistWindow *)data;
 	
-	//alsaplayer_error("CbInsert(`%d items', %d)", items.size(), position);
-
 	pthread_mutex_lock(&playlist_window->playlist_list_mutex);
 
 	GDK_THREADS_ENTER();
@@ -820,7 +813,7 @@ void PlaylistWindow::CbInsert(void *data,std::vector<PlayItem> & items, unsigned
 			new_list_item(&(*item), list_item);
 
 			gtk_list_store_insert (list, &iter, position);
-			gtk_list_store_set (list, &iter, 0, NULL, 1, list_item[1], 2, list_item[2], -1);
+			gtk_list_store_set (list, &iter, 0, NULL, 1, list_item[1], 2, list_item[2], 3, list_item[3], -1);
 			
 			g_free(list_item[0]);
 			g_free(list_item[1]);
@@ -849,7 +842,7 @@ void PlaylistWindow::CbRemove(void *data, unsigned start, unsigned end)
 	unsigned i = start;
 	while(i <= end) {
 	
-		start_string = g_strdup_printf("%d", start - 1); //should be i ?
+		start_string = g_strdup_printf("%d", start - 1);
 		gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list), &iter, start_string);
 	
 		gtk_list_store_remove(list, &iter);
@@ -920,6 +913,9 @@ void PlaylistWindow::PlayNext()
 
 void PlaylistWindow::SetStop()
 {
+	if (!this->playlist->Length())
+		return;
+		
 	GtkListStore *list = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(GetList())));
 	GtkTreeIter iter;
 	
@@ -939,6 +935,9 @@ void PlaylistWindow::SetStop()
 
 void PlaylistWindow::SetPlay()
 {
+	if (!this->playlist->Length())
+		return;
+		
 	GtkListStore *list = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(GetList())));
 	GtkTreeIter iter;
 	
