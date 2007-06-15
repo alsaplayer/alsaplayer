@@ -212,8 +212,14 @@ play_file_ok(GtkWidget *play_dialog, gpointer data)
 static void
 play_dialog_cb(GtkDialog *dialog, gint response, gpointer user_data)
 {
-	if (response == GTK_RESPONSE_ACCEPT)
+	GtkWidget *cb;
+	cb = GTK_WIDGET(g_object_get_data(G_OBJECT(dialog), "check_button"));
+
+	if (response == GTK_RESPONSE_ACCEPT) {
 		play_file_ok(GTK_WIDGET(dialog), (gpointer) user_data);
+		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cb)))
+			return;
+	}	
 	
 	dialog_cancel_response(GTK_WIDGET(dialog), NULL);
 }	
@@ -222,6 +228,8 @@ static GtkWidget*
 create_filechooser(GtkWindow *main_window, PlaylistWindow *playlist_window)
 {
 	GtkWidget *filechooser;
+	GtkWidget *checkbutton;
+	
 	Playlist *playlist = playlist_window->GetPlaylist();
 	filechooser = gtk_file_chooser_dialog_new(_("Choose file or URL"), main_window, GTK_FILE_CHOOSER_ACTION_OPEN, 
   																GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
@@ -229,6 +237,10 @@ create_filechooser(GtkWindow *main_window, PlaylistWindow *playlist_window)
 				      											NULL);
 	gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(filechooser), TRUE);
 	
+	checkbutton = gtk_check_button_new_with_label(_("Do not close the window after adding files"));
+	gtk_box_pack_end(GTK_BOX(GTK_DIALOG(filechooser)->vbox), checkbutton, FALSE, FALSE, 0);
+	g_object_set_data(G_OBJECT(filechooser), "check_button", checkbutton);
+
 	g_signal_connect(G_OBJECT(filechooser), "delete_event", G_CALLBACK(gtk_widget_hide_on_delete), NULL);
 	g_signal_connect(G_OBJECT(filechooser), "response", G_CALLBACK(play_dialog_cb), (gpointer) playlist);
 	
