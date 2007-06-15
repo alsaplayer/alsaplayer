@@ -3,6 +3,18 @@
   as the GTK1 one and more will come soon. A big thanks to Madej from Poland
   for his work on this interface.
 
+Fri June 15 2007
+----------------
+* Madej: Added don't close window checkbox in the addfile window.
+* Takashi Iwai: fixes the build of FLAC plugin on 64 bits.
+* Takashi Iwai: fixes possible buffer overflow due to typos for snprintf (Main.cpp).
+* Takashi Iwai: Fixes the possible buffer overflow in the cdda engine.
+* Madej: mad patch, add extended header support in mp3 files (utf-8, utf-16, utf-16be,
+  iso-8859-1).
+* Madej: adds some new dialogs (which are not really in use yet), changes behaviour
+  when we remove files, remove some warnings, fixes memory leak (must be still in
+  gtk1), brings back insert button.
+  
 Wed June 13 2007
 ----------------
 * Madej: Added mute and center button, fixed drag and drop as well as an
@@ -11,6 +23,8 @@ Wed June 13 2007
 Tue June 12 2007
 ----------------
 * Madej patch: GTK2, initial commit of a preferences window.
+* Peter Lemenkov: Removed old .cvsignore files.
+* Fixed horrible mistake in the desktop file.
 
 Mon June 11 2007
 ----------------
