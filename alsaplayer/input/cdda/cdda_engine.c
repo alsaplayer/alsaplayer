@@ -679,54 +679,85 @@ char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_li
 	if (! (strncmp (answer, "211", 3)))
 	{
 		/* seek the 2nd line */
-		while (answer[i] != '\n')
+		while (answer[i] != '\n') {
+			if (! answer[i])
+				goto error;
 			++i;
+		}
 
 		/* copy the 1st match to the category */
 		j = 0; 
 		i++;
-		while (j < 19 && answer[i] != ' ') 
+		while (j < 19 && answer[i] != ' ') {
+			if (! answer[i])
+				goto error;
 			categ[j++] = answer[i++];
+		}
 		categ[j++] = '\0';
-		while (answer[i] != ' ') 
+		while (answer[i] != ' ') {
+			if (! answer[i])
+				goto error;
 			i++;
+		}
 
 		/* get the new cdID given from the CDDB */
 		j = 0; 
 		i++;
-		while (j < 8 && answer[i] != ' ') 
+		while (j < 8 && answer[i] != ' ') {
+			if (! answer[i])
+				goto error;
 			newID[j++] = answer[i++];
+		}
 		newID[j++] = '\0';
-		while (answer[i] != ' ') 
+		while (answer[i] != ' ') {
+			if (! answer[i])
+				goto error;
 			i++;
+		}
 
 	} 
 	else if (! (strncmp (answer, "200", 3)))
 	{
 		/* get it from the 1st line */
-		while (answer[i] != ' ')
+		while (answer[i] != ' ') {
+			if (! answer[i])
+				goto error;
 			i++;
+		}
 		i++;
 
 		/* copy the match to the category */
 		j = 0;
-		while (j < 19 && answer[i] != ' ') 
+		while (j < 19 && answer[i] != ' ') {
+			if (! answer[i])
+				goto error;
 			categ[j++] = answer[i++];
+		}
 		categ[j++] = '\0';
-		while (answer[i] != ' ') 
+		while (answer[i] != ' ') {
+			if (! answer[i])
+				goto error;
 			i++;
+		}
 
 		/* copy the new cdID */
 		j = 0; 
 		i++;
-		while (j < 8 && answer[i] != ' ') 
+		while (j < 8 && answer[i] != ' ') {
+			if (! answer[i])
+				goto error;
 			newID[j++] = answer[i++];
+		}
 		newID[j++] = '\0';
-		while (answer[i] != ' ') 
+		while (answer[i] != ' ') {
+			if (! answer[i])
+				goto error;
 			i++;
+		}
 	} 
 	else 
 	{
+	error:
 		alsaplayer_error("Could not find any matches for %08x\n\n", discID);
 		close (server_fd);
 		free(answer);
