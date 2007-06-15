@@ -883,7 +883,7 @@ int main(int argc, char **argv)
 		playlist->Insert(newitems, playlist->Length());
 	} else {
 		prefsdir = get_prefsdir();
-		snprintf(thefile, sizeof(prefsdir)-28, "%s/alsaplayer.m3u", prefsdir);
+		snprintf(thefile, sizeof(thefile)-28, "%s/alsaplayer.m3u", prefsdir);
 		playlist->Load(thefile, playlist->Length(), false);
 	}
 	playlist->UnPause();
@@ -953,7 +953,7 @@ int main(int argc, char **argv)
 	}
 	// Save playlist before exit
 	prefsdir = get_prefsdir();
-	snprintf(thefile, sizeof(prefsdir)-25, "%s/alsaplayer", prefsdir);
+	snprintf(thefile, sizeof(thefile)-25, "%s/alsaplayer", prefsdir);
 	playlist->Save(thefile, PL_FORMAT_M3U);
 
 	// Save preferences
