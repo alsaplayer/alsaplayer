@@ -23,6 +23,12 @@
 #ifndef _FLAC_STREAM_H_
 #define _FLAC_STREAM_H_
 
+#if !defined(FLAC_API_VERSION_CURRENT) || FLAC_API_VERSION_CURRENT < 8
+#define LEGACY_FLAC
+#else
+#undef LEGACY_FLAC
+#endif
+
 #include <string>
 #include "reader.h"
 
@@ -191,7 +197,11 @@ class FlacStream
 
     FLAC__StreamDecoderReadStatus 
                  realReadCallBack (FLAC__byte buffer[],
+#ifdef LEGACY_FLAC
+				   unsigned * bytes);
+#else
 				   size_t * bytes);
+#endif
 
 
  protected:
@@ -233,7 +243,11 @@ class FlacStream
     static FLAC__StreamDecoderReadStatus
 	readCallBack (const FLAC__StreamDecoder * decoder,
 		      FLAC__byte buffer[],
+#ifdef LEGACY_FLAC
+		      unsigned * bytes,
+#else
 		      size_t * bytes,
+#endif
 		      void * client_data);
 
     static void errCallBack (const FLAC__StreamDecoder * decoder,
