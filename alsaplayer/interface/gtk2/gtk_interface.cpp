@@ -215,6 +215,15 @@ void start_notify(void *data)
 //	playlist_window->SetPlay();
 }
 
+static GdkPixbuf*
+reverse_pic(GdkPixbuf *p)
+{
+	GdkPixbuf *n;
+	
+	n = gdk_pixbuf_flip(p, TRUE);
+	return n;	
+}
+
 static void
 ap_message_delete(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
@@ -506,7 +515,8 @@ key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 	Playlist *playlist = NULL;
 	GtkWidget *list = NULL;
 	GtkWidget *scale = NULL;
-
+	GtkWidget *button = NULL;
+	
 	playlist = playlist_window->GetPlaylist();
 	list = playlist_window->GetList();
 	
@@ -585,7 +595,8 @@ key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 			break;
 		case LOOP_KEY:
 			scale = GTK_WIDGET(g_object_get_data(G_OBJECT(widget), "pos_scale"));
-			loop_cb(NULL, scale);
+			button = GTK_WIDGET(g_object_get_data(G_OBJECT(widget), "looper_button"));
+			loop_cb(button, scale);
 			break;
 		
 //old stuff		
@@ -611,35 +622,6 @@ key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 	}
 	}
 	return TRUE;
-}
-
-void loop_cb(GtkWidget *, gpointer data)
-{
-	GtkAdjustment *adj = GTK_RANGE(data)->adjustment;
-	update_struct *ustr = &global_ustr;
-	Playlist *pl = (Playlist *)ustr->data;
-	loop_struct *loop = &global_loop;
-	
-	switch(loop->state) {
-		case LOOP_OFF:
-			loop->track = pl->GetCurrent();
-			loop->start = adj->value;
-			loop->state = LOOP_START_SET;
-			break;
-		case LOOP_START_SET:
-			loop->end = adj->value;
-			loop->state = LOOP_ON;
-			pthread_create(&looper_thread, NULL,
-					(void * (*)(void *))looper, adj);
-			pthread_detach(looper_thread);
-			break;
-		case LOOP_ON:
-			loop->state = LOOP_OFF;
-			break;
-		default:
-			break;
-	}
-
 }
 
 void forward_skip_cb(GtkWidget *, gpointer data)
@@ -1155,20 +1137,93 @@ create_main_menu(GtkWidget *main_window)
 	return root_menu;	
 }
 
-void loop_button_clicked(GtkWidget *widget, gpointer user_data)
+void
+loop_cb(GtkWidget *widget, gpointer data)
+{
+	GtkAdjustment *adj = GTK_RANGE(data)->adjustment;
+	update_struct *ustr = &global_ustr;
+	Playlist *pl = (Playlist *)ustr->data;
+	loop_struct *loop = &global_loop;
+	
+	switch(loop->state) {
+		case LOOP_OFF:
+		{
+			GtkWidget *pic = gtk_button_get_image(GTK_BUTTON(widget));
+			GdkPixbuf *pb = gtk_widget_render_icon(pic, GTK_STOCK_GOTO_LAST, GTK_ICON_SIZE_MENU, NULL);
+			GdkPixbuf *npb = reverse_pic(pb);
+			g_object_unref(pb);
+			pic = gtk_image_new_from_pixbuf(npb);
+			g_object_unref(npb);
+			gtk_button_set_image(GTK_BUTTON(widget), pic);
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), TRUE);
+			gtk_tooltips_set_tip(GTK_TOOLTIPS(g_object_get_data(G_OBJECT(widget), "tooltips")), widget, _("Set end of the looper"), NULL);
+		}
+			loop->track = pl->GetCurrent();
+			loop->start = adj->value;
+			loop->state = LOOP_START_SET;
+			break;
+		case LOOP_START_SET:
+		{
+			GtkWidget *pic = gtk_button_get_image(GTK_BUTTON(widget));
+			GdkPixbuf *npb = gtk_widget_render_icon(pic, GTK_STOCK_GOTO_LAST, GTK_ICON_SIZE_MENU, NULL);
+			pic = gtk_image_new_from_pixbuf(npb);
+			g_object_unref(npb);
+			gtk_button_set_image(GTK_BUTTON(widget), pic);
+			gtk_tooltips_set_tip(GTK_TOOLTIPS(g_object_get_data(G_OBJECT(widget), "tooltips")), widget, _("Switch off looper"), NULL);
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), TRUE);
+		}			
+			loop->end = adj->value;
+			loop->state = LOOP_ON;
+			pthread_create(&looper_thread, NULL,
+					(void * (*)(void *))looper, adj);
+			pthread_detach(looper_thread);
+			break;
+		case LOOP_ON:
+			gtk_tooltips_set_tip(GTK_TOOLTIPS(g_object_get_data(G_OBJECT(widget), "tooltips")), widget, _("Set start of the looper"), NULL);
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), FALSE);
+		
+			loop->state = LOOP_OFF;
+			break;
+		default:
+			break;
+	}
+
+}
+
+static void
+loop_button_clicked(GtkWidget *widget, gpointer user_data)
 {
 	Playlist *pl = (Playlist *)user_data;
 
 	if (pl->LoopingPlaylist()) {
+		GtkWidget *pic = gtk_button_get_image(GTK_BUTTON(widget));
+		GdkPixbuf *npb = gtk_widget_render_icon(pic, GTK_STOCK_REFRESH, GTK_ICON_SIZE_MENU, NULL);
+		pic = gtk_image_new_from_pixbuf(npb);
+		g_object_unref(npb);
+		gtk_button_set_image(GTK_BUTTON(widget), pic);
+		
 		gtk_tooltips_set_tip(GTK_TOOLTIPS(g_object_get_data(G_OBJECT(widget), "tooltips")), widget, _("Switch off loop"), NULL);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), TRUE);
+		
 		pl->UnLoopPlaylist();
 		pl->LoopSong();
 	}
 	else if (pl->LoopingSong()) {
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), FALSE);
 		gtk_tooltips_set_tip(GTK_TOOLTIPS(g_object_get_data(G_OBJECT(widget), "tooltips")), widget, _("Play playlist in loop"), NULL);
+		
 		pl->UnLoopSong();
 	}
 	else {
+		GtkWidget *pic = gtk_button_get_image(GTK_BUTTON(widget));
+		GdkPixbuf *pb = gtk_widget_render_icon(pic, GTK_STOCK_REFRESH, GTK_ICON_SIZE_MENU, NULL);
+		GdkPixbuf *npb = reverse_pic(pb);
+		g_object_unref(pb);
+		pic = gtk_image_new_from_pixbuf(npb);
+		g_object_unref(npb);
+		gtk_button_set_image(GTK_BUTTON(widget), pic);
+		
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), TRUE);
 		gtk_tooltips_set_tip(GTK_TOOLTIPS(g_object_get_data(G_OBJECT(widget), "tooltips")), widget, _("Play song in loop"), NULL);
 		pl->LoopPlaylist();
 	}
@@ -1200,15 +1255,6 @@ next_button_clicked(GtkButton *, gpointer user_data)
 	
 	if(playlist_window)
 		playlist_window->PlayNext();
-}
-
-GdkPixbuf *
-reverse_pic(GdkPixbuf *p)
-{
-	GdkPixbuf *n;
-	
-	n = gdk_pixbuf_flip(p, TRUE);
-	return n;	
 }
 
 static void
@@ -1325,22 +1371,24 @@ create_main_window (Playlist *pl)
 	mini_button_box = gtk_vbox_new (TRUE, 0);
 	gtk_box_pack_start (GTK_BOX (button_box), mini_button_box, FALSE, FALSE, 0);
 
-	loop_button = gtk_button_new();
+	loop_button = gtk_toggle_button_new();
 	g_object_set_data(G_OBJECT(loop_button), "tooltips", tooltips);
 //	pic = get_image_from_xpm(loop_xpm);
 	pic = gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_MENU);
-	gtk_container_add(GTK_CONTAINER(loop_button), pic);
+	gtk_button_set_image(GTK_BUTTON(loop_button), pic);
 	gtk_button_set_relief(GTK_BUTTON(loop_button),GTK_RELIEF_NONE);
 	gtk_box_pack_start (GTK_BOX (mini_button_box), loop_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), loop_button, _("Play playlist in loop"), NULL);
 	
-	looper_button = gtk_button_new();
+	looper_button = gtk_toggle_button_new();
+	g_object_set_data(G_OBJECT(main_window), "looper_button", looper_button);
+	g_object_set_data(G_OBJECT(looper_button), "tooltips", tooltips);
 //	pic = get_image_from_xpm(looper_xpm);
 	pic = gtk_image_new_from_stock(GTK_STOCK_GOTO_LAST, GTK_ICON_SIZE_MENU);
-	gtk_container_add(GTK_CONTAINER(looper_button), pic);
+	gtk_button_set_image(GTK_BUTTON(looper_button), pic);
 	gtk_button_set_relief(GTK_BUTTON(looper_button),GTK_RELIEF_NONE);
 	gtk_box_pack_start (GTK_BOX (mini_button_box), looper_button, FALSE, FALSE, 0);
-	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), looper_button, _("Use looper"), NULL);
+	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), looper_button, _("Set start of the looper"), NULL);
 	
 	cd_button = gtk_button_new ();
 //	pic = get_image_from_xpm(cd_xpm);
