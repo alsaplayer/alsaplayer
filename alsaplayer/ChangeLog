@@ -87,7 +87,7 @@ Mon June 4 2007
 
 Sun June 3 2007
 ---------------
-* Madej: Added lables in the GTK2 interface, second loop function for songs and
+* Madej: Added labels in the GTK2 interface, second loop function for songs and
   info window.
 * Madej: Fix for the cdda engine, cddb use html on port 80.
 

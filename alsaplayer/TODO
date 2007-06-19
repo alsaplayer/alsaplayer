@@ -1,6 +1,5 @@
 TODO list (2007 May 28)
 
-- make a pre-release with the GTK2 interface. Will be done very shortly.
 - global: move libalsaplayer to a standalone application with unix-sockets or
   TCP- (UDP-?) based interface.
   This will include (list of ideas at that time):
@@ -8,11 +7,11 @@ TODO list (2007 May 28)
   - Separating libalsaplayer and checking for crossplatform-readiness.
   - Separating all the interfaces.
 - global: add gettext support
-- global: new preference option to start or not playing at startup
+- core: new preference option to start or not playing at startup
 - gtk2: preferences interface
 - gtk: backport the gtk2 changes to gtk when it is possible. Any volunter?
-- flac: check the Makefile. With flac>= 1.4, the oggflac test is not needed.
-  Maybe separate the flac>1.4 patch into separated files.
+- flac: check the Makefile. With flac>= 1.3, the oggflac test is not needed.
+  Maybe separate the flac>1.3 patch into separated files.
 
 Know bugs:
 - fix the quiet option, see http://bugs.debian.org/cgi-bin/bug-report.cgi?bug=412112
