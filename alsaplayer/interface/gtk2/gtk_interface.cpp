@@ -70,7 +70,6 @@
 // Include other things: (ultimate aim is to wrap this up into one nice file)
 #include "CorePlayer.h"
 #include "Playlist.h"
-#include "EffectsWindow.h"
 #include "AboutWindow.h"
 #include "PreferencesWindow.h"
 //#include "Effects.h"
@@ -1105,8 +1104,8 @@ create_main_menu(GtkWidget *main_window)
 	g_signal_connect(G_OBJECT(menu_item), "activate",
 					   G_CALLBACK(scopes_cb), scopes_window);
 
-	menu_item = gtk_menu_item_new_with_label(_("Effects..."));
-	gtk_menu_append(GTK_MENU(root_menu), menu_item);
+//	menu_item = gtk_menu_item_new_with_label(_("Effects..."));
+//	gtk_menu_append(GTK_MENU(root_menu), menu_item);
 //	g_signal_connect(G_OBJECT(menu_item), "activate",
 //					   G_CALLBACK(effects_cb), effects_window);
 	gtk_widget_set_sensitive(menu_item, FALSE);
@@ -1310,7 +1309,7 @@ create_main_window (Playlist *pl)
 	GtkAdjustment *vol_adj;
 	GtkWidget *vol_scale;
 	GtkWidget *pic;
-	GtkWidget *effects_window;
+//	GtkWidget *effects_window;
 	GtkWidget *scopes_window;
 	GtkWidget *about_window;
 	GtkWidget *info_window;
@@ -1524,7 +1523,7 @@ create_main_window (Playlist *pl)
 	
 //	effects_window = init_effects_window();	
 //	g_object_set_data(G_OBJECT(main_window), "effects_window", effects_window);
-	effects_window = NULL;
+//	effects_window = NULL;
 	scopes_window = init_scopes_window(main_window);
 	g_object_set_data(G_OBJECT(main_window), "scopes_window", scopes_window);
 	about_window = init_about_window(main_window);	
