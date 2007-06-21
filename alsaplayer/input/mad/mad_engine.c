@@ -456,7 +456,10 @@ static void fill_from_id3v2 (char *dst, char *src, int max, int size)
 //	alsaplayer_error ("Warning: Without glib2 you get different encodings.");
 	conv = strndup(src+1, size);
 #endif
-		
+	
+	if (!conv)	// convert error
+		return;
+	
 	strncpy (dst, conv, min);
 	
 	if (conv)

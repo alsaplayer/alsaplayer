@@ -3,6 +3,11 @@
   as the GTK1 one and more will come soon. A big thanks to Madej from Poland
   for his work on this interface.
 
+Thu June 20 2007
+----------------
+* Madej: mad patch, fix for possible segfault or rubbish when convert wont be
+  successful.
+
 Wed June 20 2007
 ----------------
 * Removed EffectsWindow files and references as we don't use it.
