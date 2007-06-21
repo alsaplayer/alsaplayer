@@ -18,6 +18,7 @@
 
 #include "PreferencesWindow.h"
 #include "info_window.h"
+#include "PlaylistWindow.h"
 #include "prefs.h"
 
 #ifdef ENABLE_NLS
@@ -32,6 +33,9 @@ static void
 pref_dialog_accept(GtkWidget *dialog, GtkWidget *main_window)
 {
 	InfoWindow *info_window = (InfoWindow *) g_object_get_data(G_OBJECT(main_window), "info_window");
+	PlaylistWindow *pl = (PlaylistWindow *) g_object_get_data(G_OBJECT(main_window), "playlist_window");
+
+	/*	general	*/
 	GtkWidget *bg = GTK_WIDGET(g_object_get_data(G_OBJECT(dialog), "pref_general_bg_colour_button"));
 	GtkWidget *fg = GTK_WIDGET(g_object_get_data(G_OBJECT(dialog), "pref_general_fg_colour_button"));
 	GtkWidget *font = GTK_WIDGET(g_object_get_data(G_OBJECT(dialog), "pref_general_fg_font_button"));
@@ -53,6 +57,19 @@ pref_dialog_accept(GtkWidget *dialog, GtkWidget *main_window)
 	str = (gchar *) gtk_font_button_get_font_name(GTK_FONT_BUTTON(font)); // don't free str !
 	prefs_set_string(ap_prefs, "gtk2_interface", "fonts", str); 
 	info_window->set_fonts(str);
+	/*	end	*/
+	
+	/*	play	*/
+	GtkWidget *start = GTK_WIDGET(g_object_get_data(G_OBJECT(dialog), "pref_play_on_start"));;
+	GtkWidget *add = GTK_WIDGET(g_object_get_data(G_OBJECT(dialog), "pref_play_on_add"));;
+	gboolean what;
+	
+	what = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(start)); 
+	prefs_set_bool(ap_prefs, "gtk2_interface", "play_on_start", what);
+	
+	what = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(add));
+	prefs_set_bool(ap_prefs, "gtk2_interface", "play_on_add", what);
+	pl->play_on_add = what;
 }
 
 static void
@@ -74,11 +91,32 @@ pref_dialog_response(GtkDialog *dialog, gint arg1, gpointer user_data)
 		pref_dialog_hide(GTK_WIDGET(dialog));
 	}
 } 
-                                                        
-GtkWidget *init_preferences_window(GtkWidget *main_window)
+
+static GtkWidget*
+play_tab(GtkWidget *dialog)
 {
-	GtkWidget *dialog;
-	GtkWidget *notebook;
+	GtkWidget *pref_play;
+	GtkWidget *pref_play_on_start;
+	GtkWidget *pref_play_on_add;
+
+	pref_play = gtk_vbox_new(FALSE, 0);
+	
+	pref_play_on_start = gtk_check_button_new_with_label(_("Play on start"));	
+	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(pref_play_on_start), prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_start", FALSE));
+	g_object_set_data(G_OBJECT(dialog), "pref_play_on_start", pref_play_on_start);
+	gtk_box_pack_start(GTK_BOX(pref_play), pref_play_on_start, FALSE, FALSE, 0);
+	
+	pref_play_on_add = gtk_check_button_new_with_label(_("Play song after adding to playlist"));
+	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(pref_play_on_add), prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_add", FALSE));
+	g_object_set_data(G_OBJECT(dialog), "pref_play_on_add", pref_play_on_add); 
+	gtk_box_pack_start(GTK_BOX(pref_play), pref_play_on_add, FALSE, FALSE, 0);
+	
+	return pref_play;	
+}
+
+static GtkWidget*
+general_tab(GtkWidget *dialog)
+{
 	GtkWidget *pref_general;
 	GtkWidget *pref_general_bg_colour;
 	GtkWidget *pref_general_bg_colour_button;
@@ -86,26 +124,10 @@ GtkWidget *init_preferences_window(GtkWidget *main_window)
 	GtkWidget *pref_general_fg_colour_button;
 	GtkWidget *pref_general_fg_font;
 	GtkWidget *pref_general_fg_font_button;
-	
 	GtkWidget *label;
-	
 	gchar *str;
 	GdkColor color;
-	
-	dialog = gtk_dialog_new_with_buttons(_("Preferences"), GTK_WINDOW(main_window), GTK_DIALOG_DESTROY_WITH_PARENT,
-											GTK_STOCK_OK,
-											GTK_RESPONSE_OK,
-											GTK_STOCK_APPLY,
-											GTK_RESPONSE_ACCEPT,
-											GTK_STOCK_CANCEL,
-											GTK_RESPONSE_REJECT,
-											NULL);
-	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 300);
-											
-	notebook = gtk_notebook_new();
-	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(notebook), GTK_POS_LEFT);
-	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), notebook);
-	
+
 	pref_general = gtk_vbox_new(FALSE, 0);
 	
 	pref_general_bg_colour = gtk_hbox_new(FALSE, 0);
@@ -150,9 +172,38 @@ GtkWidget *init_preferences_window(GtkWidget *main_window)
 	pref_general_fg_font_button = gtk_font_button_new_with_font(str);
 	g_object_set_data(G_OBJECT(dialog), "pref_general_fg_font_button", pref_general_fg_font_button);
 	gtk_box_pack_start(GTK_BOX(pref_general_fg_font), pref_general_fg_font_button, FALSE, FALSE, 0);
+
+	return pref_general;	
+}
+                                                 
+GtkWidget *init_preferences_window(GtkWidget *main_window)
+{
+	GtkWidget *dialog;
+	GtkWidget *notebook;
+	GtkWidget *label;
+	GtkWidget *tab;
 	
+	dialog = gtk_dialog_new_with_buttons(_("Preferences"), GTK_WINDOW(main_window), GTK_DIALOG_DESTROY_WITH_PARENT,
+											GTK_STOCK_OK,
+											GTK_RESPONSE_OK,
+											GTK_STOCK_APPLY,
+											GTK_RESPONSE_ACCEPT,
+											GTK_STOCK_CANCEL,
+											GTK_RESPONSE_REJECT,
+											NULL);
+	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 300);
+											
+	notebook = gtk_notebook_new();
+	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(notebook), GTK_POS_LEFT);
+	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), notebook);
+	
+	tab = general_tab(dialog);
 	label = gtk_label_new(_("General"));
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), pref_general, label);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, label);
+	
+	tab = play_tab(dialog);
+	label = gtk_label_new(_("Play"));
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, label);
 	
 	g_signal_connect(G_OBJECT(dialog), "response", G_CALLBACK(pref_dialog_response), (gpointer) main_window);
 	g_signal_connect(G_OBJECT(dialog), "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), NULL);

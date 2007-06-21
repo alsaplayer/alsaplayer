@@ -7,7 +7,9 @@ Thu June 20 2007
 ----------------
 * Madej: mad patch, fix for possible segfault or rubbish when convert wont be
   successful.
-
+* Madej: added preference options for Play on start and Play song after adding to
+  playlist; loop buttons will remember the state.
+  
 Wed June 20 2007
 ----------------
 * Removed EffectsWindow files and references as we don't use it.

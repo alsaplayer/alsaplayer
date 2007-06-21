@@ -170,9 +170,10 @@ create_playlist_save(GtkWindow *main_window, PlaylistWindow *playlist_window)
 }
 
 static void
-play_file_ok(GtkWidget *play_dialog, gpointer data)
+play_file_ok(GtkWidget *play_dialog, gpointer user_data)
 {
-	Playlist *playlist = (Playlist *)data;
+	PlaylistWindow *playlist_window = (PlaylistWindow *) user_data; 
+	Playlist *playlist = playlist_window->GetPlaylist();
 	CorePlayer *p = playlist->GetCorePlayer();
 
 	if (p) {
@@ -210,9 +211,15 @@ play_file_ok(GtkWidget *play_dialog, gpointer data)
 
 		// Add selections to the queue, and start playing them
 		GDK_THREADS_LEAVE();
-		playlist->AddAndPlay(paths);
+		if (playlist_window->play_on_add) {
+			playlist->AddAndPlay(paths);
+			playlist->UnPause();
+		}
+		else {
+			playlist->Insert(paths, playlist->Length());
+			playlist->Pause();
+		}
 		GDK_THREADS_ENTER();
-		playlist->UnPause();
 
 		gtk_file_chooser_unselect_all (GTK_FILE_CHOOSER(play_dialog));
 		g_slist_free(file_list);	
@@ -241,7 +248,6 @@ create_filechooser(GtkWindow *main_window, PlaylistWindow *playlist_window)
 	GtkWidget *filechooser;
 	GtkWidget *checkbutton;
 	
-	Playlist *playlist = playlist_window->GetPlaylist();
 	filechooser = gtk_file_chooser_dialog_new(_("Choose file or URL"), main_window, GTK_FILE_CHOOSER_ACTION_OPEN, 
   																GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 				     											GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
@@ -257,7 +263,7 @@ create_filechooser(GtkWindow *main_window, PlaylistWindow *playlist_window)
 	g_object_set_data(G_OBJECT(filechooser), "check_button", checkbutton);
 
 	g_signal_connect(G_OBJECT(filechooser), "delete_event", G_CALLBACK(gtk_widget_hide_on_delete), NULL);
-	g_signal_connect(G_OBJECT(filechooser), "response", G_CALLBACK(play_dialog_cb), (gpointer) playlist);
+	g_signal_connect(G_OBJECT(filechooser), "response", G_CALLBACK(play_dialog_cb), (gpointer) playlist_window);
 	
 	return filechooser;
 }
@@ -327,8 +333,8 @@ clear_cb(GtkButton *button, gpointer user_data)
 {
 	PlaylistWindow *playlist_window = (PlaylistWindow *) user_data;
 	if (playlist_window) {
+		stop_cb(NULL, (gpointer) playlist_window->GetPlaylist()); 
 		GDK_THREADS_LEAVE();
-		playlist_window->GetPlaylist()->Stop();
 		playlist_window->GetPlaylist()->Clear();
 		GDK_THREADS_ENTER();
 	}	
@@ -658,14 +664,16 @@ create_playlist_window (PlaylistWindow *playlist_window)
 
 PlaylistWindow::PlaylistWindow(Playlist *pl) {
 	
-	playlist = pl;
+	this->playlist = pl;
 	
-	window = create_playlist_window(this);
-	list = (GtkWidget *)g_object_get_data(G_OBJECT(window), "list");
+	this->window = create_playlist_window(this);
+	this->list = (GtkWidget *)g_object_get_data(G_OBJECT(window), "list");
 	
-	current_entry = 1;
-	width = window->allocation.width;
-	height = window->allocation.height;
+	this->current_entry = 1;
+	this->width = window->allocation.width;
+	this->height = window->allocation.height;
+	this->play_on_add = prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_add", FALSE);
+	
 	
 	pthread_mutex_init(&playlist_list_mutex, NULL);
 
@@ -791,7 +799,12 @@ void PlaylistWindow::CbSetCurrent(void *data, unsigned current)
 
 	gchar *current_string = g_strdup_printf("%d", playlist_window->current_entry - 1);
 	gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list), &iter, current_string);
-	gtk_list_store_set (list, &iter, 0, current_play_pix, -1);
+	
+	if (playlist_window->GetPlaylist()->GetCorePlayer()->IsPlaying())
+		gtk_list_store_set (list, &iter, 0, current_play_pix, -1);
+	else
+		gtk_list_store_set (list, &iter, 0, current_stop_pix, -1);
+		
 	g_free(current_string);
 	GDK_THREADS_LEAVE();
 }

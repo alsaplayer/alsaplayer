@@ -72,7 +72,6 @@
 #include "Playlist.h"
 #include "AboutWindow.h"
 #include "PreferencesWindow.h"
-//#include "Effects.h"
 #include "ScopesWindow.h"
 #include "control.h"
 
@@ -982,19 +981,6 @@ void scopes_cb(GtkWidget *, gpointer user_data)
 
 }
 
-/*
-void effects_cb(GtkWidget *, gpointer user_data)
-{
-	GtkWidget *win = (GtkWidget *) user_data;
-
-		if (GTK_WIDGET_VISIBLE(win)){
-			gtk_widget_hide(win);
-		}
-	else 
-		gtk_widget_show_all(win);
-}
-*/
-
 static void
 playlist_button_cb(GtkWidget *button, gpointer user_data)
 {
@@ -1088,7 +1074,6 @@ create_main_menu(GtkWidget *main_window)
 	GtkWidget *menu_item;
 	
 	GtkWidget *scopes_window = GTK_WIDGET(g_object_get_data(G_OBJECT(main_window), "scopes_window"));
-//	GtkWidget *effects_window = GTK_WIDGET(g_object_get_data(G_OBJECT(main_window), "effects_window"));
 	GtkWidget *about_window = GTK_WIDGET(g_object_get_data(G_OBJECT(main_window), "about_window"));
 	GtkWidget *preferences_window = GTK_WIDGET(g_object_get_data(G_OBJECT(main_window), "preferences_window"));
 	
@@ -1103,12 +1088,6 @@ create_main_menu(GtkWidget *main_window)
 	gtk_menu_append(GTK_MENU(root_menu), menu_item);
 	g_signal_connect(G_OBJECT(menu_item), "activate",
 					   G_CALLBACK(scopes_cb), scopes_window);
-
-//	menu_item = gtk_menu_item_new_with_label(_("Effects..."));
-//	gtk_menu_append(GTK_MENU(root_menu), menu_item);
-//	g_signal_connect(G_OBJECT(menu_item), "activate",
-//					   G_CALLBACK(effects_cb), effects_window);
-	gtk_widget_set_sensitive(menu_item, FALSE);
 
 	menu_item = gtk_image_menu_item_new_from_stock(GTK_STOCK_ABOUT, NULL);
 	gtk_menu_append(GTK_MENU(root_menu), menu_item);
@@ -1206,12 +1185,15 @@ loop_button_clicked(GtkWidget *widget, gpointer user_data)
 		
 		pl->UnLoopPlaylist();
 		pl->LoopSong();
+		
+		prefs_set_int(ap_prefs, "gtk2_interface", "loop", 2);
 	}
 	else if (pl->LoopingSong()) {
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), FALSE);
 		gtk_tooltips_set_tip(GTK_TOOLTIPS(g_object_get_data(G_OBJECT(widget), "tooltips")), widget, _("Play playlist in loop"), NULL);
 		
 		pl->UnLoopSong();
+		prefs_set_int(ap_prefs, "gtk2_interface", "loop", 0);
 	}
 	else {
 		GtkWidget *pic = gtk_button_get_image(GTK_BUTTON(widget));
@@ -1225,6 +1207,7 @@ loop_button_clicked(GtkWidget *widget, gpointer user_data)
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), TRUE);
 		gtk_tooltips_set_tip(GTK_TOOLTIPS(g_object_get_data(G_OBJECT(widget), "tooltips")), widget, _("Play song in loop"), NULL);
 		pl->LoopPlaylist();
+		prefs_set_int(ap_prefs, "gtk2_interface", "loop", 1);
 	}
 }
 
@@ -1309,7 +1292,6 @@ create_main_window (Playlist *pl)
 	GtkAdjustment *vol_adj;
 	GtkWidget *vol_scale;
 	GtkWidget *pic;
-//	GtkWidget *effects_window;
 	GtkWidget *scopes_window;
 	GtkWidget *about_window;
 	GtkWidget *info_window;
@@ -1371,6 +1353,7 @@ create_main_window (Playlist *pl)
 	gtk_box_pack_start (GTK_BOX (button_box), mini_button_box, FALSE, FALSE, 0);
 
 	loop_button = gtk_toggle_button_new();
+	g_object_set_data(G_OBJECT(main_window), "loop_button", loop_button);
 	g_object_set_data(G_OBJECT(loop_button), "tooltips", tooltips);
 //	pic = get_image_from_xpm(loop_xpm);
 	pic = gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_MENU);
@@ -1414,6 +1397,7 @@ create_main_window (Playlist *pl)
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), play_button, _("Play"), _("Play current track on the list or open filechooser if list is empty"));
 
 	stop_button = gtk_button_new ();
+	g_object_set_data(G_OBJECT(main_window), "stop_button", stop_button);
 //	pic = get_image_from_xpm(stop_xpm);
 	pic = gtk_image_new_from_stock(GTK_STOCK_MEDIA_STOP, GTK_ICON_SIZE_BUTTON);
 	gtk_container_add(GTK_CONTAINER(stop_button), pic);
@@ -1521,9 +1505,6 @@ create_main_window (Playlist *pl)
 
 	gtk_box_pack_start (GTK_BOX (main_box), playlist_window->GetWindow(), TRUE, TRUE, 0);
 	
-//	effects_window = init_effects_window();	
-//	g_object_set_data(G_OBJECT(main_window), "effects_window", effects_window);
-//	effects_window = NULL;
 	scopes_window = init_scopes_window(main_window);
 	g_object_set_data(G_OBJECT(main_window), "scopes_window", scopes_window);
 	about_window = init_about_window(main_window);	
@@ -1597,6 +1578,19 @@ void init_main_window(Playlist *pl)
 	
 	PlaylistWindow *playlist_window = (PlaylistWindow *) g_object_get_data(G_OBJECT(main_window), "playlist_window");
 
+	memset(&notifier, 0, sizeof(notifier));
+	notifier.speed_changed = speed_changed;
+	notifier.pan_changed = pan_changed;
+	notifier.volume_changed = volume_changed;
+	notifier.stop_notify = stop_notify;
+	notifier.start_notify = start_notify;
+	notifier.position_notify = position_notify;
+
+	GDK_THREADS_LEAVE();
+	playlist->RegisterNotifier(&notifier, (void *)playlist_window);
+	GDK_THREADS_ENTER();
+	
+	
 	width = prefs_get_int(ap_prefs, "gtk2_interface", "width", 0);
 	height = prefs_get_int(ap_prefs, "gtk2_interface", "height", 0);
 	plheight = prefs_get_int(ap_prefs, "gtk2_interface", "playlist_height", 0);
@@ -1609,15 +1603,16 @@ void init_main_window(Playlist *pl)
 	if (width && height)	
 		gtk_window_resize(GTK_WINDOW(main_window), width, height);
 	
-	memset(&notifier, 0, sizeof(notifier));
-	notifier.speed_changed = speed_changed;
-	notifier.pan_changed = pan_changed;
-	notifier.volume_changed = volume_changed;
-	notifier.stop_notify = stop_notify;
-	notifier.start_notify = start_notify;
-	notifier.position_notify = position_notify;
-
-	GDK_THREADS_LEAVE();
-	playlist->RegisterNotifier(&notifier, (void *)playlist_window);
-	GDK_THREADS_ENTER();
+	int loop = prefs_get_int(ap_prefs, "gtk2_interface", "loop", 0);
+	if (loop == 1) {
+		gtk_button_clicked(GTK_BUTTON(g_object_get_data(G_OBJECT(main_window), "loop_button"))); 
+	} else if (loop == 2) {
+		gtk_button_clicked(GTK_BUTTON(g_object_get_data(G_OBJECT(main_window), "loop_button")));
+		gtk_button_clicked(GTK_BUTTON(g_object_get_data(G_OBJECT(main_window), "loop_button")));
+	}
+	
+	if (!prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_start", FALSE)) {
+		gtk_button_clicked(GTK_BUTTON(g_object_get_data(G_OBJECT(main_window), "stop_button")));
+		g_print("stop\n");
+	}
 }

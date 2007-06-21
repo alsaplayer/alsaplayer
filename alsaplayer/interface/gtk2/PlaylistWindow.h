@@ -26,7 +26,7 @@ class PlaylistWindow
 {
 	private:
 		playlist_interface pli;
-		Playlist * playlist;
+		Playlist *playlist;
 		GtkWidget *window;
 		GtkWidget *list;
 		gint width;
@@ -37,7 +37,8 @@ class PlaylistWindow
 		~PlaylistWindow();
 
 		gint current_entry;
-
+		bool play_on_add;
+		
 		void LoadPlaylist();
 		void SavePlaylist();
 		void AddFile();

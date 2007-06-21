@@ -25,8 +25,6 @@
 
 #include <gdk/gdkkeysyms.h>
 
-extern gint windows_x_offset;
-extern gint windows_y_offset;
 extern int global_update;
 
 void init_main_window(Playlist *);
@@ -54,5 +52,6 @@ enum gtk_keymap {
 void ap_message_error(GtkWidget *parent, const gchar *message);
 void ap_message_warning(GtkWidget *parent, const gchar *message);
 gboolean ap_message_question(GtkWidget *parent, const gchar *message);
+void stop_cb(GtkWidget *, gpointer data);
 
 #endif /* _gtk_interface_h_ */
