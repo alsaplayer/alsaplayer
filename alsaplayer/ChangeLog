@@ -2,6 +2,8 @@ Sat June 23
 -----------
 * Removed Makefile.in files from the scopes2 tree.
 * Added French translation.
+* Moved GTK1 stuff out of the tree.
+" Main.cpp: Fixed help message and gtk2 launch at startup when no $DISPLAY.
 
 2007-06-22  gettextize  <bug-gnu-gettext@gnu.org>
 * Madej:
