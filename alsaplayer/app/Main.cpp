@@ -22,6 +22,19 @@
  *
 */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) gettext(String)
+#define N_(String) noop_gettext(String)
+#else
+#define _(String) (String)
+#define N_(String) String
+#endif
+
 #include <cstdio>
 #include <cstdlib>
 #include <csignal>
@@ -39,8 +52,6 @@
 #include <cmath>
 #include <cstdarg>
 #include <locale.h>
-
-#include "config.h"
 
 #include "AlsaPlayer.h"
 #include "SampleBuffer.h"
@@ -443,9 +454,15 @@ int main(int argc, char **argv)
 	signal(SIGILL, exit_sighandler);	// illegal instruction
 	signal(SIGFPE, exit_sighandler);	// floating point exc.
 	signal(SIGABRT, exit_sighandler);	// abort()
+
 	// Enable locale support
+#ifdef ENABLE_NLS
 	setlocale (LC_ALL, "");
-	
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	textdomain(PACKAGE);
+	bind_textdomain_codeset (PACKAGE, "UTF-8");
+#endif
+
 	// Init global mutexes
 	pthread_mutex_init(&playlist_sort_seq_mutex, NULL);
 #if !defined(EMBEDDED)
@@ -863,6 +880,11 @@ int main(int argc, char **argv)
 	// Initialise playlist - must be done before things try to register with it
 	playlist = new Playlist(node);
 
+	if (!prefs_get_bool(ap_prefs, "main", "play_on_start", false))	
+		playlist->Pause();
+	else
+		playlist->UnPause();
+	
 	if (!playlist) {
 		alsaplayer_error("Failed to create Playlist object");
 		return 1;
@@ -886,7 +908,6 @@ int main(int argc, char **argv)
 		snprintf(thefile, sizeof(thefile)-28, "%s/alsaplayer.m3u", prefsdir);
 		playlist->Load(thefile, playlist->Length(), false);
 	}
-	playlist->UnPause();
 		
 	// Loop song
 	if (do_loopsong) {

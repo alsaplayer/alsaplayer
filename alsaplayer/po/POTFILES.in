@@ -1,0 +1,14 @@
+# List of source files which contain translatable strings.
+
+# app
+app/Main.cpp
+
+#interfaces
+#gtk2
+interface/gtk2/AboutWindow.cpp
+interface/gtk2/gtk_interface.cpp
+interface/gtk2/info_window.cpp
+interface/gtk2/PlaylistWindow.cpp
+interface/gtk2/PreferencesWindow.cpp
+interface/gtk2/ScopesWindow.cpp
+

@@ -18,16 +18,17 @@
 
 #include "AboutWindow.h"
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifdef ENABLE_NLS
+#include <libintl.h>
 #define _(String) gettext(String)
 #define N_(String) noop_gettext(String)
 #else
 #define _(String) (String)
 #define N_(String) String
-#endif
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
 #endif
 
 #ifndef VERSION
@@ -97,7 +98,7 @@ along with AlsaPlayer; if not, write to the Free Software Foundation, Inc.,\n\
 	
 	gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(about_window), "AlsaPlayer");
 	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(about_window), VERSION);
-	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about_window), _("Copyright © 1998-2007"));
+	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about_window), "Copyright © 1998-2007");
 	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(about_window), _("No comments yet"));
 	gtk_about_dialog_set_license(GTK_ABOUT_DIALOG(about_window), license);
 	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(about_window), "www.alsaplayer.org");

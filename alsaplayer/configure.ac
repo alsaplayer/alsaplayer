@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(app/CorePlayer.cpp)
+AC_INIT(alsaplayer)
 
 ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
@@ -42,7 +42,6 @@ use_3dnow_asm=no
 use_libmad=no
 use_libid3tag=no
 prefer_mad=yes
-enable_nls=yes
 
 if test "x$x_includes" = "xNONE"
 then
@@ -58,10 +57,13 @@ AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_CXX
 AC_PROG_INSTALL
+AC_GNU_SOURCE
+AM_GNU_GETTEXT
 AC_PROG_LN_S
 dnl static libs make no sense for alsaplayer
 AM_DISABLE_STATIC
 AM_PROG_LIBTOOL
+AM_PROG_CC_C_O
 AC_PROG_MAKE_SET
 AM_PATH_GTK(1.2.6, have_gtk=yes , have_gtk=no, gthread)
 AM_PATH_GLIB(1.2.6, have_glib=yes, have_glib=no)
@@ -700,7 +702,7 @@ AC_SUBST(ALSAPLAYER_MINOR_VERSION)
 AC_SUBST(ALSAPLAYER_MICRO_VERSION)
 AC_SUBST(ALSAPLAYER_VERSION)
 
-AC_OUTPUT([
+AC_OUTPUT([ intl/Makefile po/Makefile.in
 Makefile
 alsaplayer.1
 alsaplayer.pc

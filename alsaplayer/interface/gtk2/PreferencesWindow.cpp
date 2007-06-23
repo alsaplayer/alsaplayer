@@ -21,7 +21,12 @@
 #include "PlaylistWindow.h"
 #include "prefs.h"
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifdef ENABLE_NLS
+#include <libintl.h>
 #define _(String) gettext(String)
 #define N_(String) noop_gettext(String)
 #else
@@ -65,7 +70,7 @@ pref_dialog_accept(GtkWidget *dialog, GtkWidget *main_window)
 	gboolean what;
 	
 	what = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(start)); 
-	prefs_set_bool(ap_prefs, "gtk2_interface", "play_on_start", what);
+	prefs_set_bool(ap_prefs, "main", "play_on_start", what);
 	
 	what = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(add));
 	prefs_set_bool(ap_prefs, "gtk2_interface", "play_on_add", what);
@@ -102,7 +107,7 @@ play_tab(GtkWidget *dialog)
 	pref_play = gtk_vbox_new(FALSE, 0);
 	
 	pref_play_on_start = gtk_check_button_new_with_label(_("Play on start"));	
-	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(pref_play_on_start), prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_start", FALSE));
+	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(pref_play_on_start), prefs_get_bool(ap_prefs, "main", "play_on_start", FALSE));
 	g_object_set_data(G_OBJECT(dialog), "pref_play_on_start", pref_play_on_start);
 	gtk_box_pack_start(GTK_BOX(pref_play), pref_play_on_start, FALSE, FALSE, 0);
 	
@@ -132,7 +137,7 @@ general_tab(GtkWidget *dialog)
 	
 	pref_general_bg_colour = gtk_hbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(pref_general), pref_general_bg_colour, FALSE, FALSE, 0); 
-	label = gtk_label_new(_("Background colour"));
+	label = gtk_label_new(_("Background color"));
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 	gtk_box_pack_start(GTK_BOX(pref_general_bg_colour), label, TRUE, TRUE, 3);
 	
@@ -148,7 +153,7 @@ general_tab(GtkWidget *dialog)
 	
 	pref_general_fg_colour = gtk_hbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(pref_general), pref_general_fg_colour, FALSE, FALSE, 0);
-	label = gtk_label_new(_("Font colour"));
+	label = gtk_label_new(_("Font color"));
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 	gtk_box_pack_start(GTK_BOX(pref_general_fg_colour), label, TRUE, TRUE, 3);
 	

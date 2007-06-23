@@ -17,7 +17,12 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */ 
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifdef ENABLE_NLS
+#include <libintl.h>
 #define _(String) gettext(String)
 #define N_(String) noop_gettext(String)
 #else

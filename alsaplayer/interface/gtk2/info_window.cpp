@@ -20,6 +20,7 @@
 #include "prefs.h"
 
 #ifdef ENABLE_NLS
+#include <libintl.h>
 #define _(String) gettext(String)
 #define N_(String) noop_gettext(String)
 #else

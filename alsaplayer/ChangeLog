@@ -1,15 +1,41 @@
-* Modify threading to use conditional waits. More portable
-* The GTK2 interface is in progress. It provide the same level of functionality
-  as the GTK1 one and more will come soon. A big thanks to Madej from Poland
-  for his work on this interface.
+2007-06-22  gettextize  <bug-gnu-gettext@gnu.org>
+* Madej:
+	* m4/gettext.m4: New file, from gettext-0.16.1.
+	* m4/iconv.m4: New file, from gettext-0.16.1.
+	* m4/lib-ld.m4: New file, from gettext-0.16.1.
+	* m4/lib-link.m4: New file, from gettext-0.16.1.
+	* m4/lib-prefix.m4: New file, from gettext-0.16.1.
+	* m4/nls.m4: New file, from gettext-0.16.1.
+	* m4/po.m4: New file, from gettext-0.16.1.
+	* m4/progtest.m4: New file, from gettext-0.16.1.
+	* m4/codeset.m4: New file, from gettext-0.16.1.
+	* m4/glibc2.m4: New file, from gettext-0.16.1.
+	* m4/glibc21.m4: New file, from gettext-0.16.1.
+	* m4/intdiv0.m4: New file, from gettext-0.16.1.
+	* m4/intl.m4: New file, from gettext-0.16.1.
+	* m4/intldir.m4: New file, from gettext-0.16.1.
+	* m4/intmax.m4: New file, from gettext-0.16.1.
+	* m4/inttypes_h.m4: New file, from gettext-0.16.1.
+	* m4/inttypes-pri.m4: New file, from gettext-0.16.1.
+	* m4/lcmessage.m4: New file, from gettext-0.16.1.
+	* m4/lock.m4: New file, from gettext-0.16.1.
+	* m4/longdouble.m4: New file, from gettext-0.16.1.
+	* m4/longlong.m4: New file, from gettext-0.16.1.
+	* m4/printf-posix.m4: New file, from gettext-0.16.1.
+	* m4/size_max.m4: New file, from gettext-0.16.1.
+	* m4/stdint_h.m4: New file, from gettext-0.16.1.
+	* m4/uintmax_t.m4: New file, from gettext-0.16.1.
+	* m4/ulonglong.m4: New file, from gettext-0.16.1.
+	* m4/visibility.m4: New file, from gettext-0.16.1.
+	* m4/wchar_t.m4: New file, from gettext-0.16.1.
+	* m4/wint_t.m4: New file, from gettext-0.16.1.
+	* m4/xsize.m4: New file, from gettext-0.16.1.
+	* m4/Makefile.am (EXTRA_DIST): Add the new files.
+	* Makefile.am (SUBDIRS): Add intl, po.
+	(ACLOCAL_AMFLAGS): New variable.
+	(EXTRA_DIST): Add config.rpath.
+	* configure.ac (AC_OUTPUT): Add intl/Makefile, po/Makefile.in.
 
-Thu June 20 2007
-----------------
-* Madej: mad patch, fix for possible segfault or rubbish when convert wont be
-  successful.
-* Madej: added preference options for Play on start and Play song after adding to
-  playlist; loop buttons will remember the state.
-  
 Wed June 20 2007
 ----------------
 * Removed EffectsWindow files and references as we don't use it.

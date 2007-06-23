@@ -17,7 +17,12 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifdef ENABLE_NLS
+#include <libintl.h>
 #define _(String) gettext(String)
 #define N_(String) noop_gettext(String)
 #else
@@ -1609,10 +1614,5 @@ void init_main_window(Playlist *pl)
 	} else if (loop == 2) {
 		gtk_button_clicked(GTK_BUTTON(g_object_get_data(G_OBJECT(main_window), "loop_button")));
 		gtk_button_clicked(GTK_BUTTON(g_object_get_data(G_OBJECT(main_window), "loop_button")));
-	}
-	
-	if (!prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_start", FALSE)) {
-		gtk_button_clicked(GTK_BUTTON(g_object_get_data(G_OBJECT(main_window), "stop_button")));
-		g_print("stop\n");
 	}
 }

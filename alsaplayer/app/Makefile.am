@@ -25,11 +25,16 @@ COMMON_FLAGS = @DFLAGS@ -D_REENTRANT \
 
 INCLUDES = -I$(top_srcdir)/alsaplayer -I$(top_srcdir)/libalsaplayer
 
+AM_CPPFLAGS = -I../intl -I$(top_srcdir)/intl
+
 AM_CXXFLAGS = $(COMMON_FLAGS)
 
 AM_CFLAGS = $(CXXFLAGS)
 
 bin_PROGRAMS = alsaplayer
+
+localedir = $(datadir)/locale
+alsaplayer_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\"
 
 alsaplayer_LDFLAGS = -export-dynamic
 
@@ -41,6 +46,8 @@ alsaplayer_SOURCES = AlsaSubscriber.cpp \
 		fft.c convolve.c utilities.c \
 		ControlSocket.cpp \
 		prefs.c reader.cpp
+
+alsaplayer_LDADD = @LIBINTL@
 
 jackplayer:
 		ln -s alsaplayer jackplayer

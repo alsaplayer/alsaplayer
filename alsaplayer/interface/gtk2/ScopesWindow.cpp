@@ -20,7 +20,12 @@
  *
 */ 
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifdef ENABLE_NLS
+#include <libintl.h>
 #define _(String) gettext(String)
 #define N_(String) noop_gettext(String)
 #else
@@ -413,7 +418,7 @@ create_scopes_window(void)
 	gtk_window_set_default_size (GTK_WINDOW(scopes_window), 200, 300);
 	 
 	vbox = GTK_DIALOG(scopes_window)->vbox;
-	 
+ 
 	label = gtk_label_new(_("Double click to activate"));
 	gtk_box_pack_start (GTK_BOX(vbox), label, FALSE, FALSE, 3);
 	

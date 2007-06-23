@@ -178,8 +178,6 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 		gtk_rc_parse(path);
 	}
 
-	if (playlist->Length())
-		playlist->UnPause();
 	// Scope addons
 	gdk_flush();
 	GDK_THREADS_ENTER();
