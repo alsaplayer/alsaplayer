@@ -38,7 +38,7 @@
 #include "filters.h"
 
 /******************* static variables and structures *******************/
-/*
+
 static unsigned char isobuffers[ISO_BUFFERS_SIZE + 4];
 static unsigned char *iso_buffers_end = isobuffers + ISO_BUFFERS_SIZE;
 static unsigned long pcm_buffer_size;
@@ -66,15 +66,15 @@ static unsigned long bitrate;
 
 void get_id3v1_tag (tta_info *ttainfo);
 int  get_id3v2_tag (tta_info *ttainfo);
-*/
+
 /************************* bit operations ******************************/
-/*
+
 static void init_buffer_read() {
     frame_crc32 = 0xFFFFFFFFUL;
     bit_count = bit_cache = 0;
     bitpos = iso_buffers_end;
 }
-*/
+
 __inline void get_binary(unsigned long *value, unsigned long bits) {
     while (bit_count < bits) {
 		if (bitpos == iso_buffers_end) {
@@ -394,7 +394,7 @@ long get_bitrate () {
 	return bitrate;
 }
 
-long get_samples (tta_info* info, byte *buffer) {
+long get_samples (byte *buffer) {
 	unsigned long k, depth, unary, binary;
 	byte *p = buffer;
 	decoder *dec = tta;
@@ -416,9 +416,9 @@ long get_samples (tta_info* info, byte *buffer) {
 
 			if (data_pos == fframes - 1 && lastlen)
 				framelen = lastlen;
-			else framelen = info->FRAMELEN;
+			else framelen = ttainfo->FRAMELEN;
 
-			decoder_init(tta, info->NCH, info->BSIZE);
+			decoder_init(tta, ttainfo->NCH, ttainfo->BSIZE);
 			data_pos++; data_cur = 0;
 		}
 
@@ -459,7 +459,7 @@ long get_samples (tta_info* info, byte *buffer) {
 		hybrid_filter(fst, &value);
 
 		// decompress stage 2: fixed order 1 prediction
-		switch (info->BSIZE) {
+		switch (ttainfo->BSIZE) {
 		case 1: value += PREDICTOR1(*last, 4); break;	// bps 8
 		case 2: value += PREDICTOR1(*last, 5); break;	// bps 16
 		case 3: value += PREDICTOR1(*last, 5); break;	// bps 24
@@ -469,24 +469,24 @@ long get_samples (tta_info* info, byte *buffer) {
 		// check for errors
 		if (abs(value) > maxvalue) {
 			unsigned long tail =
-				pcm_buffer_size / (info->BSIZE * info->NCH) - res;
+				pcm_buffer_size / (ttainfo->BSIZE * ttainfo->NCH) - res;
 			memset(buffer, 0, pcm_buffer_size);
 			data_cur += tail; res += tail;
 			break;
 		}
 
-		if (dec < tta + (info->NCH - 1)) {
+		if (dec < tta + (ttainfo->NCH - 1)) {
 			*prev++ = value; dec++;
 		} else {
 			*prev = value;
-			if (info->NCH > 1) {
+			if (ttainfo->NCH > 1) {
 				long *r = prev - 1;
 				for (*prev += *r/2; r >= cache; r--)
 					*r = *(r + 1) - *r;
 				for (r = cache; r < prev; r++)
-					WRITE_BUFFER(r, info->BSIZE, p)
+					WRITE_BUFFER(r, ttainfo->BSIZE, p)
 			}
-			WRITE_BUFFER(prev, info->BSIZE, p)
+			WRITE_BUFFER(prev, ttainfo->BSIZE, p)
 			prev = cache;
 			data_cur++; res++;
 			dec = tta;

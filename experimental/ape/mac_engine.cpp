@@ -29,7 +29,10 @@
 
 #include <mac/All.h>
 #include <mac/MACLib.h>
+//#include <mac/APETag.h>
 #include <mac/CharacterHelper.h>
+
+//#include <taglib/tag_c.h>
 
 #define BLOCK_SIZE 4096	/* We can use any block size we like */
 
@@ -138,6 +141,9 @@ static int ape_stream_info (input_object *obj, stream_info *info)
 	if (!obj || !(obj->local_data) || !info)
 		return 0;
 
+//	CAPETag *tag = (CAPETag *)((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_TAG);
+//	TagLib_File* tag_file = taglib_file_new(const char *filename);
+
 	sprintf(info->stream_type, "APE version %.2f", float (((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_FILE_VERSION)) / 1000);
 	
 	strcpy(info->status, "playing...");
@@ -155,6 +161,8 @@ static int ape_stream_info (input_object *obj, stream_info *info)
 	info->current_track = 1; // number of current track
 	info->sample_rate = ((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_SAMPLE_RATE);
 	info->bitrate = ((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_AVERAGE_BITRATE);
+
+//	printf ("ape: artist[%s], title[%s], path[%s]\n", info->artist, info->title, info->path);
 
 	return 1;
 }
