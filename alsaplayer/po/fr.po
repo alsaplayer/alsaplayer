@@ -1,0 +1,290 @@
+# French translations for alsaplayer package.
+# Copyright (C) 2007 Free Software Foundation, Inc.
+# This file is distributed under the same license as the alsaplayer package.
+# <dominique@tuxfamily.org>, 2007.
+# 
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: alsaplayer\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-06-23 02:12+0100\n"
+"PO-Revision-Date: 2007-06-23 16:21+0200\n"
+"Last-Translator: Dominique Michel <dominique@tuxfamily.org>\n"
+"Language-Team: French <gnomefr@traduc.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit"
+
+#: interface/gtk2/AboutWindow.cpp:81
+msgid "AlsaPlayer is free software; you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public Licence as published by\n"
+"the Free Software Foundation; either version 2 of the Licence, or\n"
+"(at your option) any later version.\n"
+"\n"
+"AlsaPlayer is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public Licence for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public Licence\n"
+"along with AlsaPlayer; if not, write to the Free Software Foundation, Inc.,\n"
+"51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA"
+msgstr ""
+
+#: interface/gtk2/AboutWindow.cpp:102
+msgid "No comments yet"
+msgstr "Pas encore de commentaire"
+
+#: interface/gtk2/AboutWindow.cpp:108
+msgid "translator-credits"
+msgstr "traducteurs"
+
+#: interface/gtk2/gtk_interface.cpp:247
+msgid "Error !"
+msgstr "Erreur !"
+
+#: interface/gtk2/gtk_interface.cpp:261
+msgid "Warning !"
+msgstr "Attention !"
+
+#: interface/gtk2/gtk_interface.cpp:275
+msgid "Excuse me !"
+msgstr "Je vous prie de me pardonner !"
+
+#: interface/gtk2/gtk_interface.cpp:1092
+msgid "Scopes..."
+msgstr "Visualisateurs"
+
+#: interface/gtk2/gtk_interface.cpp:1105
+msgid "CD Player (CDDA)"
+msgstr "Lecteur de CD (CDDA)"
+
+#: interface/gtk2/gtk_interface.cpp:1142
+msgid "Set end of the looper"
+msgstr "Marque de fin de boucle"
+
+#: interface/gtk2/gtk_interface.cpp:1155
+msgid "Switch off looper"
+msgstr "Fin du mode boucle sélection"
+
+#: interface/gtk2/gtk_interface.cpp:1165 interface/gtk2/gtk_interface.cpp:1378
+msgid "Set start of the looper"
+msgstr "Démarrer le mode boucle sélection"
+
+#: interface/gtk2/gtk_interface.cpp:1188
+msgid "Switch off loop"
+msgstr "Fin du mode boucle liste de lecture"
+
+#: interface/gtk2/gtk_interface.cpp:1198 interface/gtk2/gtk_interface.cpp:1368
+msgid "Play playlist in loop"
+msgstr "Lit la liste de lecture en boucle"
+
+#: interface/gtk2/gtk_interface.cpp:1213
+msgid "Play song in loop"
+msgstr "Lit le morceau en boucle"
+
+#: interface/gtk2/gtk_interface.cpp:1346
+msgid "Position control"
+msgstr "Contrôle de position"
+
+#: interface/gtk2/gtk_interface.cpp:1346
+msgid "Set position of the song"
+msgstr "Marque la position du morceau"
+
+#: interface/gtk2/gtk_interface.cpp:1386
+msgid "Play CD"
+msgstr "Lit un CD"
+
+#: interface/gtk2/gtk_interface.cpp:1394
+msgid "Previous track"
+msgstr "Morceau précédent"
+
+#: interface/gtk2/gtk_interface.cpp:1394
+msgid "Go to track before the current one on the list"
+msgstr "Va au morceau qui précède le morceau actuel sur la liste"
+
+#: interface/gtk2/gtk_interface.cpp:1402
+#: interface/gtk2/PreferencesWindow.cpp:210
+msgid "Play"
+msgstr "Lecture"
+
+#: interface/gtk2/gtk_interface.cpp:1402
+msgid "Play current track on the list or open filechooser if list is empty"
+msgstr "Lit le morceau sélectionné sur la liste ou ouvre le sélecteur de fichier si la liste est vide"
+
+#: interface/gtk2/gtk_interface.cpp:1411
+msgid "Stop"
+msgstr "Stop"
+
+#: interface/gtk2/gtk_interface.cpp:1419
+msgid "Next track"
+msgstr "Morceau suivant"
+
+#: interface/gtk2/gtk_interface.cpp:1419
+msgid "Play the track after the current one on the list"
+msgstr "Lit le morceau suivant sur la liste"
+
+#: interface/gtk2/gtk_interface.cpp:1427
+msgid "Playlist window"
+msgstr "Fenêtre de la liste de lecture"
+
+#: interface/gtk2/gtk_interface.cpp:1427
+msgid "Manage playlist"
+msgstr "Gestion de liste de lecture"
+
+#: interface/gtk2/gtk_interface.cpp:1446
+msgid "Normal speed backwards"
+msgstr "Vitesse normale arrière"
+
+#: interface/gtk2/gtk_interface.cpp:1446
+msgid "Play track backwards with normal speed"
+msgstr "Lit le morceau en arrière et à vitesse normale"
+
+#: interface/gtk2/gtk_interface.cpp:1454
+msgid "Pause/Unpause"
+msgstr "Pause/Fin de pause"
+
+#: interface/gtk2/gtk_interface.cpp:1462
+msgid "Normal speed"
+msgstr "Vitesse normale"
+
+#: interface/gtk2/gtk_interface.cpp:1462
+msgid "Play track normally"
+msgstr "Lit le morceau de façon normale"
+
+#: interface/gtk2/gtk_interface.cpp:1468
+msgid "Speed control"
+msgstr "Contrôle de vitesse"
+
+#: interface/gtk2/gtk_interface.cpp:1468
+msgid "Change playback speed"
+msgstr "Change la vitesse de lecture"
+
+#: interface/gtk2/gtk_interface.cpp:1481
+msgid "Center balance"
+msgstr "Balance au centre"
+
+#: interface/gtk2/gtk_interface.cpp:1488
+msgid "Balance"
+msgstr "Balance"
+
+#: interface/gtk2/gtk_interface.cpp:1488
+msgid "Change balance"
+msgstr "Changer la balance"
+
+#: interface/gtk2/gtk_interface.cpp:1498
+msgid "Mute/Unmute"
+msgstr "Coupe/Rétablit le son"
+
+#: interface/gtk2/gtk_interface.cpp:1506
+msgid "Volume"
+msgstr "Volume"
+
+#: interface/gtk2/gtk_interface.cpp:1506
+msgid "Change volume"
+msgstr "Changer le volume"
+
+#: interface/gtk2/PlaylistWindow.cpp:109
+msgid "Unknown"
+msgstr "Inconnu"
+
+#: interface/gtk2/PlaylistWindow.cpp:256
+msgid "Choose file or URL"
+msgstr "Choisir un fichier ou un URL"
+
+#: interface/gtk2/PlaylistWindow.cpp:266
+msgid "Do not close the window after adding files"
+msgstr "Ne pas fermer la fenêtre après addition de fichiers"
+
+#: interface/gtk2/PlaylistWindow.cpp:456
+msgid "Unknown drop!"
+msgstr "Mouvement inconnu!"
+
+#: interface/gtk2/PlaylistWindow.cpp:510
+msgid "Cannot set uris"
+msgstr "Ne peut pas régler uris"
+
+#: interface/gtk2/PlaylistWindow.cpp:616
+msgid "Add a song into the playlist"
+msgstr "Ajouter un morceau dans la liste de lecture"
+
+#: interface/gtk2/PlaylistWindow.cpp:620
+msgid "Remove the selected song from the playlist"
+msgstr "Enlever le morceau sélectionné de la liste de lecture"
+
+#: interface/gtk2/PlaylistWindow.cpp:622
+msgid "Shuffle"
+msgstr "Déplacer"
+
+#: interface/gtk2/PlaylistWindow.cpp:624
+msgid "Randomize the playlist"
+msgstr "Change l'ordre de la liste de lecture de façon aléatoire"
+
+#: interface/gtk2/PlaylistWindow.cpp:631
+msgid "Open a playlist"
+msgstr "Ouvrir une liste de lecture"
+
+#: interface/gtk2/PlaylistWindow.cpp:635
+msgid "Save the playlist"
+msgstr "Sauver la liste de lecture"
+
+#: interface/gtk2/PlaylistWindow.cpp:639
+msgid "Remove the current playlist"
+msgstr "Mettre la liste de lecture à zéro"
+
+#: interface/gtk2/PlaylistWindow.cpp:732
+msgid ""
+"It doesn't look like playlist !\n"
+"Are you sure you want to proceed ?"
+msgstr "Cela ne ressemble pas à une liste de lecture !\n"
+"Êtes-vous sur de vouloir procéder ?"
+
+#: interface/gtk2/PreferencesWindow.cpp:109
+msgid "Play on start"
+msgstr "Démarrer la lecture au démarrage"
+
+#: interface/gtk2/PreferencesWindow.cpp:114
+msgid "Play song after adding to playlist"
+msgstr "Lit le morceau après son ajout dans la liste de lecture"
+
+#: interface/gtk2/PreferencesWindow.cpp:140
+msgid "Background color"
+msgstr "Couleur de fond"
+
+#: interface/gtk2/PreferencesWindow.cpp:156
+msgid "Font color"
+msgstr "Couleur du texte"
+
+#: interface/gtk2/PreferencesWindow.cpp:172
+msgid "Fonts"
+msgstr "Polices"
+
+#: interface/gtk2/PreferencesWindow.cpp:191
+msgid "Preferences"
+msgstr "Préférences"
+
+#: interface/gtk2/PreferencesWindow.cpp:206
+msgid "General"
+msgstr "Général"
+
+#: interface/gtk2/ScopesWindow.cpp:349
+msgid "Open exclusively"
+msgstr "Ouvrir seulement"
+
+#: interface/gtk2/ScopesWindow.cpp:364
+msgid "Close all"
+msgstr "Tout fermer"
+
+#: interface/gtk2/ScopesWindow.cpp:415
+msgid "Scopes"
+msgstr "Visualisateurs"
+
+#: interface/gtk2/ScopesWindow.cpp:422
+msgid "Double click to activate"
+msgstr "Activer avec un double click"
+
+#: interface/gtk2/ScopesWindow.cpp:439
+msgid "Scope name"
+msgstr "Nom du visualisateur"
+

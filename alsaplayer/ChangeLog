@@ -1,3 +1,8 @@
+Sat June 23
+-----------
+* Removed Makefile.in files from the scopes2 tree.
+* Added French translation.
+
 2007-06-22  gettextize  <bug-gnu-gettext@gnu.org>
 * Madej:
 	* m4/gettext.m4: New file, from gettext-0.16.1.
