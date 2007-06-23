@@ -38,7 +38,7 @@ msgstr "Pas encore de commentaire"
 
 #: interface/gtk2/AboutWindow.cpp:108
 msgid "translator-credits"
-msgstr "traducteurs"
+msgstr "Dominique Michel <dominique@tuxfamily.org>"
 
 #: interface/gtk2/gtk_interface.cpp:247
 msgid "Error !"

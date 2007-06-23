@@ -36,250 +36,252 @@ msgstr ""
 
 #: interface/gtk2/AboutWindow.cpp:102
 msgid "No comments yet"
-msgstr ""
+msgstr "Bez komentarza"
 
 #: interface/gtk2/AboutWindow.cpp:108
 msgid "translator-credits"
-msgstr ""
+msgstr "Madej"
 
 #: interface/gtk2/gtk_interface.cpp:247
 msgid "Error !"
-msgstr ""
+msgstr "Błąd !"
 
 #: interface/gtk2/gtk_interface.cpp:261
 msgid "Warning !"
-msgstr ""
+msgstr "Uwaga !"
 
 #: interface/gtk2/gtk_interface.cpp:275
 msgid "Excuse me !"
-msgstr ""
+msgstr "Przepraszam !"
 
 #: interface/gtk2/gtk_interface.cpp:1092
 msgid "Scopes..."
-msgstr ""
+msgstr "Wizualizacje..."
 
 #: interface/gtk2/gtk_interface.cpp:1105
 msgid "CD Player (CDDA)"
-msgstr ""
+msgstr "Odtwarzacz CD (CDDA)"
 
 #: interface/gtk2/gtk_interface.cpp:1142
 msgid "Set end of the looper"
-msgstr ""
+msgstr "Ustaw koniec pętli"
 
 #: interface/gtk2/gtk_interface.cpp:1155
 msgid "Switch off looper"
-msgstr ""
+msgstr "Wyłącz pętlę"
 
 #: interface/gtk2/gtk_interface.cpp:1165 interface/gtk2/gtk_interface.cpp:1378
 msgid "Set start of the looper"
-msgstr ""
+msgstr "Ustaw początek pętli"
 
 #: interface/gtk2/gtk_interface.cpp:1188
 msgid "Switch off loop"
-msgstr ""
+msgstr "Wyłącz odtwarzanie w pętli"
 
 #: interface/gtk2/gtk_interface.cpp:1198 interface/gtk2/gtk_interface.cpp:1368
 msgid "Play playlist in loop"
-msgstr ""
+msgstr "Odtwarzaj listę w pętli"
 
 #: interface/gtk2/gtk_interface.cpp:1213
 msgid "Play song in loop"
-msgstr ""
+msgstr "Odtwarzaj ścieżkę w pętli"
 
 #: interface/gtk2/gtk_interface.cpp:1346
 msgid "Position control"
-msgstr ""
+msgstr "Kontrola pozycji"
 
 #: interface/gtk2/gtk_interface.cpp:1346
 msgid "Set position of the song"
-msgstr ""
+msgstr "Ustaw pozycję ścieżki"
 
 #: interface/gtk2/gtk_interface.cpp:1386
 msgid "Play CD"
-msgstr ""
+msgstr "Odtwarzaj CD"
 
 #: interface/gtk2/gtk_interface.cpp:1394
 msgid "Previous track"
-msgstr ""
+msgstr "Poprzednia ścieżka"
 
 #: interface/gtk2/gtk_interface.cpp:1394
 msgid "Go to track before the current one on the list"
-msgstr ""
+msgstr "Przejdź do poprzedniej ścieżki"
 
 #: interface/gtk2/gtk_interface.cpp:1402
 #: interface/gtk2/PreferencesWindow.cpp:210
 msgid "Play"
-msgstr ""
+msgstr "Graj"
 
 #: interface/gtk2/gtk_interface.cpp:1402
 msgid "Play current track on the list or open filechooser if list is empty"
-msgstr ""
+msgstr "Odtwarzaj aktualną ścieżkę, lub wybierz pliki jeśli lista jest pusta"
 
 #: interface/gtk2/gtk_interface.cpp:1411
 msgid "Stop"
-msgstr ""
+msgstr "Zatrzymaj"
 
 #: interface/gtk2/gtk_interface.cpp:1419
 msgid "Next track"
-msgstr ""
+msgstr "Następna ścieżka"
 
 #: interface/gtk2/gtk_interface.cpp:1419
 msgid "Play the track after the current one on the list"
-msgstr ""
+msgstr "Przejdź do następnej ścieżki"
 
 #: interface/gtk2/gtk_interface.cpp:1427
 msgid "Playlist window"
-msgstr ""
+msgstr "Lista odtwarzania"
 
 #: interface/gtk2/gtk_interface.cpp:1427
 msgid "Manage playlist"
-msgstr ""
+msgstr "Edytuj listę odtwarzania"
 
 #: interface/gtk2/gtk_interface.cpp:1446
 msgid "Normal speed backwards"
-msgstr ""
+msgstr "Normalna prędkość wstecz"
 
 #: interface/gtk2/gtk_interface.cpp:1446
 msgid "Play track backwards with normal speed"
-msgstr ""
+msgstr "Odtwarzaj ścieżkę wstecz z normalną prędkością"
 
 #: interface/gtk2/gtk_interface.cpp:1454
 msgid "Pause/Unpause"
-msgstr ""
+msgstr "Pauza/Graj"
 
 #: interface/gtk2/gtk_interface.cpp:1462
 msgid "Normal speed"
-msgstr ""
+msgstr "Normalna prędkość"
 
 #: interface/gtk2/gtk_interface.cpp:1462
 msgid "Play track normally"
-msgstr ""
+msgstr "Odtwarzaj ścieżkę normalnie"
 
 #: interface/gtk2/gtk_interface.cpp:1468
 msgid "Speed control"
-msgstr ""
+msgstr "Kontrola prędkości"
 
 #: interface/gtk2/gtk_interface.cpp:1468
 msgid "Change playback speed"
-msgstr ""
+msgstr "Zmiana prędkości odtwarzania"
 
 #: interface/gtk2/gtk_interface.cpp:1481
 msgid "Center balance"
-msgstr ""
+msgstr "Środkuj"
 
 #: interface/gtk2/gtk_interface.cpp:1488
 msgid "Balance"
-msgstr ""
+msgstr "Balans"
 
 #: interface/gtk2/gtk_interface.cpp:1488
 msgid "Change balance"
-msgstr ""
+msgstr "Zmiana balansu"
 
 #: interface/gtk2/gtk_interface.cpp:1498
 msgid "Mute/Unmute"
-msgstr ""
+msgstr "Wycisz/Przywróć"
 
 #: interface/gtk2/gtk_interface.cpp:1506
 msgid "Volume"
-msgstr ""
+msgstr "Głośność"
 
 #: interface/gtk2/gtk_interface.cpp:1506
 msgid "Change volume"
-msgstr ""
+msgstr "Zmiana głośności"
 
 #: interface/gtk2/PlaylistWindow.cpp:109
 msgid "Unknown"
-msgstr ""
+msgstr "Nieznany"
 
 #: interface/gtk2/PlaylistWindow.cpp:256
 msgid "Choose file or URL"
-msgstr ""
+msgstr "Wybierz plik bądź URL"
 
 #: interface/gtk2/PlaylistWindow.cpp:266
 msgid "Do not close the window after adding files"
-msgstr ""
+msgstr "Nie zamykaj okna po dodaniu plików"
 
 #: interface/gtk2/PlaylistWindow.cpp:456
 msgid "Unknown drop!"
-msgstr ""
+msgstr "Nieznany zrzut"
 
 #: interface/gtk2/PlaylistWindow.cpp:510
 msgid "Cannot set uris"
-msgstr ""
+msgstr "Nie mogę ustawić uri"
 
 #: interface/gtk2/PlaylistWindow.cpp:616
 msgid "Add a song into the playlist"
-msgstr ""
+msgstr "Dodaj ścieżkę do listy odtwarzania"
 
 #: interface/gtk2/PlaylistWindow.cpp:620
 msgid "Remove the selected song from the playlist"
-msgstr ""
+msgstr "Usuń wybraną ścieżkę z listy odtwarzania"
 
 #: interface/gtk2/PlaylistWindow.cpp:622
 msgid "Shuffle"
-msgstr ""
+msgstr "Wymieszaj"
 
 #: interface/gtk2/PlaylistWindow.cpp:624
 msgid "Randomize the playlist"
-msgstr ""
+msgstr "Wymieszaj ścieżki na liście odtwarzania"
 
 #: interface/gtk2/PlaylistWindow.cpp:631
 msgid "Open a playlist"
-msgstr ""
+msgstr "Otwórz listę odtwarzania"
 
 #: interface/gtk2/PlaylistWindow.cpp:635
 msgid "Save the playlist"
-msgstr ""
+msgstr "Zapisz listę odtwarzania"
 
 #: interface/gtk2/PlaylistWindow.cpp:639
 msgid "Remove the current playlist"
-msgstr ""
+msgstr "Usuń obecną listę odtwarzania"
 
 #: interface/gtk2/PlaylistWindow.cpp:732
 msgid ""
 "It doesn't look like playlist !\n"
 "Are you sure you want to proceed ?"
 msgstr ""
+"To nie wygląda jak lita odtwaarzania !\n"
+"Czy na pewno chcesz otworzyć ?"
 
 #: interface/gtk2/PreferencesWindow.cpp:109
 msgid "Play on start"
-msgstr ""
+msgstr "Graj przy starcie"
 
 #: interface/gtk2/PreferencesWindow.cpp:114
 msgid "Play song after adding to playlist"
-msgstr ""
+msgstr "Odtwarzaj ścieżkę po dodaniu do listy odtwarzania"
 
 #: interface/gtk2/PreferencesWindow.cpp:140
 msgid "Background color"
-msgstr ""
+msgstr "Kolor tła"
 
 #: interface/gtk2/PreferencesWindow.cpp:156
 msgid "Font color"
-msgstr ""
+msgstr "Kolor czcionki"
 
 #: interface/gtk2/PreferencesWindow.cpp:172
 msgid "Fonts"
-msgstr ""
+msgstr "Czcionka"
 
 #: interface/gtk2/PreferencesWindow.cpp:191
 msgid "Preferences"
-msgstr ""
+msgstr "Preferencje"
 
 #: interface/gtk2/PreferencesWindow.cpp:206
 msgid "General"
-msgstr ""
+msgstr "Ogólne"
 
 #: interface/gtk2/ScopesWindow.cpp:349
 msgid "Open exclusively"
-msgstr ""
+msgstr "Otwórz tylko ten"
 
 #: interface/gtk2/ScopesWindow.cpp:364
 msgid "Close all"
-msgstr ""
+msgstr "Zamknij wszystkie"
 
 #: interface/gtk2/ScopesWindow.cpp:415
 msgid "Scopes"
-msgstr ""
+msgstr "Wizualizacje"
 
 #: interface/gtk2/ScopesWindow.cpp:422
 msgid "Double click to activate"
@@ -287,4 +289,4 @@ msgstr "Podwójne kliknięcie by uruchomić"
 
 #: interface/gtk2/ScopesWindow.cpp:439
 msgid "Scope name"
-msgstr ""
+msgstr "Nazwa wizualizacji"
