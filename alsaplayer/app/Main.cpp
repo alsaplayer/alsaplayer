@@ -278,7 +278,7 @@ static void help()
 		"\n"
 		"  -c,--config file        use given config file for this session\n"
 		"  -h,--help               print this help message\n"
-		"  -i,--interface iface    use specific interface [default=gtk]. choices:\n");
+		"  -i,--interface iface    use specific interface [default=gtk2]. choices:\n");
 	printf(
 		"                          [ ");
 	list_available_plugins("interface");
@@ -941,7 +941,7 @@ int main(int argc, char **argv)
 			(ap_prefs, "main", "default_interface", "gtk2");
 		// if we're trying to use the gtk interface, but we have no
 		// $DISPLAY, use the text interface instead
-		if (strcmp (interface, "gtk") == 0 && !getenv("DISPLAY"))
+		if (strcmp (interface, "gtk2") == 0 && !getenv("DISPLAY"))
 			interface = "text";
 		if (!(interface_plugin_info = load_interface(interface))) {
 			if (!(interface_plugin_info = load_interface(prefs_get_string

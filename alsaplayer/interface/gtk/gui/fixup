@@ -1,9 +1,0 @@
-#!/bin/sh
-sed s/_with_label' ("")'/' ()'/ gladesrc.c > tmpfile.blabla1
-sed s/'#include "gladesig.h"'// tmpfile.blabla1 > tmpfile.blabla2
-sed s/g_malloc/'(gchar *) g_malloc'/ tmpfile.blabla2 > gladesrc.c
-cp -f support.c ../support.cpp
-cp -f support.h ../support.h
-cp -f gladesrc.c ../gladesrc.cpp
-cp -f gladesrc.h ../gladesrc.h
-rm -f tmpfile.blabla1 tmpfile.blabla2

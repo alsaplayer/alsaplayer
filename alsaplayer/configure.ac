@@ -18,7 +18,6 @@ dnl alsaplayer control variables and their default values
 dnl this config procedure shamelessly stolen from libmikmod
 dnl =======================================================
 
-have_gtk=no
 have_gtk2=no
 have_glib=no
 dnl have_qt=no
@@ -65,7 +64,6 @@ AM_DISABLE_STATIC
 AM_PROG_LIBTOOL
 AM_PROG_CC_C_O
 AC_PROG_MAKE_SET
-AM_PATH_GTK(1.2.6, have_gtk=yes , have_gtk=no, gthread)
 AM_PATH_GLIB(1.2.6, have_glib=yes, have_glib=no)
 AM_PATH_LIBMIKMOD(3.1.7, have_mikmod=yes, have_mikmod=no)
 AM_PATH_OGG(have_ogg=yes, have_ogg=no)
@@ -166,7 +164,6 @@ dnl Some input stuff
 dnl ================
 if test "$have_glib" = "no"
 then
-	have_gtk=no
 	have_gtk2=no
 fi
 
@@ -504,13 +501,6 @@ then
 have_gtk2=no
 fi])
 
-AC_ARG_ENABLE(gtk,
-[  --enable-gtk            Enable GTK graphical interface (default=yes)],
-[if test "$enableval" = "no"
-then
-have_gtk=no
-fi])
-
 AC_ARG_ENABLE(nas,
 [  --enable-nas            Enable NAS driver (default=yes)],
 [if test "$enableval" = "no"
@@ -565,7 +555,6 @@ AM_CONDITIONAL(HAVE_SPARC, test "x$have_sparc" = xyes)
 AM_CONDITIONAL(HAVE_SGI, test "x$have_sgi" = xyes)
 AM_CONDITIONAL(HAVE_NAS, test "x$have_nas" = xyes)
 AM_CONDITIONAL(HAVE_LINUX_CDROM,test "x$ac_cv_header_linux_cdrom_h" = xyes)
-AM_CONDITIONAL(HAVE_GTK, test "x$have_gtk" = xyes)
 AM_CONDITIONAL(HAVE_GTK2, test "x$have_gtk2" = xyes)
 dnl AM_CONDITIONAL(HAVE_QT, test "x$have_qt" = xyes)
 AM_CONDITIONAL(HAVE_MIKMOD,test "x$have_mikmod" = xyes)
@@ -630,11 +619,6 @@ if test "$ARCH_TYPE" = "sun4u"
 then
 		AC_DEFINE(ARCH_ULTRA, 1, [Define if on a SUN ULTRA platform])
 fi
-
-if test "$have_gtk" = "yes"
-then
-		AC_DEFINE(HAVE_GTK, 1, [Define if we have gtk+])
-fi		
 
 if test "$have_gtk2" = "yes"
 then
@@ -709,22 +693,11 @@ alsaplayer.pc
 alsaplayer.spec
 app/Makefile
 interface/Makefile
-interface/gtk/Makefile
-interface/gtk/pixmaps/Makefile
-interface/gtk/gui/Makefile
 interface/gtk2/Makefile
 interface/gtk2/pixmaps/Makefile
 interface/text/Makefile
 interface/daemon/Makefile
 interface/xosd/Makefile
-scopes/Makefile
-scopes/monoscope/Makefile
-scopes/levelmeter/Makefile
-scopes/spacescope/Makefile
-scopes/logbarfft/Makefile
-scopes/synaescope/Makefile
-scopes/blurscope/Makefile
-scopes/opengl_spectrum/Makefile
 scopes2/Makefile
 scopes2/monoscope/Makefile
 scopes2/levelmeter/Makefile
@@ -770,7 +743,6 @@ Configuration:
   Install path:                       ${prefix}
   Use libmad shared library:          ${use_libmad}
   Enable libid3tag support:           ${use_libid3tag}
-  Build GTK interface:                ${have_gtk}
   Build GTK2 interface:               ${have_gtk2}
   Build XOSD interface:               ${have_xosd}
   Build OpenGL based visual plugins:  ${have_opengl}
