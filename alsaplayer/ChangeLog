@@ -40,6 +40,7 @@ Sat June 23
 	(ACLOCAL_AMFLAGS): New variable.
 	(EXTRA_DIST): Add config.rpath.
 	* configure.ac (AC_OUTPUT): Add intl/Makefile, po/Makefile.in.
+*Madej: fix for the play at start function.
 
 Wed June 20 2007
 ----------------
