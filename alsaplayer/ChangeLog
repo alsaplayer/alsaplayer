@@ -4,6 +4,7 @@ Sat June 23
 * Added French translation.
 * Moved GTK1 stuff out of the tree.
 " Main.cpp: Fixed help message and gtk2 launch at startup when no $DISPLAY.
+* Madej: Fixed segafult when closing a scope wondow.
 
 2007-06-22  gettextize  <bug-gnu-gettext@gnu.org>
 * Madej:

@@ -222,7 +222,7 @@ int apRegisterScopePlugin(scope_plugin *plugin)
 
 	// Add new scope to list
 	gtk_list_store_append (list, &iter);
-	gtk_list_store_set(list, &iter, 0, (gpointer)se, 1, (gchar *)se->sp->name, -1);
+	gtk_list_store_set(list, &iter, 0, se, 1, (gchar *)se->sp->name, -1);
 
 	// Init scope
 	se->sp->init(NULL);
@@ -271,16 +271,14 @@ static void close_scope_cb(GtkWidget *, gpointer user_data)
 		GtkTreeIter iter;
 		gtk_tree_selection_get_selected(gtk_tree_view_get_selection(GTK_TREE_VIEW(user_data)), NULL, &iter);
 		
-		gchar *data = NULL;
-		gtk_tree_model_get(GTK_TREE_MODEL(gtk_tree_view_get_model(GTK_TREE_VIEW(user_data))), &iter, 0, &data, -1);
-		scope_entry *se = (scope_entry *) data;
+		scope_entry *se = NULL;
+		gtk_tree_model_get(GTK_TREE_MODEL(gtk_tree_view_get_model(GTK_TREE_VIEW(user_data))), &iter, 0, &se, -1);
 		
 		if (se && se->sp) {
 			GDK_THREADS_LEAVE();
 			se->sp->stop();
 			GDK_THREADS_ENTER();
-		}
-		g_free(data);	
+		}	
 	}
 }
 
