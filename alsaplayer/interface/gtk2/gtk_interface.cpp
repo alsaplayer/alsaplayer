@@ -1615,4 +1615,10 @@ void init_main_window(Playlist *pl)
 		gtk_button_clicked(GTK_BUTTON(g_object_get_data(G_OBJECT(main_window), "loop_button")));
 		gtk_button_clicked(GTK_BUTTON(g_object_get_data(G_OBJECT(main_window), "loop_button")));
 	}
+	
+	if (pl->Length() && pl->IsPaused()) {
+		GDK_THREADS_LEAVE();
+		playlist_window->CbSetCurrent(playlist_window, 1);	// hmmm should do
+		GDK_THREADS_ENTER();
+	} 
 }
