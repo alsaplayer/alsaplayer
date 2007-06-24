@@ -1,0 +1,32 @@
+Sun June 24 2007
+----------------
+* Moved obsolete gtk1 version into trunk/experimental/fftscope
+* Moved fftscope into main directory.
+
+Sun June 10 2007
+----------------
+* Removed unwanted wmclass
+
+Sat May 26 2007
+---------------
+* FftScope for GTK2 initial commit
+* Changed GTK2 micro version to 4-gtk2 in order to avoid collision with the GTK1
+  scope 
+
+Tue May 22 22:21:44 CEST 2007
+-----------------------------
+* Makefile.am use AM_CFLAGS instead of CFLAGS
+
+Mon May 21 21:40:08 CEST 2007
+-----------------------------
+* Fixed quit function.
+
+Thu May 16 15:38:22 CEST 2002
+-----------------------------
+* Remember window status
+* Follow minor API changes
+
+
+Sun Mar 31 15:39:14 CEST 2002
+-----------------------------
+* First packaged release
