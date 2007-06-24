@@ -1,0 +1,31 @@
+Introduction
+------------
+This is the first released external visualization scope for AlsaPlayer
+It will hopefully be a good starting point for others.
+The scope API is generic enough to be useful in other projects.
+The ultimate goal is to create a system wide visualization by either tapping
+straight into ALSA or the jack sound server. 
+
+To learn more about AlsaPlayer please visit the webpage;
+
+http://www.alsaplayer.org
+
+
+Building
+--------
+Make sure you have AlsaPlayer installed, including the development files
+(libalsaplayer0-dev if you are using a packaging system). Running
+./configure && make && make install should build and install the FFTscope
+on your system. You will have to restart a running alsaplayer for the new
+scope to show up.
+
+If you want to install only the GTK2 version of FftScope, cd into the gtk2
+folder before processing.
+
+Author
+------
+You can reach me at andy@alsaplayer.org
+
+Maintainer
+----------
+dominique@tuxfamily.org

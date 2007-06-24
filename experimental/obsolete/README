@@ -9,4 +9,6 @@ If you want to use the gtk1 interface, look for the release called
 alsaplayer-0.99.80-gtk1. It contain a few fixes that have never been 
 released in the older releases.
 
-The scope forder contain the gtk1 visualization plugins.
+The scope folder contain the gtk1 visualization plugins.
+
+The fftscope folder contain the gtk1 version of /trunk/fftscope.
