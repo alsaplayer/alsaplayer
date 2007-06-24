@@ -2,7 +2,8 @@ Sun June 24
 -----------
 * Madej: fixed icon when "don't start playing at startup" is selected in
   the preferences.
-   
+* Moved interface/qt into trunk/experimental/obsolete.
+ 
 Sat June 23
 -----------
 * Removed Makefile.in files from the scopes2 tree.

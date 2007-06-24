@@ -20,7 +20,6 @@ dnl =======================================================
 
 have_gtk2=no
 have_glib=no
-dnl have_qt=no
 have_opengl=no
 have_audiofile=no
 have_oggvorbis=no
@@ -508,19 +507,6 @@ then
 have_nas=no
 fi])
 
-dnl AC_ARG_ENABLE(qt,
-dnl [  --enable-qt             Enable Qt graphical interface (default=no)],
-dnl [
-dnl   if test "x$enableval" = "xno"
-dnl  then
-dnl    have_qt=no
-dnl  else
-dnl    AM_PATH_QT(have_qt=yes, have_qt=no)
-dnl  fi
-dnl ],
-dnl [have_qt=no]
-dnl )
-
 if test "x$ac_cv_header_mad_h" = "xno"
 then
 	use_libmad=no
@@ -556,7 +542,6 @@ AM_CONDITIONAL(HAVE_SGI, test "x$have_sgi" = xyes)
 AM_CONDITIONAL(HAVE_NAS, test "x$have_nas" = xyes)
 AM_CONDITIONAL(HAVE_LINUX_CDROM,test "x$ac_cv_header_linux_cdrom_h" = xyes)
 AM_CONDITIONAL(HAVE_GTK2, test "x$have_gtk2" = xyes)
-dnl AM_CONDITIONAL(HAVE_QT, test "x$have_qt" = xyes)
 AM_CONDITIONAL(HAVE_MIKMOD,test "x$have_mikmod" = xyes)
 AM_CONDITIONAL(PREFER_MAD, test "x$prefer_mad" = "xyes")
 
@@ -624,11 +609,6 @@ if test "$have_gtk2" = "yes"
 then
 		AC_DEFINE(HAVE_GTK2, 1, [Define if we have gtk2])
 fi
-
-dnl if test "$have_qt" = "yes"
-dnl then
-dnl		AC_DEFINE(HAVE_QT, 1, [Define if we have Qt])
-dnl fi		
 
 dnl ================================================================
 dnl Special assembly options. Note: Need to fix the above arch code!
