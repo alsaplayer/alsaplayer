@@ -330,7 +330,7 @@ void draw_volume(float the_vol)
 
 	int vol = (int) (the_vol * 100); // quick hack
 
-	vol ? str = g_strdup_printf("Volume: %d%%", vol) : str = g_strdup_printf("Volume: mute");
+	vol ? str = g_strdup_printf(_("Volume: %d%%"), vol) : str = g_strdup_printf(_("Volume: mute"));
 	
 	infowindow->set_volume(str);
 	
@@ -343,11 +343,11 @@ void draw_pan(float the_val)
 	int pan = (int)(the_val * 100.0);
 
 	if (pan < 0) {
-		str = g_strdup_printf("Pan: left %d%%", - pan);
+		str = g_strdup_printf(_("Pan: left %d%%"), - pan);
 	} else if (pan > 0) {
-		str = g_strdup_printf("Pan: right %d%%", pan);
+		str = g_strdup_printf(_("Pan: right %d%%"), pan);
 	} else {
-		str = g_strdup_printf("Pan: center");
+		str = g_strdup_printf(_("Pan: center"));
 	} 
 	
 	infowindow->set_balance(str);
@@ -363,10 +363,10 @@ void draw_speed(float speed)
 
 	speed_val = (int)(speed * 100.0); // We need percentages
 	if (speed_val < ZERO_PITCH_TRESH && speed_val > -ZERO_PITCH_TRESH) {
-		str = g_strdup_printf("Speed: pause");
+		str = g_strdup_printf(_("Speed: pause"));
 	}
 	else
-		str = g_strdup_printf("Speed: %d%%  ", speed_val);
+		str = g_strdup_printf(_("Speed: %d%%  "), speed_val);
 	
 	infowindow->set_speed(str);
 	
@@ -902,7 +902,7 @@ gint indicator_callback(gpointer, int locking)
 		c_sec = 0;
 		c_min = 0;
 		c_hsec = 0;
-		sprintf(info.title, "No stream");
+		sprintf(info.title, _("No stream"));
 	}
 	if (nr_frames < 0 || strlen(info.status)) {
 		sprintf(str, "%s", info.status);

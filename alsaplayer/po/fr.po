@@ -8,16 +8,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: alsaplayer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-06-23 02:12+0100\n"
+"POT-Creation-Date: 2007-06-24 21:17+0200\n"
 "PO-Revision-Date: 2007-06-23 16:21+0200\n"
 "Last-Translator: Dominique Michel <dominique@tuxfamily.org>\n"
 "Language-Team: French <gnomefr@traduc.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit"
+"Content-Transfer-Encoding: 8bit\n"
 
 #: interface/gtk2/AboutWindow.cpp:81
-msgid "AlsaPlayer is free software; you can redistribute it and/or modify\n"
+msgid ""
+"AlsaPlayer is free software; you can redistribute it and/or modify\n"
 "it under the terms of the GNU General Public Licence as published by\n"
 "the Free Software Foundation; either version 2 of the Licence, or\n"
 "(at your option) any later version.\n"
@@ -52,6 +53,38 @@ msgstr "Attention !"
 msgid "Excuse me !"
 msgstr "Je vous prie de me pardonner !"
 
+#: interface/gtk2/gtk_interface.cpp:333
+msgid "Volume: %d%%"
+msgstr "Volume: %d%%"
+
+#: interface/gtk2/gtk_interface.cpp:333
+msgid "Volume: mute"
+msgstr "Le volume est coupé"
+
+#: interface/gtk2/gtk_interface.cpp:346
+msgid "Pan: left %d%%"
+msgstr "Pan: gauche %d%%"
+
+#: interface/gtk2/gtk_interface.cpp:348
+msgid "Pan: right %d%%"
+msgstr "Pan: droite %d%%"
+
+#: interface/gtk2/gtk_interface.cpp:350
+msgid "Pan: center"
+msgstr "Pan: centre"
+
+#: interface/gtk2/gtk_interface.cpp:366
+msgid "Speed: pause"
+msgstr "Vitesse: pause"
+
+#: interface/gtk2/gtk_interface.cpp:369
+msgid "Speed: %d%%  "
+msgstr "Vitesse: %d%% "
+
+#: interface/gtk2/gtk_interface.cpp:905
+msgid "No stream"
+msgstr "Pas de flux"
+
 #: interface/gtk2/gtk_interface.cpp:1092
 msgid "Scopes..."
 msgstr "Visualisateurs"
@@ -74,7 +107,7 @@ msgstr "Démarrer le mode boucle sélection"
 
 #: interface/gtk2/gtk_interface.cpp:1188
 msgid "Switch off loop"
-msgstr "Fin du mode boucle liste de lecture"
+msgstr "Arrêter le mode boucle"
 
 #: interface/gtk2/gtk_interface.cpp:1198 interface/gtk2/gtk_interface.cpp:1368
 msgid "Play playlist in loop"
@@ -237,7 +270,8 @@ msgstr "Mettre la liste de lecture à zéro"
 msgid ""
 "It doesn't look like playlist !\n"
 "Are you sure you want to proceed ?"
-msgstr "Cela ne ressemble pas à une liste de lecture !\n"
+msgstr ""
+"Cela ne ressemble pas à une liste de lecture !\n"
 "Êtes-vous sur de vouloir procéder ?"
 
 #: interface/gtk2/PreferencesWindow.cpp:109
@@ -268,23 +302,22 @@ msgstr "Préférences"
 msgid "General"
 msgstr "Général"
 
-#: interface/gtk2/ScopesWindow.cpp:349
+#: interface/gtk2/ScopesWindow.cpp:347
 msgid "Open exclusively"
 msgstr "Ouvrir seulement"
 
-#: interface/gtk2/ScopesWindow.cpp:364
+#: interface/gtk2/ScopesWindow.cpp:362
 msgid "Close all"
 msgstr "Tout fermer"
 
-#: interface/gtk2/ScopesWindow.cpp:415
+#: interface/gtk2/ScopesWindow.cpp:413
 msgid "Scopes"
 msgstr "Visualisateurs"
 
-#: interface/gtk2/ScopesWindow.cpp:422
+#: interface/gtk2/ScopesWindow.cpp:420
 msgid "Double click to activate"
 msgstr "Activer avec un double click"
 
-#: interface/gtk2/ScopesWindow.cpp:439
+#: interface/gtk2/ScopesWindow.cpp:437
 msgid "Scope name"
 msgstr "Nom du visualisateur"
-

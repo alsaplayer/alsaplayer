@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: alsaplayer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-06-22 02:12+0100\n"
+"POT-Creation-Date: 2007-06-24 21:17+0200\n"
 "PO-Revision-Date: 2007-06-22 02:00+0100\n"
 "Last-Translator:  <madejos@o2.pl>\n"
 "Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
@@ -53,6 +53,40 @@ msgstr "Uwaga !"
 #: interface/gtk2/gtk_interface.cpp:275
 msgid "Excuse me !"
 msgstr "Przepraszam !"
+
+#: interface/gtk2/gtk_interface.cpp:333
+msgid "Volume: %d%%"
+msgstr "Głośność: %d%%"
+
+#: interface/gtk2/gtk_interface.cpp:333
+#, fuzzy
+msgid "Volume: mute"
+msgstr "Głośność: %d%%"
+
+#: interface/gtk2/gtk_interface.cpp:346
+msgid "Pan: left %d%%"
+msgstr "Balans: lewo %d%%"
+
+#: interface/gtk2/gtk_interface.cpp:348
+msgid "Pan: right %d%%"
+msgstr "Balans: prawo %d%%"
+
+#: interface/gtk2/gtk_interface.cpp:350
+msgid "Pan: center"
+msgstr "Balans: środek"
+
+#: interface/gtk2/gtk_interface.cpp:366
+msgid "Speed: pause"
+msgstr "Prędkość: pauza"
+
+#: interface/gtk2/gtk_interface.cpp:369
+#, fuzzy
+msgid "Speed: %d%% "
+msgstr "Prędkość: %d%%"
+
+#: interface/gtk2/gtk_interface.cpp:905
+msgid "No stream"
+msgstr "Brak źródła"
 
 #: interface/gtk2/gtk_interface.cpp:1092
 msgid "Scopes..."
@@ -271,22 +305,22 @@ msgstr "Preferencje"
 msgid "General"
 msgstr "Ogólne"
 
-#: interface/gtk2/ScopesWindow.cpp:349
+#: interface/gtk2/ScopesWindow.cpp:347
 msgid "Open exclusively"
 msgstr "Otwórz tylko ten"
 
-#: interface/gtk2/ScopesWindow.cpp:364
+#: interface/gtk2/ScopesWindow.cpp:362
 msgid "Close all"
 msgstr "Zamknij wszystkie"
 
-#: interface/gtk2/ScopesWindow.cpp:415
+#: interface/gtk2/ScopesWindow.cpp:413
 msgid "Scopes"
 msgstr "Wizualizacje"
 
-#: interface/gtk2/ScopesWindow.cpp:422
+#: interface/gtk2/ScopesWindow.cpp:420
 msgid "Double click to activate"
 msgstr "Podwójne kliknięcie by uruchomić"
 
-#: interface/gtk2/ScopesWindow.cpp:439
+#: interface/gtk2/ScopesWindow.cpp:437
 msgid "Scope name"
 msgstr "Nazwa wizualizacji"
