@@ -1,0 +1,308 @@
+# translation of de.po to
+# English translations for alsaplayer package.
+# Copyright (C) 2007 Free Software Foundation, Inc.
+# This file is distributed under the same license as the alsaplayer package.
+#
+#  <madejos@o2.pl>, 2007.
+# Frank Baumgart <frank.baumgart@gmx.net>, 2007.
+msgid ""
+msgstr ""
+"Project-Id-Version: de\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-06-22 02:12+0100\n"
+"PO-Revision-Date: 2007-06-25 22:07+0200\n"
+"Last-Translator: Frank Baumgart <frank.baumgart@gmx.net>\n"
+"Language-Team:  <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: KBabel 1.11.4\n"
+
+#: interface/gtk2/AboutWindow.cpp:81
+msgid ""
+"AlsaPlayer is free software; you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public Licence as published by\n"
+"the Free Software Foundation; either version 2 of the Licence, or\n"
+"(at your option) any later version.\n"
+"\n"
+"AlsaPlayer is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public Licence for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public Licence\n"
+"along with AlsaPlayer; if not, write to the Free Software Foundation, Inc.,\n"
+"51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA"
+msgstr ""
+"AlsaPlayer is free software; you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public Licence as published by\n"
+"the Free Software Foundation; either version 2 of the Licence, or\n"
+"(at your option) any later version.\n"
+"\n"
+"AlsaPlayer is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public Licence for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public Licence\n"
+"along with AlsaPlayer; if not, write to the Free Software Foundation, Inc.,\n"
+"51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA"
+
+#: interface/gtk2/AboutWindow.cpp:102
+msgid "No comments yet"
+msgstr "No comments yet"
+
+#: interface/gtk2/AboutWindow.cpp:108
+msgid "translator-credits"
+msgstr "Frank Baumgart"
+
+#: interface/gtk2/gtk_interface.cpp:247
+msgid "Error !"
+msgstr "Fehler!"
+
+#: interface/gtk2/gtk_interface.cpp:261
+msgid "Warning !"
+msgstr "Achtung!"
+
+#: interface/gtk2/gtk_interface.cpp:275
+msgid "Excuse me !"
+msgstr "Entschuldigung!"
+
+#: interface/gtk2/gtk_interface.cpp:1092
+msgid "Scopes..."
+msgstr "Anzeigen..."
+
+#: interface/gtk2/gtk_interface.cpp:1105
+msgid "CD Player (CDDA)"
+msgstr "CD Spieler (CDDA)"
+
+#: interface/gtk2/gtk_interface.cpp:1142
+msgid "Set end of the looper"
+msgstr "Ende der Wiederholung festlegen"
+
+#: interface/gtk2/gtk_interface.cpp:1155
+msgid "Switch off looper"
+msgstr "Wiederholung ausschalten"
+
+#: interface/gtk2/gtk_interface.cpp:1165 interface/gtk2/gtk_interface.cpp:1378
+msgid "Set start of the looper"
+msgstr "Start der Wiederholung festlegen"
+
+#: interface/gtk2/gtk_interface.cpp:1188
+msgid "Switch off loop"
+msgstr "Wiederholung ausschalten"
+
+#: interface/gtk2/gtk_interface.cpp:1198 interface/gtk2/gtk_interface.cpp:1368
+msgid "Play playlist in loop"
+msgstr "Playlist wiederholen"
+
+#: interface/gtk2/gtk_interface.cpp:1213
+msgid "Play song in loop"
+msgstr "Titel wiederholen"
+
+#: interface/gtk2/gtk_interface.cpp:1346
+msgid "Position control"
+msgstr "Position einstellen"
+
+#: interface/gtk2/gtk_interface.cpp:1346
+msgid "Set position of the song"
+msgstr "Position des Titels festlegen"
+
+#: interface/gtk2/gtk_interface.cpp:1386
+msgid "Play CD"
+msgstr "Spiele CD"
+
+#: interface/gtk2/gtk_interface.cpp:1394
+msgid "Previous track"
+msgstr "Voriger Titel"
+
+#: interface/gtk2/gtk_interface.cpp:1394
+msgid "Go to track before the current one on the list"
+msgstr "Zum vorigen Playlist Titel"
+
+#: interface/gtk2/gtk_interface.cpp:1402
+#: interface/gtk2/PreferencesWindow.cpp:210
+msgid "Play"
+msgstr "Play"
+
+#: interface/gtk2/gtk_interface.cpp:1402
+msgid "Play current track on the list or open filechooser if list is empty"
+msgstr "Spiele aktuellen Titel der Playlist, ggf. öffne Dateiauswahl"
+
+#: interface/gtk2/gtk_interface.cpp:1411
+msgid "Stop"
+msgstr "Stopp"
+
+#: interface/gtk2/gtk_interface.cpp:1419
+msgid "Next track"
+msgstr "Nächster Titel"
+
+#: interface/gtk2/gtk_interface.cpp:1419
+msgid "Play the track after the current one on the list"
+msgstr "Titel nach aktuellem Titel abspielen"
+
+#: interface/gtk2/gtk_interface.cpp:1427
+msgid "Playlist window"
+msgstr "Playlist Fenster"
+
+#: interface/gtk2/gtk_interface.cpp:1427
+msgid "Manage playlist"
+msgstr "Playlist ändern"
+
+#: interface/gtk2/gtk_interface.cpp:1446
+msgid "Normal speed backwards"
+msgstr "Rückwärts"
+
+#: interface/gtk2/gtk_interface.cpp:1446
+msgid "Play track backwards with normal speed"
+msgstr "Titel rückwärts spielen"
+
+#: interface/gtk2/gtk_interface.cpp:1454
+msgid "Pause/Unpause"
+msgstr "Pause an/aus"
+
+#: interface/gtk2/gtk_interface.cpp:1462
+msgid "Normal speed"
+msgstr "Normale Wiedergabe-Geschwindigkeit"
+
+#: interface/gtk2/gtk_interface.cpp:1462
+msgid "Play track normally"
+msgstr "Titel normal abspielen"
+
+#: interface/gtk2/gtk_interface.cpp:1468
+msgid "Speed control"
+msgstr "Geschwindigkeit einstellen"
+
+#: interface/gtk2/gtk_interface.cpp:1468
+msgid "Change playback speed"
+msgstr "Abspielgeschwindigkeit ändern"
+
+#: interface/gtk2/gtk_interface.cpp:1481
+msgid "Center balance"
+msgstr "Center Balance"
+
+#: interface/gtk2/gtk_interface.cpp:1488
+msgid "Balance"
+msgstr "Balance"
+
+#: interface/gtk2/gtk_interface.cpp:1488
+msgid "Change balance"
+msgstr "Balance ändern"
+
+#: interface/gtk2/gtk_interface.cpp:1498
+msgid "Mute/Unmute"
+msgstr "Lautsprecher aus/an"
+
+#: interface/gtk2/gtk_interface.cpp:1506
+msgid "Volume"
+msgstr "Lautstärke"
+
+#: interface/gtk2/gtk_interface.cpp:1506
+msgid "Change volume"
+msgstr "Lautstärke ändern"
+
+#: interface/gtk2/PlaylistWindow.cpp:109
+msgid "Unknown"
+msgstr "Unbekannt"
+
+#: interface/gtk2/PlaylistWindow.cpp:256
+msgid "Choose file or URL"
+msgstr "Wähle Datei oder URL"
+
+#: interface/gtk2/PlaylistWindow.cpp:266
+msgid "Do not close the window after adding files"
+msgstr "Fenster nach Hinzufügen offen halten"
+
+#: interface/gtk2/PlaylistWindow.cpp:456
+msgid "Unknown drop!"
+msgstr "Unbekannte Datei!"
+
+#: interface/gtk2/PlaylistWindow.cpp:510
+msgid "Cannot set uris"
+msgstr "Kann URIs nicht einstellen"
+
+#: interface/gtk2/PlaylistWindow.cpp:616
+msgid "Add a song into the playlist"
+msgstr "Song zur Playlist hinzufügen"
+
+#: interface/gtk2/PlaylistWindow.cpp:620
+msgid "Remove the selected song from the playlist"
+msgstr "Song aus Playlist entfernen"
+
+#: interface/gtk2/PlaylistWindow.cpp:622
+msgid "Shuffle"
+msgstr "Shuffle"
+
+#: interface/gtk2/PlaylistWindow.cpp:624
+msgid "Randomize the playlist"
+msgstr "Playlist verwürfeln"
+
+#: interface/gtk2/PlaylistWindow.cpp:631
+msgid "Open a playlist"
+msgstr "Öffne Playlist"
+
+#: interface/gtk2/PlaylistWindow.cpp:635
+msgid "Save the playlist"
+msgstr "Playlist speichern"
+
+#: interface/gtk2/PlaylistWindow.cpp:639
+msgid "Remove the current playlist"
+msgstr "Aktuelle Playlist entfernen"
+
+#: interface/gtk2/PlaylistWindow.cpp:732
+msgid ""
+"It doesn't look like playlist !\n"
+"Are you sure you want to proceed ?"
+msgstr ""
+"Vermutlich keine Playlist!\n"
+"Dennoch fortfahren?"
+
+#: interface/gtk2/PreferencesWindow.cpp:109
+msgid "Play on start"
+msgstr "Bei Start abspielen"
+
+#: interface/gtk2/PreferencesWindow.cpp:114
+msgid "Play song after adding to playlist"
+msgstr "Titel nach Hinzufügen zur Playlist abspielen"
+
+#: interface/gtk2/PreferencesWindow.cpp:140
+msgid "Background color"
+msgstr "Hintergrundfarbe"
+
+#: interface/gtk2/PreferencesWindow.cpp:156
+msgid "Font color"
+msgstr "Schriftfarbe"
+
+#: interface/gtk2/PreferencesWindow.cpp:172
+msgid "Fonts"
+msgstr "Schriften"
+
+#: interface/gtk2/PreferencesWindow.cpp:191
+msgid "Preferences"
+msgstr "Einstellungen"
+
+#: interface/gtk2/PreferencesWindow.cpp:206
+msgid "General"
+msgstr "Allgemein"
+
+#: interface/gtk2/ScopesWindow.cpp:349
+msgid "Open exclusively"
+msgstr "Exklusiv öffnen"
+
+#: interface/gtk2/ScopesWindow.cpp:364
+msgid "Close all"
+msgstr "Alle schließen"
+
+#: interface/gtk2/ScopesWindow.cpp:415
+msgid "Scopes"
+msgstr "Anzeigen"
+
+#: interface/gtk2/ScopesWindow.cpp:422
+msgid "Double click to activate"
+msgstr "Aktivieren mit Doppelklick"
+
+#: interface/gtk2/ScopesWindow.cpp:439
+msgid "Scope name"
+msgstr "Scope Name"
+
