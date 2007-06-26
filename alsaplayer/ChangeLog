@@ -1,3 +1,10 @@
+Tue June 26
+-----------
+* Fixed typo in header of the german translation.
+* Initial swedish translation. Need work.
+* Removed wrong category in the desktop file. Added some MIME types. He
+  validate now.
+
 Mon June 25
 -----------
 * Madej: updated polish translation.
