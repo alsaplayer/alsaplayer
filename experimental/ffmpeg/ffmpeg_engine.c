@@ -29,9 +29,11 @@
 
 #ifdef __BIG_ENDIAN
 #include <asm/byteorder.h> /* BE to LE */
+#include <unistd.h> /* swab */
 #endif
 
-#define BLOCK_SIZE 4096	/* We can use any block size we like */
+#define BLOCK_SIZE AVCODEC_MAX_AUDIO_FRAME_SIZE	/* We can use any block size we like */
+//#define BLOCK_SIZE 4096	/* We can use any block size we like */
 
 typedef struct tag_ffmpeg_data {
 	AVFormatContext* format;
@@ -147,7 +149,6 @@ static int ffmpeg_open(input_object *obj, const char *path)
 			((ffmpeg_data*)obj->local_data)->codec_context->bit_rate,
 			((ffmpeg_data*)obj->local_data)->codec_context->bits_per_sample);
 
-
 	return 1;
 }
 
@@ -184,7 +185,7 @@ static void ffmpeg_close(input_object *obj)
 
 static long ffmpeg_frame_to_sec (input_object *obj, int frame)
 {
-	printf("ffmpeg_frame_to_sec\n");
+	printf("ffmpeg_frame_to_sec %d\n", frame);
 	AVCodecContext*  codec;
 
 	if (!obj || !(obj->local_data) || !(((ffmpeg_data*)obj->local_data)->codec_context))
@@ -197,7 +198,6 @@ static long ffmpeg_frame_to_sec (input_object *obj, int frame)
 
 static int ffmpeg_sample_rate(input_object *obj)
 {
-	printf("ffmpeg_sample_rate\n");
 	AVCodecContext*  codec;
 
 	if (!obj || !(obj->local_data) || !(((ffmpeg_data*)obj->local_data)->codec_context))
@@ -210,7 +210,6 @@ static int ffmpeg_sample_rate(input_object *obj)
 
 static int ffmpeg_channels(input_object *obj)
 {
-	printf("ffmpeg_channels\n");
 	if (!obj || !(obj->local_data) || !(((ffmpeg_data*)obj->local_data)->codec_context))
 		return 0;
 
@@ -254,51 +253,42 @@ static int ffmpeg_nr_frames(input_object *obj)
 
 static int ffmpeg_frame_size(input_object *obj)
 {
-	printf("ffmpeg_frame_size\n");
 	if (!obj || !(obj->local_data) || !(((ffmpeg_data*)obj->local_data)->codec_context))
 		return 0;
 
+	printf("ffmpeg_frame_size return %d\n", obj->frame_size);
 	return obj->frame_size;
 }
 
 static int ffmpeg_frame_seek(input_object *obj, int frame)
 {
-	printf("ffmpeg_frame_seek\n");
 	if (!obj || !(obj->local_data) || !(((ffmpeg_data*)obj->local_data)->codec_context) || obj->flags & P_STREAMBASED)
 		return 0;
 
-//	WavpackSeekSample (obj->local_data, frame * obj->frame_size / (WavpackGetBytesPerSample (obj->local_data)));
-//	return frame;
-	return 0;
+	printf("ffmpeg_frame_seek return %d\n", frame);
+	return frame;
 }
 
 static int ffmpeg_play_frame (input_object *obj, char *buf)
 {
-	/*
-	int i;
-
-	if (!obj || !(obj->local_data))
+	printf("ffmpeg_play_frame\n");
+	AVPacket pkt;
+	int i = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+	if (!obj || !(obj->local_data) || !(((ffmpeg_data*)obj->local_data)->codec_context))
 		return 0;
 
-	i = obj->frame_size / 2;
-	int16_t* samples = (int16_t*) calloc (i, sizeof (int16_t));
+	av_read_packet (((ffmpeg_data*)obj->local_data)->format, &pkt);
 
-	 avcodec_decode_audio2 (	((ffmpeg_data*)obj->local_data)->codec_context, 
-					samples, 
-					i,
-					buf);
-	
-	if (WavpackGetBytesPerSample (obj->local_data) == 2){
-		for (i = 0; i < obj->frame_size / WavpackGetBytesPerSample (obj->local_data); i++){
+	avcodec_decode_audio2 (	((ffmpeg_data*)obj->local_data)->codec_context, 
+					buf, 
+					&i,
+					pkt.data,
+					pkt.size);
 
-	free (samples);
-
-	if (ret == 0)
-		return 0;
-
-	return 1;
-	*/
-	return 0;
+	swab(buf, buf, i/2);
+ 	av_free_packet (&pkt);
+	printf("ffmpeg_play_frame return %d\n", i);
+	return i;
 }
 
 static input_plugin ffmpeg_plugin;
