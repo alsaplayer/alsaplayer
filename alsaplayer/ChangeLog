@@ -1,3 +1,8 @@
+Sat Jul 07
+----------
+* Workaround by Hubert Chan when the album name is on multiple lines (cdda
+  input plugin).
+  
 Tue June 26
 -----------
 * Fixed typo in header of the german translation.

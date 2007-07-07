@@ -814,6 +814,7 @@ void cddb_read_file (char *file, struct cdda_local_data *data)
 {
 	char line[BUFFER_SIZE], name[BUFFER_SIZE];
 	char *token = NULL, *tmp, *divider, *s, *post;
+	char album[BUFFER_SIZE];
 	int i, index = 1;
 	FILE *f;
 
@@ -867,6 +868,10 @@ void cddb_read_file (char *file, struct cdda_local_data *data)
 				}
 				continue;
 			} else {
+				// workaround album name on multiple lines, need improvment
+				if (data->tracks[1].album)
+					continue;
+				  
 				/* print the album name */
 				tmp = strtok (line, "=");
 				if (!tmp) { 
@@ -881,12 +886,13 @@ void cddb_read_file (char *file, struct cdda_local_data *data)
 				divider = strstr (tmp, " / ");
 				if (!divider) { 
 					alsaplayer_error("No divider found in DTITLE");
-					data->tracks[1].artist = strdup(tmp);
-					data->tracks[1].album = strdup(tmp);
+					
+					    	data->tracks[1].artist = strdup(tmp);
+						data->tracks[1].album = strdup(tmp);
 				} else {
-					data->tracks[1].album = strdup (divider+3);
-					tmp[strlen(tmp)-strlen(data->tracks[1].album)-3] = '\0';
-					data->tracks[1].artist = strdup (tmp);
+						data->tracks[1].album = strdup (divider+3);
+						tmp[strlen(tmp)-strlen(data->tracks[1].album)-3] = '\0';
+						data->tracks[1].artist = strdup (tmp);
 				}	
 				if ((s = strstr(data->tracks[1].artist, "\r"))) {
 					*s = '\0';
