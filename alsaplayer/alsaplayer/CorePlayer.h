@@ -41,8 +41,6 @@
 				// should NEVER exceed (NR_BUF/2), it doesn't
 				// make sense otherwise
 
-#define MAX_INPUT_PLUGINS 16
-
 typedef void(*volume_changed_type)(void *, float new_vol);
 typedef void(*speed_changed_type)(void *, float new_speed);
 typedef void(*pan_changed_type)(void *, float new_pan);
@@ -140,7 +138,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	static int plugins_loaded;
 	static int plugin_count;
 	static pthread_mutex_t plugins_mutex;
-	static input_plugin plugins[MAX_INPUT_PLUGINS];
+	input_plugin* plugins;
 	
 	CorePlayer(AlsaNode *node=(AlsaNode *)NULL);
 	~CorePlayer();

@@ -74,7 +74,6 @@ bool surround_func(void *arg, void *data, int size)
 int CorePlayer::plugin_count = 0;
 int CorePlayer::plugins_loaded = 0;
 pthread_mutex_t CorePlayer::plugins_mutex = PTHREAD_MUTEX_INITIALIZER;
-input_plugin CorePlayer::plugins[MAX_INPUT_PLUGINS];
 
 void CorePlayer::Lock()
 {
@@ -144,8 +143,6 @@ void CorePlayer::load_input_addons()
 	input_plugin_info_type input_plugin_info;
 
 	sprintf(path, "%s/input", addon_dir);
-
-	memset(plugins, 0, sizeof(plugins));
 
 	if ((dir = opendir(path)) == NULL)
 		return;
@@ -329,7 +326,9 @@ void CorePlayer::UnregisterPlugins()
 			tmp->handle = NULL;
 			tmp = NULL;
 		}	
-	}		
+	}
+	free (plugins);
+	plugins = NULL;
 	Unlock();
 }
 
@@ -339,6 +338,66 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	int error_count = 0;
 	input_plugin *tmp;
 
+
+	if (the_plugin->name == NULL) {
+		alsaplayer_error("No name");
+		error_count++;
+	}
+	if (the_plugin->author == NULL) {
+		alsaplayer_error("No author");
+		error_count++;
+	}	
+	if (the_plugin->init == NULL) {
+		alsaplayer_error("No init function");
+		error_count++;
+	}
+	if (the_plugin->can_handle == NULL) {
+		alsaplayer_error("No can_handle function");
+		error_count++;
+	}
+	if (the_plugin->open == NULL) {
+		alsaplayer_error("No open function");
+		error_count++;
+	}
+	if (the_plugin->close == NULL) {
+		alsaplayer_error("No close function");
+		error_count++;
+	}
+	if (the_plugin->play_frame == NULL) {
+		alsaplayer_error("No play_frame function");
+		error_count++;
+	}	
+	if (the_plugin->frame_seek == NULL) {
+		alsaplayer_error("No frame_seek function");
+		error_count++;
+	}
+
+	if (the_plugin->nr_frames == NULL) {
+		alsaplayer_error("No nr_frames function");
+		error_count++;
+	}
+	if (the_plugin->frame_size == NULL) {
+		alsaplayer_error("No frame_size function");
+		error_count++;
+	}
+	if (the_plugin->channels == NULL) {
+		alsaplayer_error("No channels function");
+		error_count++;
+	}	
+	if (the_plugin->stream_info == NULL) {
+		alsaplayer_error("No stream_info function");
+		error_count++;
+	}
+	if (the_plugin->shutdown == NULL) {
+		alsaplayer_error("No shutdown function");
+		error_count++;
+	}
+	if (error_count) {
+	    	alsaplayer_error("At least %d error(s) were detected", error_count);
+		return 0;
+	}
+
+	this->plugins = (input_plugin*)realloc (this->plugins, (plugin_count + 1) * sizeof (input_plugin));
 	tmp = &plugins[plugin_count];
 	tmp->version = the_plugin->version;
 	if (tmp->version) {
@@ -346,7 +405,8 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 			alsaplayer_error("Wrong version number on plugin (v%d, wanted v%d)",
 					version - INPUT_PLUGIN_BASE_VERSION,
 					INPUT_PLUGIN_VERSION - INPUT_PLUGIN_BASE_VERSION);      
-			return 0;
+			// that's minor error actually.
+	//		return 0;
 		}
 	}
 	tmp->name = the_plugin->name;
@@ -366,73 +426,16 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	tmp->shutdown = the_plugin->shutdown;
 	tmp->nr_tracks = the_plugin->nr_tracks;
 	tmp->track_seek = the_plugin->track_seek;
-	if (tmp->name == NULL) {
-		alsaplayer_error("No name");
-		error_count++;
-	}
-	if (tmp->author == NULL) {
-		alsaplayer_error("No author");
-		error_count++;
-	}	
-	if (tmp->init == NULL) {
-		alsaplayer_error("No init function");
-		error_count++;
-	}
-	if (tmp->can_handle == NULL) {
-		alsaplayer_error("No can_handle function");
-		error_count++;
-	}
-	if (tmp->open == NULL) {
-		alsaplayer_error("No open function");
-		error_count++;
-	}
-	if (tmp->close == NULL) {
-		alsaplayer_error("No close function");
-		error_count++;
-	}
-	if (tmp->play_frame == NULL) {
-		alsaplayer_error("No play_frame function");
-		error_count++;
-	}	
-	if (tmp->frame_seek == NULL) {
-		alsaplayer_error("No frame_seek function");
-		error_count++;
-	}
 
-	if (tmp->nr_frames == NULL) {
-		alsaplayer_error("No nr_frames function");
-		error_count++;
-	}
-	if (tmp->frame_size == NULL) {
-		alsaplayer_error("No frame_size function");
-		error_count++;
-	}
-	if (tmp->channels == NULL) {
-		alsaplayer_error("No channels function");
-		error_count++;
-	}	
-	if (tmp->stream_info == NULL) {
-		alsaplayer_error("No stream_info function");
-		error_count++;
-	}
-	if (tmp->shutdown == NULL) {
-		alsaplayer_error("No shutdown function");
-		error_count++;
-	}
-	if (error_count) {
-	    	alsaplayer_error("At least %d error(s) were detected", error_count);
-		//Unlock();
-		return 0;
-	}
 	if (!tmp->init()) {
 		alsaplayer_error("Plugin failed to initialize (\"%s\")",
 				tmp->name);
+		this->plugins = (input_plugin*)realloc (this->plugins, plugin_count * sizeof (input_plugin));
+		if (plugin_count == 0)
+			this->plugins = NULL;
 		return 0;
 	}	
 	plugin_count++;
-	if (plugin_count == 1) { // First so assign plugin
-		//plugin = tmp;
-	}
 	if (global_verbose)
 		alsaplayer_error("Loading Input plugin: %s", tmp->name);
 
@@ -810,7 +813,7 @@ CorePlayer::GetPlayer(const char *path)
 
 	// Go through plugins, asking them
 	for (int i = 0; i < plugin_count; i++) {
-		input_plugin *p = plugins + i;
+		input_plugin *p = this->plugins + i;
 		float sl = p->can_handle(path);
 		if (sl > best_support) {
 			best_support = sl;
