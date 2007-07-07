@@ -136,7 +136,7 @@ void CorePlayer::UnRegisterNotifier(coreplayer_notifier *core_notif)
 
 void CorePlayer::load_input_addons()
 {
-	char path[1024];
+	char path[PATH_MAX];
 	DIR *dir;
 	struct stat buf;
 	dirent *entry;
