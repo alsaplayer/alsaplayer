@@ -17,7 +17,7 @@ classifiers=[
     ]
 
 setup(name='python_alsaplayer',
-      version='0.3',
+      version='0.3.1',
       description='Python extension for alsaplayer',
       author='Austin Bingham',
       author_email='austin.bingham@gmail.com',
