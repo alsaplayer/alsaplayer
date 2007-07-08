@@ -1,0 +1,6 @@
+The files from the gettext library. They are distributed along AlsaPlayer.
+That way, it is not necessary to have gettext includes and headers files to
+compile AlsaPlayer.
+
+This is allowed because gettext copyrigth stand for "GPL-v2 or later" at that
+time (Sun 8 Jul 2007).
