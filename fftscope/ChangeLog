@@ -1,3 +1,7 @@
+Sun Jul 08 2007
+---------------
+" Updated licence to GPL-v3 or later.
+
 Sun June 24 2007
 ----------------
 * Moved obsolete gtk1 version into trunk/experimental/fftscope
