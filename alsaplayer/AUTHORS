@@ -27,7 +27,8 @@ navigation and loop mode.
 
 Yvo Timmermans from Debian for the man page.
 
-Experimental ape, wavpack and tta input plugins (SVN only) by Peter Lemenkov.
+Code cleanup in CorePlayer + experimental ape, wavpack and tta input plugins
+(SVN only) by Peter Lemenkov.
 
 New Python bindings (separated package) by Austin Bingham.
  
