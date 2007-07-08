@@ -2,7 +2,20 @@
  * Mpeg Layer-3 audio decoder 
  * --------------------------
  * copyright (c) 1995-1999 by Michael Hipp.
- * All rights reserved. See also 'README'
+ *  This file is part of AlsaPlayer.
+ *
+ *  AlsaPlayer is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  AlsaPlayer is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
  * Optimize-TODO: put short bands into the band-field without the stride of 3 reals
  * Length-optimze: unify long and short band code where it is possible
