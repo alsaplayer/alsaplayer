@@ -16,3 +16,6 @@ URL \fIhttp://www.goice.co.jp/member/mo/hack-progs/timidity.html\fP.
 
 XG patch translation derived from Eric Welsh's eawpats distribution.
 (See TiMidity++ above.)
+
+Current maintainer of this MIDI input plugin for AlsaPlayer:
+Dominique Michel <dominique@tuxfamily.org>
