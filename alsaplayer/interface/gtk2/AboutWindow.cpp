@@ -82,7 +82,7 @@ init_about_window(GtkWidget *main_window)
 									NULL};
 	const gchar *license = _("AlsaPlayer is free software; you can redistribute it and/or modify\n\
 it under the terms of the GNU General Public Licence as published by\n\
-the Free Software Foundation; either version 2 of the Licence, or\n\
+the Free Software Foundation; either version 3 of the Licence, or\n\
 (at your option) any later version.\n\
 \n\
 AlsaPlayer is distributed in the hope that it will be useful,\n\
@@ -91,8 +91,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n\
 GNU General Public Licence for more details.\n\
 \n\
 You should have received a copy of the GNU General Public Licence\n\
-along with AlsaPlayer; if not, write to the Free Software Foundation, Inc.,\n\
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA");
+along with AlsaPlayer; if not, see <http://www.gnu.org/licenses/>.");
 	
 	about_logo = gdk_pixbuf_new_from_xpm_data((const char **)logo_xpm);
 
