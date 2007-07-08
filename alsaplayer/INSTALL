@@ -9,11 +9,6 @@ as follows:
 The alsaplayer binary will then be placed in /opt/bin after the make install.
 (it is in /usr/local/bin by default). For a complete list of configure options
 run the configure script with --help
-
-On some architecture (such as HURD), PATH_MAX is not defined. You may have to
-export it before the compilation. With bash:
-export PATH_MAX=1024
-will do it.
   
 If you have questions about the install phase feel free to email me at:
 

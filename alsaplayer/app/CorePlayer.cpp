@@ -136,7 +136,12 @@ void CorePlayer::UnRegisterNotifier(coreplayer_notifier *core_notif)
 
 void CorePlayer::load_input_addons()
 {
+// some arch don't define PATH_MAX
+#ifdef PATH_MAX
 	char path[PATH_MAX];
+#else
+	char path[1024];
+#endif
 	DIR *dir;
 	struct stat buf;
 	dirent *entry;
