@@ -1,6 +1,6 @@
-# SOME DESCRIPTIVE TITLE.
+# YOUR_LANGUAGE translations for the AlsaPlayer package.
 # Copyright (C) YEAR Free Software Foundation, Inc.
-# This file is distributed under the same license as the PACKAGE package.
+# This file is distributed under the same license as the AlsaPlayer package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
