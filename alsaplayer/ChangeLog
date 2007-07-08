@@ -2,7 +2,8 @@ Sun Jul 08
 ----------
 * Peter Lemenkov: Reorganized code for loading input modules (CorePlayer.cpp).
   We should test module before actual assignment.
-  
+* Updated licence to GPL-v3 or later.
+
 Sat Jul 07
 ----------
 * Workaround by Hubert Chan when the album name is on multiple lines (cdda
