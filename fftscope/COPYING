@@ -677,7 +677,7 @@ Public License instead of this License.  But first, please read
 
 		EXCEPTION:
 
- FftScope can be installed on SGI system. The GPL forbid to distribute programs
+ FftScope can be installed on SGI system. The GPL forbid to distribute binaries
 linked on a SGI system. In consequence, you are granted the permission to
 distribute FftScope for SGI systems as long that you agree with the other
 conditions of the GNU General Public License version 3 or later and that you
