@@ -133,6 +133,9 @@ void CorePlayer::UnRegisterNotifier(coreplayer_notifier *core_notif)
 }
 
 
+#ifndef PATH_MAX
+#define PATH_MAX 1024
+#endif
 
 void CorePlayer::load_input_addons()
 {
