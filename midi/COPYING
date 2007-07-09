@@ -679,6 +679,6 @@ Public License instead of this License.  But first, please read
 
  This software can be installed on SGI system. The GPL forbid to distribute
 binaries linked on a SGI system. In consequence, you are granted the permission
-to distribute this software for SGI systems as long that you agree with the
-other conditions of the GNU General Public License version 3 or later and that
-you respect them.
+to distribute the MIDI input plugin for AlsaPlayer for SGI systems as long
+that you agree with the other conditions of the GNU General Public License
+version 3 or later and that you respect them.
