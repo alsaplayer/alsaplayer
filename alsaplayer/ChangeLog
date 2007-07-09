@@ -1,6 +1,7 @@
 Mon Jul  9 2007
 ---------
 * Peter Lemenkov: added necessary #defines for systems w/o PATH_MAX
+* Removed duplicated PATH_MAX stuff.
 
 Sun Jul 08
 ----------
