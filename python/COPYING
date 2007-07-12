@@ -673,12 +673,3 @@ may consider it more useful to permit linking proprietary applications with
 the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
-
-
-		EXCEPTION:
-
-  The python bindings for AlsaPlayer can be installed on SGI systems. The GPL
-forbid to distribute binaries linked on a SGI system. In consequence, you are
-granted the permission to distribute the python bindings for AlsaPlayer for
-SGI systems as long that you agree with the other conditions of the GNU
-General Public License version 3 or later and that you respect them. 
