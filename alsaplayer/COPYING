@@ -679,6 +679,6 @@ Public License instead of this License.  But first, please read
 
  AlsaPlayer have a SGI output plugin. The GPL forbid to distribute binaries
 linked on a SGI system. In consequence, you are granted the permission to
-distribute AlsaPlayer for SGI systems as long that you agree with the other
-conditions of the GNU General Public License version 3 or later and that you
-respect them. 
+distribute AlsaPlayer with its SGI output plugin as long that you agree with
+the other conditions of the GNU General Public License version 3 or later and
+that you respect them. 

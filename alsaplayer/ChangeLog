@@ -1,3 +1,7 @@
+Thu Jul 12 2007
+---------------
+* Changed exception in COPYING
+
 Mon Jul  9 2007
 ---------
 * Peter Lemenkov: added necessary #defines for systems w/o PATH_MAX
