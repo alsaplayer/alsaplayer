@@ -6,10 +6,10 @@ TODO list (2007 June 23)
   
 * sound quality improvements:
 - convert all internal sound representation to 32 bits floats and convert back
-  to int for alsa (and other output plugins if needed).
+  to int for alsa (doing that globally will be the easiest way).
 - use libsamplerate for resampling (pref option for quality).
 - sndfile input plugin reduce everything to 16 bits. Floating point wav files
-  produce silence (such as Ardour generated files).
+  produce silence (such as Ardour generated files). Fix it.
 
 * Other important things to do:
 - Modify threading to use conditional wait; more portable
