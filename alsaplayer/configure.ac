@@ -39,7 +39,6 @@ dynload=no
 use_3dnow_asm=no
 use_libmad=no
 use_libid3tag=no
-prefer_mad=yes
 
 if test "x$x_includes" = "xNONE"
 then
@@ -543,7 +542,7 @@ AM_CONDITIONAL(HAVE_NAS, test "x$have_nas" = xyes)
 AM_CONDITIONAL(HAVE_LINUX_CDROM,test "x$ac_cv_header_linux_cdrom_h" = xyes)
 AM_CONDITIONAL(HAVE_GTK2, test "x$have_gtk2" = xyes)
 AM_CONDITIONAL(HAVE_MIKMOD,test "x$have_mikmod" = xyes)
-AM_CONDITIONAL(PREFER_MAD, test "x$prefer_mad" = "xyes")
+
 
 dnl ============
 dnl Machine type

@@ -54,7 +54,7 @@ extern "C" { 	/* Make sure MAD symbols are not mangled
 #include "frame.h"
 #include "synth.h"
 #endif	
-#include "mad.h"
+#include <mad.h>
 
 #ifdef __cplusplus
 }

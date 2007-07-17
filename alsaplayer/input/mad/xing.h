@@ -23,7 +23,7 @@
 # ifndef XING_H
 # define XING_H
 
-# include "mad.h"
+# include <mad.h>
 
 struct xing {
   long flags;			/* valid fields (see below) */
