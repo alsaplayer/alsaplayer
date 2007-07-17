@@ -12,3 +12,6 @@ released in the older releases.
 The scope folder contain the gtk1 visualization plugins.
 
 The fftscope folder contain the gtk1 version of /trunk/fftscope.
+
+input/mad contain the code of the mad input plugin before removing
+the outdated mad code that was included with AlsaPlayer.
