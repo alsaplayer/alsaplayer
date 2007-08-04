@@ -493,7 +493,7 @@ have_sgi=no
 fi])
 
 AC_ARG_ENABLE(gtk2,
-[ --enable-gtk2           Enable GTK2 graphical interface (default=yes)],
+[  --enable-gtk2           Enable GTK2 graphical interface (default=yes)],
 [if test "$enableval" = "no"
 then
 have_gtk2=no
