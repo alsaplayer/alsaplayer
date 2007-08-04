@@ -47,16 +47,14 @@ struct af_local_data
 /*
 	Take a path as input and return the last part of it as the file name.
 */
-static char *getfilenamefrompath (const char *path)
+static const char *getfilenamefrompath (const char *path)
 {
-	char *p = strrchr(path, '/');
+	const char *p = strrchr(path, '/');
 
-	if (p != NULL)
-		p++;
-	else
-		p = (char *)path;
+	if (p)
+		return p + 1;
 
-	return p;
+	return path;
 }
 
 static void init_audiofile (void)
@@ -87,6 +85,7 @@ static int audiofile_open (input_object *obj, const char *name)
 
 	data->filehandle = afOpenFile(name, "r", NULL);
 	strncpy(data->filename, getfilenamefrompath(name), NAME_MAX);
+	data->filename[NAME_MAX - 1] = 0;
 
 	if (data->filehandle == AF_NULL_FILEHANDLE)
 	{
