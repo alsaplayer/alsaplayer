@@ -9,19 +9,20 @@ msgid ""
 msgstr ""
 "Project-Id-Version: de\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-06-22 02:12+0100\n"
+"POT-Creation-Date: 2007-07-09 23:01+0200\n"
 "PO-Revision-Date: 2007-06-26 22:36+0200\n"
-"Last-Translator: Dominique Michel <dominique@tuxfamily.org>\n"
+"Last-Translator: Lars Lindqvist <llt@larslindqvist.net>\n"
 "Language-Team:  <sv@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit"
+"Content-Transfer-Encoding: 8bit\n"
 
-#: interface/gtk2/AboutWindow.cpp:81
+#: interface/gtk2/AboutWindow.cpp:83
+#, fuzzy
 msgid ""
 "AlsaPlayer is free software; you can redistribute it and/or modify\n"
 "it under the terms of the GNU General Public Licence as published by\n"
-"the Free Software Foundation; either version 2 of the Licence, or\n"
+"the Free Software Foundation; either version 3 of the Licence, or\n"
 "(at your option) any later version.\n"
 "\n"
 "AlsaPlayer is distributed in the hope that it will be useful,\n"
@@ -30,8 +31,7 @@ msgid ""
 "GNU General Public Licence for more details.\n"
 "\n"
 "You should have received a copy of the GNU General Public Licence\n"
-"along with AlsaPlayer; if not, write to the Free Software Foundation, Inc.,\n"
-"51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA"
+"along with AlsaPlayer; if not, see <http://www.gnu.org/licenses/>."
 msgstr ""
 "AlsaPlayer is free software; you can redistribute it and/or modify\n"
 "it under the terms of the GNU General Public Licence as published by\n"
@@ -47,260 +47,297 @@ msgstr ""
 "along with AlsaPlayer; if not, write to the Free Software Foundation, Inc.,\n"
 "51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA"
 
-#: interface/gtk2/AboutWindow.cpp:102
+#: interface/gtk2/AboutWindow.cpp:103
 msgid "No comments yet"
-msgstr "Ingenting yet"
+msgstr "Inga kommentarer ännu"
 
-#: interface/gtk2/AboutWindow.cpp:108
+#: interface/gtk2/AboutWindow.cpp:109
 msgid "translator-credits"
-msgstr "Dominique Michel <dominique@tuxfamily.org>"
+msgstr "Lars Lindqvist <llt@larslindqvist.net>"
 
-#: interface/gtk2/gtk_interface.cpp:247
+#: interface/gtk2/gtk_interface.cpp:249
 msgid "Error !"
 msgstr "Fel!"
 
-#: interface/gtk2/gtk_interface.cpp:261
+#: interface/gtk2/gtk_interface.cpp:263
 msgid "Warning !"
-msgstr "Akta!"
+msgstr "Varning!"
 
-#: interface/gtk2/gtk_interface.cpp:275
+#: interface/gtk2/gtk_interface.cpp:277
 msgid "Excuse me !"
 msgstr "Ursäkta!"
 
-#: interface/gtk2/gtk_interface.cpp:1092
+#: interface/gtk2/gtk_interface.cpp:335
+#, fuzzy, c-format
+msgid "Volume: %d%%"
+msgstr "Volume"
+
+#: interface/gtk2/gtk_interface.cpp:335
+#, fuzzy
+msgid "Volume: mute"
+msgstr "Volume"
+
+#: interface/gtk2/gtk_interface.cpp:348
+#, c-format
+msgid "Pan: left %d%%"
+msgstr ""
+
+#: interface/gtk2/gtk_interface.cpp:350
+#, c-format
+msgid "Pan: right %d%%"
+msgstr ""
+
+#: interface/gtk2/gtk_interface.cpp:352
+msgid "Pan: center"
+msgstr ""
+
+#: interface/gtk2/gtk_interface.cpp:368
+msgid "Speed: pause"
+msgstr ""
+
+#: interface/gtk2/gtk_interface.cpp:371
+#, c-format
+msgid "Speed: %d%%  "
+msgstr ""
+
+#: interface/gtk2/gtk_interface.cpp:907
+#, c-format
+msgid "No stream"
+msgstr ""
+
+#: interface/gtk2/gtk_interface.cpp:1094
 msgid "Scopes..."
 msgstr "Scopes..."
 
-#: interface/gtk2/gtk_interface.cpp:1105
+#: interface/gtk2/gtk_interface.cpp:1107
 msgid "CD Player (CDDA)"
-msgstr "CD läsare (CDDA)"
+msgstr "CD-läsare (CDDA)"
 
-#: interface/gtk2/gtk_interface.cpp:1142
+#: interface/gtk2/gtk_interface.cpp:1144
 msgid "Set end of the looper"
 msgstr "Slut med ringen"
 
-#: interface/gtk2/gtk_interface.cpp:1155
+#: interface/gtk2/gtk_interface.cpp:1157
 msgid "Switch off looper"
 msgstr "Slut med ringen"
 
-#: interface/gtk2/gtk_interface.cpp:1165 interface/gtk2/gtk_interface.cpp:1378
+#: interface/gtk2/gtk_interface.cpp:1167 interface/gtk2/gtk_interface.cpp:1380
 msgid "Set start of the looper"
 msgstr "Starta ringen"
 
-#: interface/gtk2/gtk_interface.cpp:1188
+#: interface/gtk2/gtk_interface.cpp:1190
 msgid "Switch off loop"
-msgstr "Slut med ringen"
+msgstr "Släng av loop"
 
-#: interface/gtk2/gtk_interface.cpp:1198 interface/gtk2/gtk_interface.cpp:1368
+#: interface/gtk2/gtk_interface.cpp:1200 interface/gtk2/gtk_interface.cpp:1370
 msgid "Play playlist in loop"
-msgstr "Spela låtlistan i ring"
+msgstr "Spela låtlistan i loop"
 
-#: interface/gtk2/gtk_interface.cpp:1213
+#: interface/gtk2/gtk_interface.cpp:1215
 msgid "Play song in loop"
-msgstr "Spela låten i ring"
+msgstr "Spela låten i loop"
 
-#: interface/gtk2/gtk_interface.cpp:1346
+#: interface/gtk2/gtk_interface.cpp:1348
 msgid "Position control"
-msgstr "Positions kontroll"
+msgstr "Positionskontroll"
 
-#: interface/gtk2/gtk_interface.cpp:1346
+#: interface/gtk2/gtk_interface.cpp:1348
 msgid "Set position of the song"
-msgstr "Stela låtens position"
+msgstr "Sätt låtens position"
 
-#: interface/gtk2/gtk_interface.cpp:1386
+#: interface/gtk2/gtk_interface.cpp:1388
 msgid "Play CD"
 msgstr "Spela CD"
 
-#: interface/gtk2/gtk_interface.cpp:1394
+#: interface/gtk2/gtk_interface.cpp:1396
 msgid "Previous track"
-msgstr "Förre låten"
+msgstr "Förra låten"
 
-#: interface/gtk2/gtk_interface.cpp:1394
+#: interface/gtk2/gtk_interface.cpp:1396
 msgid "Go to track before the current one on the list"
-msgstr "Gå till förre låten in listan"
+msgstr "Gå till förra låten i listan"
 
-#: interface/gtk2/gtk_interface.cpp:1402
-#: interface/gtk2/PreferencesWindow.cpp:210
+#: interface/gtk2/gtk_interface.cpp:1404
+#: interface/gtk2/PreferencesWindow.cpp:212
 msgid "Play"
 msgstr "Spela"
 
-#: interface/gtk2/gtk_interface.cpp:1402
+#: interface/gtk2/gtk_interface.cpp:1404
 msgid "Play current track on the list or open filechooser if list is empty"
-msgstr "Spela nuvarande låten in lista eller öppna fil om listan är tum"
+msgstr "Spela nuvarande låt eller öppna fil om listan är tom"
 
-#: interface/gtk2/gtk_interface.cpp:1411
+#: interface/gtk2/gtk_interface.cpp:1413
 msgid "Stop"
-msgstr "Stop"
+msgstr "Stopp"
 
-#: interface/gtk2/gtk_interface.cpp:1419
+#: interface/gtk2/gtk_interface.cpp:1421
 msgid "Next track"
-msgstr "Nästa låten"
+msgstr "Nästa låt"
 
-#: interface/gtk2/gtk_interface.cpp:1419
+#: interface/gtk2/gtk_interface.cpp:1421
 msgid "Play the track after the current one on the list"
 msgstr "Spela nästa låt"
 
-#: interface/gtk2/gtk_interface.cpp:1427
+#: interface/gtk2/gtk_interface.cpp:1429
 msgid "Playlist window"
-msgstr "Låtlista fönstret"
+msgstr "Låtlista"
 
-#: interface/gtk2/gtk_interface.cpp:1427
+#: interface/gtk2/gtk_interface.cpp:1429
 msgid "Manage playlist"
 msgstr "Ändra låtlistan"
 
-#: interface/gtk2/gtk_interface.cpp:1446
+#: interface/gtk2/gtk_interface.cpp:1448
 msgid "Normal speed backwards"
-msgstr "Lagom hastighet back"
+msgstr "Normal hastighet bakåt"
 
-#: interface/gtk2/gtk_interface.cpp:1446
+#: interface/gtk2/gtk_interface.cpp:1448
 msgid "Play track backwards with normal speed"
-msgstr "Backa låten lagom"
+msgstr "Spela låten baklänges med normal hastighet"
 
-#: interface/gtk2/gtk_interface.cpp:1454
+#: interface/gtk2/gtk_interface.cpp:1456
 msgid "Pause/Unpause"
 msgstr "Paus / Spela"
 
-#: interface/gtk2/gtk_interface.cpp:1462
+#: interface/gtk2/gtk_interface.cpp:1464
 msgid "Normal speed"
-msgstr "Lagom hastighet"
+msgstr "Normal hastighet"
 
-#: interface/gtk2/gtk_interface.cpp:1462
+#: interface/gtk2/gtk_interface.cpp:1464
 msgid "Play track normally"
-msgstr "Spela låten med lagom hastighet"
+msgstr "Spela låten med normal hastighet"
 
-#: interface/gtk2/gtk_interface.cpp:1468
+#: interface/gtk2/gtk_interface.cpp:1470
 msgid "Speed control"
-msgstr "Hastighets kontroll"
+msgstr "Hastighetskontroll"
 
-#: interface/gtk2/gtk_interface.cpp:1468
+#: interface/gtk2/gtk_interface.cpp:1470
 msgid "Change playback speed"
-msgstr "Ändra spelnings hastighet"
+msgstr "Ändra spelhastighet"
 
-#: interface/gtk2/gtk_interface.cpp:1481
+#: interface/gtk2/gtk_interface.cpp:1483
 msgid "Center balance"
-msgstr "Center balance"
+msgstr "Centrera balans"
 
-#: interface/gtk2/gtk_interface.cpp:1488
+#: interface/gtk2/gtk_interface.cpp:1490
 msgid "Balance"
-msgstr "Balance"
+msgstr "Balans"
 
-#: interface/gtk2/gtk_interface.cpp:1488
+#: interface/gtk2/gtk_interface.cpp:1490
 msgid "Change balance"
 msgstr "Balance ändring"
 
-#: interface/gtk2/gtk_interface.cpp:1498
+#: interface/gtk2/gtk_interface.cpp:1500
 msgid "Mute/Unmute"
 msgstr "Stoppa/starta ljudet"
 
-#: interface/gtk2/gtk_interface.cpp:1506
+#: interface/gtk2/gtk_interface.cpp:1508
 msgid "Volume"
 msgstr "Volume"
 
-#: interface/gtk2/gtk_interface.cpp:1506
+#: interface/gtk2/gtk_interface.cpp:1508
 msgid "Change volume"
-msgstr "Ändra ljudet"
+msgstr "Ändra volume"
 
-#: interface/gtk2/PlaylistWindow.cpp:109
+#: interface/gtk2/PlaylistWindow.cpp:111
 msgid "Unknown"
 msgstr "Okänd"
 
-#: interface/gtk2/PlaylistWindow.cpp:256
+#: interface/gtk2/PlaylistWindow.cpp:258
 msgid "Choose file or URL"
 msgstr "Välja fil eller URL"
 
-#: interface/gtk2/PlaylistWindow.cpp:266
+#: interface/gtk2/PlaylistWindow.cpp:268
 msgid "Do not close the window after adding files"
-msgstr "Fönstret när fil läggning stanna öppet"
+msgstr "Stäng inte fönstret efter att filer har lags till"
 
-#: interface/gtk2/PlaylistWindow.cpp:456
+#: interface/gtk2/PlaylistWindow.cpp:458
 msgid "Unknown drop!"
 msgstr "Okänt data!"
 
-#: interface/gtk2/PlaylistWindow.cpp:510
+#: interface/gtk2/PlaylistWindow.cpp:512
 msgid "Cannot set uris"
-msgstr "Kannot ställa URIs"
+msgstr "Kan inte sätta URIs"
 
-#: interface/gtk2/PlaylistWindow.cpp:616
+#: interface/gtk2/PlaylistWindow.cpp:618
 msgid "Add a song into the playlist"
 msgstr "Lägga till en titel i låtlistan"
 
-#: interface/gtk2/PlaylistWindow.cpp:620
-msgid "Remove the selected song from the playlist"
-msgstr "Bortlaga den utvalda titeln from låtlistan"
-
 #: interface/gtk2/PlaylistWindow.cpp:622
+msgid "Remove the selected song from the playlist"
+msgstr "Ta bort låt från låtlistan"
+
+#: interface/gtk2/PlaylistWindow.cpp:624
 msgid "Shuffle"
 msgstr "Shuffle"
 
-#: interface/gtk2/PlaylistWindow.cpp:624
+#: interface/gtk2/PlaylistWindow.cpp:626
 msgid "Randomize the playlist"
-msgstr "Randomize·the·playlist"
+msgstr "Blanda om låtlistan"
 
-#: interface/gtk2/PlaylistWindow.cpp:631
+#: interface/gtk2/PlaylistWindow.cpp:633
 msgid "Open a playlist"
 msgstr "Öppna en låtlista"
 
-#: interface/gtk2/PlaylistWindow.cpp:635
+#: interface/gtk2/PlaylistWindow.cpp:637
 msgid "Save the playlist"
-msgstr "Laga låtlistan"
+msgstr "Spara låtlistan"
 
-#: interface/gtk2/PlaylistWindow.cpp:639
+#: interface/gtk2/PlaylistWindow.cpp:641
 msgid "Remove the current playlist"
 msgstr "Ta bort den nuvarande låtlistan"
 
-#: interface/gtk2/PlaylistWindow.cpp:732
+#: interface/gtk2/PlaylistWindow.cpp:734
 msgid ""
 "It doesn't look like playlist !\n"
 "Are you sure you want to proceed ?"
 msgstr ""
-"Det ser inte ut liksom en låtlista!\n"
-"Är du säkert att du vill forsätta?"
+"Det ser inte ut som en låtlista!\n"
+"Är du säker på att du vill forsätta?"
 
-#: interface/gtk2/PreferencesWindow.cpp:109
+#: interface/gtk2/PreferencesWindow.cpp:111
 msgid "Play on start"
-msgstr "Spela vid starten"
+msgstr "Spela vid uppstart"
 
-#: interface/gtk2/PreferencesWindow.cpp:114
+#: interface/gtk2/PreferencesWindow.cpp:116
 msgid "Play song after adding to playlist"
-msgstr "Spela titeln vid tillläggning in låtlistan"
+msgstr "Spela titeln vid tillläggning i låtlistan"
 
-#: interface/gtk2/PreferencesWindow.cpp:140
+#: interface/gtk2/PreferencesWindow.cpp:142
 msgid "Background color"
-msgstr "Bottenfärj"
+msgstr "Bakgrundsfärg"
 
-#: interface/gtk2/PreferencesWindow.cpp:156
+#: interface/gtk2/PreferencesWindow.cpp:158
 msgid "Font color"
-msgstr "Skriftfàrj"
+msgstr "Textfärg"
 
-#: interface/gtk2/PreferencesWindow.cpp:172
+#: interface/gtk2/PreferencesWindow.cpp:174
 msgid "Fonts"
-msgstr "Skrifter"
+msgstr "Teckensnitt"
 
-#: interface/gtk2/PreferencesWindow.cpp:191
+#: interface/gtk2/PreferencesWindow.cpp:193
 msgid "Preferences"
-msgstr "Preferences"
+msgstr "Inställningar"
 
-#: interface/gtk2/PreferencesWindow.cpp:206
+#: interface/gtk2/PreferencesWindow.cpp:208
 msgid "General"
 msgstr "Allmän"
 
-#: interface/gtk2/ScopesWindow.cpp:349
+#: interface/gtk2/ScopesWindow.cpp:348
 msgid "Open exclusively"
 msgstr "Öppna exklusiv"
 
-#: interface/gtk2/ScopesWindow.cpp:364
+#: interface/gtk2/ScopesWindow.cpp:363
 msgid "Close all"
 msgstr "Stänga alla"
 
-#: interface/gtk2/ScopesWindow.cpp:415
+#: interface/gtk2/ScopesWindow.cpp:414
 msgid "Scopes"
 msgstr "Scopes"
 
-#: interface/gtk2/ScopesWindow.cpp:422
+#: interface/gtk2/ScopesWindow.cpp:421
 msgid "Double click to activate"
-msgstr "Double·click·to·activate"
+msgstr "Dobbelklicka för att aktivera"
 
-#: interface/gtk2/ScopesWindow.cpp:439
+#: interface/gtk2/ScopesWindow.cpp:438
 msgid "Scope name"
-msgstr "Scope Name"
-
+msgstr "Scope namn"
