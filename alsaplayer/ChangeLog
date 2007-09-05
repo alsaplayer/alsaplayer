@@ -1,6 +1,7 @@
 Wed Sep 5 2007
 --------------
 " Updated Swedish translation from Lars Lindqvist
+" Fix for buffer overflow in vorbis input plugin from Erik Sjölund
 
 Sat Jul 14 2007
 ---------------

@@ -291,15 +291,15 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 			n = vorbis_comment_query(comment, "tracknumber", 0);
 			c = vorbis_comment_query(comment, "description", 0);
 
-			strcpy(info->title, t ? t : "");
-			strcpy(info->artist, a ? a : "");
-			strcpy(info->album, l ? l : "");
-			strcpy(info->genre, g ? g : "");
-			strcpy(info->year, y ? y : "");
-			strcpy(info->track, n ? n : "");
-			strcpy(info->comment, c ? c : "");
+			snprintf(info->title, sizeof(info->title), "%s", t ? t : "");
+			snprintf(info->artist, sizeof(info->artist), "%s", a ? a : "");
+			snprintf(info->album, sizeof(info->album), "%s", l ? l : "");
+			snprintf(info->genre, sizeof(info->genre), "%s", g ? g : "");
+			snprintf(info->year, sizeof(info->year), "%s", y ? y : "");
+			snprintf(info->track, sizeof(info->track), "%s", n ? n : "");
+			snprintf(info->comment, sizeof(info->comment), "%s", c ? c : "");
 		} else {
-			strcpy (info->title, data->path);
+			snprintf(info->title, sizeof(info->title), "%s", data->path);
 			info->artist [0] = '\0';
 			info->album [0] = '\0';
 			info->genre [0] = '\0';
