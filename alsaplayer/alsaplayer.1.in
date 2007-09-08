@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ALSAPLAYER 1 "1 June 2007"
+.TH ALSAPLAYER 1 "8 September 2007"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -148,8 +148,7 @@ Enable realtime scheduling.  To use this as a normal user, alsaplayer
 must be SUID root.
 .TP
 .B \-o, \-\-output [alsa|esound|jack|nas|null|oss|sgi|sparc]
-Use the specified output driver. For use with JACK, -F is mandatory for
-best results.
+Use the specified output driver.
 .SS Experimental options:
 .TP
 .B \-S,\-\-loopsong
@@ -160,6 +159,10 @@ Loop the playlist.
 .TP
 .B \-x,\-\-crossfade
 Crossfade playlist entries.
+.SH JACK OUTPUT PLUGIN
+For use with JACK, -F <sample_rate> is mandatory for best results. The value of sample rate must be the same as the one used by jackd.
+.TP
+If you forget the -F parameter, the sound can be very bad. The only remedy at that time is to restart both jackd and AlsaPlayer.
 .SH DAEMON INTERFACE
 With the daemon interface, it is mandatory to add the -s option.
 You must process in two steps to get sound with it. First launch the daemon:
