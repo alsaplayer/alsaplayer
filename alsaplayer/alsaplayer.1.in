@@ -148,7 +148,8 @@ Enable realtime scheduling.  To use this as a normal user, alsaplayer
 must be SUID root.
 .TP
 .B \-o, \-\-output [alsa|esound|jack|nas|null|oss|sgi|sparc]
-Use the specified output driver.
+Use the specified output driver. For use with JACK, -F is mandatory for
+best results.
 .SS Experimental options:
 .TP
 .B \-S,\-\-loopsong
