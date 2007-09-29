@@ -1,3 +1,7 @@
+Sat Sep 29 2007
+---------------
+* Hubert Chan: Fixed loading of the gtk2 config file
+
 Sat Sep 8 2007
 --------------
 * Added a few words in the man page about Jack output

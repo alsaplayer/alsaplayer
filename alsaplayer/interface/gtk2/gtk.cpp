@@ -176,7 +176,7 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 
 	home = getenv("HOME");
 	if (home) {
-		snprintf(path, 255, "%s/.gtkrc", home);
+		snprintf(path, 255, "%s/.gtkrc-2.0", home);
 		gtk_rc_parse(path);
 	}
 
