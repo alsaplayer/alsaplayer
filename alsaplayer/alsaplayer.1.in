@@ -28,7 +28,7 @@ This manual page was written for the Debian GNU/Linux distribution
 because the original program does not have a manual page.
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
-.\" \fI<whatever>\fP escape sequences to invode bold face and italics, 
+.\" \fI<whatever>\fP escape sequences to invoke bold face and italics, 
 .\" respectively.
 \fBalsaplayer\fP is a generic music player that can play back a large
 amount of file formats.
@@ -40,7 +40,7 @@ Play the specified file(s). Can be a file or an URL.
 .TP
 .B CD.cdda
 Special filename. Play a CD. /dev/cdrom will be used by default. Otherwise,
-AlsapPlayer will use the device specified in your config file (usualy ~/.alsaplayer/config).
+AlsaPlayer will use the device specified in your config file (usually ~/.alsaplayer/config).
 .SH OPTIONS
 These programs follow the usual GNU command line syntax, with long
 options starting with two dashes (`-').
@@ -126,7 +126,7 @@ Jump to the specified playlist track.
 Clear the whole playlist
 .TP
 .B \-\-quit
-Quit the sesssion.
+Quit the session.
 .SS Sound driver options:
 .TP
 .B \-d, \-\-device string
