@@ -244,17 +244,17 @@ Frames per period in the sound buffer
 .SS Output settings
 .TP
 .B jack.output1=alsa_pcm:playback_1
-Output devive 1 when using JACK sound server
+Output device 1 when using JACK sound server
 .TP
 .B jack.output2=alsa_pcm:playback_2
-Output devive 2 when using JACK sound server
+Output device 2 when using JACK sound server
 .SS Input settings
 .TP
 .B cdda.cddb_servername=freedb.freedb.org
-Server used by the cdda input module to retrieve the cddb informations.
+Server used by the cdda input module to retrieve the cddb information.
 .TP
 .B cdda.cddb_serverport=80
-Port used by the cdda input module to retrieve the cddb informations.
+Port used by the cdda input module to retrieve the cddb information.
 .TP
 .B cdda.device=/dev/cdrom
 Device used by the cdda input module to retrieve the CD.
@@ -282,10 +282,10 @@ Default path used by the Load playlist function
 Default path used by the Save playlist function
 .TP
 .B gtk_interface.playlist_active=false
-Launch or not the playlist window at startup.
+Launch or not the playlist window at start up.
 .TP
 .B gtk_interface.sopeswindow_active=false
-Launch or not the scopes selector window at startup.
+Launch or not the scopes selector window at start up.
 .TP
 .B gtk_interface.smooth_transition=false
 Will functions such as pause use a smooth speed transition.
@@ -294,7 +294,7 @@ It use the same options as the GTK interface but with "gtk2_" as prefix instead 
 .SS XOSD interface settings
 .TP
 .B xosd_interface.color=#55ff55
-Color used by the XOSD interface.
+Colour used by the XOSD interface.
 .TP
 .B xosd_interface.font=-adobe-helvetica-medium-r-normal-*-24-*-*-*-*-*-*-*
 .TP
@@ -309,19 +309,19 @@ Display vertical offset from the top of the screen
 .SS Scopes settings
 .TP
 .B blurscope.active=false
-Launch or not the blurscope plugin at startup.
+Launch or not the blurscope plugin at start up.
 .TP
 .B fftscope.active=false
-Launch or not the fftscope plugin at startup.
+Launch or not the fftscope plugin at start up.
 .TP
 .B levelmeter.active=false
-Launch or not the levelmeter scope plugin at startup.
+Launch or not the levelmeter scope plugin at start up.
 .TP
 .B logbarfft.active=false
-Launch or not the logbar scope plugin at startup.
+Launch or not the logbar scope plugin at start up.
 .TP
 .B opengl_spectrum.active=false
-Launch or not the spectrumgl scope plugin at startup.
+Launch or not the spectrumgl scope plugin at start up.
 .TP
 .B opengl_spectrum.height=480
 Height of the spectrumgl scope plugin
@@ -332,10 +332,10 @@ Width of the spectrumgl scope plugin
 .B opengl_spectrum.active=false
 .TP
 .B spacescope.active=false
-Launch or not the spacescope plugin at startup.
+Launch or not the spacescope plugin at start up.
 .TP
 .B synaescope.active=false
-Launch or not the synaescope plugin at startup.
+Launch or not the synaescope plugin at start up.
 .SH SEE ALSO
 .BR mikmod (1),
 .BR mpg123 (1).
