@@ -37,7 +37,7 @@ have_jack=no
 have_xosd=no
 dynload=no
 use_3dnow_asm=no
-use_libmad=no
+have_libmad=no
 use_libid3tag=no
 
 if test "x$x_includes" = "xNONE"
@@ -264,8 +264,17 @@ dnl MAD library
 dnl ===========
 
 AC_CHECK_LIB(mad, mad_stream_init,
-     MAD_LDADD=-lmad; use_libmad=yes; AC_DEFINE(HAVE_LIBMAD, 1, [Define if you have MAD library (-lmad)]), use_libmad=no; MAD_LDADD=, -lmad)
+     MAD_LDADD=-lmad; have_libmad=yes; AC_DEFINE(HAVE_LIBMAD, 1, [Define if you have MAD library (-lmad)]), have_libmad=no; MAD_LDADD=, -lmad)
 
+AC_ARG_ENABLE(mad,
+[  --enable-mad            Enable MAD plugin (default=yes)],
+[if test "$enableval" = "no"
+then
+	if test "$have_libmad" = "yes"
+	then
+		have_libmad=no
+	fi
+fi])
 
 dnl ==============
 dnl id3tab library
@@ -508,7 +517,7 @@ fi])
 
 if test "x$ac_cv_header_mad_h" = "xno"
 then
-	use_libmad=no
+	have_libmad=no
 fi	
 
 if test "x$ac_cv_header_id3tag_h" = "xno"
@@ -527,7 +536,7 @@ fi
 
 
 AM_CONDITIONAL(HAVE_DOXYGEN, $HAVE_DOXYGEN)
-AM_CONDITIONAL(USE_LIBMAD,test "x$use_libmad" = xyes)
+AM_CONDITIONAL(HAVE_LIBMAD,test "x$have_libmad" = xyes)
 AM_CONDITIONAL(USE_LIBID3TAG, test "x$use_libid3tag" = xyes)
 AM_CONDITIONAL(HAVE_FLC, test "x$have_flac" = xyes)
 AM_CONDITIONAL(HAVE_OGGFLC, test "x$have_oggflac" = xyes)
@@ -720,7 +729,7 @@ echo "
 Configuration:
   
   Install path:                       ${prefix}
-  Use libmad shared library:          ${use_libmad}
+  Use libmad shared library:          ${have_libmad}
   Enable libid3tag support:           ${use_libid3tag}
   Build GTK2 interface:               ${have_gtk2}
   Build XOSD interface:               ${have_xosd}

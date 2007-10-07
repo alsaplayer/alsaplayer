@@ -1,11 +1,14 @@
-
-EXTRA_DIST = xing.c xing.h mad_engine.c
-
+if HAVE_LIBMAD
 mad_inltlibs = libmad_in.la
 mad_inldflags = -export-dynamic -avoid-version
-
 mad_insources = mad_engine.c xing.c
+else
+mad_inltlibs =
+mad_inldflags =
+mad_insources =
+endif
 
+if HAVE_LIBMAD
 if HAVE_GTK2
 extra_cflags = @GTK2_CFLAGS@
 extra_libs = @GTK2_LIBS@
@@ -13,6 +16,10 @@ else
 extra_cflags =
 extra_libs =
 endif
+endif
+
+EXTRA_DIST = xing.c xing.h mad_engine.c
+
 
 lib_LTLIBRARIES = $(mad_inltlibs)
 
