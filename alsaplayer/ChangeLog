@@ -2,6 +2,7 @@ Sun Oct 7 2007
 --------------
 * Fixed libmad in configure and added --enable-mad option
 * Removed obsolete gtk1 test in configure
+* Changed the echo statement about nls in configure
 
 Sat Oct 6 2007
 --------------

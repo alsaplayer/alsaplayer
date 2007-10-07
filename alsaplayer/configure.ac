@@ -117,7 +117,7 @@ AC_ARG_ENABLE(nls,
 [  --enable-nls            Enabled NLS support (default=yes)],, enable_nls=no)
 
 if test "$enable_nls" = yes; then
-echo No nls support yet
+echo NLS support use gettext
 fi
 
 
