@@ -68,7 +68,8 @@ pref_dialog_accept(GtkWidget *dialog, GtkWidget *main_window)
 	
 	/*	play	*/
 	GtkWidget *start = GTK_WIDGET(g_object_get_data(G_OBJECT(dialog), "pref_play_on_start"));;
-	GtkWidget *add = GTK_WIDGET(g_object_get_data(G_OBJECT(dialog), "pref_play_on_add"));;
+	GtkWidget *add = GTK_WIDGET(g_object_get_data(G_OBJECT(dialog), "pref_play_on_add"));
+	GtkWidget *title = GTK_WIDGET(g_object_get_data(G_OBJECT(dialog), "pref_play_on_title"));
 	gboolean what;
 	
 	what = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(start)); 
@@ -77,6 +78,11 @@ pref_dialog_accept(GtkWidget *dialog, GtkWidget *main_window)
 	what = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(add));
 	prefs_set_bool(ap_prefs, "gtk2_interface", "play_on_add", what);
 	pl->play_on_add = what;
+	
+	what = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(title)); 
+	prefs_set_bool(ap_prefs, "gtk2_interface", "play_on_title", what);
+	if (!what)
+		gtk_window_set_title(GTK_WINDOW(main_window), "AlsaPlayer");
 }
 
 static void
@@ -105,7 +111,8 @@ play_tab(GtkWidget *dialog)
 	GtkWidget *pref_play;
 	GtkWidget *pref_play_on_start;
 	GtkWidget *pref_play_on_add;
-
+	GtkWidget *pref_play_on_title;
+	
 	pref_play = gtk_vbox_new(FALSE, 0);
 	
 	pref_play_on_start = gtk_check_button_new_with_label(_("Play on start"));	
@@ -117,6 +124,11 @@ play_tab(GtkWidget *dialog)
 	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(pref_play_on_add), prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_add", FALSE));
 	g_object_set_data(G_OBJECT(dialog), "pref_play_on_add", pref_play_on_add); 
 	gtk_box_pack_start(GTK_BOX(pref_play), pref_play_on_add, FALSE, FALSE, 0);
+	
+	pref_play_on_title = gtk_check_button_new_with_label(_("Show title in title-bar"));
+	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(pref_play_on_title), prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_title", FALSE));
+	g_object_set_data(G_OBJECT(dialog), "pref_play_on_title", pref_play_on_title); 
+	gtk_box_pack_start(GTK_BOX(pref_play), pref_play_on_title, FALSE, FALSE, 0);
 	
 	return pref_play;	
 }

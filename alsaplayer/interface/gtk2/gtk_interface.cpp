@@ -931,16 +931,24 @@ gint indicator_callback(gpointer, int locking)
 	if (strlen(info.artist)) {
 		sprintf(title_string, "%s - %s", info.artist, info.title);
 		infowindow->set_title(title_string);
+		if (prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_title", 0))
+			gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(playlist_window->GetWindow())), title_string);
 	} else if (strlen(info.title)) {
 		sprintf(title_string, "%s", info.title);
 		infowindow->set_title(title_string);
+		if (prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_title", 0))
+			gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(playlist_window->GetWindow())), title_string);
 	} else {
 		char *p = strrchr(info.path, '/');
 		if (p) {
 			p++;
 			infowindow->set_title(p);
+			if (prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_title", 0))
+				gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(playlist_window->GetWindow())), title_string);
 		} else {
 			infowindow->set_title(info.path);
+			if (prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_title", 0))
+				gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(playlist_window->GetWindow())), title_string);
 		}	
 	}
 
