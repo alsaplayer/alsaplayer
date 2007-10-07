@@ -62,7 +62,6 @@ AM_DISABLE_STATIC
 AM_PROG_LIBTOOL
 AM_PROG_CC_C_O
 AC_PROG_MAKE_SET
-AM_PATH_GLIB(1.2.6, have_glib=yes, have_glib=no)
 AM_PATH_LIBMIKMOD(3.1.7, have_mikmod=yes, have_mikmod=no)
 AM_PATH_OGG(have_ogg=yes, have_ogg=no)
 AM_PATH_VORBIS(have_vorbis=yes, have_vorbis=no)
