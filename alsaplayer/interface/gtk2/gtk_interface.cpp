@@ -944,11 +944,11 @@ gint indicator_callback(gpointer, int locking)
 			p++;
 			infowindow->set_title(p);
 			if (prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_title", 0))
-				gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(playlist_window->GetWindow())), title_string);
+				gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(playlist_window->GetWindow())), p);
 		} else {
 			infowindow->set_title(info.path);
 			if (prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_title", 0))
-				gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(playlist_window->GetWindow())), title_string);
+				gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(playlist_window->GetWindow())), info.path);
 		}	
 	}
 

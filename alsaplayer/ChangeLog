@@ -1,3 +1,7 @@
+Mon Oct 8 2007
+--------------
+* Madej: fixed song title in title bar when unknow name
+
 Sun Oct 7 2007
 --------------
 * Fixed libmad in configure and added --enable-mad option
