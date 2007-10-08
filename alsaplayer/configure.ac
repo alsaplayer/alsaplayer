@@ -24,6 +24,7 @@ have_opengl=no
 have_audiofile=no
 have_oggvorbis=no
 have_flac=no
+have_libFLAC_113=no
 have_oggflac=no
 have_alsa_05x=no
 have_alsa_final=no
@@ -238,14 +239,21 @@ then
 	fi
 fi])
 
+dnl ========================
+dnl check for libflac>=1.1.3
+dnl ========================
+
+AC_CHECK_LIB(FLAC, [FLAC__stream_decoder_init_ogg_stream],
+     have_libFLAC_113=yes, have_libFLAC_113=no)
 
 dnl ===============
 dnl OggFLAC library
 dnl ===============
-
-AC_CHECK_LIB(OggFLAC, OggFLAC__stream_decoder_new,
-     OGGFLC_LDADD="-lOggFLAC -logg"; have_oggflac=yes; AC_DEFINE(HAVE_LIBOGGFLC, 1, [Define if you have OggFLAC library (-lOggFLAC)]), have_oggflac=no; OGGFLC_LDADD=, -lOggFLAC -lFLAC -logg -lm)
-
+if test "$have_libFLAC_113" = "no"
+then
+	AC_CHECK_LIB(OggFLAC, OggFLAC__stream_decoder_new,
+	     OGGFLC_LDADD="-lOggFLAC -logg"; have_oggflac=yes; AC_DEFINE(HAVE_LIBOGGFLC, 1, [Define if you have OggFLAC library (-lOggFLAC)]), have_oggflac=no; OGGFLC_LDADD=, -lOggFLAC -lFLAC -logg -lm)
+fi
 
 AC_ARG_ENABLE(oggflac,
 [  --enable-oggflac        Enable OggFLAC plugin (default=yes)],
@@ -746,7 +754,8 @@ Configuration:
   Build mikmod input plugin:          ${have_mikmod}
   Build audiofile input plugin:       ${have_audiofile}
   Build FLAC input plugin:            ${have_flac}
-  Build OggFLAC input plugin:         ${have_oggflac}
+  Included OggFLAC input plugin:      ${have_libFLAC_113}
+  Separated OggFLAC input plugin:     ${have_oggflac}
   Build sndfile input plugin:         ${have_sndfile}"
 echo
 

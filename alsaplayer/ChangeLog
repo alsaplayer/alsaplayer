@@ -3,6 +3,7 @@ Mon Oct 8 2007
 * Madej: fixed song title in title bar when unknow name
 * Fixed crash at startup with "main.default_interface=gtk" in AP
   config file
+* Fixed flac and oggflac test in configure
 
 Sun Oct 7 2007
 --------------
