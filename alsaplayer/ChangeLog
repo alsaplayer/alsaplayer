@@ -1,3 +1,7 @@
+Wed Oct 11 2007
+---------------
+* Hubert Chan: Replaced GTK2 code in mad plugin by Glib2 code
+
 Mon Oct 8 2007
 --------------
 * Madej: fixed song title in title bar when unknow name

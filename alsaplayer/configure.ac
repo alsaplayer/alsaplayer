@@ -6,7 +6,7 @@ ALSAPLAYER_MAJOR_VERSION=0
 ALSAPLAYER_MINOR_VERSION=99
 ALSAPLAYER_MICRO_VERSION=80
 
-BETA=-rc4
+BETA=-rc5
 
 ALSAPLAYER_VERSION=$ALSAPLAYER_MAJOR_VERSION.$ALSAPLAYER_MINOR_VERSION.${ALSAPLAYER_MICRO_VERSION}${BETA}
 
@@ -323,6 +323,14 @@ AC_CHECK_LIB(xosd, xosd_create,
 AM_CONDITIONAL(HAVE_XOSD, test "x$have_xosd" = xyes)
 
 dnl ==========
+dnl glib stuff
+dnl ==========
+
+PKG_CHECK_MODULES(GLIB2, glib-2.0, have_glib2=yes, have_glib2=no)
+AC_SUBST(GLIB2_LIBS)
+AC_SUBST(GLIB2_CFLAGS)
+
+dnl ==========
 dnl GTK2 stuff
 dnl ==========
 
@@ -556,6 +564,7 @@ AM_CONDITIONAL(HAVE_SPARC, test "x$have_sparc" = xyes)
 AM_CONDITIONAL(HAVE_SGI, test "x$have_sgi" = xyes)
 AM_CONDITIONAL(HAVE_NAS, test "x$have_nas" = xyes)
 AM_CONDITIONAL(HAVE_LINUX_CDROM,test "x$ac_cv_header_linux_cdrom_h" = xyes)
+AM_CONDITIONAL(HAVE_GLIB2, test "x$have_glib2" = xyes)
 AM_CONDITIONAL(HAVE_GTK2, test "x$have_gtk2" = xyes)
 AM_CONDITIONAL(HAVE_MIKMOD,test "x$have_mikmod" = xyes)
 
@@ -618,6 +627,11 @@ fi
 if test "$ARCH_TYPE" = "sun4u"
 then
 		AC_DEFINE(ARCH_ULTRA, 1, [Define if on a SUN ULTRA platform])
+fi
+
+if test "$have_glib2" = "yes"
+then
+		AC_DEFINE(HAVE_GLIB2, 1, [Define if we have glib2])
 fi
 
 if test "$have_gtk2" = "yes"

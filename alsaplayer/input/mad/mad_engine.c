@@ -25,7 +25,7 @@
 #include "config.h"
 #endif
 
-#ifdef HAVE_GTK2
+#ifdef HAVE_GLIB2
 #include <glib.h>
 #endif
 
@@ -443,7 +443,7 @@ static void fill_from_id3v2 (char *dst, char *src, int max, int size)
 
 	int min = size-1 > max ? max : size-1;
 	
-#ifdef HAVE_GTK2
+#ifdef HAVE_GLIB2
 	if (*src == 0)
 		conv = g_convert((const gchar *)src+1, (gssize) size, "UTF-8", "ISO-8859-1", NULL, NULL, NULL);
 	else if (*src == 1)

@@ -9,9 +9,9 @@ mad_insources =
 endif
 
 if HAVE_LIBMAD
-if HAVE_GTK2
-extra_cflags = @GTK2_CFLAGS@
-extra_libs = @GTK2_LIBS@
+if HAVE_GLIB2
+extra_cflags = @GLIB2_CFLAGS@
+extra_libs = @GLIB2_LIBS@
 else
 extra_cflags =
 extra_libs =
