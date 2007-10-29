@@ -540,7 +540,7 @@ key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 			stop_cb(NULL, playlist);
 			break;
 		case PLAY_KEY:
-			play_cb(NULL, playlist);
+			play_cb(NULL, playlist_window);
 			break;
 		case PAUSE_KEY:
 			scale = GTK_WIDGET(g_object_get_data(G_OBJECT(widget), "speed_scale"));
