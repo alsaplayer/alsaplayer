@@ -20,6 +20,11 @@
  */
 //--------------------------------------------------------------------------
 
+#if !defined(FLAC_API_VERSION_CURRENT) || FLAC_API_VERSION_CURRENT < 8
+#define LEGACY_FLAC
+#else
+#undef LEGACY_FLAC
+#endif
 
 #include <string>
 #include <cstdio>
@@ -321,7 +326,11 @@ input_plugin_info (void)
     memset (&flac_plugin, 0, sizeof(input_plugin));
 
     flac_plugin.version      = INPUT_PLUGIN_VERSION;
-    flac_plugin.name         = "flac player v1.2";
+#ifdef LEGACY_FLAC
+    flac_plugin.name         = "flac player v1.1.2";
+#else
+    flac_plugin.name         = "flac player v1.1.3/1.1.4/1.2";
+#endif
     flac_plugin.author       = "Drew Hess";
     flac_plugin.init         = flac_init;
     flac_plugin.shutdown     = flac_shutdown;

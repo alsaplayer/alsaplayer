@@ -1,7 +1,11 @@
 Mon Oct 29 2007
 ---------------
 * Madej: fixed segfault with PLAY shortcut
-
+* Flacstream: change unsigned int to size_t applied to old API
+  (from Debian)
+* Changed flac plugin version to reflete the name of the different
+  flac versions
+  
 Wed Oct 11 2007
 ---------------
 * Hubert Chan: Replaced GTK2 code in mad plugin by Glib2 code

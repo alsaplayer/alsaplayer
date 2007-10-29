@@ -257,11 +257,7 @@ FLAC__StreamDecoderReadStatus
 FlacSeekableStream::readCallBack (const FLAC__StreamDecoder * /*decoder*/,
 #endif
 				  FLAC__byte buffer[],
-#ifdef LEGACY_FLAC
-				  unsigned * bytes,
-#else
 				  size_t * bytes,
-#endif
 				  void * client_data)
 {
     if (!client_data)

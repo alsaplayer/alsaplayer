@@ -188,7 +188,7 @@ OggFlacStream::writeCallBack (const OggFLAC__StreamDecoder * decoder,
 FLAC__StreamDecoderReadStatus
 OggFlacStream::readCallBack (const OggFLAC__StreamDecoder * decoder,
 			     FLAC__byte buffer[],
-			     unsigned * bytes,
+			     size_t * bytes,
 			     void * client_data)
 {
     if (!client_data)

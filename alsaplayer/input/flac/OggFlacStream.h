@@ -107,7 +107,7 @@ class OggFlacStream : public FlacStream
     static FLAC__StreamDecoderReadStatus
 	readCallBack (const OggFLAC__StreamDecoder * decoder,
 		      FLAC__byte buffer[],
-		      unsigned * bytes,
+		      size_t * bytes,
 		      void * client_data);
 
     static void errCallBack (const OggFLAC__StreamDecoder * decoder,
