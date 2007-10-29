@@ -5,7 +5,8 @@ Mon Oct 29 2007
   (from Debian)
 * Changed flac plugin version to reflete the name of the different
   flac versions
-  
+* Updated config.sub & config.guess
+
 Wed Oct 11 2007
 ---------------
 * Hubert Chan: Replaced GTK2 code in mad plugin by Glib2 code
