@@ -1,7 +1,8 @@
 Sat Nov 3 2007
 --------------
 * alsaplayer.desktop: removed deprecated keys and fixed Version and
-  MimeType keys.
+  MimeType keys. Removed the -E option in the Exec key. We don't need
+  this X option anymore with the GTK2 interface.
   
 Mon Oct 29 2007
 ---------------
