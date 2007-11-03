@@ -1,3 +1,8 @@
+Sat Nov 3 2007
+--------------
+* alsaplayer.desktop: removed deprecated keys and fixed Version and
+  MimeType keys.
+  
 Mon Oct 29 2007
 ---------------
 * Madej: fixed segfault with PLAY shortcut
