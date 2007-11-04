@@ -33,9 +33,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
-#ifdef USE_ESD
-#include <esd.h>
-#endif
 
 #include "output_plugin.h"
 
