@@ -52,8 +52,13 @@
 #include "alsaplayer_error.h"
 //#include "MetadataReader.h" //TODO
 
+// some arch don't define PATH_MAX
+#ifndef PATH_MAX
+#define PATH_MAX 1024
+#endif
+
 extern void exit_sighandler(int);
-static char addon_dir[1024];
+static char addon_dir[PATH_MAX];
 
 int CorePlayer::plugin_count = 0;
 int CorePlayer::plugins_loaded = 0;
@@ -115,11 +120,6 @@ void CorePlayer::UnRegisterNotifier(coreplayer_notifier *core_notif)
 	notifiers.erase(notifiers.find(core_notif));
 	UnlockNotifiers();
 }
-
-// some arch don't define PATH_MAX
-#ifndef PATH_MAX
-#define PATH_MAX 1024
-#endif
 
 void CorePlayer::load_input_addons()
 {
