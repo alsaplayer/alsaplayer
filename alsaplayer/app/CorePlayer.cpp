@@ -803,6 +803,7 @@ void CorePlayer::Close()
 {
 	Lock();
 	if (plugin && the_object && the_object->ready) {
+		free (the_object->path);
 		the_object->ready = 0;
 		plugin->close(the_object);
 	}
@@ -887,8 +888,7 @@ bool CorePlayer::Open(const char *path)
 	}
 
 	// Copy path into input_object structure for future use
-	the_object->path = (char*)malloc (strlen(path) + 1); // including trailing \0
-	sprintf (the_object->path, "%s", path);
+	the_object->path = strdup (path); // including trailing \0
 
 	the_object->ready = 1;
 	plugin = best_plugin;
