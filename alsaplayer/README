@@ -164,7 +164,7 @@ Address     : mailto:alsaplayer-devel-request@lists.tartarus.org
               with subject "subscribe"
  
 Name        : alsaplayer-commits
-Description : keep up to date on the CVS commits
+Description : keep up to date on the SVN commits
 Address     : http://lists.sourceforge.net/lists/listinfo/alsaplayer-commits
 
 
@@ -172,22 +172,16 @@ More information on these mailing lists and online archives can be found at
 http://lists.tartarus.org/mailman/listinfo/
 
 
-CVS REPOSITORY
+SVN REPOSITORY
 --------------
 
 You can always check out the latest version of AlsaPlayer. Execute the
 following commands in the directory you want the sources in:
 
-cvs \
--d:pserver:anonymous@cvs.alsaplayer.sourceforge.net:/cvsroot/alsaplayer \
-login
+svn co https://alsaplayer.svn.sourceforge.net/svnroot/alsaplayer/trunk alsaplayer
 
-cvs -z3 \
--d:pserver:anonymous@cvs.alsaplayer.sourceforge.net:/cvsroot/alsaplayer \
-co alsaplayer
-
-A browsable CVS repositary is also available at:
-http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/alsaplayer/
+A browsable SVN repositary is also available at:
+http://alsaplayer.svn.sourceforge.net/viewvc/alsaplayer/
 
 Thanks to the folks at SourceForge.net for providing these resources.
 
