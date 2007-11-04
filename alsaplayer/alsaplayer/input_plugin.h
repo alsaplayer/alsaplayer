@@ -23,6 +23,8 @@
 #ifndef __input_plugin_h__
 #define __input_plugin_h__
 
+#include "stream_info.h"
+
 #include <pthread.h>
 
 /**
@@ -125,77 +127,6 @@ typedef struct _input_object
 	pthread_mutex_t	object_mutex;
 } input_object;
 
-
-/**
- * This structure is used to pass information about a stream/song from
- * the plugin to the host.
- */
-typedef struct _stream_info
-{
-	/**
-	 * Should describe what type of stream this is (MP3, OGG, etc). May
-	 * also contain format data and things like sample rate. Text
-	 */
-	char	stream_type[128];
-	/** 
-	 * Author of the stream. Usually the name of the Artist or Band
-	 */
-	char	artist[128];
-	/**
-	 * The song title.
-	 */
-	char	title[128];
-	/**
-	 * The album name.
-	 */
-	char	album[128];
-	/**
-	 * The genre of this song
-	 */
-	char	genre[128];
-	/**
-	 * The year of this song
-	 */
-	char	year[10];
-	/**
-	 * The track number of this song
-	 */
-	char	track[10];
-	/**
-	 * The comment of this song
-	 */
-	char	comment[128];
-	/**
-	 * The status of the plugin. Can have something like "Seeking..."
-	 * or perhaps "Buffering" depending on what the plugin instance is
-	 * doing.
-	 */
-	char	status[32];
-	/**
-	 * The path of the stream
-	 */
-	char	path[1024];
-	/**
-	 * The number of channels 
-	 */
-	int	channels;
-	/**
-	 * The number of tracks
-	 */
-	int	tracks;
-	/**
-	 * The current track;
-	 */
-	int 	current_track;
-	/**
-	 * The sampling rate
-	 */
-	int	sample_rate;
-	/**
-	 * The bitrate
-	 */
-	int	bitrate;
-} stream_info;
 
 /** 
  * input plugin binary version. Must be set to INPUT_PLUGIN_VERSION 
