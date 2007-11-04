@@ -166,22 +166,6 @@ static int tta_channels(input_object *obj)
 	return ((tta_info*)obj->local_data)->NCH;
 }
 
-static int tta_stream_info (input_object *obj, stream_info *info)
-{
-	if (!obj || !(obj->local_data) || !info)
-		return 0;
-
-	sprintf(info->stream_type, "%d channels, %dHz %s",
-		((tta_info*)obj->local_data)->NCH,
-		((tta_info*)obj->local_data)->SAMPLERATE,
-		"stereo"); /* TODO */
-	strcpy(info->status, "");
-	strcpy(info->artist, "");
-	strcpy(info->title, "");
-	
-	return 1;
-}
-
 static int tta_nr_frames(input_object *obj)
 {
 	if (!obj || !(obj->local_data))
@@ -262,7 +246,7 @@ input_plugin *input_plugin_info (void)
 	tta_plugin.frame_to_sec = tta_frame_to_sec; /* TODO */
 	tta_plugin.sample_rate 	= tta_sample_rate; /* TODO */
 	tta_plugin.channels 	= tta_channels;  /* TODO */
-	tta_plugin.stream_info 	= tta_stream_info; /* TODO */ 
+	tta_plugin.stream_info 	= NULL: 
 
 	return &tta_plugin;
 }
