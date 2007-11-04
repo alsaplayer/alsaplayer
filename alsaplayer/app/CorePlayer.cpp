@@ -55,23 +55,6 @@
 extern void exit_sighandler(int);
 static char addon_dir[1024];
 
-
-#if 0	// unused; Frank
-bool surround_func(void *arg, void *data, int size)
-{
-	int amount = 50;
-	int16_t *d = (int16_t *)data;
-	for (int i=0; i < size; i+=2) {
-		int16_t l =  d[i]; // Left
-		int16_t r =  d[i+1]; // Right
-		d[i] =  ((l*(256-amount))-(r*amount))/256;
-		d[i+1] = ((r*(256-amount))-(l*amount))/256;
-	}
-	return true;
-}
-#endif
-
-
 int CorePlayer::plugin_count = 0;
 int CorePlayer::plugins_loaded = 0;
 pthread_mutex_t CorePlayer::plugins_mutex = PTHREAD_MUTEX_INITIALIZER;
