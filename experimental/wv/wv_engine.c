@@ -92,8 +92,6 @@ static int wv_open(input_object *obj, const char *path)
 	obj->nr_channels = WavpackGetReducedChannels (obj->local_data);
 	obj->nr_tracks   = 1;
 	obj->frame_size = BLOCK_SIZE;
-	obj->path = (char*)malloc (strlen(path));
-	strcpy (obj->path, path);
 
 	return 1;
 }

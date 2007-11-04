@@ -89,8 +89,6 @@ static int ape_open(input_object *obj, const char *path)
 	obj->nr_channels = ((IAPEDecompress*) obj->local_data)->GetInfo(APE_INFO_CHANNELS);
 	obj->nr_tracks   = 1;
 	obj->frame_size = BLOCK_SIZE;
-	obj->path = (char*)malloc (strlen(path));
-	strcpy (obj->path, path);
 
 	return 1;
 }

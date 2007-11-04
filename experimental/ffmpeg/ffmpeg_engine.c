@@ -129,8 +129,6 @@ static int ffmpeg_open(input_object *obj, const char *path)
 	obj->nr_channels = (((ffmpeg_data*)obj->local_data)->format)->streams[audioStream]->codec->channels;
 	obj->nr_tracks   = 1;
 	obj->frame_size = BLOCK_SIZE;
-	obj->path = (char*)malloc (strlen(path));
-	strcpy (obj->path, path);
 
 	printf ("ffmpeg_open: return\n \
 			\t\tnr_channels[%u]\n \

@@ -877,6 +877,10 @@ bool CorePlayer::Open(const char *path)
 		return false;
 	}
 
+	// Copy path into input_object structure for future use
+	the_object->path = (char*)malloc (strlen(path) + 1); // including trailing \0
+	sprintf (the_object->path, "%s", path);
+
 	the_object->ready = 1;
 	plugin = best_plugin;
 	
