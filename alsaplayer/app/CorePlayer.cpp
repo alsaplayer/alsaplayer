@@ -50,6 +50,7 @@
 #include "Effects.h"
 #include "utilities.h"
 #include "alsaplayer_error.h"
+//#include "MetadataReader.h" //TODO
 
 extern void exit_sighandler(int);
 static char addon_dir[1024];
@@ -390,7 +391,7 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	}	
 	if (the_plugin->stream_info == NULL) {
 		alsaplayer_error("No stream_info function");
-		error_count++;
+//		error_count++; // we don't require this function since generic metadata parsing
 	}
 	if (the_plugin->shutdown == NULL) {
 		alsaplayer_error("No shutdown function");
@@ -557,6 +558,14 @@ int CorePlayer::GetStreamInfo(stream_info *info)
 	Lock();
 	if (plugin && plugin->stream_info && info && the_object) {
 		result = plugin->stream_info(the_object, info);
+	}
+	if (plugin && info && the_object) {
+		if (plugin->stream_info) { // plugin provides its own metadata parser
+			result = plugin->stream_info(the_object, info);
+		}
+		else{ // we'll use generic metadata parser
+//TODO			result = get_stream_info (the_object->path, info);
+		}
 	}
 	Unlock();
 
