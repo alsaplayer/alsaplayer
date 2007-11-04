@@ -173,11 +173,6 @@ static void ffmpeg_close(input_object *obj)
 	free (obj->local_data);
 	obj->local_data = NULL;
 	
-	if(obj->path){
-		printf("ffmpeg_close: destroying path\n");
-		free(obj->path);
-		obj->path = NULL;
-	}
 	printf("ffmpeg_close: return\n");
 }
 

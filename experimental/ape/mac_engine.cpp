@@ -100,11 +100,6 @@ static void ape_close(input_object *obj)
 	
 	free (obj->local_data);
 	obj->local_data = NULL;
-	
-	if(obj->path){
-		free(obj->path);
-		obj->path = NULL;
-	}
 }
 
 static long ape_frame_to_sec (input_object *obj, int frame)

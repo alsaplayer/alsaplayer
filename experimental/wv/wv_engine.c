@@ -104,10 +104,6 @@ static void wv_close(input_object *obj)
 	WavpackCloseFile (obj->local_data);
 	obj->local_data = NULL;
 	
-	if(obj->path){
-		free(obj->path);
-		obj->path = NULL;
-	}
 }
 
 static long wv_frame_to_sec (input_object *obj, int frame)
