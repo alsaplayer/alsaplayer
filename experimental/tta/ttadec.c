@@ -64,9 +64,6 @@ static unsigned long bit_cache;
 static unsigned char *bitpos;
 static unsigned long bitrate;
 
-void get_id3v1_tag (tta_info *ttainfo);
-int  get_id3v2_tag (tta_info *ttainfo);
-
 /************************* bit operations ******************************/
 
 static void init_buffer_read() {
@@ -213,9 +210,7 @@ long open_tta_file (const char *filename, tta_info *info, unsigned long data_off
 
 	// skip id3v2 header
 	if (!data_offset) {
-		data_offset = get_id3v2_tag (info);
-		//data_offset = skip_id3v2_header(infile);
-		get_id3v1_tag (info);
+		data_offset = skip_id3v2_header(infile);
 		if (data_offset < 0) return -1;
 	} else fseek (infile, data_offset, SEEK_SET);
 
