@@ -11,7 +11,6 @@ CPPFLAGS =	-I$(PREFIX)/include/alsaplayer
 
 LINKER_FLAGS   = 
 LINKER_OBJECTS = tta_engine.o \
-		 id3.o \
 		 ttadec.o
 
 all: $(LINKER_OBJECTS)

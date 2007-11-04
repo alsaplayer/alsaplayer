@@ -31,8 +31,6 @@
 #ifndef TTALIB_H_
 #define TTALIB_H_
 
-#include "id3tag.h"
-
 //#define _BIG_ENDIAN
 #define MAX_BPS         24	// Max supported Bit resolution
 #define MAX_NCH         8	// Max supported number of channels
@@ -66,8 +64,6 @@ typedef struct {
 	unsigned long   LENGTH;		// playback time (sec)
 	unsigned long   STATE;		// return code
 	unsigned long   DATAPOS;	// size of ID3v2 header
-	id3v1_data	id3v1;
-	id3v2_data	id3v2;
 } tta_info;
 
 /*********************** Library functions *************************/
