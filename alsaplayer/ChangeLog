@@ -1,3 +1,18 @@
+Sun Nov 4 2007
+--------------
+* Peter Lemenkov: 
+- Renamed README.CVS to README.SVN and cleaned up README.
+- Save path of playing file for future use in CorePlayer.
+- Don't stop if we cannot find plugin->stream_info (prepare for future
+  generic metadata parsing).
+- Fix memleak with path copying.
+- Moved stream_info structure from inout_object to its own header (we reuse
+  it further).
+- Removed dead code - all sound fx (surround, downsampling etc) must be
+  handled by specific plugins.
+- Another PATH_MAX substitution instead of mysterious 1024
+- AlsaNode.h: No need to include bits from esound here.
+
 Sat Nov 3 2007
 --------------
 * alsaplayer.desktop: removed deprecated keys and fixed Version and

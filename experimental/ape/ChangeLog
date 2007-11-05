@@ -1,5 +1,10 @@
+* Sun Nov 4 2007 Peter Lemenkov <lemenkov@gmail.com>
+- Save path of playing file for future use in CorePlayer
+- prevent double free attempt (since we now store and handle currently playing
+  track's path in CorePlayer).
+  
 * Tue Apr 3 2007 Peter Lemenkov <lemenkov@gmail.com>
--Fix for endianness
+- Fix for endianness
 
 * Tue Apr 3 2007 Dominique Michel <dominique_libre@sourceforge.net>
 - Conditional PREFIX in Makefile

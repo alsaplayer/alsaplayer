@@ -1,3 +1,7 @@
+* Sun Nov 4 2007 Peter Lemenkov <lemenkov@gmail.com>
+- Save path of playing file for future use in CorePlayer
+- Prevent double free attempt.
+
 * Tue Apr 3 2007 Peter Lemenkov <lemenkov@gmail.com>
 -Fix for endianness
 

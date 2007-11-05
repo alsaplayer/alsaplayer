@@ -2,8 +2,9 @@
 - Fixed typo in tta_engine.c
 
 * Sun Nov 4 2007 Peter Lemenkov <lemenkov@gmail.com>
-- removed id3-metadata handling completely
-- removed stream_info from tta-plugin
+- Removed id3-metadata handling completely
+- Removed stream_info from tta-plugin
+- Save path of playing file for future use in CorePlayer
 
 * Tue Apr 3 2007 Dominique Michel <dominique_libre@sourceforge.net>
 - Added conditional PREFIX and install target in Makefile
