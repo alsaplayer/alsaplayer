@@ -246,7 +246,7 @@ input_plugin *input_plugin_info (void)
 	tta_plugin.frame_to_sec = tta_frame_to_sec; /* TODO */
 	tta_plugin.sample_rate 	= tta_sample_rate; /* TODO */
 	tta_plugin.channels 	= tta_channels;  /* TODO */
-	tta_plugin.stream_info 	= NULL: 
+	tta_plugin.stream_info 	= NULL; 
 
 	return &tta_plugin;
 }
