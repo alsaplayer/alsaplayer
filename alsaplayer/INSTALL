@@ -15,6 +15,17 @@ If you have questions about the install phase feel free to email me at:
 dominique@tuxfamily.org
 
 
+GTK2 interface
+==============
+In order to get AlsaPlayer's GTK2 interface, gtk+ >= 2.8.0 must be installed
+in your system with its devel package. For the systray icon to be compiled in,
+gtk+ >= 2.10 is required and you must run configure with --enable-systray.
+
+When closing and re-opening the playlist window, you can get the default size 
+as defined in the source code instead of the last used size. This is a bug in
+gtk+, not in alsaplayer. It have been fixed in gtk+-2.12.
+
+
 Installing from CVS
 ===================
 
