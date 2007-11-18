@@ -81,6 +81,7 @@
 #include "PreferencesWindow.h"
 #include "ScopesWindow.h"
 #include "control.h"
+#include "StatusIcon.h"
 
 #include "info_window.h"
 
@@ -318,7 +319,6 @@ main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 	// Never reached
 	return FALSE;
 }
-
 
 gboolean press_event(GtkWidget *, GdkEvent *, gpointer)
 {
@@ -1536,9 +1536,17 @@ create_main_window (Playlist *pl)
 	global_ustr.speed_scale = speed_scale;
 	global_ustr.bal_scale = bal_scale;
 
+
+		/* temp? init of staticon */
+	gboolean staticon = status_icon_create(main_window);
+	
 	g_signal_connect(G_OBJECT(main_window), "expose-event", G_CALLBACK(configure_window), (gpointer)infowindow);
-		
-	g_signal_connect(G_OBJECT(main_window), "delete_event", G_CALLBACK(main_window_delete), NULL);
+	
+	if (staticon)	
+		g_signal_connect(G_OBJECT(main_window), "delete_event", G_CALLBACK(main_window_delete), NULL);
+	else
+		g_signal_connect(G_OBJECT(main_window), "delete_event", G_CALLBACK(gtk_widget_hide), NULL);
+	
 	g_signal_connect(G_OBJECT(main_window), "key_press_event", G_CALLBACK(key_press_cb), (gpointer)playlist_window);	
 	g_signal_connect(G_OBJECT(main_window), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	
@@ -1579,7 +1587,7 @@ create_main_window (Playlist *pl)
 	g_signal_connect(G_OBJECT(loop_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(looper_button), "clicked", G_CALLBACK(loop_cb), (gpointer)pos_scale);
 	g_signal_connect(G_OBJECT(looper_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
-
+	
 	return main_window;
 }
 

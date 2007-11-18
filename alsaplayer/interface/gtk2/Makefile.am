@@ -7,7 +7,8 @@ gtk2_interfaceldflags = -export-dynamic -avoid-version
 gtk2_interfacesources = PlaylistWindow.cpp ScopesWindow.h  \
 	gtk.cpp PlaylistWindow.h ScopesWindow.cpp \
 	gtk_interface.cpp gtk_interface.h AboutWindow.cpp AboutWindow.h \
-	info_window.cpp info_window.h PreferencesWindow.h PreferencesWindow.cpp
+	info_window.cpp info_window.h PreferencesWindow.h PreferencesWindow.cpp \
+	StatusIcon.h StatusIcon.cpp
 
 else
 
