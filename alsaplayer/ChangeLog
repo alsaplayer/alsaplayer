@@ -1,6 +1,7 @@
 Sun Nov 18 2007
 ---------------
 * Madej: Added initial systray icon function in gtk2.
+* configure: added --enable-systray and gtk2 test for systray (need gtk+-2.10).
 
 Sun Nov 4 2007
 --------------

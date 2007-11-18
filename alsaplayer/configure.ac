@@ -40,6 +40,8 @@ dynload=no
 use_3dnow_asm=no
 have_libmad=no
 use_libid3tag=no
+can_systray=no
+have_systray=no
 
 if test "x$x_includes" = "xNONE"
 then
@@ -338,6 +340,43 @@ PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.8.0 gthread-2.0 >= 2.0.3 pango, have_gtk2=
 AC_SUBST(GTK2_LIBS)
 AC_SUBST(GTK2_CFLAGS)
 
+dnl ================
+dnl GTK2 for systray
+dnl ================
+
+PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.10.0 gthread-2.0 >= 2.0.3 pango, can_systray=yes, can_systray=no)
+
+AC_ARG_ENABLE(systray,
+[  --enable-systray        Enable SysTray icon (default=no)],,
+	enable_systray=no)
+
+if test "x$enable_systray" = xyes;
+then
+	if test "$can_systray" = "yes"
+	then
+		have_systray=yes
+	else
+		have_systray=no
+	fi
+else
+	have_systray=no
+fi
+
+AM_CONDITIONAL(HAVE_SYSTRAY,test "x$have_systray" = "xyes")
+
+if test "$enable_systray" = yes; then
+    if test "$have_systray" = no; then
+    echo Systray support need gtk+>=2.10.n
+    else
+    echo Experimental systray support will be compiled
+    fi
+fi
+
+if test "$have_systray" = "yes"
+then
+		AC_DEFINE(HAVE_SYSTRAY, yes, [Define if we have the systray icon])
+fi
+
 dnl ==================
 dnl libsndfile library
 dnl ==================
@@ -567,6 +606,7 @@ AM_CONDITIONAL(HAVE_LINUX_CDROM,test "x$ac_cv_header_linux_cdrom_h" = xyes)
 AM_CONDITIONAL(HAVE_GLIB2, test "x$have_glib2" = xyes)
 AM_CONDITIONAL(HAVE_GTK2, test "x$have_gtk2" = xyes)
 AM_CONDITIONAL(HAVE_MIKMOD,test "x$have_mikmod" = xyes)
+AM_CONDITIONAL(HAVE_SYSTRAY,test "x$have_systray" = xyes)
 
 
 dnl ============
@@ -770,7 +810,8 @@ Configuration:
   Build FLAC input plugin:            ${have_flac}
   Included OggFLAC input plugin:      ${have_libFLAC_113}
   Separated OggFLAC input plugin:     ${have_oggflac}
-  Build sndfile input plugin:         ${have_sndfile}"
+  Build sndfile input plugin:         ${have_sndfile}
+  Build systray icon:                 ${have_systray}"
 echo
 
 if test $have_jack = "no" -a $have_sparc = "no" -a $have_alsa_05x = "no" -a $have_alsa_final = "no" -a $have_oss = "no" -a $have_esd = "no" -a $have_sgi = "no" -a $have_nas = "no"
