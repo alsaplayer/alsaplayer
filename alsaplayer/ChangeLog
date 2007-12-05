@@ -1,3 +1,7 @@
+Wed Dec 5 2007
+--------------
+* Juuso Alasuutari: Fix getting JACK sample rate
+
 Sun Nov 18 2007
 ---------------
 * Madej: Added initial systray icon function in gtk2.

@@ -131,6 +131,7 @@ int jack_prepare(void *arg)
 		jack_set_sample_rate_callback (client, (JackProcessCallback)srate, arg);
 		jack_on_shutdown (client, jack_shutdown, arg);
 
+		sample_rate = jack_get_sample_rate (client);
 		my_output_port1 = jack_port_register (client, "out_1",
 				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput|JackPortIsTerminal, 0);               
 		my_output_port2 = jack_port_register (client, "out_2",
