@@ -440,28 +440,30 @@ static void fill_from_id3v2 (char *dst, char *src, int max, int size)
 		return;
 
 	char *conv = NULL;
-
-	int min = size-1 > max ? max : size-1;
 	
 #ifdef HAVE_GLIB2
 	if (*src == 0)
-		conv = g_convert((const gchar *)src+1, (gssize) size, "UTF-8", "ISO-8859-1", NULL, NULL, NULL);
+		conv = g_convert((const gchar *)src+1, (gssize) size-1, "UTF-8", "ISO-8859-1", NULL, NULL, NULL); // gsti: size -1
 	else if (*src == 1)
-		conv = g_convert((const gchar *)src+1, (gssize) size, "UTF-8", "UTF-16", NULL, NULL, NULL);
+		conv = g_convert((const gchar *)src+1, (gssize) size-1, "UTF-8", "UTF-16", NULL, NULL, NULL);
 	else if (*src == 2)
-		conv = g_convert((const gchar *)src+1, (gssize) size, "UTF-8", "UTF-16BE", NULL, NULL, NULL);
+		conv = g_convert((const gchar *)src+1, (gssize) size-1, "UTF-8", "UTF-16BE", NULL, NULL, NULL);
  	else
 		conv = g_strndup(src+1, size);
 #else
-//	alsaplayer_error ("Warning: Without glib2 you get different encodings.");
+	alsaplayer_error ("Warning: Without glib2 you get different encodings.");
 	conv = strndup(src+1, size);
 #endif
 	
 	if (!conv)	// convert error
 		return;
 	
+	int min = strlen(conv) > max ? max : strlen(conv);	// gsti
 	strncpy (dst, conv, min);
 	
+	if (min == max)	// gsti
+		dst[min-1] = 0;
+		
 	if (conv)
 		free(conv);
 	

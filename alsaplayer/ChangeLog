@@ -1,3 +1,11 @@
+Wed Dec 19
+----------
+* Gũnther Stibbe: 2 bug fixes in id3 tag support:
+  - The last char in id3 tag was missing when a special charachter is in
+    the tag.
+  - If an id3 string is longer that the max, the \0 at the end of the string
+    was missing.
+
 Wed Dec 5 2007
 --------------
 * Juuso Alasuutari: Fix getting JACK sample rate
