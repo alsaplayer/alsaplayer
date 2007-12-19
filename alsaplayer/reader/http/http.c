@@ -23,7 +23,7 @@
 
 #include "config.h"
 
-#include <malloc.h>
+#include <stdlib.h>
 #include <netdb.h>
 #include <stdlib.h>
 #include <string.h>

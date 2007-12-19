@@ -5,6 +5,7 @@ Wed Dec 19
     the tag.
   - If an id3 string is longer that the max, the \0 at the end of the string
     was missing.
+* Hans Fugal: preliminary fix for OSX: replaced include <malloc.h> by <stdlib.h>.
 
 Wed Dec 5 2007
 --------------

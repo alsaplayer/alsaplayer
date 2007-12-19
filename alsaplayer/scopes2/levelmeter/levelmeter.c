@@ -26,7 +26,6 @@
 #include <math.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <malloc.h>
 #include <string.h>
 #include <assert.h>
 #include <pthread.h>

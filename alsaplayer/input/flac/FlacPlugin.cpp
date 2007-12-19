@@ -28,7 +28,7 @@
 
 #include <string>
 #include <cstdio>
-#include <malloc.h>
+#include <stdlib.h>
 #include <cstring>
 #include <cmath>
 #include "input_plugin.h"
