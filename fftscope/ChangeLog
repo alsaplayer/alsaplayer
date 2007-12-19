@@ -1,4 +1,9 @@
+Wed Dec 19 2007
+---------------
+* Replaced include <malloc.h> by <stdlib.h>. Needed on OSX.
+
 Thu Jul 12 2007
+---------------
 * Removed unneeded excpetion from the license file.
 
 Sun Jul 08 2007
