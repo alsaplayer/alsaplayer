@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ALSAPLAYER 1 "8 September 2007"
+.TH ALSAPLAYER 1 "29 March 2008"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -116,8 +116,11 @@ Jump to the specified second in the current track.
 .B \-\-relative <second>
 Jump <second> seconds from current position.
 .TP
-.B \-\-speed #
-Set the playback speed.  1.0 = normal speed, -1.0 = normal speed backwards
+.B \-\-speed <value>
+Set the playback speed with -10 <= <value> <= 10.
+1.0 = normal speed, -1.0 = normal speed backwards.
+Be aware that alsaplayer respect your LOCALE. That implies that the decimal point
+will vary accordingly. I.e., with french LOCALE, a valid speed value is 1,5 and not 1.5. 
 .TP
 .B \-\-jump #
 Jump to the specified playlist track.
@@ -172,8 +175,8 @@ You must process in two steps to get sound with it. First launch the daemon:
 and then add some song:
 .TP
 .B alsaplayer -e <some.song>
-.SH GTK INTERFACE
-The gtk interface provide some basic keyboard controls:
+.SH GTK+ INTERFACE
+The gtk+ interface provide some basic keyboard controls:
 .TP
 .B v
 Stop
@@ -241,6 +244,9 @@ Number of periods in the sound buffer
 .TP
 .B main.period_size=4096
 Frames per period in the sound buffer
+.TP
+.B main.play_on_start=false
+Start playing at launch time
 .SS Output settings
 .TP
 .B jack.output1=alsa_pcm:playback_1
@@ -267,30 +273,55 @@ Size of the input buffer when <filename> is an URL.
 .TP
 .B mad.parse_id3=true
 Parse or not the Id3 tags.
-.SS GTK interface settings
+.SS GTK+ interface settings
 .TP
-.B gtk_interface.default_play_path=~/
+.B gtk2_interface.background_colour=#000000
+Default background color of the interface. The playlist windows will use the background color from your gtk+ theme.
+.TP
+.B gtk2_interface.default_play_path=~/
 Default path used by the Add file function
 .TP
-.B gtk_interface.default_playlist_add_path=/
+.B gtk2_interface.default_playlist_add_path=/
 Default path used by the Add file function in the Playlist window
 .TP
-.B gtk_interface.default_playlist_load_path=/
+.B gtk2_interface.default_playlist_load_path=/
 Default path used by the Load playlist function
 .TP
-.B gtk_interface.default_playlist_save_path=/
+.B gtk2_interface.default_playlist_save_path=/
 Default path used by the Save playlist function
 .TP
-.B gtk_interface.playlist_active=false
+.B gtk2_interface.font_colour=#ffffff
+Default font color of the interface. The playlist windows will use the font color from your gtk+ theme.
+.TP
+.B gtk2_interface_font=
+Default font of the interface. The playlist windows will use the font from your gtk+ theme. The main window will also use that font if none is specified.
+.TP
+.B gtk2_interface.height=118
+Default height of the interface.
+.TP
+.B gtk2_interface.loop=0
+Start in loop mode.
+.TP
+.B gtk2_interface.play_on_add=false
+Jump playing to a new song when added.
+.TP
+.B gtk2_interface.play_on_title=false
+Show song title in title bar.
+.TP
+.B gtk2_interface.playlist_active=false
 Launch or not the playlist window at start up.
 .TP
-.B gtk_interface.sopeswindow_active=false
+.B gtk2_interface.playlist_height=0
+Default height of the playlist window. This value combined with the defaukt value of gtk2_interface.height correspond to no visible playlist.
+.TP
+.B gtk2_interface.sopeswindow_active=false
 Launch or not the scopes selector window at start up.
 .TP
-.B gtk_interface.smooth_transition=false
+.B gtk2_interface.smooth_transition=false
 Will functions such as pause use a smooth speed transition.
-.SS GTK2 interface settings
-It use the same options as the GTK interface but with "gtk2_" as prefix instead of "gtk_".
+.TP
+.B gtk2_interface.width=529
+Width of the interface.
 .SS XOSD interface settings
 .TP
 .B xosd_interface.color=#55ff55
@@ -320,6 +351,9 @@ Launch or not the levelmeter scope plugin at start up.
 .B logbarfft.active=false
 Launch or not the logbar scope plugin at start up.
 .TP
+.B monoscope.active=false
+Launch or not the monoscope scope plugin at start up.
+.TP
 .B opengl_spectrum.active=false
 Launch or not the spectrumgl scope plugin at start up.
 .TP
@@ -328,8 +362,6 @@ Height of the spectrumgl scope plugin
 .TP
 .B opengl_spectrum.width=640
 Width of the spectrumgl scope plugin
-.TP
-.B opengl_spectrum.active=false
 .TP
 .B spacescope.active=false
 Launch or not the spacescope plugin at start up.

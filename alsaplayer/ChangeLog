@@ -1,5 +1,9 @@
-Wed Dec 19
-----------
+Sat Mar 29 2008
+---------------
+* Updated the prefernece section and the speed description of the man page.
+
+Wed Dec 19 2007
+---------------
 * Gũnther Stibbe: 2 bug fixes in id3 tag support:
   - The last char in id3 tag was missing when a special charachter is in
     the tag.
