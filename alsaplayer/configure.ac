@@ -294,6 +294,16 @@ CFLAGS="$CFLAGS -lz"
 
 AC_CHECK_LIB(id3tag, id3_file_open,
      FLC_LDADD="$FLC_LDADD -lid3tag -lz"; use_libid3tag=yes; AC_DEFINE(HAVE_LIBID3TAG, 1, [Define if you have libid3tag library (-lid3tag)]), use_libid3tag=no)
+AC_ARG_ENABLE(id3tag,
+[  --enable-id3tag         Enable libid3tag support (default=yes)],
+[if test "$enableval" = "no"
+then
+	if test "$use_libid3tag" = "yes"
+	then
+		use_libid3tag=no
+	fi
+fi])
+
 
 CFLAGS=$oldcflags
 
