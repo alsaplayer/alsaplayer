@@ -28,6 +28,7 @@
 #include <sys/un.h>
 #include <csignal>
 #include <pwd.h>
+#include <limits.h>
 #include "control.h"
 #include "message.h"
 #include "Playlist.h"
