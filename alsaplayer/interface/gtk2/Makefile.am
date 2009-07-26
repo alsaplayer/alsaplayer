@@ -35,8 +35,6 @@ AM_CXXFLAGS = -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
 		@GTK2_CFLAGS@ $(COMMON_FLAGS) \
 		-D_REENTRANT -DADDON_DIR=\"$(ADDON_DIR)\"
 
-AM_CFLAGS = $(CXXFLAGS)
-
 libdir = $(ADDON_DIR)/interface
 
 libgtk2_interface_la_LDFLAGS = $(gtk2_interfaceldflags)

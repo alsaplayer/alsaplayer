@@ -30,8 +30,6 @@ COMMON_CFLAGS = -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
 
 AM_CFLAGS = $(COMMON_CFLAGS)
 
-AM_CXXFLAGS = $(CFLAGS)
-
 INCLUDES = -I$(ROOT_DIR)/app $(extra_cflags)
 
 libmad_in_la_SOURCES = $(mad_insources)

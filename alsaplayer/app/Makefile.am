@@ -29,8 +29,6 @@ AM_CPPFLAGS = -I../intl -I$(top_srcdir)/intl
 
 AM_CXXFLAGS = $(COMMON_FLAGS)
 
-AM_CFLAGS = $(CXXFLAGS)
-
 bin_PROGRAMS = alsaplayer
 
 localedir = $(datadir)/locale
