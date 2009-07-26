@@ -239,7 +239,7 @@ flac_stream_info (input_object * obj, stream_info * info)
     else
     {
 	// use stream name
-	char * fname = strrchr (f->name ().c_str (), '/');
+	const char * fname = strrchr (f->name ().c_str (), '/');
 	if (fname)
 	{
 	    fname++;
@@ -270,7 +270,7 @@ flac_can_handle (const char * name)
 	if (strncmp(name, "http://", 7) == 0) {
 		return 0.0;
 	}
-	char *ext = strrchr(name, '.');
+	const char *ext = strrchr(name, '.');
 	if (!ext)
 		return 0.0;
 	ext++;
