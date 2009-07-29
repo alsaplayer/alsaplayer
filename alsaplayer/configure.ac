@@ -639,10 +639,10 @@ AM_CONDITIONAL(BUILD_EXTERNAL, test "a" = "b")
 
 AC_MSG_CHECKING(for gcc optimization flags)
 old_cflags=$CFLAGS
-CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -O2 -funroll-loops -finline-functions -ffast-math -Wall"
 AC_TRY_COMPILE([#include <stdio.h>],
 [ printf ("hello, world"); ],
-[ EXTRA_OPT_CFLAGS="$CFLAGS"],[ EXTRA_OPT_CFLAGS=""])
+[ EXTRA_OPT_CFLAGS="$CFLAGS -O2 -funroll-loops -finline-functions -ffast-math -Wall"],[ EXTRA_OPT_CFLAGS=""])
 CFLAGS=$old_cflags
 AC_MSG_RESULT([$EXTRA_OPT_CFLAGS])
 
