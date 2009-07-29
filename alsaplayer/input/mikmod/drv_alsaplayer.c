@@ -51,6 +51,9 @@ MDRIVER drv_alsaplayer =
 	"AlsaPlayer Output Driver v1.0",
 	0, 255,
 	"alsaplayer",
+#if (LIBMIKMOD_VERSION >= 0x030200)
+        "",
+#endif
 
 	NULL,
 	alsaplayer_IsThere,

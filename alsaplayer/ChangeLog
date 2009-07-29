@@ -1,3 +1,14 @@
+Wed Jul 29 2009
+---------------
+* A missing string: fixes compiling with libmikmod-3.2.0-beta2, Thanks to Has de Goede and Fedora.
+
+Sun Jul 26 2009
+---------------
+* Removed deprecated GLIB-1.2 check.
+* Add missong limit.h: fixes compiling with >=glibc-2.8 by Bernard Cafrelli.
+* Flac plugin; fix building with glibc 2.10+.
+* Id3tag configure option added, thanks to gentoo.
+
 Sat Mar 29 2008
 ---------------
 * Updated the prefernece section and the speed description of the man page.
