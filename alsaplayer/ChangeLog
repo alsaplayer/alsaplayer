@@ -1,6 +1,8 @@
 Sun Nov 7 2010
 --------------
 * Applied a patch by Dominik Kuhlen that fix a lot of compilation warnings.
+* The same patch fix double-free errors after closing AP (start with a playlist, click shuffle and exit).
+* Updated the date into the About dialog.
 
 Wed Jul 29 2009
 ---------------

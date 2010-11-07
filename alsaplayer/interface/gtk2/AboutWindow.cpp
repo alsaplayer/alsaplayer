@@ -99,7 +99,7 @@ along with AlsaPlayer; if not, see <http://www.gnu.org/licenses/>.");
 	
 	gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(about_window), "AlsaPlayer");
 	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(about_window), VERSION);
-	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about_window), "Copyright © 1998-2007");
+	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about_window), "Copyright © 1998-2010");
 	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(about_window), _("No comments yet"));
 	gtk_about_dialog_set_license(GTK_ABOUT_DIALOG(about_window), license);
 	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(about_window), "www.alsaplayer.org");
