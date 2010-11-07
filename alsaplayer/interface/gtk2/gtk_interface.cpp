@@ -244,12 +244,14 @@ ap_message_delete(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 	gtk_widget_destroy(widget);
 }
 
+#if 0
 static void
 ap_message_response(GtkDialog *dialog, gint arg1, gpointer user_data)
 {
 	if (arg1 == GTK_RESPONSE_CLOSE)
 		gtk_widget_destroy(GTK_WIDGET(dialog));	
 } 
+#endif
                                                         
 void ap_message_error(GtkWidget *parent, const gchar *message)
 {
@@ -257,7 +259,7 @@ void ap_message_error(GtkWidget *parent, const gchar *message)
 
 	md = gtk_message_dialog_new(GTK_WINDOW(parent), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, _("Error !"));
 		
-	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(md), message);
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(md), "%s", message);
 	
 	g_signal_connect(G_OBJECT(md), "delete-event", G_CALLBACK(ap_message_delete), NULL);
 	g_signal_connect(G_OBJECT(md), "response", G_CALLBACK(ap_message_delete), NULL);
@@ -271,7 +273,7 @@ void ap_message_warning(GtkWidget *parent, const gchar *message)
 	
 	md = gtk_message_dialog_new(GTK_WINDOW(parent), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_WARNING, GTK_BUTTONS_CLOSE, _("Warning !"));
 	
-	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(md), message);
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(md), "%s", message);
 
 	g_signal_connect(G_OBJECT(md), "delete-event", G_CALLBACK(ap_message_delete), NULL);	
 	g_signal_connect(G_OBJECT(md), "response", G_CALLBACK(ap_message_delete), NULL);
@@ -285,7 +287,7 @@ gboolean ap_message_question(GtkWidget *parent, const gchar *message)
 	
 	md = gtk_message_dialog_new(GTK_WINDOW(parent), (GtkDialogFlags) (GTK_DIALOG_MODAL|GTK_DIALOG_DESTROY_WITH_PARENT), GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO, _("Excuse me !"));
 	
-	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(md), message);	
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(md), "%s", message);
 
 	g_signal_connect(G_OBJECT(md), "delete-event", G_CALLBACK(ap_message_delete), NULL);
 	
@@ -452,7 +454,9 @@ void smoother(void *data)
 		pthread_exit(NULL);
 	}
 	
-	nice(5);
+	if (nice(5)) {
+		/* no compilerwarning */
+	}
 	
 	if (adj) {
 		cur_val = adj->value;
@@ -503,7 +507,9 @@ void looper(void *data)
 		pthread_exit(NULL);
 	}
 	
-	nice(5);
+	if (nice(5)) {
+		/* no compiler warning */
+	}
 	
 	while (loop->state == LOOP_ON && loop->track == track) {
 		if (loop->track != track) {
@@ -1045,12 +1051,12 @@ gboolean alsaplayer_button_press(GtkWidget *widget, GdkEventButton *event, gpoin
 	return false;
 }
 
-GtkWidget *get_image_from_xpm(gchar *data[])
+GtkWidget *get_image_from_xpm(const gchar *data[])
 {
 	GtkWidget *image;
 	GdkPixbuf *pixbuf;
 
-	pixbuf = gdk_pixbuf_new_from_xpm_data((const char **)data);
+	pixbuf = gdk_pixbuf_new_from_xpm_data(data);
 	
 	image = gtk_image_new_from_pixbuf(pixbuf);
 	

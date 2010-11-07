@@ -26,7 +26,9 @@
 #include <arpa/inet.h>
 #include <sys/stat.h>		/* for fd operations		*/
 #include <fcntl.h>		/* for fd operations, too	*/
+#ifndef __USE_XOPEN
 #define __USE_XOPEN /* needed for swab */
+#endif
 #include <unistd.h>		/* for close()			*/
 #undef __USE_XOPEN
 #include <errno.h>		/* errno..     		        */

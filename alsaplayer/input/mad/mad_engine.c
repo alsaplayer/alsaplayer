@@ -422,32 +422,32 @@ static void rstrip (char *s) {
 }
 
 /* Convert from synchsafe integer */
-static unsigned int from_synchsafe4 (unsigned char *buf)
+static unsigned int from_synchsafe4 (const char *buf)
 {
 	return (buf [3]) + (buf [2] << 7) + (buf [1] << 14) + (buf [0] << 21);
 }
 
-static unsigned int from_synchsafe3 (unsigned char *buf)
+static unsigned int from_synchsafe3 (const char *buf)
 {
-	return (buf [3]) + (buf [2] << 7) + (buf [1] << 14);
+	return (buf [2]) + (buf [1] << 7) + (buf [0] << 14);
 }
 
 /* Fill filed */
-static void fill_from_id3v2 (char *dst, char *src, int max, int size)
+static void fill_from_id3v2 (char *dst, const char *src, int max, int size)
 {
 	// it can be iso8851-1==0 utf16==1 utf16be==2 and utf8==3
-	if (( *src < 0) || (*src > 3))
+	if ((*src < 0) || (*src > 3))
 		return;
 
 	char *conv = NULL;
 	
 #ifdef HAVE_GLIB2
 	if (*src == 0)
-		conv = g_convert((const gchar *)src+1, (gssize) size-1, "UTF-8", "ISO-8859-1", NULL, NULL, NULL); // gsti: size -1
+		conv = g_convert(src+1, (gssize) size-1, "UTF-8", "ISO-8859-1", NULL, NULL, NULL); // gsti: size -1
 	else if (*src == 1)
-		conv = g_convert((const gchar *)src+1, (gssize) size-1, "UTF-8", "UTF-16", NULL, NULL, NULL);
+		conv = g_convert(src+1, (gssize) size-1, "UTF-8", "UTF-16", NULL, NULL, NULL);
 	else if (*src == 2)
-		conv = g_convert((const gchar *)src+1, (gssize) size-1, "UTF-8", "UTF-16BE", NULL, NULL, NULL);
+		conv = g_convert(src+1, (gssize) size-1, "UTF-8", "UTF-16BE", NULL, NULL, NULL);
  	else
 		conv = g_strndup(src+1, size);
 #else
@@ -500,7 +500,7 @@ static char *genres[] = {
 static void parse_id3 (const char *path, stream_info *info)
 {
 	void *fd;
-	unsigned char buf [2024];
+	char buf [2024];
 	unsigned char g;
 
 	/* Open stream */
@@ -571,7 +571,7 @@ static void parse_id3 (const char *path, stream_info *info)
 			
 		/* -- -- read frames -- -- */
 		while (reader_tell (fd) <= header_size + 10) {
-			unsigned int size;
+			unsigned int size = 0;
 			
 			
 			/* Get name of this frame */
@@ -640,7 +640,7 @@ static void parse_id3 (const char *path, stream_info *info)
 				
 				
 				
-				if (size>=1024) {
+			if (size>=1024) {
 				/* I will not support such long tags...
 				 * Only if someone ask for it...
 				 * not now... */
@@ -659,6 +659,8 @@ static void parse_id3 (const char *path, stream_info *info)
 				reader_close (fd);
 				return;
 			}
+			/* make sure buffer is zero-terminated for sscanf */
+			buf[name_size + size] = 0;
 
 			/* !!! Ok. There we have frame name and data. */
 			/* Lets use it. */

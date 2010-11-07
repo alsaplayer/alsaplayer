@@ -115,7 +115,8 @@ AlsaNode::~AlsaNode()
 
 int AlsaNode::RegisterPlugin(const char *module)
 {
-	char path[1024], *pluginroot;
+	char path[1024];
+	const char *pluginroot;
 	void *our_handle;
 	struct stat statbuf;
 	output_plugin_info_type output_plugin_info;
@@ -488,7 +489,7 @@ void AlsaNode::StopStreaming()
 	looping = false;
 	pthread_mutex_lock(&thread_mutex);
 	if (thread_running) {
-		if (looper_thread != NULL && pthread_join(looper_thread, NULL)) {
+		if (pthread_join(looper_thread, NULL)) {
 			// Hmmm
 		}
 		thread_running = false;

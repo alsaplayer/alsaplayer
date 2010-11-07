@@ -361,6 +361,10 @@ void insert_looper(void *data) {
 						   newitems.end());
 	if(playlist->curritem > items->position)
 		playlist->curritem += newitems.size();
+
+	if(playlist->curritem == 0) {
+		playlist->curritem = 1;
+	}
 	
 	// Tell the subscribing interfaces about the changes
 	playlist->LockInterfaces();
@@ -697,17 +701,21 @@ void Playlist::Shuffle() {
 	Lock();
 
 	// Mark curritem
-	(*(queue.begin() + curritem - 1)).marked_to_keep_curritem = 1;
+	if (curritem > 0) {
+		(*(queue.begin() + curritem - 1)).marked_to_keep_curritem = 1;
+	}
 	
 	// Shuffle
 	random_shuffle(queue.begin(), queue.end());
 
 	// Search new location of the playing song
-	for (p = queue.begin (), curritem = 1; p != queue.end (); p++, curritem++)
-	    if ((*p).marked_to_keep_curritem == 1)
-		break;
+	for (p = queue.begin (), curritem = 1; p != queue.end (); p++, curritem++) {
+		if ((*p).marked_to_keep_curritem == 1) {
+			(*p).marked_to_keep_curritem = 0;
+			break;
+		}
+	}
 	
-	(*(queue.begin() + curritem - 1)).marked_to_keep_curritem = 0;
 	
 	// Tell the subscribing interfaces about the change
 	if(interfaces.size() > 0) {

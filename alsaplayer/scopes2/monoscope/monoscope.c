@@ -178,11 +178,6 @@ void the_monoscope()
 }
 
 
-static void test_cb(GtkWidget *widget, gpointer data)
-{
-	printf("Woah!\n");
-}
-
 
 void stop_monoscope(void);
 

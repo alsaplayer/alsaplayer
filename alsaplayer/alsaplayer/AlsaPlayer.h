@@ -24,7 +24,7 @@
 extern char *global_session_name;
 extern char *global_plugin_dir;
 extern char *global_interface_script;
-extern char *global_pluginroot;
+extern const char *global_pluginroot;
 extern int global_verbose;
 extern int global_session_id;
 extern int global_quiet;

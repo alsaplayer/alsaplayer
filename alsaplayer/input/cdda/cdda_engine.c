@@ -256,7 +256,7 @@ static int cd_getinfo(int *cdrom_fd, char *cd_dev, struct cd_trk_list *tl)
  * create_socket - create a socket to communicate with the remote server
  * return the fd' int on success, or -1 on error.
  */
-int create_socket (unchar *unchar_address, int int_port)
+int create_socket (const char *unchar_address, int int_port)
 {
 	int sock, len;
 	struct	hostent		*remote;
@@ -588,7 +588,7 @@ cut_html_head(char *answer)
  * search for the song in the CDDB given address/port, returning it's name, or
  * NULL if not found.
  */
-char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_list *tl)
+char * cddb_lookup (const char *address, const char *char_port, int discID, struct cd_trk_list *tl)
 {
 	int port = atoi (char_port);
 	int server_fd, i, j;
@@ -602,7 +602,7 @@ char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_li
 		alsaplayer_error ("Opening Connection to %s:%d ... ", address, port);
 
 	/* get the server fd from the create_socket function */
-	server_fd = create_socket ((unchar *) address, port);
+	server_fd = create_socket (address, port);
 	if (server_fd < 0)
 		return (NULL);
 	else
@@ -770,7 +770,7 @@ char * cddb_lookup (char *address, char *char_port, int discID, struct cd_trk_li
 	if (port > 80)
 		sprintf (msg, "cddb read %s %s\r\n", categ, newID);
 	else {
-		server_fd = create_socket ((unchar *) address, port);
+		server_fd = create_socket (address, port);
 		snprintf (msg, sizeof (msg), "GET /~cddb/cddb.cgi?cmd=cddb+read+%s+%s&hello=%s+%s+%s+%s&proto=6 HTTP/1.0\r\n\r\n", categ, newID, username, hostname,PACKAGE, VERSION);
 	}
 	
@@ -815,7 +815,6 @@ void cddb_read_file (char *file, struct cdda_local_data *data)
 {
 	char line[BUFFER_SIZE], name[BUFFER_SIZE];
 	char *token = NULL, *tmp, *divider, *s, *post;
-	char album[BUFFER_SIZE];
 	int i, index = 1;
 	FILE *f;
 
@@ -926,8 +925,8 @@ void cddb_read_file (char *file, struct cdda_local_data *data)
 void cddb_update_info(struct cdda_local_data *data)
 {
 	char *file_name = NULL;
-	char *cddb_servername = NULL;
-	char *cddb_serverport = NULL;
+	const char *cddb_servername = NULL;
+	const char *cddb_serverport = NULL;
 	struct cd_trk_list *tl;
 	int index;
 	unsigned int cd_id;

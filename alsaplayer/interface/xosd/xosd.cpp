@@ -63,8 +63,8 @@ static coreplayer_notifier notifier;
 
 static xosd *osd = NULL;
 
-static char *osd_font;
-static char *osd_color;
+static const char *osd_font;
+static const char *osd_color;
 static int osd_h_off;
 static int osd_v_off;
 static int osd_timeout;

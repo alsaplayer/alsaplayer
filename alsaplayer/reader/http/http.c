@@ -478,7 +478,8 @@ static int reconnect (http_desc_t *desc, char *redirect)
     char request [2048];
     char response [10240];
     char *s;
-    int error, error_len;
+    int error;
+    socklen_t error_len;
     struct hostent *hp;
     struct sockaddr_in address;
     fd_set set;

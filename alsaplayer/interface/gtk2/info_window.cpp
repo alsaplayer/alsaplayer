@@ -90,7 +90,7 @@ InfoWindow::InfoWindow()
 	rightwidth = 0;
 	labelheight = 0;
 	
-	gchar *val = prefs_get_string(ap_prefs, "gtk2_interface", "background_colour", "#000000");
+	const char *val = prefs_get_string(ap_prefs, "gtk2_interface", "background_colour", "#000000");
 	this->set_background_color(val);
 	val = prefs_get_string(ap_prefs, "gtk2_interface", "font_colour", "#ffffff");
 	this->set_font_color(val);

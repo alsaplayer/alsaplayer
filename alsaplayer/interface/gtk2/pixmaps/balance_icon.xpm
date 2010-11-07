@@ -1,5 +1,5 @@
 /* XPM */
-static char *balance_icon_xpm[] = {
+static const char *balance_icon_xpm[] = {
 "26 9 3 1",
 " 	c None",
 ".	c #848284",

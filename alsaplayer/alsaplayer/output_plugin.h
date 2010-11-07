@@ -47,12 +47,12 @@ typedef struct _output_plugin
 	/**
 	 * Name of output plugin
 	 */ 
-	char *name;
+	const char *name;
 
 	/**
 	 * Author of the plugin
 	 */ 
-	char *author;
+	const char *author;
 
 	/**
 	 * Initialize output plugin. Called before the plugin is 

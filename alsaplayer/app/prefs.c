@@ -134,7 +134,7 @@ prefs_handle_t *prefs_load(const char *filename)
 	return prefs;
 }
 
-void prefs_set_int(prefs_handle_t *prefs, const char *section, char *key, int val)
+void prefs_set_int(prefs_handle_t *prefs, const char *section, const char *key, int val)
 {
 	char str[1024];
 
@@ -147,7 +147,7 @@ void prefs_set_int(prefs_handle_t *prefs, const char *section, char *key, int va
 }
 
 
-void prefs_set_bool(prefs_handle_t *prefs, const char *section, char *key, int val)
+void prefs_set_bool(prefs_handle_t *prefs, const char *section, const char *key, int val)
 {
 	char str[1024];
 
@@ -160,7 +160,7 @@ void prefs_set_bool(prefs_handle_t *prefs, const char *section, char *key, int v
 }
 
 
-static prefs_key_t *prefs_find_key(prefs_handle_t *prefs, const char *section, char *key)
+static prefs_key_t *prefs_find_key(prefs_handle_t *prefs, const char *section, const char *key)
 {
 	prefs_key_t *entry;
 
@@ -177,7 +177,7 @@ static prefs_key_t *prefs_find_key(prefs_handle_t *prefs, const char *section, c
 	return NULL;
 }
 
-void prefs_set_string(prefs_handle_t *prefs, const char *section, char *key, char *val)
+void prefs_set_string(prefs_handle_t *prefs, const char *section, const char *key, const char *val)
 {
 	prefs_key_t *entry;
 
@@ -228,7 +228,7 @@ void prefs_set_string(prefs_handle_t *prefs, const char *section, char *key, cha
 	}		
 }
 
-void prefs_set_float(prefs_handle_t *prefs, const char *section, char *key, float val)
+void prefs_set_float(prefs_handle_t *prefs, const char *section, const char *key, float val)
 {
 	char str[1024];
 
@@ -241,10 +241,10 @@ void prefs_set_float(prefs_handle_t *prefs, const char *section, char *key, floa
 }
 
 
-int prefs_get_bool(prefs_handle_t *prefs, const char *section, char *key, int default_val)
+int prefs_get_bool(prefs_handle_t *prefs, const char *section, const char *key, int default_val)
 {
 	char str[1024];
-	char *res;
+	const char *res;
 
 	assert(prefs);
 	assert(key);
@@ -261,10 +261,10 @@ int prefs_get_bool(prefs_handle_t *prefs, const char *section, char *key, int de
 }
 
 
-int prefs_get_int(prefs_handle_t *prefs, const char *section, char *key, int default_val)
+int prefs_get_int(prefs_handle_t *prefs, const char *section, const char *key, int default_val)
 {
 	char str[1024];
-	char *res;
+	const char *res;
 	int val;
 
 	assert(prefs);
@@ -278,7 +278,7 @@ int prefs_get_int(prefs_handle_t *prefs, const char *section, char *key, int def
 	return val;
 }
 
-char *prefs_get_string(prefs_handle_t *prefs, const char *section, char *key, char *default_val)
+const char *prefs_get_string(prefs_handle_t *prefs, const char *section, const char *key, const char *default_val)
 {
 	prefs_key_t *entry;
 
@@ -295,10 +295,10 @@ char *prefs_get_string(prefs_handle_t *prefs, const char *section, char *key, ch
 }
 
 
-float prefs_get_float(prefs_handle_t *prefs, const char *section, char *key, float default_val)
+float prefs_get_float(prefs_handle_t *prefs, const char *section, const char *key, float default_val)
 {
 	char str[1024];
-	char *res;
+	const char *res;
 	float val;
 
 	assert(prefs);

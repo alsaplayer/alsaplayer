@@ -38,7 +38,7 @@ class FlacMetadataTag : public FlacTag
     // Map metadata names to the variable that they refer to
     typedef struct
     {
-        char *name;
+        const char *name;
         std::string FlacMetadataTag::* value;
     }
     field_mapping_t;

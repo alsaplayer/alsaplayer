@@ -266,12 +266,12 @@ typedef struct _input_plugin
 	/**
 	 * Should point the a character array containing the name of this plugin
 	 */
-	char *name;
+	const char *name;
 	/** 
 	 * Should point to a character array containing the name of the 
 	 * author(s) of this plugin.
 	 */
-	char *author;
+	const char *author;
 	/**
 	 * dlopen() handle of this plugin. Filled in by the HOST.
 	 */

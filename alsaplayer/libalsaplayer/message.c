@@ -83,7 +83,7 @@ ap_key_t *ap_key_new(const char *key_id)
 		memset(key, 0, sizeof(ap_key_t));
 		if (strlen(key_id) > KEYID_LEN) {
 			strncpy(key->key_id, key_id, KEYID_LEN-1);
-			key->key_id[KEYID_LEN] = 0;
+			key->key_id[KEYID_LEN-1] = 0;
 		} else {
 			strcpy(key->key_id, key_id);
 		}	
@@ -209,7 +209,7 @@ ap_message_t *ap_message_receive(int fd)
 }
 
 
-int ap_message_add_float(ap_message_t *msg, char *key, float val)
+int ap_message_add_float(ap_message_t *msg, const char *key, float val)
 {
 	ap_key_t *new_key;
 
@@ -226,7 +226,7 @@ int ap_message_add_float(ap_message_t *msg, char *key, float val)
 }
 
 
-int ap_message_add_int32(ap_message_t *msg, char *key, int32_t val)
+int ap_message_add_int32(ap_message_t *msg, const char *key, int32_t val)
 {
 	ap_key_t *new_key;
 
@@ -244,7 +244,7 @@ int ap_message_add_int32(ap_message_t *msg, char *key, int32_t val)
 }
 
 
-ap_key_t *ap_message_find_key(ap_message_t *msg, char *key, int32_t key_type)
+ap_key_t *ap_message_find_key(ap_message_t *msg, const char *key, int32_t key_type)
 {
 	ap_key_t *current;
 	
@@ -262,7 +262,7 @@ ap_key_t *ap_message_find_key(ap_message_t *msg, char *key, int32_t key_type)
 }
 
 
-float *ap_message_find_float(ap_message_t *msg, char *key_id)
+float *ap_message_find_float(ap_message_t *msg, const char *key_id)
 {
 	ap_key_t *key;
 
@@ -273,7 +273,7 @@ float *ap_message_find_float(ap_message_t *msg, char *key_id)
 }
 
 
-int32_t *ap_message_find_int32(ap_message_t *msg, char *key_id)
+int32_t *ap_message_find_int32(ap_message_t *msg, const char *key_id)
 {
 	ap_key_t *key;
 
@@ -284,7 +284,7 @@ int32_t *ap_message_find_int32(ap_message_t *msg, char *key_id)
 }
 
 
-char *ap_message_find_string(ap_message_t *msg, char *key_id)
+char *ap_message_find_string(ap_message_t *msg, const char *key_id)
 {
 	ap_key_t *key;
 
@@ -295,7 +295,7 @@ char *ap_message_find_string(ap_message_t *msg, char *key_id)
 }
 
 
-int ap_message_add_string(ap_message_t *msg, char *key_id, const char *val)
+int ap_message_add_string(ap_message_t *msg, const char *key_id, const char *val)
 {
 	ap_key_t *new_key;
 	char *str;
@@ -381,7 +381,7 @@ int ap_find_session(char *session_name, int *session)
 
 	pwd = getpwuid(geteuid());
 
-	sprintf(username, pwd == NULL ? "anonymous" : pwd->pw_name);
+	sprintf(username, "%s", pwd == NULL ? "anonymous" : pwd->pw_name);
 
 	sprintf(test_path, "alsaplayer_%s_", username);
 
@@ -1123,7 +1123,7 @@ int ap_get_playlist(int session, int *argc, char ***the_list) {
 	int fd;
 	char **list;
 	ap_message_t *msg, *reply;
-	int *result, nritems, c, t;
+	int *result, nritems, c;
 	char strnum[64];
 	char *res;
 	

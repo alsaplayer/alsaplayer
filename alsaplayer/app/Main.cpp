@@ -81,14 +81,14 @@ int global_quiet = 0;
 
 char *global_session_name = NULL;
 char *global_interface_script = NULL;
-char *global_pluginroot = NULL;
+const char *global_pluginroot = NULL;
 
 prefs_handle_t *ap_prefs = NULL;
 
 void control_socket_start(Playlist *, interface_plugin *ui);
 void control_socket_stop();
 
-static char *default_pcm_device = "default";
+static const char *default_pcm_device = "default";
 
 
 extern "C" {
@@ -137,7 +137,8 @@ void exit_sighandler(int x)
 interface_plugin_info_type load_interface(const char *name)
 {
 	void *handle;
-	char path[1024], *pluginroot;
+	char path[1024];
+	const char *pluginroot;
 	struct stat statbuf;
 
 	interface_plugin_info_type plugin_info;
@@ -195,13 +196,14 @@ interface_plugin_info_type load_interface(const char *name)
 extern int init_reverb();
 extern bool reverb_func(void *arg, void *data, int size);
 
-static char *copyright_string =
+static const char *copyright_string =
     "AlsaPlayer " VERSION
     "\n(C) 1999-2004 Andy Lo A Foe <andy@alsaplayer.org> and others.";
 
 static void list_available_plugins(const char *plugindir)
 {
-	char path[1024], *pluginroot;
+	char path[1024];
+	const char *pluginroot;
 	struct stat buf;
 	bool first = true;
 
@@ -357,7 +359,7 @@ static int get_interface_from_argv0 (char *argv0, char *str)
 
 int main(int argc, char **argv)
 {
-	char *device_param = default_pcm_device;
+	const char *device_param = default_pcm_device;
 	char *prefsdir;
 	char thefile[1024];
 	char str[1024];
@@ -393,7 +395,7 @@ int main(int argc, char **argv)
 	int do_crossfade = 0;
 	int do_save = 1;
 	int bool_val = 0;
-	char *use_output = NULL;
+	const char *use_output = NULL;
 	char *use_interface = NULL;
 	char *use_config = NULL;
 	
@@ -558,7 +560,7 @@ int main(int argc, char **argv)
 				do_pause = 1;
 				break;
 			case 'p':
-				global_pluginroot = strdup(optarg);
+				global_pluginroot = optarg;
 				break;
 			case 'q':
 				global_quiet = 1;
@@ -937,7 +939,7 @@ int main(int argc, char **argv)
 			goto _fatal_err;
 		}
 	} else {
-		char *interface = prefs_get_string
+		const char *interface = prefs_get_string
 			(ap_prefs, "main", "default_interface", "gtk2");
 		// if we're trying to use the old gtk-1 interface, use gtk-2 instead
 		if (strcmp (interface, "gtk") == 0)
@@ -993,8 +995,6 @@ _fatal_err:
 	delete node;
 	if (global_session_name)
 		free(global_session_name);
-	if (global_pluginroot)
-		free(global_pluginroot);
 
 	return 0;
 }

@@ -45,8 +45,8 @@ typedef void(*interface_close_type)();
 typedef struct _interface_plugin
 {
 	interface_version_type version;		
-	char *name;
-	char *author;
+	const char *name;
+	const char *author;
 	void *handle;
 	interface_init_type init;
 	interface_start_type start;

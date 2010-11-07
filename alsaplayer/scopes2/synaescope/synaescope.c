@@ -439,12 +439,6 @@ static void synaescope8(void *data)
 static GdkVisual *visual;
 static GdkWindow *win;
 
-static void test_cb(GtkWidget *widget, gpointer data)
-{
-	printf("Woah!\n");
-}
-
-
 static void stop_synaescope(void);
 
 static gboolean close_synaescope_window(GtkWidget *widget, GdkEvent *event, gpointer data)

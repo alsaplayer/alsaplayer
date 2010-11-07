@@ -1,5 +1,5 @@
 /* XPM */
-static char * current_stop_xpm[] = {
+static const char * current_stop_xpm[] = {
 "13 12 36 1",
 " 	c None",
 ".	c #33475B",

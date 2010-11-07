@@ -144,7 +144,7 @@ general_tab(GtkWidget *dialog)
 	GtkWidget *pref_general_fg_font;
 	GtkWidget *pref_general_fg_font_button;
 	GtkWidget *label;
-	gchar *str;
+	const char *str;
 	GdkColor color;
 
 	pref_general = gtk_vbox_new(FALSE, 0);

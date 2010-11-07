@@ -61,7 +61,7 @@
 #define TARGET_URI_LIST 0x0001
 
 static GtkTargetEntry drag_types[] = {
-	        {"text/uri-list", 0, TARGET_URI_LIST}
+	        {strdup("text/uri-list"), 0, TARGET_URI_LIST}
 };
 static int n_drag_types = sizeof(drag_types)/sizeof(drag_types[0]);
 
@@ -135,7 +135,7 @@ create_playlist_load(GtkWindow *main_window, PlaylistWindow *playlist_window)
 				      											NULL);
 	gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(filechooser), FALSE);
 	
-	gchar *path = prefs_get_string(ap_prefs, "gtk2_interface", "default_playlist_load_path", ".");
+	const char *path = prefs_get_string(ap_prefs, "gtk2_interface", "default_playlist_load_path", ".");
 	if (g_path_is_absolute (path))
 		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(filechooser), path);
 	
@@ -166,7 +166,7 @@ create_playlist_save(GtkWindow *main_window, PlaylistWindow *playlist_window)
 				      											NULL);
 	gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(filechooser), FALSE);
 	
-	gchar *path = prefs_get_string(ap_prefs, "gtk2_interface", "default_playlist_save_path", ".");
+	const char *path = prefs_get_string(ap_prefs, "gtk2_interface", "default_playlist_save_path", ".");
 	if (g_path_is_absolute (path))
 		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(filechooser), path);
 	
@@ -261,7 +261,7 @@ create_filechooser(GtkWindow *main_window, PlaylistWindow *playlist_window)
 				      											NULL);
 	gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(filechooser), TRUE);
 	
-	gchar *path = prefs_get_string(ap_prefs, "gtk2_interface", "default_playlist_add_path", ".");
+	const char *path = prefs_get_string(ap_prefs, "gtk2_interface", "default_playlist_add_path", ".");
 	if (g_path_is_absolute (path))
 		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(filechooser), path);
 
@@ -557,7 +557,6 @@ create_playlist_window (PlaylistWindow *playlist_window)
 	GtkWidget *del_button;
 	GtkWidget *shuffle_button;
 	GtkWidget *pl_button_box;
-	GtkWidget *playlist_label;
 	GtkWidget *load_button;
 	GtkWidget *save_button;
 	GtkWidget *clear_button;
@@ -789,7 +788,7 @@ void PlaylistWindow::CbSetCurrent(void *data, unsigned current)
 
 	GtkListStore *list = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(playlist_window->GetList())));
 	GtkTreeIter iter;
-
+fprintf(stderr ,"CBSetcurrent: %u\n", current);
 	if (!current_play_pix) {	
 		current_play_pix = gdk_pixbuf_new_from_xpm_data((const char **)current_play_xpm);
 		current_stop_pix = gdk_pixbuf_new_from_xpm_data((const char **)current_stop_xpm);

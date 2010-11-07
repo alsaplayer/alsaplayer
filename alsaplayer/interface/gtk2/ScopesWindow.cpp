@@ -38,7 +38,6 @@
 #include "CorePlayer.h"
 #include "Effects.h"
 #include "gtk_interface.h"
-#include "pixmaps/note.xpm"
 #include "alsaplayer_error.h"
 #include "alsaplayer_fft.h"
 #include "prefs.h"
@@ -47,8 +46,10 @@
 #include <math.h>
 
 static GtkWidget *scopes_window = (GtkWidget *)NULL;
+#ifdef STUPID_FLUFF		
 static GdkPixmap *active_pix = (GdkPixmap *)NULL;
 static GdkBitmap *active_mask = (GdkBitmap *)NULL;
+#endif
 static scope_entry *root_scope = NULL;
 static pthread_mutex_t sl_mutex;
 

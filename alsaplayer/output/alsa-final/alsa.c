@@ -158,7 +158,9 @@ static int alsa_set_buffer(int *fragment_size, int *fragment_count, int *channel
 	unsigned int val;
 	snd_pcm_uframes_t periodsize;
 	snd_pcm_hw_params_t *hwparams;
-	snd_pcm_hw_params_alloca(&hwparams);
+	/* avoid "always true message" by assert(ptr) */
+	snd_pcm_hw_params_t **noWarnPtr = &hwparams;
+	snd_pcm_hw_params_alloca(noWarnPtr);
 	if (!sound_handle) {
 		puts("hmm, no sound handle... WTF?");
 		goto _err;	
@@ -243,6 +245,7 @@ static unsigned int alsa_set_sample_rate(unsigned int rate)
 	return output_rate;
 }
 
+#if 0
 static int alsa_get_queue_count(void)
 {
 	snd_pcm_status_t *status;
@@ -261,6 +264,7 @@ static int alsa_get_queue_count(void)
 	avail = snd_pcm_status_get_avail(status);				
 	return ((int)avail);
 }
+#endif
 
 static int alsa_get_latency(void)
 {

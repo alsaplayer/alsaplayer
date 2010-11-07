@@ -445,11 +445,6 @@ static int oglspectrum_init(void *arg)
 	return 1;		
 }	
 
-static void oglspectrum_cleanup(void)
-{
-	stop_display(1);
-}
-
 static void oglspectrum_start(void)
 {
 	if (pthread_mutex_trylock(&scope_mutex) != 0) {

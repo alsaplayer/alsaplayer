@@ -127,17 +127,17 @@ typedef struct _ap_message ap_message_t;
 
 ap_message_t *ap_message_new(void);
 ap_key_t *ap_key_new(const char *keyid);
-int ap_message_add_float(ap_message_t *, char *, float);
-int ap_message_add_int32(ap_message_t *, char *, int32_t);
-int ap_message_add_string(ap_message_t *, char *, const char *);
+int ap_message_add_float(ap_message_t *, const char *, float);
+int ap_message_add_int32(ap_message_t *, const char *, int32_t);
+int ap_message_add_string(ap_message_t *, const char *, const char *);
 void ap_message_delete(ap_message_t *);
 
 int ap_message_send(int fd, ap_message_t *);
 ap_message_t *ap_message_receive(int fd);
 
-float *ap_message_find_float(ap_message_t *, char *);
-int32_t *ap_message_find_int32(ap_message_t *, char *);
-char *ap_message_find_string(ap_message_t *, char *);
+float *ap_message_find_float(ap_message_t *, const char *);
+int32_t *ap_message_find_int32(ap_message_t *, const char *);
+char *ap_message_find_string(ap_message_t *, const char *);
 
 #ifdef __cplusplus
 }

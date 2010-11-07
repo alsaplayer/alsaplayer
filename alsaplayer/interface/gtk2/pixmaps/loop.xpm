@@ -1,5 +1,5 @@
 /* XPM */
-static char * loop_xpm[] = {
+static const char * loop_xpm[] = {
 "14 12 2 1",
 " 	c #FFFFFF",
 ".	c #000000",
