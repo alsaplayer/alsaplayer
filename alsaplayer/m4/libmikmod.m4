@@ -8,8 +8,8 @@ dnl AM_PATH_LIBMIKMOD([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND 
 dnl Test for libmikmod, and define LIBMIKMOD_CFLAGS, LIBMIKMOD_LIBS and
 dnl LIBMIKMOD_LDADD
 dnl
-AC_DEFUN(AM_PATH_LIBMIKMOD,
-[dnl 
+AC_DEFUN([AM_PATH_LIBMIKMOD],
+[dnl
 dnl Get the cflags and libraries from the libmikmod-config script
 dnl
 AC_ARG_WITH(libmikmod-prefix,[  --with-libmikmod-prefix=PFX   Prefix where libmikmod is installed (optional)],
@@ -101,7 +101,7 @@ int main()
       (libmikmod_minor_version != $libmikmod_config_minor_version) ||
       (libmikmod_micro_version != $libmikmod_config_micro_version))
     {
-      printf("\n*** 'libmikmod-config --version' returned %d.%d.%d, but libmikmod (%d.%d.%d)\n", 
+      printf("\n*** 'libmikmod-config --version' returned %d.%d.%d, but libmikmod (%d.%d.%d)\n",
              $libmikmod_config_major_version, $libmikmod_config_minor_version, $libmikmod_config_micro_version,
              libmikmod_major_version, libmikmod_minor_version, libmikmod_micro_version);
       printf ("*** was found! If libmikmod-config was correct, then it is best\n");
@@ -112,7 +112,7 @@ int main()
       printf("*** If libmikmod-config was wrong, set the environment variable LIBMIKMOD_CONFIG\n");
       printf("*** to point to the correct copy of libmikmod-config, and remove the file config.cache\n");
       printf("*** before re-running configure\n");
-    } 
+    }
   else if ((libmikmod_major_version != LIBMIKMOD_VERSION_MAJOR) ||
 	   (libmikmod_minor_version != LIBMIKMOD_VERSION_MINOR) ||
            (libmikmod_micro_version != LIBMIKMOD_REVISION))
@@ -156,7 +156,7 @@ int main()
   fi
   if test "x$no_libmikmod" = x ; then
      AC_MSG_RESULT([yes, `$LIBMIKMOD_CONFIG --version`])
-     ifelse([$2], , :, [$2])     
+     ifelse([$2], , :, [$2])
   else
      AC_MSG_RESULT(no)
      if test "$LIBMIKMOD_CONFIG" = "no" ; then

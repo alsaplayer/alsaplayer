@@ -9,8 +9,8 @@
 dnl AM_PATH_AUDIOFILE([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
 dnl Test for Audio File Library, and define AUDIOFILE_CFLAGS and AUDIOFILE_LIBS.
 dnl
-AC_DEFUN(AM_PATH_AUDIOFILE,
-[dnl 
+AC_DEFUN([AM_PATH_AUDIOFILE],
+[dnl
 dnl Get compiler flags and libraries from the audiofile-config script.
 dnl
 AC_ARG_WITH(audiofile-prefix,[  --with-audiofile-prefix=PFX   Prefix where Audio File Library is installed (optional)],
@@ -55,7 +55,7 @@ AC_ARG_ENABLE(audiofiletest, [  --disable-audiofiletest       Do not try to comp
       CFLAGS="$CFLAGS $AUDIOFILE_CFLAGS"
       LIBS="$LIBS $AUDIOFILE_LIBS"
 dnl
-dnl Now check if the installed Audio File Library is sufficiently new. 
+dnl Now check if the installed Audio File Library is sufficiently new.
 dnl (Also checks the sanity of the results of audiofile-config to some extent.)
 dnl
       rm -f conf.audiofiletest
@@ -69,7 +69,7 @@ char*
 my_strdup (char *str)
 {
   char *new_str;
-  
+
   if (str)
     {
       new_str = malloc ((strlen (str) + 1) * sizeof(char));
@@ -77,7 +77,7 @@ my_strdup (char *str)
     }
   else
     new_str = NULL;
-  
+
   return new_str;
 }
 
@@ -121,7 +121,7 @@ int main ()
   fi
   if test "x$no_audiofile" = x ; then
      AC_MSG_RESULT(yes)
-     ifelse([$2], , :, [$2])     
+     ifelse([$2], , :, [$2])
   else
      AC_MSG_RESULT(no)
      if test "$AUDIOFILE_CONFIG" = "no" ; then

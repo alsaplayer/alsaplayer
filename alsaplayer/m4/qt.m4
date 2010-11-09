@@ -2,7 +2,7 @@ dnl qt.m4
 dnl Copyright (C) 2001 Rik Hemsley (rikkus) <rik@kde.org>
 
 dnl AM_PATH_QT([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-AC_DEFUN(AM_PATH_QT,
+AC_DEFUN([AM_PATH_QT],
 [
 AC_CHECKING([for Qt 3.0, built with -thread ...])
 

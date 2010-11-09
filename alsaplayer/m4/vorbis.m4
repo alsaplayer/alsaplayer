@@ -5,8 +5,8 @@
 dnl AM_PATH_VORBIS([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for libvorbis, and define VORBIS_CFLAGS and VORBIS_LIBS
 dnl
-AC_DEFUN(AM_PATH_VORBIS,
-[dnl 
+AC_DEFUN([AM_PATH_VORBIS],
+[dnl
 dnl Get the cflags and libraries
 dnl
 AC_ARG_WITH(vorbis-prefix,[  --with-vorbis-prefix=PFX   Prefix where libvorbis is installed (optional)], vorbis_prefix="$withval", vorbis_prefix="")
@@ -58,7 +58,7 @@ int main ()
 
   if test "x$no_vorbis" = "x" ; then
      AC_MSG_RESULT(yes)
-     ifelse([$1], , :, [$1])     
+     ifelse([$1], , :, [$1])
   else
      AC_MSG_RESULT(no)
      if test -f conf.vorbistest ; then

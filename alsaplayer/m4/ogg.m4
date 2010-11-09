@@ -5,8 +5,8 @@
 dnl AM_PATH_OGG([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for libogg, and define OGG_CFLAGS and OGG_LIBS
 dnl
-AC_DEFUN(AM_PATH_OGG,
-[dnl 
+AC_DEFUN([AM_PATH_OGG],
+[dnl
 dnl Get the cflags and libraries
 dnl
 AC_ARG_WITH(ogg-prefix,[  --with-ogg-prefix=PFX   Prefix where libogg is installed (optional)], ogg_prefix="$withval", ogg_prefix="")
@@ -56,7 +56,7 @@ int main ()
 
   if test "x$no_ogg" = "x" ; then
      AC_MSG_RESULT(yes)
-     ifelse([$1], , :, [$1])     
+     ifelse([$1], , :, [$1])
   else
      AC_MSG_RESULT(no)
      if test -f conf.oggtest ; then
