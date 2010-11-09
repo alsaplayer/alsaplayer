@@ -18,9 +18,7 @@
  *
  *  Inspired by xine's prefs 
  *
- *  $Id$
- *
-*/ 
+*/
 #include "prefs.h"
 #include <assert.h>
 #include <stdio.h>

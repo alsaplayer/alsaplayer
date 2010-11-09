@@ -18,11 +18,7 @@
  *
  *  Inspired by xine's prefs 
  *
- *
- *
- *  $Id$
- *
-*/ 
+*/
 #ifndef __prefs_h__
 #define __prefs_h__
 

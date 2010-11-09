@@ -19,10 +19,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
- *
  *  Version 1.0.1: updated licence to GPL3 or later
- *
- *  $Id$
  *
  */
 

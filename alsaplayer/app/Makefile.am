@@ -8,8 +8,6 @@
 ## If you would like to negotiate alternate licensing terms, you may do
 ## so by contacting the author: Andy Lo A Foe <andy@alsaplayer.org>
 ##
-## $Id$
-##
 
 if ARCH_ULTRA
 

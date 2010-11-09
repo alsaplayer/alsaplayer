@@ -16,9 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
- *  $Id$
- *  
- */ 
+ */
 
 #ifndef __output_plugin_h__
 #define __output_plugin_h__

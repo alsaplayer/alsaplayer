@@ -18,8 +18,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
- *  $Id: blurscope.c 1017 2003-11-09 13:28:30Z adnans $
-*/ 
+*/
 #include <sys/stat.h>
 #include <gtk/gtk.h>
 #include <sys/time.h>
