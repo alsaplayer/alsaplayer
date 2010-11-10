@@ -39,10 +39,9 @@ run_cmd() {
 # Check if /usr/local/share/aclocal exists
 #if [ -d /usr/local/share/aclocal ]; then
 #	ACLOCAL_INCLUDE="$ACLOCAL_INCLUDE -I /usr/local/share/aclocal"
-#fi	
+#fi
 
-run_cmd cat m4/*.m4 > acinclude.m4
-run_cmd aclocal $ACLOCAL_INCLUDE
+run_cmd aclocal -I m4
 run_cmd autoheader
 run_cmd libtoolize --automake
 run_cmd automake --add-missing
