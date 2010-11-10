@@ -6,7 +6,7 @@ CC	= gcc
 
 PREFIX? = /usr
 DEBUG =		-Wall -O2
-CFLAGS =	
+CFLAGS =	-fPIC
 CPPFLAGS =	-I$(PREFIX)/include/alsaplayer 
 
 LINKER_FLAGS   = 
