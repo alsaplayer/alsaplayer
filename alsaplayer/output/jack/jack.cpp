@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
-*/ 
+*/
 #include <jack/jack.h>
 #include <pthread.h>
 #include <unistd.h>
@@ -25,13 +25,14 @@
 #include <csignal>
 #include <cstring>
 #include <cstdlib>
+#include <cstdio>
 #include "AlsaNode.h"
 #include "AlsaPlayer.h"
 #include "output_plugin.h"
 #include "alsaplayer_error.h"
 #include "prefs.h"
 
-#define TEST_MASTER
+#define TEST_MASTER 0
 
 typedef jack_default_audio_sample_t sample_t;
 static pthread_t restarter;
@@ -45,7 +46,7 @@ static char *mix_buffer = NULL;
 static int jack_reconnect = 1;
 static int jack_initialconnect = 1;
 static int jack_transport_aware = 0;
-#ifdef TEST_MASTER
+#if TEST_MASTER
 static int jack_master = 0;
 #endif
 
@@ -61,7 +62,7 @@ static void jack_restarter(void *arg);
 #define SAMPLE_MAX_16BIT  32768.0f
 
 void sample_move_dS_s16 (sample_t *dst, char *src,
-		unsigned long nsamples, unsigned long src_skip) 
+		unsigned long nsamples, unsigned long src_skip)
 {
 	/* ALERT: signed sign-extension portability !!! */
 	while (nsamples--) {
@@ -69,7 +70,7 @@ void sample_move_dS_s16 (sample_t *dst, char *src,
 		dst++;
 		src += src_skip;
 	}
-}     
+}
 
 void jack_restarter(void *arg)
 {
@@ -86,7 +87,7 @@ void jack_restarter(void *arg)
 	if (jack_prepare(arg) < 0) {
 		alsaplayer_error("failed reconnecting to jack...exitting");
 		kill(0, SIGTERM);
-	}       
+	}
 }
 
 
@@ -98,7 +99,7 @@ void jack_shutdown (void *arg)
 		pthread_create(&restarter, (pthread_attr_t *)NULL, (void * (*)(void *))jack_restarter, arg);
 	} else {
 		alsaplayer_error("not retrying jack connect, as requested");
-	}	
+	}
 }
 
 
@@ -109,21 +110,21 @@ int jack_get_latency()
 
 int jack_prepare(void *arg)
 {
-	char str[32];
+	char str[64];
 	jack_nframes_t bufsize;
-	
+
 	if (strlen(dest_port1) && strlen(dest_port2)) {
 		if (global_verbose) {
 			alsaplayer_error("jack: using ports %s & %s for output",
 				dest_port1, dest_port2);
-		}	
+		}
 		if (global_session_name) {
 			snprintf(str, sizeof(str)-1,"%s", global_session_name);
 			str[sizeof(str)-1]=0;
 		} else {
-			sprintf(str, "alsaplayer-%d", getpid());
-		}	
-		if ((client = jack_client_new(str)) == 0) {
+			snprintf(str, sizeof (str), "alsaplayer-%d", getpid());
+		}
+		if ((client = jack_client_open (str, JackNoStartServer, NULL)) == NULL) {
 			alsaplayer_error("jack: server not running?");
 			return -1;
 		}
@@ -133,9 +134,9 @@ int jack_prepare(void *arg)
 
 		sample_rate = jack_get_sample_rate (client);
 		my_output_port1 = jack_port_register (client, "out_1",
-				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput|JackPortIsTerminal, 0);               
+				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput|JackPortIsTerminal, 0);
 		my_output_port2 = jack_port_register (client, "out_2",
-				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput|JackPortIsTerminal, 0);               
+				JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput|JackPortIsTerminal, 0);
 		bufsize = jack_get_buffer_size(client);
 
 		if (!bufsize) {
@@ -145,8 +146,8 @@ int jack_prepare(void *arg)
 		if ((mix_buffer = (char *)malloc(bufsize*8)) == NULL) {
 			alsaplayer_error("cannot allocate mix buffer memory");
 			return 1;
-		}	
-		
+		}
+
 		if (jack_activate (client)) {
 			alsaplayer_error("cannot activate client");
 			free(mix_buffer);
@@ -160,19 +161,19 @@ int jack_prepare(void *arg)
 			if (jack_connect (client, jack_port_name(my_output_port1), dest_port1)) {
 				alsaplayer_error("cannot connect output port 1 (%s)",
 						dest_port1);
-			}               
+			}
 			if (jack_connect (client, jack_port_name(my_output_port2), dest_port2)) {
 				alsaplayer_error("cannot connect output port 2 (%s)",
 						dest_port2);
 			}
 		}
-#ifdef TEST_MASTER		
+#if TEST_MASTER
 		if (jack_master) {
 			alsaplayer_error("jack: taking over timebase");
 			if (jack_engine_takeover_timebase(client) != 0)
 				jack_master = 0;
 		}
-#endif		
+#endif
 		return 0;
 	}
 	return -1;
@@ -195,13 +196,13 @@ static int jack_init(void)
 	if (strncmp(dest_port1, "alsa_pcm:out", 12) == 0) {
 		alsaplayer_error("jack: discarding old alsa_pcm naming");
 		strcpy(dest_port1, "alsa_pcm:playback_1");
-	}	
+	}
 	strncpy(dest_port2, prefs_get_string(ap_prefs,
 		"jack", "output2", "alsa_pcm:playback_2"), 127);
 	if (strncmp(dest_port2, "alsa_pcm:out", 12) == 0){
 		alsaplayer_error("jack: discarding old alsa_pcm naming");
 		strcpy(dest_port2, "alsa_pcm:playback_2");
-	}	
+	}
 
 	return 1;
 }
@@ -219,7 +220,7 @@ static int jack_open(const char *name)
 		token = strdup(name);
 	} else {
 		return 1;
-	}	
+	}
 	c = token;
 
 	//alsaplayer_error("c = %s", c);
@@ -232,7 +233,7 @@ static int jack_open(const char *name)
 		}
 		t = c; // t is current token
 		c = n; // c points to remainder now
-		
+
 		//alsaplayer_error("current = \"%s\", left = \"%s\"", t, c);
 		// Check if the token is comma delimited, meaning port names
 		if ((s=strchr(t, ','))) {
@@ -248,17 +249,17 @@ static int jack_open(const char *name)
 		} else if (strcmp(t, "noconnect") == 0) {
 			alsaplayer_error("jack: not connecting ports");
 			jack_initialconnect = 0;
-#ifdef TEST_MASTER			
+#if TEST_MASTER
 		} else if (strcmp(t, "master") == 0) {
 			alsaplayer_error("jack: will attempt to become master");
 			jack_master = 1;
-#endif			
+#endif
 		} else if (strcmp(t, "transport") == 0) {
 			alsaplayer_error("jack: alsaplayer is transport aware");
 			jack_transport_aware = 1;
 		} else {
 			/* alsaplayer_error("Unkown jack parameter: %s", t); */
-		}	
+		}
 	}
 
 	if (token)
@@ -286,7 +287,7 @@ static void jack_close()
 			free(mix_buffer);
 			mix_buffer = NULL;
 		}
-	}	
+	}
 	return;
 }
 
@@ -303,18 +304,18 @@ static unsigned int jack_set_sample_rate(unsigned int rate)
 	if (rate != sample_rate) {
 		alsaplayer_error("jack: running interface at %d instead of %d",
 			sample_rate, rate);
-	}	
+	}
 	return sample_rate;
 }
 
 int process(jack_nframes_t nframes, void *arg)
 {
-#ifdef TEST_MASTER	
+#if TEST_MASTER
 	jack_transport_info_t tinfo;
 	static int framepos = 0;
-#endif	
+#endif
 	subscriber *subs = (subscriber *)arg;
-	
+
 	if (subs) {
 		subscriber *i;
 		int c;
@@ -329,8 +330,8 @@ int process(jack_nframes_t nframes, void *arg)
 					(transport.transport_state == JackTransportStopped)) {
 				stopped = 1;
 			}
-		}	
-		
+		}
+
 		sample_t *out1 = (sample_t *) jack_port_get_buffer(my_output_port1, nframes);
 		sample_t *out2 = (sample_t *) jack_port_get_buffer(my_output_port2, nframes);
 
@@ -342,17 +343,17 @@ int process(jack_nframes_t nframes, void *arg)
 			i = subs + c;
 			if (!i->active || !i->streamer) { // Skip inactive streamers
 				continue;
-			}       
+			}
 			if (!stopped)
 				i->active = i->streamer(i->arg, mix_buffer, nframes * 2);
 		}
 		sample_move_dS_s16(out1, mix_buffer, nframes, sizeof(short) << 1);
-		sample_move_dS_s16(out2, mix_buffer + sizeof(short), nframes, sizeof(short) << 1); 
+		sample_move_dS_s16(out2, mix_buffer + sizeof(short), nframes, sizeof(short) << 1);
 	}
-#ifdef TEST_MASTER	
+#if TEST_MASTER
 	if (jack_master) { // master control
 		tinfo.valid = jack_transport_bits_t(JackTransportPosition | JackTransportState | JackTransportLoop);
-		framepos++; 
+		framepos++;
 		tinfo.loop_start = tinfo.loop_end = 0;
 		tinfo.bar = tinfo.beat = tinfo.tick = 0;
 		if (framepos < 200 || framepos > 600) {
@@ -360,10 +361,10 @@ int process(jack_nframes_t nframes, void *arg)
 			tinfo.frame = framepos;
 		} else {
 			tinfo.transport_state = JackTransportStopped;
-		}	
+		}
 		jack_set_transport_info(client, &tinfo);
-	}	
-#endif	
+	}
+#endif
 	return 0;
 }
 
