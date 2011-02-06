@@ -788,8 +788,7 @@ void PlaylistWindow::CbSetCurrent(void *data, unsigned current)
 
 	GtkListStore *list = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(playlist_window->GetList())));
 	GtkTreeIter iter;
-fprintf(stderr ,"CBSetcurrent: %u\n", current);
-	if (!current_play_pix) {	
+	if (!current_play_pix) {
 		current_play_pix = gdk_pixbuf_new_from_xpm_data((const char **)current_play_xpm);
 		current_stop_pix = gdk_pixbuf_new_from_xpm_data((const char **)current_stop_xpm);
 		
