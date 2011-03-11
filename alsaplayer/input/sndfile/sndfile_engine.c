@@ -38,21 +38,6 @@ struct sf_local_data
 	char path[1024];
 };
 
-/*
-   Take a path as input and return the last part of it as the file name.
- */
-static char *getfilenamefrompath (const char *path)
-{
-	char *p = strrchr(path, '/');
-
-	if (p != NULL)
-		p++;
-	else
-		p = (char *)path;
-
-	return p;
-}
-
 
 static int sndfile_open (input_object *obj, const char *name)
 {
