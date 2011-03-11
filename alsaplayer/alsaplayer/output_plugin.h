@@ -73,7 +73,7 @@ typedef struct _output_plugin
 
 	/**
 	 * @param data Buffer that contains the data
-	 * @byte_count Number of bytes that should be read from the buffer
+	 * @param byte_count Number of bytes that should be read from the buffer
 	 *
 	 * Write out data to the output device. This is a byte count and
 	 * will typically be the same size as a fragment. A value of 1 should
