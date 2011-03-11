@@ -33,7 +33,6 @@ struct sf_local_data
 	SNDFILE* sfhandle;
 	SF_INFO	 sfinfo;
 	int framesize;
-	int width;
 	char filename[1024];
 	char path[1024];
 };
@@ -43,7 +42,6 @@ static int sndfile_open (input_object *obj, const char *name)
 {
 	struct sf_local_data *data;
 	char *p;
-	int short_mask;
 
 	if (!obj)
 		return 0;
@@ -74,28 +72,6 @@ static int sndfile_open (input_object *obj, const char *name)
 		strcpy(data->filename, name);
 	}
 
-	data->width = 1;
-	short_mask = (data->sfinfo.format & 0xFF);
-	switch (short_mask) {
-		case SF_FORMAT_PCM_S8:
-		     	data->width = 1;
-			break;
-		case SF_FORMAT_PCM_16:
-			data->width = 2;
-			break;
-		case SF_FORMAT_PCM_24:
-			data->width = 3;
-			break;
-		case SF_FORMAT_PCM_32:
-			data->width = 4;
-			break;
-		default:
-			alsaplayer_error("short_mask = 0x%X", short_mask);
-			data->width = 2;
-			break;
-	}		
-	//alsaplayer_error("short_mask = 0x%X", short_mask);	
-	
 	strcpy(data->path, name);
 	if (data->sfinfo.seekable)
 		obj->flags = P_SEEK;
@@ -109,7 +85,7 @@ void sndfile_close (input_object *obj)
 		return;
 
 	if (obj->local_data) {
-		struct sf_local_data *data = 
+		struct sf_local_data *data =
 			(struct sf_local_data *) obj->local_data;
 		sf_close(data->sfhandle);
 		free(obj->local_data);
@@ -127,8 +103,6 @@ static int sndfile_play_frame (input_object *obj, char *buf)
 	size_t	samples;
 	size_t	i;
 	void	*buffer;
-	short *src;
-	short *dest;
 
 	struct sf_local_data	*data;
 
@@ -146,6 +120,9 @@ static int sndfile_play_frame (input_object *obj, char *buf)
 		return 0;
 
 	if (data->sfinfo.channels == 1) { /* Mono, so double */
+		short *dest;
+		short *src;
+
 		bytes_to_read = FRAME_SIZE / 2;
 		samples = bytes_to_read / sizeof(short);
 		items_read = sf_read_short(data->sfhandle, (short *)buffer, samples);
@@ -156,30 +133,23 @@ static int sndfile_play_frame (input_object *obj, char *buf)
 			for (i = 0; i < items_read; i++) {
 				*(dest++) = *src;
 				*(dest++) =	*(src++);
-			}	
+			}
 			if (items_read == 0) {
 				return 0;
-			}	
+			}
 		}
 	} else {
 		bytes_to_read = FRAME_SIZE;
 
-		items_read = sf_read_short(data->sfhandle, (short *)buffer, 
+		items_read = sf_read_short(data->sfhandle, (short *)buffer,
 				bytes_to_read / sizeof(short));
 		if (buf)
 			memcpy(buf, buffer,  FRAME_SIZE);
-		else 
+		else
 			return 0;
 		if (items_read != (bytes_to_read / sizeof(short)))
 			return 0;
 	}
-	if (data->width == 1) {
-		i = FRAME_SIZE / sizeof(short);
-		dest = (short *)buf;
-		while (i--) {
-			dest[i] *= 256;
-		}
-	}	
 	return 1;
 }
 
@@ -199,7 +169,7 @@ static int sndfile_frame_seek (input_object *obj, int frame)
 	{
 		return result;
 	}
-	pos = (frame * FRAME_SIZE) / (data->width * data->sfinfo.channels) ;
+	pos = (frame * FRAME_SIZE) / (sizeof (short) * data->sfinfo.channels) ;
 	//alsaplayer_error("pos = %d", pos);
 	if (sf_seek(data->sfhandle, pos, SEEK_SET) != pos)
 		return 0;
@@ -211,7 +181,7 @@ static int sndfile_nr_frames (input_object *obj)
 {
 	struct sf_local_data    *data;
 	sf_count_t samples;
-	
+
 	if (!obj)
 		return 0;
 	data = (struct sf_local_data *) obj->local_data;
@@ -219,7 +189,7 @@ static int sndfile_nr_frames (input_object *obj)
 
 	if (samples > 0)  {
 		return ((int)data->sfinfo.frames * 2 *
-			     data->width	
+			     sizeof (short)
 				/ FRAME_SIZE);
 	}
 	return 0;
@@ -268,7 +238,7 @@ static  long sndfile_frame_to_sec (input_object *obj, int frame)
 	if (!data)
 		return result;
 	result = (unsigned long) (frame * FRAME_SIZE / 2 /
-			(data->sfinfo.samplerate * data->width / 100));
+			(data->sfinfo.samplerate * sizeof (short) / 100));
 
 	return result;
 }
