@@ -248,6 +248,10 @@ static float sndfile_can_handle (const char *name)
 	const char *fname = strrchr(name, '/');
 	const char *dot;
 
+	/* sndfile input plugin doesn't handle streaming. */
+	if (strncasecmp (name, "http://", 7) == 0)
+		return 0.0;
+
 	if (!fname)
 		fname = name;
 	if ((dot = strrchr(fname, '.')) != NULL)
