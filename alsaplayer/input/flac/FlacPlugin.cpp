@@ -165,7 +165,7 @@ flac_open (input_object * obj, const char * name)
 	return 0;
     }
 
-    if (f->open ())
+    if (f && f->open ())
     {
 	obj->frame_size  = f->engine ()->apFrameSize ();
 
