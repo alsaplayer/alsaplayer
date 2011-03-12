@@ -110,7 +110,7 @@ class FlacEngine
 
 
     //----------------------------------------------------------------
-    // Seek to an AlsaPlayer frame in the stream.  The real seek is 
+    // Seek to an AlsaPlayer frame in the stream.  The real seek is
     // deferred until the next time the frame method is invoked.
     //
     // Returns false if the seek is illegal, in which case the current
@@ -121,8 +121,8 @@ class FlacEngine
 
 
     //----------------------------------------------------------------------
-    // Decode the current AlsaPlayer frame, placing the uncompressed audio 
-    // samples info a pre-allocated buffer buf.  The buffer must be at 
+    // Decode the current AlsaPlayer frame, placing the uncompressed audio
+    // samples info a pre-allocated buffer buf.  The buffer must be at
     // least as large as an AlsaPlayer frame (use apFrameSize to get this
     // information from the engine).
     //
@@ -130,7 +130,7 @@ class FlacEngine
     // out of samples.
     //----------------------------------------------------------------------
 
-    bool  decodeFrame (char * buf);
+    bool  decodeFrame (short * buf);
 
 
  private:
@@ -174,7 +174,7 @@ class FlacEngine
  private:
 
     FlacStream *       _f;
-    char *           _buf;
+    short *           _buf;
     int              _apFramesPerFlacFrame;
 
 
@@ -189,10 +189,9 @@ class FlacEngine
 
 
     //-----------------------------------------------------------
-    // AlsaPlayer always wants signed 16-bit data and 2 channels.
+    // AlsaPlayer always wants 2 channels.
     //-----------------------------------------------------------
 
-    static const unsigned int AP_BYTES_PER_SAMPLE = 2;
     static const unsigned int AP_CHANNELS = 2;
 
 }; // class FlacEngine
@@ -211,7 +210,7 @@ FlacEngine::supportsBlockSizes (unsigned int min, unsigned int max)
     // but the reference encoder is implemented this way, which makes our
     // life much simpler.  Let's do a sanity check just to make sure.
 
-    return min == max && min >= FLAC__MIN_BLOCK_SIZE && 
+    return min == max && min >= FLAC__MIN_BLOCK_SIZE &&
 	   max <= FLAC__MAX_BLOCK_SIZE;
 }
 
@@ -238,7 +237,7 @@ FlacEngine::apChannels () const
 inline int
 FlacEngine::apBytesPerSample () const
 {
-    return AP_BYTES_PER_SAMPLE;
+    return sizeof (_buf [0]);
 }
 
 } // namespace Flac

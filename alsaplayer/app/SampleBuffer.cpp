@@ -38,9 +38,9 @@ SampleBuffer::SampleBuffer(int mode, int size)
 		alsaplayer_error("Unsupported SAMPLE size");
 		exit(1);
 	}
-	
+
 	// Allocate buffer data
-	if ((buffer_data = new char[size]) == NULL) {
+	if ((buffer_data = new short [size]) == NULL) {
 		alsaplayer_error("Out of memory in SampleBuffer::SampleBuffer()");
 		exit(1);
 	}
@@ -117,7 +117,7 @@ int SampleBuffer::ReadSamples(void *data, int nr)
 			//memcpy(data, src, (nr * sample_size));
 			for (int c=0; c < nr; c++) {
 				*(dest++) = *(src++);
-			}	
+			}
 			read_index += nr;
 			return nr;
 		} else {
@@ -181,7 +181,7 @@ int SampleBuffer::GetBufferSize()
 
 int SampleBuffer::GetBufferSizeBytes(int frame_size)
 {
-	if (frame_size < 0) 
+	if (frame_size < 0)
 		return buffer_size * sample_size;
 	else {
 		int byte_count = buffer_size * sample_size;
@@ -205,7 +205,7 @@ int SampleBuffer::GetReadDirection()
 
 void SampleBuffer::ResetRead()
 {
-#if 1 
+#if 1
 	switch (GetReadDirection()) {
 		case DIR_FORWARD:
 			read_index = 0;
@@ -214,7 +214,7 @@ void SampleBuffer::ResetRead()
 			read_index = write_index;
 			break;
 	}
-#else	
+#else
 	read_index = 0;
 #endif
 	return;
@@ -227,7 +227,7 @@ int SampleBuffer::GetAvailableSamples()
 	 case DIR_FORWARD:
 		if (write_index < read_index) {
 			return 0;
-		} else {	 
+		} else {
 			return (write_index - read_index);
 		}
 		break;

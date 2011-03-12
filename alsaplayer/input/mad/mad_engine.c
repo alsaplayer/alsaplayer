@@ -51,7 +51,7 @@ extern "C" { 	/* Make sure MAD symbols are not mangled
 #ifndef HAVE_LIBMAD /* Needed if we use our own (outdated) copy */
 #include "frame.h"
 #include "synth.h"
-#endif	
+#endif
 #include <mad.h>
 
 #ifdef __cplusplus
@@ -80,7 +80,7 @@ struct mad_local_data {
 	int current_frame;
 	char path[FILENAME_MAX+1];
 	char filename[FILENAME_MAX+1];
-	struct mad_synth  synth; 
+	struct mad_synth  synth;
 	struct mad_stream stream;
 	struct mad_frame  frame;
 	struct xing xing;
@@ -96,7 +96,7 @@ struct mad_local_data {
 	int parse_id3;
 	int parsed_id3;
 	char str[17];
-};		
+};
 
 
 /*
@@ -165,7 +165,7 @@ static void fill_buffer(struct mad_local_data *data, long offset)
 		bytes_read = reader_read(data->mad_map, MAD_BUFSIZE, data->mad_fd);
 		data->bytes_avail = bytes_read;
 		data->map_offset = offset;
-	} else {	
+	} else {
 		memmove(data->mad_map, data->mad_map + MAD_BUFSIZE - data->bytes_avail, data->bytes_avail);
 		bytes_read = reader_read(data->mad_map + data->bytes_avail, MAD_BUFSIZE - data->bytes_avail, data->mad_fd);
 		data->map_offset += (MAD_BUFSIZE - data->bytes_avail);
@@ -221,7 +221,7 @@ static int mad_frame_seek(input_object *obj, int frame)
 			if (skip == 0)
 				mad_synth_frame (&data->synth, &data->frame);
 		}
-		data->bytes_avail = data->stream.bufend - 
+		data->bytes_avail = data->stream.bufend -
 			data->stream.next_frame;
 		data->current_frame = frame;
 		data->seeking = 0;
@@ -235,14 +235,14 @@ static int mad_frame_seek(input_object *obj, int frame)
 		if (data->bytes_avail < 3072) {
 			fill_buffer(data, data->map_offset + MAD_BUFSIZE - data->bytes_avail);
 			mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
-		}	
+		}
 		if (mad_header_decode(&header, &data->stream) == -1) {
 			if (!MAD_RECOVERABLE(data->stream.error)) {
 				fill_buffer(data, 0);
 				mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
 				data->seeking = 0;
 				return 0;
-			}				
+			}
 		}
 		data->frames[++data->highest_frame] =
 			data->map_offset + data->stream.this_frame - data->mad_map;
@@ -255,10 +255,10 @@ static int mad_frame_seek(input_object *obj, int frame)
 		fill_buffer(data, data->frames[data->current_frame-skip]);
 		mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
 		skip++;
-		while (skip != 0) { 
+		while (skip != 0) {
 			skip--;
 			mad_frame_decode(&data->frame, &data->stream);
-			if (skip == 0) 
+			if (skip == 0)
 				mad_synth_frame (&data->synth, &data->frame);
 			data->bytes_avail = data->stream.bufend -
 				data->stream.next_frame;
@@ -277,13 +277,13 @@ static int mad_frame_size(input_object *obj)
 		puts("No frame size!");
 		return 0;
 	}
-	return obj->frame_size;
+	return obj->frame_size / sizeof (short);
 }
 
 
 /* #define MAD_DEBUG */
 
-static int mad_play_frame(input_object *obj, char *buf)
+static int mad_play_frame(input_object *obj, short *buf)
 {
 	struct mad_local_data *data;
 	struct mad_pcm *pcm;
@@ -312,33 +312,33 @@ static int mad_play_frame(input_object *obj, char *buf)
 	if (mad_frame_decode(&data->frame, &data->stream) == -1) {
 		if (!MAD_RECOVERABLE(data->stream.error)) {
 			/*
-			   alsaplayer_error("MAD error: %s (%d). fatal", 
+			   alsaplayer_error("MAD error: %s (%d). fatal",
 			   error_str(data->stream.error, data->str),
 			   data->bytes_avail);
-			   */	
+			   */
 			mad_frame_mute(&data->frame);
 			return 0;
 		} else {
 			if (reader_eof(data->mad_fd)) {
 				return 0;
-			}	
-			//alsaplayer_error("MAD error: %s (not fatal)", error_str(data->stream.error, data->str)); 
+			}
+			//alsaplayer_error("MAD error: %s (not fatal)", error_str(data->stream.error, data->str));
 			memset(buf, 0, obj->frame_size);
 			return 1;
 		}
 	}
 	data->current_frame++;
 	if (data->seekable && data->current_frame < (obj->nr_frames + FRAME_RESERVE)) {
-		data->frames[data->current_frame] = 
+		data->frames[data->current_frame] =
 			data->map_offset + data->stream.this_frame - data->mad_map;
-		if (data->current_frame > 3 && 
+		if (data->current_frame > 3 &&
 				(data->frames[data->current_frame] -
 				 data->frames[data->current_frame-3]) < 6) {
 			return 0;
-		}		
+		}
 		if (data->highest_frame < data->current_frame)
 			data->highest_frame = data->current_frame;
-	}				
+	}
 
 	mad_synth_frame (&data->synth, &data->frame);
 
@@ -349,23 +349,23 @@ static int mad_play_frame(input_object *obj, char *buf)
 		nchannels = pcm->channels;
 		if (nchannels != obj->nr_channels) {
 			alsaplayer_error("ERROR: bad data stream! (channels: %d != %d, frame %d)",
-					nchannels, 
+					nchannels,
 					obj->nr_channels,
 					data->current_frame);
 			mad_frame_mute(&data->frame);
 			memset(buf, 0, obj->frame_size);
 			return 1;
-		}	
+		}
 		obj->nr_channels = nchannels;
 		if (data->samplerate != data->frame.header.samplerate) {
 			alsaplayer_error("ERROR: bad data stream! (samplerate: %d != %d, frame %d)",
-					data->samplerate, 
+					data->samplerate,
 					data->frame.header.samplerate,
 					data->current_frame);
 			mad_frame_mute(&data->frame);
 			memset(buf, 0, obj->frame_size);
 			return 1;
-		}	
+		}
 		data->samplerate = data->frame.header.samplerate;
 		left_ch = pcm->samples[0];
 		right_ch = pcm->samples[1];
@@ -375,7 +375,7 @@ static int mad_play_frame(input_object *obj, char *buf)
 				*output++ = my_scale(*(left_ch-1));
 			} else { /* nchannels == 2 */
 				*output++ = my_scale(*(right_ch++));
-			}	
+			}
 
 		}
 	}
@@ -395,7 +395,7 @@ static  long mad_frame_to_sec(input_object *obj, int frame)
 	if (data) {
 		sec = data->samplerate ? frame * (obj->frame_size >> 2) /
 			(data->samplerate / 100) : 0;
-	}			
+	}
 	return sec;
 }
 
@@ -438,7 +438,7 @@ static void fill_from_id3v2 (char *dst, const char *src, int max, int size)
 		return;
 
 	char *conv = NULL;
-	
+
 #ifdef HAVE_GLIB2
 	if (*src == 0)
 		conv = g_convert(src+1, (gssize) size-1, "UTF-8", "ISO-8859-1", NULL, NULL, NULL); // gsti: size -1
@@ -452,19 +452,19 @@ static void fill_from_id3v2 (char *dst, const char *src, int max, int size)
 	alsaplayer_error ("Warning: Without glib2 you get different encodings.");
 	conv = strndup(src+1, size);
 #endif
-	
+
 	if (!conv)	// convert error
 		return;
-	
-	int min = strlen(conv) > max ? max : strlen(conv);	// gsti
+
+	int min = (int) strlen(conv) > max ? max : (int) strlen(conv);	// gsti
 	strncpy (dst, conv, min);
-	
+
 	if (min == max)	// gsti
 		dst[min-1] = 0;
-		
+
 	if (conv)
 		free(conv);
-	
+
 }
 
 static char *genres[] = {
@@ -523,7 +523,7 @@ static void parse_id3 (const char *path, stream_info *info)
 		int header_size = from_synchsafe4 (buf + 6);
 		int name_size = buf [3] == 2 ? 3 : 4;
 		int ext_size = 0;
-		
+
 		if (f_extended_header) {
 //			alsaplayer_error ("FIXME: Extended header found in mp3."
 //					"Please contact alsaplayer team.\n"
@@ -559,19 +559,19 @@ static void parse_id3 (const char *path, stream_info *info)
 					ext_size = from_synchsafe3 (b);
 				else
 					ext_size = from_synchsafe4 (b);
-				
+
 				if (reader_seek (fd, ext_size - 4, SEEK_CUR) < 0) {
 					reader_close (fd);
 					return;
 				}
-			
+
 			}
-			
+
 		/* -- -- read frames -- -- */
 		while (reader_tell (fd) <= header_size + 10) {
 			unsigned int size = 0;
-			
-			
+
+
 			/* Get name of this frame */
 			if (reader_read (buf, name_size, fd) != (unsigned)name_size) {
 				reader_close (fd);
@@ -609,14 +609,14 @@ static void parse_id3 (const char *path, stream_info *info)
 //				return;
 //			}
 
-			int start = 0;		
+			int start = 0;
 			// read them
 			char b[2];
 			if (reader_read (b, 2, fd) != 2) {
 				reader_close (fd);
 				return;
 			} else {
-			
+
 				if (b[1] & (1 << 6)) {
 //					printf ("Grouping added\n");
 					start++;
@@ -633,11 +633,11 @@ static void parse_id3 (const char *path, stream_info *info)
 				if (b[1] & (1 << 0)) {
 //					printf ("Length added\n");
 					start+=4;
-				}	
+				}
 			}
-				
-				
-				
+
+
+
 			if (size>=1024) {
 				/* I will not support such long tags...
 				 * Only if someone ask for it...
@@ -760,7 +760,7 @@ static void parse_id3 (const char *path, stream_info *info)
 
 static int mad_stream_info(input_object *obj, stream_info *info)
 {
-	struct mad_local_data *data;	
+	struct mad_local_data *data;
 	unsigned len;
 	char metadata[256];
 	char *s, *p;
@@ -802,7 +802,7 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 					alsaplayer_error("Malformed metadata: \"%s\"", metadata);
 				}
 			}
-		}	
+		}
 		/* Restore permanently filled info */
 		memcpy (info, &data->sinfo, sizeof (data->sinfo));
 
@@ -814,7 +814,7 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 
 		if (data->seeking)
 			sprintf(info->status, "Seeking...");
-	}				
+	}
 	return 1;
 }
 
@@ -826,15 +826,15 @@ static int mad_sample_rate(input_object *obj)
 	if (!obj)
 		return 44100;
 	data = (struct mad_local_data *)obj->local_data;
-	if (data)	
+	if (data)
 		return data->samplerate;
 	return 44100;
 }
 
-static int mad_init(void) 
+static int mad_init(void)
 {
 	return 1;
-}		
+}
 
 
 static int mad_channels(input_object *obj)
@@ -851,7 +851,7 @@ static int mad_channels(input_object *obj)
 
 static float mad_can_handle(const char *path)
 {
-	char *ext;      
+	char *ext;
 	ext = strrchr(path, '.');
 
 	if (strncmp(path, "http://", 7) == 0)
@@ -870,7 +870,7 @@ static float mad_can_handle(const char *path)
 
 static ssize_t find_initial_frame(uint8_t *buf, int size)
 {
-	uint8_t *data = buf;			
+	uint8_t *data = buf;
 	int ext_header = 0;
 	int pos = 0;
 	ssize_t header_size = 0;
@@ -879,17 +879,17 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 			pos += 2;
 		if (data[pos] == 0xff && (data[pos+1] == 0xfb
 					|| data[pos+1] == 0xfa
-					|| data[pos+1] == 0xf3 
+					|| data[pos+1] == 0xf3
 					|| data[pos+1] == 0xf2
 					|| data[pos+1] == 0xe2
 					|| data[pos+1] == 0xe3)) {
 			return pos;
-		}	
+		}
 		if (pos == 0 && data[pos] == 0x0d && data[pos+1] == 0x0a) {
 			return -1; /* Let MAD figure this out */
-		}	
+		}
 		if (pos == 0 && (data[pos] == 'I' && data[pos+1] == 'D' && data[pos+2] == '3')) {
-			header_size = (data[pos + 6] << 21) + 
+			header_size = (data[pos + 6] << 21) +
 				(data[pos + 7] << 14) +
 				(data[pos + 8] << 7) +
 				data[pos + 9]; /* syncsafe integer */
@@ -906,7 +906,7 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 			if (header_size > STREAM_BUFFER_SIZE) {
 				//alsaplayer_error("Header larger than 32K (%d)", header_size);
 				return header_size;
-			}	
+			}
 			return header_size;
 		} else if (data[pos] == 'R' && data[pos+1] == 'I' &&
 				data[pos+2] == 'F' && data[pos+3] == 'F') {
@@ -922,12 +922,12 @@ static ssize_t find_initial_frame(uint8_t *buf, int size)
 			}
 			puts("MAD debug: invalid header");
 			return -1;
-		} else if (pos == 0 && data[pos] == 'T' && data[pos+1] == 'A' && 
+		} else if (pos == 0 && data[pos] == 'T' && data[pos+1] == 'A' &&
 				data[pos+2] == 'G') {
 			return 128;	/* TAG is fixed 128 bytes, we assume! */
 		}  else {
 			pos++;
-		}				
+		}
 	}
 	alsaplayer_error(
 			"MAD debug: potential problem file or unhandled info block\n"
@@ -952,7 +952,7 @@ static void reader_status(void *ptr, const char *str)
 		//fprintf(stdout, "%s     \r", str);
 		//fflush(stdout);
 		strcpy(data->sinfo.status, str);
-	}	
+	}
 }
 
 
@@ -1003,12 +1003,12 @@ static int mad_open(input_object *obj, const char *path)
 	fill_buffer(data, -1);
 	//alsaplayer_error("initial bytes_avail = %d", data->bytes_avail);
 	if (obj->flags & P_PERFECTSEEK) {
-		data->offset = find_initial_frame(data->mad_map, 
+		data->offset = find_initial_frame(data->mad_map,
 				data->bytes_avail < STREAM_BUFFER_SIZE ? data->bytes_avail :
 				STREAM_BUFFER_SIZE);
 	} else {
 		data->offset = 0;
-	}	
+	}
 	data->highest_frame = 0;
 	if (data->offset < 0) {
 		//fprintf(stderr, "mad_open() couldn't find valid MPEG header\n");
@@ -1024,7 +1024,7 @@ static int mad_open(input_object *obj, const char *path)
 		mad_stream_buffer(&data->stream, data->mad_map + data->offset,
 				data->bytes_avail - data->offset);
 		data->bytes_avail -= data->offset;
-	}	
+	}
 first_frame:
 
 	if ((mad_header_decode(&data->frame.header, &data->stream) == -1)) {
@@ -1034,8 +1034,8 @@ first_frame:
 			case MAD_ERROR_LOSTSYNC:
 			case MAD_ERROR_BADEMPHASIS:
 			case MAD_ERROR_BADBITRATE:
-			case MAD_ERROR_BADLAYER:	
-			case MAD_ERROR_BADSAMPLERATE:	
+			case MAD_ERROR_BADLAYER:
+			case MAD_ERROR_BADSAMPLERATE:
 				//alsaplayer_error("Error %x (frame %d)", data->stream.error, data->current_frame);
 				data->bytes_avail-=(data->stream.next_frame - data->stream.this_frame);
 				goto first_frame;
@@ -1049,7 +1049,7 @@ first_frame:
 				break;
 			default:
 				alsaplayer_error("ERROR: %s", error_str(data->stream.error, data->str));
-				alsaplayer_error("No valid frame found at start (pos: %d, error: 0x%x --> %x %x %x %x) (%s)", data->offset, data->stream.error, 
+				alsaplayer_error("No valid frame found at start (pos: %d, error: 0x%x --> %x %x %x %x) (%s)", data->offset, data->stream.error,
 						data->stream.this_frame[0],
 						data->stream.this_frame[1],
 						data->stream.this_frame[2],
@@ -1059,12 +1059,12 @@ first_frame:
 	}
 
 	mad_frame_decode(&data->frame, &data->stream);
-	/*	
-		alsaplayer_error("xing parsing...%x %x %x %x (%x %d)", 
+	/*
+		alsaplayer_error("xing parsing...%x %x %x %x (%x %d)",
 		data->stream.this_frame[0], data->stream.this_frame[1],
 		data->stream.this_frame[2], data->stream.this_frame[3],
 		data->stream.anc_ptr, data->stream.anc_bitlen);
-		*/		
+		*/
 	if (xing_parse(&data->xing, data->stream.anc_ptr, data->stream.anc_bitlen) == 0) {
 		// We use the xing data later on
 	}
@@ -1075,7 +1075,7 @@ first_frame:
 	data->bitrate	= data->frame.header.bitrate;
 	mad_synth_frame (&data->synth, &data->frame);
 	{
-		struct mad_pcm *pcm = &data->synth.pcm;			
+		struct mad_pcm *pcm = &data->synth.pcm;
 
 		obj->nr_channels = pcm->channels;
 		//alsaplayer_error("nr_channels = %d", obj->nr_channels);
@@ -1106,15 +1106,15 @@ first_frame:
 		frames = data->samplerate * (time+1) / samples;
 		if (data->xing.flags & XING_FRAMES) {
 			obj->nr_frames = data->xing.frames;
-		} else {	
+		} else {
 			obj->nr_frames = (int) frames;
-		}	
+		}
 		obj->nr_tracks = 1;
 	}
 	/* Determine if nr_frames makes sense */
 	if (!(obj->flags & P_SEEK) && (obj->flags & P_STREAMBASED)) {
 		obj->nr_frames = -1;
-	}	
+	}
 
 	/* Allocate frame index */
 	if (!data->seekable  || obj->nr_frames > 1000000 ||
@@ -1123,7 +1123,7 @@ first_frame:
 	}	else {
 		data->seekable = 1;
 		data->frames[0] = 0;
-	}	
+	}
 	data->mad_init = 1;
 
 	p = strrchr(path, '/');
@@ -1158,10 +1158,10 @@ static void mad_close(input_object *obj)
 		}
 		if (data->frames) {
 			free(data->frames);
-		}				
+		}
 		free(obj->local_data);
 		obj->local_data = NULL;
-	}				
+	}
 }
 
 

@@ -109,7 +109,7 @@ flac_frame_seek (input_object * obj, int frame)
 
 
 static int
-flac_play_frame (input_object * obj, char * buf)
+flac_play_frame (input_object * obj, short * buf)
 {
     if (!obj || !buf)
 	return 0;

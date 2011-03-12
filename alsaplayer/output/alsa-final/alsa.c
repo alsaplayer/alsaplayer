@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
-*/ 
+*/
 
 #define ALSA_PCM_NEW_HW_PARAMS_API
 #define ALSA_PCM_NEW_SW_PARAMS_API
@@ -56,7 +56,7 @@ static int alsa_open(const char *name)
 
 	if (!name || !*name) {
 		name = "default";
-	}	
+	}
 
 	if ((err = snd_pcm_open(&sound_handle, name, stream, 0)) < 0) {
 
@@ -78,7 +78,7 @@ static void alsa_close(void)
 		snd_pcm_drain(sound_handle);
 		snd_pcm_close(sound_handle);
 		sound_handle = NULL;
-	}	
+	}
 	if (errlog)
 		snd_output_close(errlog);
 	return;
@@ -124,7 +124,7 @@ static int xrun_recovery(snd_pcm_t *handle, int err)
 
 
 
-static int alsa_write(void *data, int cnt)
+static int alsa_write(short *data, int cnt)
 {
 	snd_pcm_uframes_t fcount;
 	int err;
@@ -133,20 +133,20 @@ static int alsa_write(void *data, int cnt)
 	if (!sound_handle) {
 		alsaplayer_error("WTF?");
 		return 0;
-	}	
+	}
 	err = snd_pcm_writei(sound_handle, data, fcount);
 	if (err < 0) {
 		if (xrun_recovery(sound_handle, err) < 0) {
 			alsaplayer_error("alsa: xrun");
 			return 0;
-		}	
+		}
 		err = snd_pcm_writei(sound_handle, data, fcount);
 		if (err < 0) {
 			if (xrun_recovery(sound_handle, err) < 0) {
 				alsaplayer_error("alsa: xrun");
 				return 0;
-			}	
-		}	
+			}
+		}
 	}
 	return 1;
 }
@@ -163,19 +163,19 @@ static int alsa_set_buffer(int *fragment_size, int *fragment_count, int *channel
 	snd_pcm_hw_params_alloca(noWarnPtr);
 	if (!sound_handle) {
 		puts("hmm, no sound handle... WTF?");
-		goto _err;	
-	}	
+		goto _err;
+	}
 	err = snd_pcm_hw_params_any(sound_handle, hwparams);
 	if (err < 0) {
 		puts("error on snd_pcm_hw_par/ams_any");
 		goto _err;
-	}	
+	}
 	err = snd_pcm_hw_params_set_access(sound_handle, hwparams,
 					   SND_PCM_ACCESS_RW_INTERLEAVED);
 	if (err < 0) {
 		puts("error on set_access SND_PCM_ACCESS_RW_INTERLEAVED");
 		goto _err;
-	}	
+	}
 	err = snd_pcm_hw_params_set_format(sound_handle, hwparams,
 					   SND_PCM_FORMAT_S16);
 	if (err < 0) {
@@ -191,11 +191,11 @@ static int alsa_set_buffer(int *fragment_size, int *fragment_count, int *channel
 		val = 48000;
 		err = snd_pcm_hw_params_set_rate_near(sound_handle, hwparams,
 				&val, 0);
-		printf("error on setting output_rate (%d)\n", output_rate);			
+		printf("error on setting output_rate (%d)\n", output_rate);
 		goto _err;
 	}
 	output_rate = val;
-	
+
 	err = snd_pcm_hw_params_set_channels(sound_handle, hwparams, *channels);
 	if (err < 0) {
 		printf("error on set_channels (%d)\n", *channels);
@@ -205,20 +205,20 @@ static int alsa_set_buffer(int *fragment_size, int *fragment_count, int *channel
 	err = snd_pcm_hw_params_set_period_size_near(sound_handle, hwparams,
 						&periodsize, 0);
 	if (err < 0) {
-		printf("error on set_period_size (%d)\n", (int)periodsize);			
+		printf("error on set_period_size (%d)\n", (int)periodsize);
 		goto _err;
 	}
 	frag_size = periodsize << 2;
-	
+
 	val = *fragment_count;
 	err = snd_pcm_hw_params_set_periods_near(sound_handle, hwparams,
 					    &val, 0);
 	if (err < 0) {
-		printf("error on set_periods (%d)\n", val);			
+		printf("error on set_periods (%d)\n", val);
 		goto _err;
 	}
 	frag_count = val;
-	
+
 	err = snd_pcm_hw_params(sound_handle, hwparams);
 	if (err < 0) {
 		alsaplayer_error("Unable to install hw params:");
@@ -255,13 +255,13 @@ static int alsa_get_queue_count(void)
 	if (!sound_handle) {
 		alsaplayer_error("No handle in alsa_get_queue_count()");
 		return 0;
-	}	
+	}
 	snd_pcm_status_alloca(&status);
 	if ((err = snd_pcm_status(sound_handle, status))<0) {
 		alsaplayer_error("can't determine status");
 		return 0;
-	}	
-	avail = snd_pcm_status_get_avail(status);				
+	}
+	avail = snd_pcm_status_get_avail(status);
 	return ((int)avail);
 }
 #endif
@@ -276,7 +276,7 @@ output_plugin alsa_output;
 #ifdef __cplusplus
 extern "C" {
 #endif
-	
+
 output_plugin *output_plugin_info(void)
 {
 	memset(&alsa_output, 0, sizeof(output_plugin));
@@ -293,7 +293,7 @@ output_plugin *output_plugin_info(void)
 	//alsa_output.get_queue_count = alsa_get_queue_count;
 #endif
 	alsa_output.get_latency = alsa_get_latency;
-	
+
 	return &alsa_output;
 }
 

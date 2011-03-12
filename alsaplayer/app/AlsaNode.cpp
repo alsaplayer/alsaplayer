@@ -62,7 +62,7 @@ AlsaNode::AlsaNode(const char *name, const char *args, int realtime)
 	plugin = NULL;
 	driver_name = NULL;
 	driver_args = NULL;
-	nr_fragments = fragment_size = external_latency = 0;	
+	nr_fragments = fragment_size = external_latency = 0;
 	init = false;
 	thread_running = false;
 	realtime_sched = realtime;
@@ -78,17 +78,17 @@ AlsaNode::AlsaNode(const char *name, const char *args, int realtime)
 		len = strlen(args);
 		driver_args = new char[len+1];
 		strcpy(driver_args, args);
-	} 
-	
+	}
+
 
 	for (int i = 0; i < MAX_SUB; i++) {
 		memset(&subs[i], 0, sizeof(subscriber));
 	}
 	if (global_session_name)
 		sprintf(client_name, "%s", global_session_name);
-	else	
+	else
 		sprintf(client_name, "alsaplayer-%d", getpid());
-	
+
 	pthread_mutex_init(&thread_mutex, NULL);
 	pthread_mutex_init(&queue_mutex, NULL);
 }
@@ -99,7 +99,7 @@ AlsaNode::~AlsaNode()
 	StopStreaming();
 	assert(plugin);
 	plugin->close();
-	
+
 	if (driver_name) {
 		delete []driver_name;
 		driver_name = NULL;
@@ -107,7 +107,7 @@ AlsaNode::~AlsaNode()
 	if (driver_args) {
 		delete []driver_args;
 		driver_args = NULL;
-	}	
+	}
 }
 
 
@@ -118,12 +118,12 @@ int AlsaNode::RegisterPlugin(const char *module)
 	void *our_handle;
 	struct stat statbuf;
 	output_plugin_info_type output_plugin_info;
-	
+
 	if (!global_pluginroot)
 		 pluginroot = ADDON_DIR;
 	else
 		pluginroot = global_pluginroot;
-	
+
 	if (module) {
 		snprintf(path, sizeof(path), "%s/output/lib%s_out.so", pluginroot, module);
 		if (stat(path, &statbuf) != 0) {
@@ -193,7 +193,7 @@ int AlsaNode::RegisterPlugin(const char *module)
 int AlsaNode::SetSamplingRate(int freq)
 {
 	int actual_rate;
-	
+
 	assert(plugin);
 
 	if ((actual_rate = plugin->set_sample_rate(freq))) {
@@ -201,7 +201,7 @@ int AlsaNode::SetSamplingRate(int freq)
 		return actual_rate;
 	} else {
 		return 0;
-	}	
+	}
 }
 
 
@@ -222,14 +222,14 @@ int AlsaNode::SetStreamBuffers(int frag_size, int frag_count, int channels)
 		return 1;
 	} else {
 		return 0;
-	}	
+	}
 }
 
-#define MAX_WRITE	(128*1024)
+#define MAX_WRITE	(64*1024)
 
 void AlsaNode::looper(void *pointer)
 {
-	char *buffer_data = NULL;
+	short *buffer_data = NULL;
 	AlsaNode *node = (AlsaNode *)pointer;
 	int read_size = node->GetFragmentSize();
 	bool status;
@@ -238,17 +238,17 @@ void AlsaNode::looper(void *pointer)
 
 	assert(node->plugin);
 
-	buffer_data = new char[MAX_WRITE+1];
+	buffer_data = new short [MAX_WRITE+1];
 	if (!buffer_data) {
 		alsaplayer_error("Error allocating mix buffer");
 		return;
 	}
-	memset(buffer_data, 0, MAX_WRITE+1);
+	memset(buffer_data, 0, (MAX_WRITE+1) * sizeof (buffer_data [0]));
 #ifdef DEBUG
 	alsaplayer_error("THREAD-%d=soundcard thread\n", getpid());
 #endif
 #ifdef USE_REALTIME
-	
+
 	if (node->realtime_sched) {
 		struct sched_param sp;
 		memset(&sp, 0, sizeof(sp));
@@ -263,7 +263,7 @@ void AlsaNode::looper(void *pointer)
 			if (global_verbose)
 				alsaplayer_error("real-time scheduling on");
 		}
-	}	
+	}
 #endif
 	node->looping = true;
 
@@ -271,7 +271,7 @@ void AlsaNode::looper(void *pointer)
 	if (read_size > MAX_WRITE) {
 		alsaplayer_error("Fragment size too large. Exitting looper");
 		pthread_exit(NULL);
-	}	
+	}
 	while (node->looping) {
 		subscriber *i;
 		int c;
@@ -283,7 +283,7 @@ void AlsaNode::looper(void *pointer)
 			// Skip inactive streamers
 			if (!i->active || !i->streamer) {
 				continue;
-			}	
+			}
 
 			//printf("streaming %d\n", i->ID);
 			status = i->streamer(i->arg, buffer_data, read_size / sizeof(short));
@@ -305,12 +305,12 @@ bool AlsaNode::IsInStream(int the_id)
 {
 	int c;
 
-	pthread_mutex_lock(&queue_mutex);	
+	pthread_mutex_lock(&queue_mutex);
 	for (c = 0; c < MAX_SUB; c++) {
 		if (subs[c].ID == the_id) {
 			pthread_mutex_unlock(&queue_mutex);
 			return true;
-		}	
+		}
 	}
 	pthread_mutex_unlock(&queue_mutex);
 	return false;
@@ -352,7 +352,7 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 		//alsaplayer_error("Closing already opened plugin?!");
 		plugin->close();
 	}
-	
+
 	/* Remember this plugin - it's the one we're going to use. */
 	plugin = tmp;
 	if (!plugin->init() || !plugin->open(driver_args)) {
@@ -360,7 +360,7 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 		plugin = NULL;
 		return 0; // Unclean but good enough for now
 	}
-#if 0	
+#if 0
 	/* Schedule realtime from this point on */
 	if (realtime_sched) {
 		struct sched_param sp;
@@ -373,7 +373,7 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 			mlockall(MCL_CURRENT);
 			alsaplayer_error("real-time scheduling on");
 		}
-	}	
+	}
 #endif
 	/* If this is a callback based plugin, immediately start */
 	if (plugin->start_callbacks) {
@@ -381,9 +381,9 @@ int AlsaNode::RegisterPlugin(output_plugin *the_plugin)
 			plugin->close();
 			plugin = NULL;
 			return 0;
-		}	
-	}	
-	
+		}
+	}
+
 	init = true;
 	if (global_verbose)
 		fprintf(stdout, "Output plugin: %s\n", plugin->name);
@@ -403,7 +403,7 @@ int AlsaNode::AddStreamer(streamer_type str, void *arg, int preferred_pos)
 			for (c = 0; c < MAX_SUB; c++) {
 				i = &subs[c];
 				if (!i->active) { // found an empty slot
-					i->ID = follow_id++;	
+					i->ID = follow_id++;
 					i->streamer = str;
 					i->arg = arg;
 					i->active = true; // Default is stream directly
@@ -417,7 +417,7 @@ int AlsaNode::AddStreamer(streamer_type str, void *arg, int preferred_pos)
 			for (c = MAX_SUB-1; c >= 0; c--) {
 				i = &subs[c];
 				if (!i->active) { // found an empty slot
-					i->ID = follow_id++;	
+					i->ID = follow_id++;
 					i->streamer = str;
 					i->arg = arg;
 					i->active = true; // Default is stream directly
@@ -429,7 +429,7 @@ int AlsaNode::AddStreamer(streamer_type str, void *arg, int preferred_pos)
 			break;
 		default:
 			break;
-	}	
+	}
 	alsaplayer_error("oversubscribed....!");
 	pthread_mutex_unlock(&queue_mutex);
 	return -1;
@@ -448,7 +448,7 @@ bool AlsaNode::RemoveStreamer(int the_id)
 			i->active = false;
 			pthread_mutex_unlock(&queue_mutex);
 			return true;
-		}	
+		}
 	}
 	alsaplayer_error("Streamer not found");
 	pthread_mutex_unlock(&queue_mutex);
@@ -468,7 +468,7 @@ void AlsaNode::StartStreaming()
 		//alsaplayer_error("Already looping...");
 		pthread_mutex_unlock(&thread_mutex);
 		return;
-	}	
+	}
 	//alsaplayer_error("Creating looper thread");
 	pthread_create(&looper_thread, NULL, (void * (*)(void *))looper, this);
 	thread_running = true;
@@ -482,8 +482,8 @@ void AlsaNode::StopStreaming()
 
 	if (plugin->start_callbacks) {
 		return;
-	}	
-	
+	}
+
 	looping = false;
 	pthread_mutex_lock(&thread_mutex);
 	if (thread_running) {
@@ -505,17 +505,17 @@ bool AlsaNode::ReadyToRun()
 int AlsaNode::GetLatency()
 {
 	int count = 0;
-	
+
 	assert(plugin);
 	//if (plugin->start_callbacks) {
 	//	return (fragment_size * nr_fragments);
-	//}	
-	
+	//}
+
 	if (plugin->get_queue_count && (count = plugin->get_queue_count()) >= 0) {
 		return count;
 	} else if (plugin->get_latency && (count = plugin->get_latency()) >= 0) {
 		return count;
-	} else  
+	} else
 		return (external_latency + ((nr_fragments-1) * fragment_size));
 }
 

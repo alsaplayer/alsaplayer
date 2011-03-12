@@ -26,7 +26,7 @@
 #include <sndfile.h>
 #include "input_plugin.h"
 #include "alsaplayer_error.h"
-static const int FRAME_SIZE = 512;
+static const int FRAME_SAMPLES = 256;
 
 struct sf_local_data
 {
@@ -67,13 +67,14 @@ static int sndfile_open (input_object *obj, const char *name)
 
 	if (data->sfinfo.channels > 2)
 	{
+		alsaplayer_error("sndfile_engine: no support for 2+ channels");
 		sf_close(data->sfhandle);
 		free(obj->local_data);
 		obj->local_data = NULL;
 		return 0;
 	}
 
-	data->framesize = FRAME_SIZE;
+	data->framesize = FRAME_SAMPLES;
 
 	p = strrchr(name, '/');
 	if (p) {
@@ -106,13 +107,13 @@ void sndfile_close (input_object *obj)
 }
 
 
-static int sndfile_play_frame (input_object *obj, char *buf)
+static int sndfile_play_frame (input_object *obj, short *buf)
 {
-	size_t	bytes_to_read;
+	size_t	samples_to_read;
 	size_t	items_read;
 	size_t	samples;
 	size_t	i;
-	void	*buffer;
+	short	*buffer;
 
 	struct sf_local_data	*data;
 
@@ -124,7 +125,7 @@ static int sndfile_play_frame (input_object *obj, char *buf)
 	if (!data)
 		return 0;
 
-	buffer = alloca(FRAME_SIZE);
+	buffer = alloca(FRAME_SAMPLES * sizeof (buffer [0]));
 
 	if (!buffer)
 		return 0;
@@ -133,31 +134,29 @@ static int sndfile_play_frame (input_object *obj, char *buf)
 		short *dest;
 		short *src;
 
-		bytes_to_read = FRAME_SIZE / 2;
-		samples = bytes_to_read / sizeof(short);
-		items_read = sf_read_short(data->sfhandle, (short *)buffer, samples);
+		samples_to_read = FRAME_SAMPLES / 2 ;
+		items_read = sf_read_short(data->sfhandle, buffer, samples_to_read);
 
 		if (buf) {
-			src = (short *)buffer;
-			dest = (short *)buf;
+			src = buffer;
+			dest = buf;
 			for (i = 0; i < items_read; i++) {
-				*(dest++) = *src;
-				*(dest++) =	*(src++);
+				dest [2 * i] = src [i];
+				dest [2 * i + 1] =	src [i];
 			}
-			if (items_read == 0) {
+			if (items_read < samples_to_read) {
 				return 0;
 			}
 		}
 	} else {
-		bytes_to_read = FRAME_SIZE;
+		samples_to_read = FRAME_SAMPLES;
 
-		items_read = sf_read_short(data->sfhandle, (short *)buffer,
-				bytes_to_read / sizeof(short));
+		items_read = sf_read_short(data->sfhandle, buffer, samples_to_read);
 		if (buf)
-			memcpy(buf, buffer,  FRAME_SIZE);
+			memcpy(buf, buffer, FRAME_SAMPLES * sizeof (buffer [0]));
 		else
 			return 0;
-		if (items_read != (bytes_to_read / sizeof(short)))
+		if (items_read < samples_to_read)
 			return 0;
 	}
 	return 1;
@@ -179,7 +178,7 @@ static int sndfile_frame_seek (input_object *obj, int frame)
 	{
 		return result;
 	}
-	pos = (frame * FRAME_SIZE) / (sizeof (short) * data->sfinfo.channels) ;
+	pos = (frame * FRAME_SAMPLES) / data->sfinfo.channels ;
 	//alsaplayer_error("pos = %d", pos);
 	if (sf_seek(data->sfhandle, pos, SEEK_SET) != pos)
 		return 0;
@@ -198,9 +197,7 @@ static int sndfile_nr_frames (input_object *obj)
 	samples = data->sfinfo.frames;
 
 	if (samples > 0)  {
-		return ((int)data->sfinfo.frames * 2 *
-			     sizeof (short)
-				/ FRAME_SIZE);
+		return ((int)data->sfinfo.frames * 2 / FRAME_SAMPLES);
 	}
 	return 0;
 }
@@ -208,7 +205,7 @@ static int sndfile_nr_frames (input_object *obj)
 
 static int sndfile_frame_size (input_object *obj)
 {
-	return FRAME_SIZE;
+	return FRAME_SAMPLES;
 }
 
 
@@ -247,7 +244,7 @@ static  long sndfile_frame_to_sec (input_object *obj, int frame)
 
 	if (!data)
 		return result;
-	result = (unsigned long) (frame * FRAME_SIZE / 2 /
+	result = (unsigned long) (frame * FRAME_SAMPLES /
 			(data->sfinfo.samplerate * sizeof (short) / 100));
 
 	return result;

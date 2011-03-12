@@ -47,17 +47,16 @@ class SampleBuffer {
         int read_direction;
         //int read_index;
         //int write_index;
-        //char *buffer_data;
-	pthread_mutex_t	lock;	
+	pthread_mutex_t	lock;
  public:
 
 	int read_index;
 	int write_index;
-	char *buffer_data;
-	
+	short *buffer_data;
+
 	SampleBuffer(int mode, int size);
 	~SampleBuffer();
-	
+
 	int WriteSamples(void *data, int length);
         int ReadSamples(void *data, int length);
 	int Seek(int index);
@@ -73,7 +72,7 @@ class SampleBuffer {
 	int GetFreeSamples();
 	int GetAvailableSamples();
 	int GetSampleSize() { return sample_size; }
-	void Clear(); 
+	void Clear();
 };
 
 #endif

@@ -88,8 +88,7 @@ FlacEngine::init ()
     int tryme;
     for (tryme = 1; tryme <= 32; tryme *= 2)
     {
-	if ((_f->samplesPerBlock () * AP_CHANNELS * AP_BYTES_PER_SAMPLE /
-	     tryme) <= BUF_SIZE)
+	if ((_f->samplesPerBlock () * AP_CHANNELS / tryme) <= BUF_SIZE)
 	    break;
     }
     if (tryme <= 32)
@@ -98,7 +97,7 @@ FlacEngine::init ()
 	return true;
     } else {
 	// ugh, give up, too big
-	alsaplayer_error("FlacEngine::init(): frame size too big"); 
+	alsaplayer_error("FlacEngine::init(): frame size too big");
 	return false;
     }
 } // FlacEngine::init
@@ -122,11 +121,10 @@ FlacEngine::apFrameSize () const
     // flac channel into the 2nd AlsaPlayer channel.
     //
     // So the AlsaPlayer frame size is the flack block size (samples
-    // per channel) times AP_CHANNELS times AP_BYTES_PER_SAMPLE divided
+    // per channel) times AP_CHANNELS divided
     // by the number of AlsaPlayer frames per flac frame.
 
-    return _f->samplesPerBlock () * AP_CHANNELS * AP_BYTES_PER_SAMPLE /
-	   _apFramesPerFlacFrame;
+    return _f->samplesPerBlock () * AP_CHANNELS / _apFramesPerFlacFrame;
 
 } // FlacEngine::apFrameSize
 
@@ -168,8 +166,8 @@ FlacEngine::seekToFrame (int frame)
     // number.  Don't actually seek to this sample yet, we do that later
     // in flac_play_frame.
 
-    _currSamp = (FLAC__uint64) (_f->samplesPerBlock () * 
-				((float) frame / 
+    _currSamp = (FLAC__uint64) (_f->samplesPerBlock () *
+				((float) frame /
 				 (float) _apFramesPerFlacFrame));
     _currApFrame = frame;
 
@@ -179,7 +177,7 @@ FlacEngine::seekToFrame (int frame)
 
 
 bool
-FlacEngine::decodeFrame (char * buf)
+FlacEngine::decodeFrame (short * buf)
 {
     if (!_f || !buf)
 	return false;
@@ -200,7 +198,7 @@ FlacEngine::decodeFrame (char * buf)
     if (_apFramesPerFlacFrame == 1)
 	_buf = buf;
     else if (!_buf)
-	_buf = new char[apFrameSize () * _apFramesPerFlacFrame];
+	_buf = new short [apFrameSize () * _apFramesPerFlacFrame];
 
 
     // Figure out where the next batch of AlsaPlayer samples comes from
@@ -237,8 +235,8 @@ FlacEngine::decodeFrame (char * buf)
     {
 	if (_buf != buf)
 	{
-	    memcpy (buf, 
-		    _buf + (apFrameSize () * 
+	    memcpy (buf,
+		    _buf + (apFrameSize () *
 			    (_currApFrame % _apFramesPerFlacFrame)),
 		    apFrameSize ());
 	}
@@ -259,7 +257,7 @@ FlacEngine::decodeFrame (char * buf)
 	if (_buf == buf)
 	    _buf = 0;
     }
-    
+
     return status;
 
 } // FlacEngine::decodeFrame
@@ -268,7 +266,7 @@ FlacEngine::decodeFrame (char * buf)
 static const FLAC__int16 PCM_SILENCE = 0;
 
 void
-FlacEngine::writeAlsaPlayerBuf (unsigned int apSamps, 
+FlacEngine::writeAlsaPlayerBuf (unsigned int apSamps,
 				const FLAC__int32 * ch0,
 				const FLAC__int32 * ch1,
 				unsigned int flacSamps,
@@ -317,15 +315,14 @@ FlacEngine::writeBuf (const FLAC__Frame * frame,
     // Decode a whole flac frame's worth of AlsaPlayer frames at once.
 
     if (supportsBps (bps))
-	writeAlsaPlayerBuf (apFrameSize () * _apFramesPerFlacFrame / 
-			    AP_BYTES_PER_SAMPLE,
+	writeAlsaPlayerBuf (apFrameSize () * _apFramesPerFlacFrame,
 			    left, right, frame->header.blocksize,
 			    bps == 8 ? 8 : 0);
     else
 	return false;
 
     return true;
-	
+
 } // FlacEngine::writeBuf
 
 } // namespace Flac

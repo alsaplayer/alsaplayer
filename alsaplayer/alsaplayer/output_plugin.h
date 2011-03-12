@@ -28,7 +28,7 @@ typedef int output_version_type;
 typedef int(*output_init_type)(void);
 typedef int(*output_open_type)(const char *path);
 typedef void(*output_close_type)(void);
-typedef int(*output_write_type)(void *data, int byte_count);
+typedef int(*output_write_type)(short *data, int short_count);
 typedef int(*output_start_callbacks_type)(void *data);
 typedef int(*output_set_buffer_type)(int *frag_size, int *frag_count, int *channels);
 typedef unsigned int(*output_set_sample_rate_type)(unsigned int rate);
@@ -39,21 +39,21 @@ typedef struct _output_plugin
 {
 	/**
 	 * Version of output plugin. Must be OUTPUT_PLUGIN_VERSION
-	 */ 
+	 */
 	output_version_type version;
 
 	/**
 	 * Name of output plugin
-	 */ 
+	 */
 	const char *name;
 
 	/**
 	 * Author of the plugin
-	 */ 
+	 */
 	const char *author;
 
 	/**
-	 * Initialize output plugin. Called before the plugin is 
+	 * Initialize output plugin. Called before the plugin is
 	 * opened for use
 	 */
 	output_init_type init;
@@ -61,14 +61,14 @@ typedef struct _output_plugin
 	/**
 	 * @param path The path or device designation that should be used
 	 *
-	 * Opens the output plugin. A value of 1 should be returned on 
+	 * Opens the output plugin. A value of 1 should be returned on
 	 * success, 0 on failure.
 	 */
 	output_open_type open;
 
 	/**
 	 * Close the output plugin
-	 */ 
+	 */
 	output_close_type close;
 
 	/**
@@ -78,7 +78,7 @@ typedef struct _output_plugin
 	 * Write out data to the output device. This is a byte count and
 	 * will typically be the same size as a fragment. A value of 1 should
 	 * be returned on success, 0 on failure.
-	 */ 
+	 */
 	output_write_type write;
 
 	/**
@@ -87,7 +87,7 @@ typedef struct _output_plugin
 	 * This function is used for callback based plugins like JACK
 	 */
 	output_start_callbacks_type start_callbacks;
-	
+
 	/**
 	 * @param frag_size Fragment size to use (in bytes)
 	 * @param frag_count Fragment count to use (in bytes)
@@ -100,7 +100,7 @@ typedef struct _output_plugin
 	 * 0 on failure.
 	 */
 	output_set_buffer_type set_buffer;
-	
+
 	/**
 	 * @param rate Sample rate to use
 	 *
@@ -114,11 +114,11 @@ typedef struct _output_plugin
 	 * output device. This function is optional.
 	 */
 	output_get_queue_count_type get_queue_count;
-	
+
 	/**
 	 * Returns the latency of the output device in bytes. This function
 	 * is optional.
-	 */ 
+	 */
 	output_get_latency_type get_latency;
 } output_plugin;
 

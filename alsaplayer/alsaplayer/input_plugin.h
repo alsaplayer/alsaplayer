@@ -51,7 +51,7 @@
 #define P_STREAMBASED	16
 
 /**
- * Set minimal buffer 
+ * Set minimal buffer
  */
 #define P_BUFFERING	32
 
@@ -77,7 +77,7 @@
  * This is a structure that keeps frequently used parameters of an
  * input instance. It also contains a pointer to any local_data
  * that might be allocated by the plugin itself.
- */ 
+ */
 typedef struct _input_object
 {
 	/**
@@ -115,7 +115,7 @@ typedef struct _input_object
 	 */
 	void *local_data;
 	/** Path of the currently played file
-	 * 
+	 *
 	 */
 	char* path;
 	/**
@@ -126,8 +126,8 @@ typedef struct _input_object
 } input_object;
 
 
-/** 
- * input plugin binary version. Must be set to INPUT_PLUGIN_VERSION 
+/**
+ * input plugin binary version. Must be set to INPUT_PLUGIN_VERSION
  */
 typedef int input_version_type;
 
@@ -137,7 +137,7 @@ typedef int input_version_type;
 typedef int input_flags_type;
 
 /**
- * Init plugin 
+ * Init plugin
  */
 typedef int(*input_init_type)(void);
 
@@ -170,7 +170,7 @@ typedef int(*input_open_type)(input_object *obj, const char *path);
 
 /**
  * @param obj input object
- * 
+ *
  * Close stream */
 typedef void(*input_close_type)(input_object *obj);
 
@@ -182,7 +182,7 @@ typedef void(*input_close_type)(input_object *obj);
  * to the buffer. If there is not enough PCM data to fill the frame
  * it should be padded with zeros (silence).
  */
-typedef int(*input_play_frame_type)(input_object *obj, char *buffer);
+typedef int(*input_play_frame_type)(input_object *obj, short *buffer);
 
 /**
  * @param obj input object
@@ -210,7 +210,7 @@ typedef int(*input_nr_frames_type)(input_object *obj);
  * @param frame frame number
  *
  * Returns the offset from the start time in centiseconds (100th of a second)
- * for the frame given.  
+ * for the frame given.
  */
 typedef  long(*input_frame_to_sec_type)(input_object *obj ,int frame);
 
@@ -245,7 +245,7 @@ typedef int(*input_nr_tracks_type)(input_object *obj);
 
 /* @param obj input object
  * @param track track to seek to
- * 
+ *
  * Seek to a track. Optional
  */
 typedef int(*input_track_seek_type)(input_object *obj, int track);
@@ -265,8 +265,8 @@ typedef struct _input_plugin
 	 * Should point the a character array containing the name of this plugin
 	 */
 	const char *name;
-	/** 
-	 * Should point to a character array containing the name of the 
+	/**
+	 * Should point to a character array containing the name of the
 	 * author(s) of this plugin.
 	 */
 	const char *author;

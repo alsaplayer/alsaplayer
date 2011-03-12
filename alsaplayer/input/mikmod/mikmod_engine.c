@@ -33,7 +33,7 @@ struct mikmod_local_data {
 	MODULE *mf;
 	char *fname;
 	SBYTE *audio_buffer;
-};	
+};
 
 /* Unfortunately libmikmod is *NOT* reentrant :-( */
 static pthread_mutex_t mikmod_mutex;
@@ -82,7 +82,7 @@ static float mikmod_can_handle (const char *name)
 			strstr(name, "mod.") ||
 			strstr(name, "xm.") ||
 			strstr(name, "XM.")) {
-		return 1.0;	  
+		return 1.0;
 	}
 	if (!strcasecmp (ext, "669") ||
 			!strcasecmp (ext, "amf") ||
@@ -101,7 +101,7 @@ static float mikmod_can_handle (const char *name)
 			!strcasecmp (ext, "uni") ||
 			!strcasecmp (ext, "xm")) {
 		return 1.0;
-	}	
+	}
 	return 0.0;
 }
 
@@ -115,7 +115,7 @@ static int mikmod_open (input_object *obj, const char *name)
 		/* printf("mikmod already in use :(\n"); */
 		obj->local_data = NULL;
 		return 0;
-	}		
+	}
 
 	if (!(mf = Player_Load ((char *)name, 255, 0))) {
 		printf ("error loading module: %s\n", name);
@@ -126,19 +126,19 @@ static int mikmod_open (input_object *obj, const char *name)
 	obj->local_data = malloc(sizeof(struct mikmod_local_data));
 
 	if (!obj->local_data) {
-		Player_Free(mf);	
+		Player_Free(mf);
 		pthread_mutex_unlock(&mikmod_mutex);
 		return 0;
 	}
 	data = (struct mikmod_local_data *)obj->local_data;
 
-	if (!(data->audio_buffer = (SBYTE *)malloc(MIKMOD_FRAME_SIZE))) {
+	if (!(data->audio_buffer = malloc(MIKMOD_FRAME_SIZE))) {
 		Player_Free(mf);
 		free(obj->local_data);
 		obj->local_data = NULL;
 		pthread_mutex_unlock(&mikmod_mutex);
 		return 0;
-	}	
+	}
 
 	data->fname = strrchr(name, '/');
 	data->fname = (data->fname) ? data->fname + 1 : (char *)name;
@@ -165,7 +165,7 @@ static void mikmod_close (input_object *obj)
 }
 
 
-static int mikmod_play_frame (input_object *obj, char *buf)
+static int mikmod_play_frame (input_object *obj, short *buf)
 {
 	struct mikmod_local_data *data =
 		(struct mikmod_local_data *)obj->local_data;
@@ -180,7 +180,7 @@ static int mikmod_play_frame (input_object *obj, char *buf)
 	if (!Player_Active ())
 		return 0;
 
-	length = VC_WriteBytes((SBYTE *) data->audio_buffer, MIKMOD_FRAME_SIZE);
+	length = VC_WriteBytes(data->audio_buffer, MIKMOD_FRAME_SIZE);
 
 	if (buf)
 		memcpy(buf, data->audio_buffer, MIKMOD_FRAME_SIZE);
@@ -197,7 +197,7 @@ static int mikmod_frame_seek (input_object *obj, int frame)
 
 static int mikmod_frame_size (input_object *obj)
 {
-	return MIKMOD_FRAME_SIZE;
+	return MIKMOD_FRAME_SIZE / sizeof (short);
 }
 
 
@@ -233,7 +233,7 @@ static int mikmod_stream_info (input_object *obj, stream_info *info)
 		return 0;
 	data = (struct mikmod_local_data *)obj->local_data;
 
-	sprintf (info->stream_type, "%i channel %s", 
+	sprintf (info->stream_type, "%i channel %s",
 			data->mf->numchn, data->mf->modtype);
 
 	info->artist[0] = 0;
