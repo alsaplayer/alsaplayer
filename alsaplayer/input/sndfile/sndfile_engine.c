@@ -258,11 +258,15 @@ static float sndfile_can_handle (const char *name)
 	{
 		dot++;
 
-		if (!strcasecmp(dot, "wav")
-		||  !strcasecmp(dot, "au")
-		||  !strcasecmp(dot, "aif")
-		||  !strcasecmp(dot, "aiff"))
-			return 0.8;
+		if (!strcasecmp(dot, "aif")
+			|| !strcasecmp(dot, "aiff")
+			|| !strcasecmp(dot, "au")
+			|| !strcasecmp(dot, "flac")
+			|| !strcasecmp(dot, "svx")
+			|| !strcasecmp(dot, "voc")
+			|| !strcasecmp(dot, "wav")
+			)
+			return 1.0;
 	}
 	return 0.0;
 }

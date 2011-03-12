@@ -86,7 +86,7 @@ flac_frame_to_centisec (input_object * obj, int frame)
 {
     if (!obj)
 	return 0;
-    
+
     Flac::FlacStream * f = (Flac::FlacStream *) obj->local_data;
     if (!f)
 	return 0;
@@ -113,7 +113,7 @@ flac_play_frame (input_object * obj, char * buf)
 {
     if (!obj || !buf)
 	return 0;
-    
+
     Flac::FlacStream * f = (Flac::FlacStream *) obj->local_data;
     if (!f)
 	return 0;
@@ -150,12 +150,12 @@ flac_open (input_object * obj, const char * name)
 	    else
 		f = new Flac::FlacStream (name, rdr);
 	}
-#ifdef HAVE_LIBOGGFLC	
+#ifdef HAVE_LIBOGGFLC
 	else
 	{
 	    f = new Flac::OggFlacStream (name, rdr);
 	}
-#endif	
+#endif
     }
     catch (...)
     {
@@ -170,7 +170,7 @@ flac_open (input_object * obj, const char * name)
 	obj->frame_size  = f->engine ()->apFrameSize ();
 
 	// attach a song info tag
-	
+
 	if (Flac::FlacTag::hasTag (f->name ()))
 	{
 	    Flac::FlacTag * t = Flac::FlacTag::newTag (f->name ());
@@ -217,7 +217,7 @@ flac_stream_info (input_object * obj, stream_info * info)
     if (!f)
 	return 0;
 
-    sprintf (info->stream_type, "%d-bit %dKhz %s flac", 
+    sprintf (info->stream_type, "%d-bit %dKhz %s flac",
 	     f->bps (), f->sampleRate () / 1000,
 	     f->channels () == 1 ? "mono" :
 	     f->channels () == 2 ? "stereo" : "multi-channel");
@@ -247,7 +247,7 @@ flac_stream_info (input_object * obj, stream_info * info)
 	}
 	else
 	    info->title[0] = 0;
-	
+
 	info->artist[0]  = 0;
 	info->title[0]   = 0;
 	info->album[0]   = 0;
@@ -275,10 +275,10 @@ flac_can_handle (const char * name)
 		return 0.0;
 	ext++;
 	if (strcasecmp(ext, "flac") == 0) /* Always support .flac files */
-		return 1.0;
+		return 0.8;
 	if (strcasecmp(ext, "ogg")) /* Ignore all non .ogg files */
 		return 0.0;
-	
+
 	res = Flac::FlacStream::isFlacStream (name);
 #ifdef HAVE_LIBOGGFLC
 	if (res != 1.0) {
@@ -345,7 +345,7 @@ input_plugin_info (void)
     flac_plugin.sample_rate  = flac_sample_rate;
     flac_plugin.channels     = flac_channels;
     flac_plugin.stream_info  = flac_stream_info;
-    
+
     return & flac_plugin;
 }
 
