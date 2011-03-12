@@ -94,7 +94,7 @@ dnl ===============
 dnl Debugging stuff
 dnl ===============
 
-AC_ARG_ENABLE(debug, 
+AC_ARG_ENABLE(debug,
 [  --enable-debug          Enable debugging (default=no)],, enable_debug=no)
 
 if test "$enable_debug" = yes; then
@@ -137,7 +137,7 @@ if test "x$enable_opengl" = xyes; then
 	LIBS_save=$LIBS
 	OPENGL_LIBS=error
 	AC_CHECK_LIB(GL, glBegin, OPENGL_LIBS="-lGL -lpthread")
-	
+
 	if test "x$OPENGL_LIBS" = xerror; then
 		AC_CHECK_LIB(MesaGL, glBegin, OPENGL_LIBS="-lMesaGL -lpthread")
 	fi
@@ -149,7 +149,7 @@ if test "x$enable_opengl" = xyes; then
 		have_opengl=no
 	else
 		have_opengl=yes
-	fi	
+	fi
 
 	LIBS=$LIBS_save
 else
@@ -196,9 +196,9 @@ AC_ARG_ENABLE(oggvorbis,
 [if test "$enableval" = "no"
 then
 	if test "$have_oggvorbis" = "yes"
-	then 
+	then
 		have_oggvorbis=no
-	fi	
+	fi
 fi])
 
 AM_CONDITIONAL(HAVE_OGGVORBIS,test "$have_oggvorbis" = "yes")
@@ -212,7 +212,7 @@ then
 	if test "$have_audiofile" = "yes"
 	then
 		audiofile_enable=yes
-	fi	
+	fi
 fi])
 
 
@@ -583,12 +583,12 @@ fi])
 if test "x$ac_cv_header_mad_h" = "xno"
 then
 	have_libmad=no
-fi	
+fi
 
 if test "x$ac_cv_header_id3tag_h" = "xno"
 then
 	use_libid3tag=no
-fi	
+fi
 
 
 dnl =======
@@ -700,11 +700,11 @@ AM_CONFIG_HEADER(config.h)
 case "$host" in
 	i?86-* | k?-* | athlon-*) dnl catch i386,i486,i586,i686,k6,k7
 		AC_DEFINE(FPM_INTEL, 1, [Define if we are on Intel])
-	;;	
+	;;
 	*-*)
 		echo "host_alias = $host_alias"
 		AC_DEFINE(FPM_64BIT, 1, [Use this otherwise])
-	;;	
+	;;
 esac
 
 ARCH_CFLAGS="$ARCH_CFLAGS $EXTRA_CPU_CFLAGS"
@@ -780,9 +780,7 @@ input/Makefile
 input/mad/Makefile
 input/cdda/Makefile
 input/mikmod/Makefile
-input/wav/Makefile
 input/vorbis/Makefile
-input/audiofile/Makefile
 input/flac/Makefile
 input/sndfile/Makefile
 reader/Makefile
@@ -799,7 +797,7 @@ docs/reference.doxygen
 
 echo "
 Configuration:
-  
+
   Install path:                       ${prefix}
   Use libmad shared library:          ${have_libmad}
   Enable libid3tag support:           ${use_libid3tag}

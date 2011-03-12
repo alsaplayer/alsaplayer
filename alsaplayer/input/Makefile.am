@@ -1,1 +1,1 @@
-SUBDIRS = cdda audiofile mikmod wav vorbis mad flac sndfile
+SUBDIRS = cdda mikmod vorbis mad flac sndfile
