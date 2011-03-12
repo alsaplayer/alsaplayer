@@ -22,7 +22,6 @@ dnl =======================================================
 have_gtk2=no
 have_glib=no
 have_opengl=no
-have_audiofile=no
 have_oggvorbis=no
 have_flac=no
 have_libFLAC_113=no
@@ -69,14 +68,6 @@ AC_PROG_MAKE_SET
 AM_PATH_LIBMIKMOD(3.1.7, have_mikmod=yes, have_mikmod=no)
 AM_PATH_OGG(have_ogg=yes, have_ogg=no)
 AM_PATH_VORBIS(have_vorbis=yes, have_vorbis=no)
-AM_PATH_AUDIOFILE(0.1.7, have_audiofile=yes, have_audiofile=no)
-AC_CHECK_LIB(audiofile, afOpenFile,
-	[have_audiofile=yes
-	AUDIOFILE_CFLAGS=""
-	AUDIOFILE_LIBS="-laudiofile"
-	AC_SUBST(AUDIOFILE_CFLAGS)
-	AC_SUBST(AUDIOFILE_LIBS)
-	], )
 AC_HEADER_STDC
 
 dnl ======================
@@ -203,27 +194,6 @@ fi])
 
 AM_CONDITIONAL(HAVE_OGGVORBIS,test "$have_oggvorbis" = "yes")
 
-audiofile_enable=no
-
-AC_ARG_ENABLE(audiofile,
-[  --enable-audiofile      Enable Audiofile plugin (default=no)],
-[if test "$enableval" = "yes"
-then
-	if test "$have_audiofile" = "yes"
-	then
-		audiofile_enable=yes
-	fi
-fi])
-
-
-if test "$audiofile_enable" = "yes"
-then
-	have_audiofile=yes
-else
-	have_audiofile=no
-fi
-
-
 dnl ============
 dnl flac library
 dnl ============
@@ -311,12 +281,6 @@ CFLAGS=$oldcflags
 AC_SUBST(FLC_LDADD)
 AC_SUBST(OGGFLC_LDADD)
 AC_SUBST(MAD_LDADD)
-
-dnl =================
-dnl audiofile library
-dnl =================
-
-AM_CONDITIONAL(HAVE_AUDIOFILE,test "x$have_audiofile" = xyes)
 
 dnl ==========
 dnl JACK stuff
@@ -815,7 +779,6 @@ Configuration:
   Build vorbis input plugin:          ${have_oggvorbis}
   Build cdda input plugin:            ${ac_cv_header_linux_cdrom_h}
   Build mikmod input plugin:          ${have_mikmod}
-  Build audiofile input plugin:       ${have_audiofile}
   Build FLAC input plugin:            ${have_flac}
   Included OggFLAC input plugin:      ${have_libFLAC_113}
   Separated OggFLAC input plugin:     ${have_oggflac}
