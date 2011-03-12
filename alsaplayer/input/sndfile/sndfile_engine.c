@@ -57,7 +57,6 @@ static int sndfile_open (input_object *obj, const char *name)
 	data = (struct sf_local_data *) obj->local_data;
 
 	data->sfhandle = sf_open(name, SFM_READ, &data->sfinfo);
-	data->framesize = FRAME_SIZE;
 
 	if (data->sfhandle == NULL)
 	{
@@ -65,6 +64,17 @@ static int sndfile_open (input_object *obj, const char *name)
 		obj->local_data = NULL;
 		return 0;
 	}
+
+	if (data->sfinfo.channels > 2)
+	{
+		sf_close(data->sfhandle);
+		free(obj->local_data);
+		obj->local_data = NULL;
+		return 0;
+	}
+
+	data->framesize = FRAME_SIZE;
+
 	p = strrchr(name, '/');
 	if (p) {
 		strcpy(data->filename, ++p);
