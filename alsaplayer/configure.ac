@@ -26,7 +26,6 @@ have_oggvorbis=no
 have_flac=no
 have_libFLAC_113=no
 have_oggflac=no
-have_alsa_05x=no
 have_alsa_final=no
 have_oss=no
 have_esd=no
@@ -401,18 +400,6 @@ AC_EGREP_CPP([AP_maGiC_VALUE],
 [
 #include <sys/asoundlib.h>
 #if defined(SND_LIB_MAJOR) && defined(SND_LIB_MINOR)
-#if SND_LIB_MAJOR==0 && SND_LIB_MAJOR==5
-AP_maGiC_VALUE
-#endif
-#endif
-],
-have_alsa_05x=yes
-ALSA_LIB="-lasound"
-AC_MSG_RESULT([found 0.5.x]),
-AC_EGREP_CPP([AP_maGiC_VALUE],
-[
-#include <sys/asoundlib.h>
-#if defined(SND_LIB_MAJOR) && defined(SND_LIB_MINOR)
 #if SND_LIB_MAJOR>0 || (SND_LIB_MAJOR==0 && SND_LIB_MINOR>=6)
 AP_maGiC_VALUE
 #endif
@@ -421,7 +408,6 @@ AP_maGiC_VALUE
 have_alsa_final=yes
 ALSA_LIB="-lasound"
 AC_MSG_RESULT([found latest])
-)
 )
 
 
@@ -570,7 +556,6 @@ AM_CONDITIONAL(USE_LIBID3TAG, test "x$use_libid3tag" = xyes)
 AM_CONDITIONAL(HAVE_FLC, test "x$have_flac" = xyes)
 AM_CONDITIONAL(HAVE_OGGFLC, test "x$have_oggflac" = xyes)
 AM_CONDITIONAL(HAVE_JACK,	test "x$have_jack" = xyes)
-AM_CONDITIONAL(HAVE_ALSA_05X, test "x$have_alsa_05x" = xyes)
 AM_CONDITIONAL(HAVE_ALSA_FINAL, test "x$have_alsa_final" = xyes)
 AM_CONDITIONAL(HAVE_OSS, test "x$have_oss" = xyes)
 AM_CONDITIONAL(HAVE_ESD, test "x$have_esd" = xyes)
@@ -731,7 +716,6 @@ scopes2/synaescope/Makefile
 scopes2/blurscope/Makefile
 scopes2/opengl_spectrum/Makefile
 output/Makefile
-output/alsa-0.5.x/Makefile
 output/alsa-final/Makefile
 output/jack/Makefile
 output/oss/Makefile
@@ -768,7 +752,6 @@ Configuration:
   Build GTK2 interface:               ${have_gtk2}
   Build XOSD interface:               ${have_xosd}
   Build OpenGL based visual plugins:  ${have_opengl}
-  Build alsa 0.5.x output plugin:     ${have_alsa_05x}
   Build alsa 0.9.x output plugin:     ${have_alsa_final}
   Build jack output plugin:           ${have_jack}
   Build oss output plugin:            ${have_oss}
@@ -786,7 +769,7 @@ Configuration:
   Build systray icon:                 ${have_systray}"
 echo
 
-if test $have_jack = "no" -a $have_sparc = "no" -a $have_alsa_05x = "no" -a $have_alsa_final = "no" -a $have_oss = "no" -a $have_esd = "no" -a $have_sgi = "no" -a $have_nas = "no"
+if test $have_jack = "no" -a $have_sparc = "no" -a $have_alsa_final = "no" -a $have_oss = "no" -a $have_esd = "no" -a $have_sgi = "no" -a $have_nas = "no"
 then
 echo "
 **WARNING**: NO OUTPUT MODULES selected. AlsaPlayer won't be
