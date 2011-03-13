@@ -1,9 +1,26 @@
+TODO list (March 2011, Erik de Castro Lopo)
+
+- Switch to float as internal data format.
+- Clean up input/output/etc plugin APIs.
+- Improve interpolation quality of varispeed.
+- Clean out GTK+/Glib 1.x cruft.
+- Add streaming support for all plugins.
+- Look into using libmagic to determing file types.
+- Improve the can_handle() function of all input plugins.
+- Accept audio files as well as playlists in the file open dialog.
+
+
+
+Old TODO list follows. These have not necessarily been dropped.
+
+--------------------------------------------------------------------------------
+
 TODO list (2007 June 23)
 
 - The gtk2 interface is in fast progress. It provide the same level of functionality
   as the gtk1 one and more is under development. A big thanks to Madej for his work
   on this interface.
-  
+
 * sound quality improvements:
 - convert all internal sound representation to 32 bits floats and convert back
   to int for alsa (doing that globally will be the easiest way).
@@ -23,7 +40,7 @@ TODO list (2007 June 23)
 - flac: check the Makefile. With flac>= 1.3, the oggflac test is not needed.
   Maybe separate the flac>1.3 patch into separated files.
 - flac: stream support.
-- scope plugins: option to scale some of the scopes (at least Synaescope) at 
+- scope plugins: option to scale some of the scopes (at least Synaescope) at
   full screen or double size. (double size will be faster and easier to implement).
 - Check if the MIME types in the desktop file are correct.
 - freedesktop icon.
@@ -35,13 +52,13 @@ TODO list (2007 June 23)
 - Change the default playlist drag and drop to LMB=>move and LMB+shift=copy
 - Improve the input plugins in trunk/experimental in order to merge them into
   AP (at least those compatible with the GPL).
-- gtk2: playlist prints "Unknown" and the filename for untagged files. Print 
+- gtk2: playlist prints "Unknown" and the filename for untagged files. Print
   the last 2 folder names in the path so at the user can use */Author/Album/file
   for such files.
 
 Know bugs:
 - fix the quiet option, see http://bugs.debian.org/cgi-bin/bug-report.cgi?bug=412112
- 
+
 Old TODO list order according to priority, highest first
 
 - Write proper documentation for the plugin APIs
