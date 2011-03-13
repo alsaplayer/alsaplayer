@@ -1,1 +1,1 @@
-SUBDIRS = alsa-final oss esound sgi sparc nas null jack
+SUBDIRS = alsa oss esound sgi sparc nas null jack

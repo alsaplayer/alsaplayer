@@ -1,4 +1,4 @@
-if HAVE_ALSA_FINAL
+if HAVE_ALSA
 
 alsa_outltlibs = libalsa_out.la
 alsa_outldflags = -export-dynamic -avoid-version
@@ -17,7 +17,7 @@ EXTRA_DIST= alsa.c
 lib_LTLIBRARIES = $(alsa_outltlibs)
 
 AM_CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
-			@ARCH_CFLAGS@	
+			@ARCH_CFLAGS@
 
 libdir = $(ADDON_DIR)/output
 

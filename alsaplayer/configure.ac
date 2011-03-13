@@ -26,7 +26,7 @@ have_oggvorbis=no
 have_flac=no
 have_libFLAC_113=no
 have_oggflac=no
-have_alsa_final=no
+have_alsa=no
 have_oss=no
 have_esd=no
 have_sparc=no
@@ -405,7 +405,7 @@ AP_maGiC_VALUE
 #endif
 #endif
 ],
-have_alsa_final=yes
+have_alsa=yes
 ALSA_LIB="-lasound"
 AC_MSG_RESULT([found latest])
 )
@@ -556,7 +556,7 @@ AM_CONDITIONAL(USE_LIBID3TAG, test "x$use_libid3tag" = xyes)
 AM_CONDITIONAL(HAVE_FLC, test "x$have_flac" = xyes)
 AM_CONDITIONAL(HAVE_OGGFLC, test "x$have_oggflac" = xyes)
 AM_CONDITIONAL(HAVE_JACK,	test "x$have_jack" = xyes)
-AM_CONDITIONAL(HAVE_ALSA_FINAL, test "x$have_alsa_final" = xyes)
+AM_CONDITIONAL(HAVE_ALSA, test "x$have_alsa" = xyes)
 AM_CONDITIONAL(HAVE_OSS, test "x$have_oss" = xyes)
 AM_CONDITIONAL(HAVE_ESD, test "x$have_esd" = xyes)
 AM_CONDITIONAL(HAVE_SPARC, test "x$have_sparc" = xyes)
@@ -716,7 +716,7 @@ scopes2/synaescope/Makefile
 scopes2/blurscope/Makefile
 scopes2/opengl_spectrum/Makefile
 output/Makefile
-output/alsa-final/Makefile
+output/alsa/Makefile
 output/jack/Makefile
 output/oss/Makefile
 output/esound/Makefile
@@ -752,7 +752,7 @@ Configuration:
   Build GTK2 interface:               ${have_gtk2}
   Build XOSD interface:               ${have_xosd}
   Build OpenGL based visual plugins:  ${have_opengl}
-  Build alsa 0.9.x output plugin:     ${have_alsa_final}
+  Build alsa output plugin:           ${have_alsa}
   Build jack output plugin:           ${have_jack}
   Build oss output plugin:            ${have_oss}
   Build esound output plugin:         ${have_esd}
@@ -769,7 +769,7 @@ Configuration:
   Build systray icon:                 ${have_systray}"
 echo
 
-if test $have_jack = "no" -a $have_sparc = "no" -a $have_alsa_final = "no" -a $have_oss = "no" -a $have_esd = "no" -a $have_sgi = "no" -a $have_nas = "no"
+if test $have_jack = "no" -a $have_sparc = "no" -a $have_alsa = "no" -a $have_oss = "no" -a $have_esd = "no" -a $have_sgi = "no" -a $have_nas = "no"
 then
 echo "
 **WARNING**: NO OUTPUT MODULES selected. AlsaPlayer won't be
