@@ -70,11 +70,11 @@ void volume_changed(void *, float new_vol)
 }
 
 
-void position_notify(void *, int /*frame*/)
+void position_notify(void *, int /*block*/)
 {
-	//fprintf(stdout, "Frame: %6d  Vol: %3d   Speed: %.0f    \r", 
-	//	frame, (int)(vol * 100), speed * 100.0);
-	//fflush(stdout);	
+	//fprintf(stdout, "Block: %6d  Vol: %3d   Speed: %.0f    \r",
+	//	block, (int)(vol * 100), speed * 100.0);
+	//fflush(stdout);
 }
 
 
@@ -158,7 +158,7 @@ int daemon_start(Playlist *playlist, int /*argc*/, char ** /*argv*/)
 	pthread_mutex_unlock(&finish_mutex);
 
 	playlist->UnRegisterNotifier(&notifier);
-	
+
 	return 0;
 }
 

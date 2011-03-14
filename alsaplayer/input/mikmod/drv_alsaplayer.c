@@ -33,9 +33,9 @@ static void alsaplayer_Exit (void)
 
 static void alsaplayer_Update (void)
 {
-	/* 
+	/*
 	   No need to use this extra level of indirection;
-	   we handle all audio_buffer updating in mikmod_play_frame ()
+	   we handle all audio_buffer updating in mikmod_play_block ()
 	 */
 }
 

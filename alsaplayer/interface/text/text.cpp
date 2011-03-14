@@ -1,5 +1,5 @@
 /*
- *  text.cpp - Command Line Interface 
+ *  text.cpp - Command Line Interface
  *  Copyright (C) 2001-2002 Andy Lo A Foe <andy@alsaplayer.org>
  *
  *  This file is part of AlsaPlayer.
@@ -17,7 +17,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
- */ 
+ */
 
 #include <cstdio>
 #include <cstdlib>
@@ -74,11 +74,11 @@ void volume_changed(void *, float new_vol)
 }
 
 
-void position_notify(void *, int frame)
+void position_notify(void *, int block)
 {
-	fprintf(stdout, "Frame: %6d  Vol: %3d   Speed: %.0f    \r", 
-		frame, (int)(vol * 100), speed * 100.0);
-	fflush(stdout);	
+	fprintf(stdout, "Block: %6d  Vol: %3d   Speed: %.0f    \r",
+		block, (int)(vol * 100), speed * 100.0);
+	fflush(stdout);
 }
 
 
@@ -120,9 +120,9 @@ int interface_text_start(Playlist *playlist, int /* argc */, char ** /* argv */)
 	stream_info info;
 	stream_info old_info;
 	bool streamInfoRequested = false;
-	int nr_frames, pos = -1, old_pos = -1, spaces, c;
+	int nr_blocks, pos = -1, old_pos = -1, spaces, c;
 	char out_text[81];
-		
+
 	memset(&info, 0, sizeof(stream_info));
 	memset(&old_info, 0, sizeof(stream_info));
 
@@ -150,23 +150,23 @@ int interface_text_start(Playlist *playlist, int /* argc */, char ** /* argv */)
 
 	playlist->Play(1);
 	playlist->UnPause();
-	
+
 	while(going && !playlist->Eof()) {
 		unsigned long secs, t_min, t_sec, c_min, c_sec;
 		t_min = t_sec = c_min = c_sec = 0;
 		streamInfoRequested = false;
 
-		
+
 		// single title loop
 		coreplayer = playlist->GetCorePlayer();
-		
+
 		while (going && (coreplayer->IsActive() || coreplayer->IsPlaying())) {
 			int cur_val, block_val, i;
-			
-			old_pos = pos;	
+
+			old_pos = pos;
 
 			playlist->UnPause();
-			
+
 			pos = playlist->GetCurrent();
 			if (pos != old_pos) {
 				fprintf(stdout, "\n");
@@ -179,39 +179,39 @@ int interface_text_start(Playlist *playlist, int /* argc */, char ** /* argv */)
 				continue;
 			}
 
-			nr_frames = coreplayer->GetFrames();
-			if (nr_frames >= 0) {
-				block_val = secs = coreplayer->GetCurrentTime(nr_frames);
+			nr_blocks = coreplayer->GetBlocks();
+			if (nr_blocks >= 0) {
+				block_val = secs = coreplayer->GetCurrentTime(nr_blocks);
 			} else {
 				block_val = secs = 0;
 			}
-			
+
 			t_min = secs / 6000;
 			t_sec = (secs % 6000) / 100;
 			cur_val = secs = coreplayer->GetCurrentTime();
 			if (secs == 0) {
 				dosleep(SLEEPTIME);
 				continue;
-			}	
+			}
 			c_min = secs / 6000;
 			c_sec = (secs % 6000) / 100;
-			fprintf(stdout, "\rPlaying (%d/%d): %ld:%02ld ", 
+			fprintf(stdout, "\rPlaying (%d/%d): %ld:%02ld ",
 					 playlist->GetCurrent(),
 					 playlist->Length(),
 					 c_min, c_sec);
 			i = 50;
-			if (nr_frames >= 0)  {
+			if (nr_blocks >= 0)  {
 				fprintf(stdout, "(%ld:%02ld) ", t_min, t_sec);
-				i -= 8;		
+				i -= 8;
 			} else {
 				fprintf(stdout, "(streaming) ");
 				i -= 8;
-			}	
+			}
 			if (*info.artist)
 				snprintf(out_text, i, "%s - %s", info.artist, info.title);
 			else if (*info.title)
 				snprintf(out_text, i, "%s", info.title);
-			else 
+			else
 				snprintf(out_text, i, "(no title information available)");
 			spaces = i - strlen(out_text);
 			fprintf(stdout, "%s", out_text);
@@ -220,23 +220,23 @@ int interface_text_start(Playlist *playlist, int /* argc */, char ** /* argv */)
 			}
 			fprintf(stdout, "\r");
 
-#ifdef FANCY_INDICATOR			
+#ifdef FANCY_INDICATOR
 			// Draw nice indicator
-			block_val /= NR_BLOCKS; 
+			block_val /= NR_BLOCKS;
 
 			if (!block_val)
 				cur_val = 0;
 			else
 				cur_val /= block_val;
-			
-			if (nr_frames >= 0) {
+
+			if (nr_blocks >= 0) {
 				fprintf(stdout, "[");
 				for (i = 0; i < NR_BLOCKS; i++) {
 					fputc(cur_val >= i ? '*':' ', stdout);
 				}
 				fprintf(stdout,"] ");
 			}
-#endif			
+#endif
 			fflush(stdout);
 			dosleep(SLEEPTIME);
 		}

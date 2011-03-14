@@ -196,14 +196,14 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	pthread_cond_init(&producer_ready, NULL);
 
 	producer_thread = 0;
-	total_frames = 0;
+	total_blocks = 0;
 	streaming = false;
 	producing = false;
 	jumped = false;
 	//plugin_count = 0;
 	plugin = NULL;
 	jump_point = repitched = write_buf_changed = 0;
-	new_frame_number = 0;
+	new_block_number = 0;
 	read_direction = DIR_FORWARD;
 	node = the_node;
 	pitch = 1.0;
@@ -349,21 +349,21 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 		alsaplayer_error("No close function");
 		error_count++;
 	}
-	if (the_plugin->play_frame == NULL) {
-		alsaplayer_error("No play_frame function");
+	if (the_plugin->play_block == NULL) {
+		alsaplayer_error("No play_block function");
 		error_count++;
 	}
-	if (the_plugin->frame_seek == NULL) {
-		alsaplayer_error("No frame_seek function");
+	if (the_plugin->block_seek == NULL) {
+		alsaplayer_error("No block_seek function");
 		error_count++;
 	}
 
-	if (the_plugin->nr_frames == NULL) {
-		alsaplayer_error("No nr_frames function");
+	if (the_plugin->nr_blocks == NULL) {
+		alsaplayer_error("No nr_blocks function");
 		error_count++;
 	}
-	if (the_plugin->frame_size == NULL) {
-		alsaplayer_error("No frame_size function");
+	if (the_plugin->block_size == NULL) {
+		alsaplayer_error("No block_size function");
 		error_count++;
 	}
 	if (the_plugin->channels == NULL) {
@@ -402,11 +402,11 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 	tmp->can_handle = the_plugin->can_handle;
 	tmp->open = the_plugin->open;
 	tmp->close = the_plugin->close;
-	tmp->play_frame = the_plugin->play_frame;
-	tmp->frame_seek = the_plugin->frame_seek;
-	tmp->frame_size = the_plugin->frame_size;
-	tmp->nr_frames = the_plugin->nr_frames;
-	tmp->frame_to_sec = the_plugin->frame_to_sec;
+	tmp->play_block = the_plugin->play_block;
+	tmp->block_seek = the_plugin->block_seek;
+	tmp->block_size = the_plugin->block_size;
+	tmp->nr_blocks = the_plugin->nr_blocks;
+	tmp->block_to_sec = the_plugin->block_to_sec;
 	tmp->sample_rate = the_plugin->sample_rate;
 	tmp->channels = the_plugin->channels;
 	tmp->stream_info = the_plugin->stream_info;
@@ -427,14 +427,14 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 }
 
 
-int CorePlayer::GetCurrentTime(int frame)
+int CorePlayer::GetCurrentTime(int block)
 {
 	 long result = 0;
 
 	Lock();
 	if (plugin && the_object && the_object->ready) {
-		result = plugin->frame_to_sec(the_object, frame < 0 ? GetPosition()
-			: frame);
+		result = plugin->block_to_sec(the_object, block < 0 ? GetPosition()
+			: block);
 	}
 	Unlock();
 	if (result < 0) {
@@ -454,9 +454,9 @@ int CorePlayer::GetPosition()
 		if (read_buf->start < 0)
 			return 0;
 
-		int frame_size = plugin->frame_size(the_object);
-		if (frame_size)  {
-			result = (read_buf->start + (read_buf->buf->read_index * 4) / frame_size);
+		int block_size = plugin->block_size(the_object);
+		if (block_size)  {
+			result = (read_buf->start + (read_buf->buf->read_index * 4) / block_size);
 			if (result < 0) {
 				alsaplayer_error("Found the error!");
 			}
@@ -469,13 +469,13 @@ int CorePlayer::GetPosition()
 }
 
 
-int CorePlayer::GetFrames()
+int CorePlayer::GetBlocks()
 {
 	int result = 0;
 
 	Lock();
 	if (plugin && the_object && the_object->ready)
-		result = plugin->nr_frames(the_object);
+		result = plugin->nr_blocks(the_object);
 	Unlock();
 
 	return result;
@@ -504,13 +504,13 @@ int CorePlayer::GetChannels()
 	return 2;	// Hardcoded for now
 }
 
-int CorePlayer::GetFrameSize()
+int CorePlayer::GetBlockSize()
 {
 	int result = 0;
 
 	Lock();
 	if (plugin && the_object && the_object->ready)
-		result = plugin->frame_size(the_object);
+		result = plugin->block_size(the_object);
 	Unlock();
 
 	return result;
@@ -596,8 +596,8 @@ bool CorePlayer::Start()
 	result = GetSpeed();
 
 	if (result < 0.0) {
-		int start_frame = plugin->nr_frames(the_object) - 16;
-		write_buf->start = start_frame > 0 ? start_frame : 0;
+		int start_block = plugin->nr_blocks(the_object) - 16;
+		write_buf->start = start_block > 0 ? start_block : 0;
 		SetDirection(DIR_BACK);
 	} else {
 		write_buf->start = 0;
@@ -770,10 +770,10 @@ int CorePlayer::Seek(int index)
 }
 
 
-int CorePlayer::FrameSeek(int index)
+int CorePlayer::BlockSeek(int index)
 {
 	if (plugin && the_object && the_object->ready)
-		index = plugin->frame_seek(the_object, index);
+		index = plugin->block_seek(the_object, index);
 	else
 		index = -1;
 	return index;
@@ -824,7 +824,7 @@ CorePlayer::GetPlayer(const char *path)
 bool CorePlayer::Open(const char *path)
 {
 	input_plugin *best_plugin;
-	int frame_size = 0;
+	int block_size = 0;
 
 	Close();
 
@@ -841,12 +841,12 @@ bool CorePlayer::Open(const char *path)
 	the_object->local_data = NULL;
 
 	if (best_plugin->open(the_object, path)) {
-		if ((frame_size = best_plugin->frame_size(the_object)) > BUF_SIZE) {
+		if ((block_size = best_plugin->block_size(the_object)) > BUF_SIZE) {
 			alsaplayer_error("CRITICAL ERROR: this plugin advertised a buffer size\n"
 					 "larger than %d bytes. This is not supported by AlsaPlayer!\n"
 					 "Contact the author to fix this problem.\n"
-					 "TECHNICAL: A possible solution is to divide the frame size\n"
-					 "in 2 and double the number of effective frames. This can be\n"
+					 "TECHNICAL: A possible solution is to divide the block size\n"
+					 "in 2 and double the number of effective blocks. This can be\n"
 					 "handled relatively easily in the plugin (hopefully).\n\n"
 					 "We will retreat, as chaos and despair await us on\n"
 					 "this chosen path........................................", BUF_SIZE);
@@ -854,8 +854,8 @@ bool CorePlayer::Open(const char *path)
 			Unlock();
 			return false;
 		} else {
-			if (!frame_size) {
-					alsaplayer_error("No framesize");
+			if (!block_size) {
+					alsaplayer_error("No blocksize");
 					best_plugin->close(the_object);
 					Unlock();
 					return false;
@@ -874,7 +874,7 @@ bool CorePlayer::Open(const char *path)
 	the_object->ready = 1;
 	plugin = best_plugin;
 
-	frames_in_buffer = read_buf->buf->GetBufferSizeBytes(plugin->frame_size(the_object)) / plugin->frame_size(the_object);
+	blocks_in_buffer = read_buf->buf->GetBufferSizeBytes(plugin->block_size(the_object)) / plugin->block_size(the_object);
 
 	Unlock();
 
@@ -901,20 +901,20 @@ int CorePlayer::SetDirection(int direction)
 		switch(direction) {
 		 case DIR_FORWARD:
 			while (buffers < NR_BUF-1 && tmp_buf->next->start ==
-			       (tmp_buf->start + frames_in_buffer)) {
+			       (tmp_buf->start + blocks_in_buffer)) {
 				buffers++;
 				tmp_buf = tmp_buf->next;
 			}
 			break;
 	 	  case DIR_BACK:
 			while (buffers < NR_BUF-1 && tmp_buf->prev->start ==
-			       (tmp_buf->start - frames_in_buffer)) {
+			       (tmp_buf->start - blocks_in_buffer)) {
 				buffers++;
 				tmp_buf = tmp_buf->prev;
 			}
 		}
 		new_write_buf = tmp_buf;
-		new_frame_number = new_write_buf->start;
+		new_block_number = new_write_buf->start;
 		write_buf_changed = 1;
 		read_direction = direction;
 		//alsaplayer_error("Signalling...1");
@@ -1011,7 +1011,7 @@ int CorePlayer::Read32(void *data, int samples)
 		}
 		// ---- Testing area ----
 		new_write_buf->start = jump_point;
-		new_frame_number = jump_point;
+		new_block_number = jump_point;
 		write_buf_changed = 1;
 		//alsaplayer_error("Signalling 2...");
 		pthread_cond_signal(&producer_ready);
@@ -1069,7 +1069,7 @@ int CorePlayer::Read32(void *data, int samples)
 					}
 					return samples;
 				} else if (read_buf->next->start !=
-					read_buf->start + frames_in_buffer) {
+					read_buf->start + blocks_in_buffer) {
 					alsaplayer_error("------ WTF!!? %d - %d",
 					read_buf->next->start,
 					read_buf->start);
@@ -1130,7 +1130,7 @@ int CorePlayer::Read32(void *data, int samples)
 int CorePlayer::pcm_worker(sample_buf *dest, int start)
 {
 	int result = 0;
-	int frames_read = 0;
+	int blocks_read = 0;
 	int samples_written = 0;
 	short *sample_buffer;
 
@@ -1138,30 +1138,30 @@ int CorePlayer::pcm_worker(sample_buf *dest, int start)
 		return -1;
 	}
 
-	int count = dest->buf->GetBufferSizeBytes(plugin->frame_size(the_object));
+	int count = dest->buf->GetBufferSizeBytes(plugin->block_size(the_object));
 	dest->buf->Clear();
 	if (last_read != start) {
-		FrameSeek(start);
+		BlockSeek(start);
 	}
 	if (start < 0) {
 		return -1;
 	}
 	sample_buffer = dest->buf->buffer_data;
 	while (count > 0 && producing) {
-		if (!plugin->play_frame(the_object, sample_buffer + samples_written)) {
+		if (!plugin->play_block(the_object, sample_buffer + samples_written)) {
 			dest->start = start;
 #ifdef DEBUG
-			alsaplayer_error("frames read = %d", frames_read);
+			alsaplayer_error("blocks read = %d", blocks_read);
 #endif
                         count = 0;
 		} else {
-			samples_written += plugin->frame_size(the_object); // OPTIMIZE!
-			frames_read++;
+			samples_written += plugin->block_size(the_object); // OPTIMIZE!
+			blocks_read++;
 		}
-		count -= plugin->frame_size(the_object);
+		count -= plugin->block_size(the_object);
 	}
 	dest->start = start;
-	last_read = dest->start + frames_read;
+	last_read = dest->start + blocks_read;
 	dest->buf->SetSamples(samples_written >> 1);
 
 	// Check if rates are still the same
@@ -1171,7 +1171,7 @@ int CorePlayer::pcm_worker(sample_buf *dest, int start)
 		SetSpeedMulti((float) input_rate / (float) output_rate);
 		update_pitch();
 	}
-	return frames_read;
+	return blocks_read;
 }
 
 
@@ -1180,7 +1180,7 @@ int CorePlayer::pcm_worker(sample_buf *dest, int start)
 void CorePlayer::producer_func(void *data)
 {
 	CorePlayer *obj = (CorePlayer *)data;
-	int frames_read;
+	int blocks_read;
 
 #ifdef DEBUG
 	alsaplayer_error("Starting new producer_func...");
@@ -1189,24 +1189,24 @@ void CorePlayer::producer_func(void *data)
 		if (obj->write_buf_changed) {
 			obj->write_buf_changed = 0;
 			obj->write_buf = obj->new_write_buf;
-			obj->write_buf->start = obj->new_frame_number;
+			obj->write_buf->start = obj->new_block_number;
 		}
 		// still at least one buffer left to fill?
 		if (obj->FilledBuffers() < (NR_CBUF-1)) {
 			//alsaplayer_error("producer: filling buffer");
 			switch (obj->read_direction) {
 			 case DIR_FORWARD:
-				frames_read = obj->pcm_worker(obj->write_buf, obj->write_buf->start);
-				if (frames_read != obj->frames_in_buffer) {
+				blocks_read = obj->pcm_worker(obj->write_buf, obj->write_buf->start);
+				if (blocks_read != obj->blocks_in_buffer) {
 					obj->producing = false;
 					obj->write_buf->next->start = -2;
 				}
 				obj->write_buf = obj->write_buf->next;
-				obj->write_buf->start = obj->write_buf->prev->start + obj->frames_in_buffer;
+				obj->write_buf->start = obj->write_buf->prev->start + obj->blocks_in_buffer;
 				break;
 			 case DIR_BACK:
-				frames_read = obj->pcm_worker(obj->write_buf, obj->write_buf->start);
-				if (frames_read != obj->frames_in_buffer) {
+				blocks_read = obj->pcm_worker(obj->write_buf, obj->write_buf->start);
+				if (blocks_read != obj->blocks_in_buffer) {
 					if (obj->write_buf->start >= 0)
 						alsaplayer_error("an ERROR occured or EOF (%d)",
 							obj->write_buf->start);
@@ -1215,7 +1215,7 @@ void CorePlayer::producer_func(void *data)
 				}
 				obj->write_buf = obj->write_buf->prev;
 				obj->write_buf->start = obj->write_buf->next->start -
-					obj->frames_in_buffer;
+					obj->blocks_in_buffer;
 				break;
 			}
 		} else {

@@ -201,7 +201,7 @@ static int alsa_set_buffer(int *fragment_size, int *fragment_count, int *channel
 		printf("error on set_channels (%d)\n", *channels);
 		goto _err;
 	}
-	periodsize = (*fragment_size) / 4; /* bytes -> frames for 16-bit,stereo */
+	periodsize = (*fragment_size) / 4; /* bytes -> blocks for 16-bit,stereo */
 	err = snd_pcm_hw_params_set_period_size_near(sound_handle, hwparams,
 						&periodsize, 0);
 	if (err < 0) {

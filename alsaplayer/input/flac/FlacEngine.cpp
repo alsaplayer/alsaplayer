@@ -42,10 +42,10 @@ namespace Flac
 FlacEngine::FlacEngine (FlacStream * f)
     : _f (f),
       _buf (0),
-      _apFramesPerFlacFrame (1),
+      _apBlocksPerFlacBlock (1),
       _currSamp (0),
-      _currApFrame (0),
-      _lastDecodedFrame (-1)
+      _currApBlock (0),
+      _lastDecodedBlock (-1)
 {
 } // FlacEngine::FlacEngine
 
@@ -53,10 +53,10 @@ FlacEngine::FlacEngine (FlacStream * f)
 FlacEngine::FlacEngine ()
     : _f (0),
       _buf (0),
-      _apFramesPerFlacFrame (1),
+      _apBlocksPerFlacBlock (1),
       _currSamp (0),
-      _currApFrame (0),
-      _lastDecodedFrame (-1)
+      _currApBlock (0),
+      _lastDecodedBlock (-1)
 {
 } // FlacEngine::FlacEngine
 
@@ -74,12 +74,12 @@ FlacEngine::~FlacEngine ()
 bool
 FlacEngine::init ()
 {
-    // Calculate the number of AlsaPlayer frames in a flac frame.
-    // This number must be chosen such that apFrameSize is no greater
+    // Calculate the number of AlsaPlayer blocks in a flac block.
+    // This number must be chosen such that apBlockSize is no greater
     // than BUF_SIZE (see alsaplayer/CorePlayer.h).  It should
     // also be a power of 2 so that it nicely divides the stream's
     // samplesPerBlock without fractions, in order to prevent rounding
-    // errors when converting AlsaPlayer frame numbers to flac sample
+    // errors when converting AlsaPlayer block numbers to flac sample
     // numbers and vice versa.
     //
     // I believe this algorithm meets those 2 criteria for all valid
@@ -93,97 +93,97 @@ FlacEngine::init ()
     }
     if (tryme <= 32)
     {
-	_apFramesPerFlacFrame = tryme;
+	_apBlocksPerFlacBlock = tryme;
 	return true;
     } else {
 	// ugh, give up, too big
-	alsaplayer_error("FlacEngine::init(): frame size too big");
+	alsaplayer_error("FlacEngine::init(): block size too big");
 	return false;
     }
 } // FlacEngine::init
 
 
 int
-FlacEngine::apFrameSize () const
+FlacEngine::apBlockSize () const
 {
     if (!_f)
 	return 0;
 
-    // AlsaPlayer wants us to return a fixed-size audio frame,
+    // AlsaPlayer wants us to return a fixed-size audio block,
     // regardless of what's actually in the audio stream.
     //
-    // The flac block size is in units of samples. Each flac frame
+    // The flac block size is in units of samples. Each flac block
     // we decode contains a block of samples for each channel in the
     // audio stream.
     //
-    // The AlsaPlayer frame size is in units of bytes.  If the
+    // The AlsaPlayer block size is in units of bytes.  If the
     // audio is mono, we'll have to copy the data from the single
     // flac channel into the 2nd AlsaPlayer channel.
     //
-    // So the AlsaPlayer frame size is the flack block size (samples
+    // So the AlsaPlayer block size is the flack block size (samples
     // per channel) times AP_CHANNELS divided
-    // by the number of AlsaPlayer frames per flac frame.
+    // by the number of AlsaPlayer blocks per flac block.
 
-    return _f->samplesPerBlock () * AP_CHANNELS / _apFramesPerFlacFrame;
+    return _f->samplesPerBlock () * AP_CHANNELS / _apBlocksPerFlacBlock;
 
-} // FlacEngine::apFrameSize
+} // FlacEngine::apBlockSize
 
 
 int
-FlacEngine::apFrames () const
+FlacEngine::apBlocks () const
 {
     if (!_f)
 	return 0;
 
-    return (int) ceilf (_apFramesPerFlacFrame *
+    return (int) ceilf (_apBlocksPerFlacBlock *
 			((float) _f->totalSamples () /
 			 (float) _f->samplesPerBlock ()));
 
-} // FlacEngine::apFrames
+} // FlacEngine::apBlocks
 
 
 float
-FlacEngine::frameTime (int frame) const
+FlacEngine::blockTime (int block) const
 {
     if (!_f)
 	return 0;
 
-    float pos = ((float) frame / (float) _apFramesPerFlacFrame) *
+    float pos = ((float) block / (float) _apBlocksPerFlacBlock) *
 	        _f->samplesPerBlock ();
     return pos / (float) _f->sampleRate ();
 
-} // FlacEngine::frameTime
+} // FlacEngine::blockTime
 
 
 bool
-FlacEngine::seekToFrame (int frame)
+FlacEngine::seekToBlock (int block)
 {
-    if (!_f || frame < 0 || frame > apFrames ())
+    if (!_f || block < 0 || block > apBlocks ())
 	return false;
 
     // Some flac decoder interfaces allow us to seek to an exact sample,
-    // so translate the frame number to the corresponding sample
+    // so translate the block number to the corresponding sample
     // number.  Don't actually seek to this sample yet, we do that later
-    // in flac_play_frame.
+    // in flac_play_block.
 
     _currSamp = (FLAC__uint64) (_f->samplesPerBlock () *
-				((float) frame /
-				 (float) _apFramesPerFlacFrame));
-    _currApFrame = frame;
+				((float) block /
+				 (float) _apBlocksPerFlacBlock));
+    _currApBlock = block;
 
     return true;
 
-} // FlacEngine::seekToFrame
+} // FlacEngine::seekToBlock
 
 
 bool
-FlacEngine::decodeFrame (short * buf)
+FlacEngine::decodeBlock (short * buf)
 {
     if (!_f || !buf)
 	return false;
 
     // For some reason I haven't figured out yet, the flac library
-    // won't return an error when we try to process a frame beyond
+    // won't return an error when we try to process a block beyond
     // the total number of samples, nor will it immediately set
     // the decoder state to EOF when there are no more samples
     // to read.  So we check the current sample number here and
@@ -192,43 +192,43 @@ FlacEngine::decodeFrame (short * buf)
     if (_currSamp >= _f->totalSamples ())
 	return false;
 
-    // Optimize the case where there's a 1:1 ratio of AlsaPlayer frames
-    // to flac frames.
+    // Optimize the case where there's a 1:1 ratio of AlsaPlayer blocks
+    // to flac blocks.
 
-    if (_apFramesPerFlacFrame == 1)
+    if (_apBlocksPerFlacBlock == 1)
 	_buf = buf;
     else if (!_buf)
-	_buf = new short [apFrameSize () * _apFramesPerFlacFrame];
+	_buf = new short [apBlockSize () * _apBlocksPerFlacBlock];
 
 
     // Figure out where the next batch of AlsaPlayer samples comes from
 
     bool status;
-    int currFrame = _currSamp / _f->samplesPerBlock ();
-    if (currFrame == _lastDecodedFrame)
+    int currBlock = _currSamp / _f->samplesPerBlock ();
+    if (currBlock == _lastDecodedBlock)
     {
-	// Next AlsaPlayer frame is contained in the last decoded flac frame
+	// Next AlsaPlayer block is contained in the last decoded flac block
 	status = true;
     }
 
-    else if (currFrame == _lastDecodedFrame + 1)
+    else if (currBlock == _lastDecodedBlock + 1)
     {
-	// Next AlsaPlayer frame is the contained in the next flac frame
-	status = _f->processOneFrame ();
+	// Next AlsaPlayer block is the contained in the next flac block
+	status = _f->processOneBlock ();
 	if (status)
-	    ++_lastDecodedFrame;
+	    ++_lastDecodedBlock;
     }
 
     else
     {
-	// Seek to find the next AlsaPlayer frame.  Note that by always
-	// seeking to a flac frame boundary, we can use
-	// _currApFrame % _apFramesPerFlacFrame to determine
-	// the AlsaPlayer frame offset within _buf.
+	// Seek to find the next AlsaPlayer block.  Note that by always
+	// seeking to a flac block boundary, we can use
+	// _currApBlock % _apBlocksPerFlacBlock to determine
+	// the AlsaPlayer block offset within _buf.
 
-	status = _f->seekAbsolute (currFrame * _f->samplesPerBlock ());
+	status = _f->seekAbsolute (currBlock * _f->samplesPerBlock ());
 	if (status)
-	    _lastDecodedFrame = currFrame;
+	    _lastDecodedBlock = currBlock;
     }
 
     if (status)
@@ -236,9 +236,9 @@ FlacEngine::decodeFrame (short * buf)
 	if (_buf != buf)
 	{
 	    memcpy (buf,
-		    _buf + (apFrameSize () *
-			    (_currApFrame % _apFramesPerFlacFrame)),
-		    apFrameSize ());
+		    _buf + (apBlockSize () *
+			    (_currApBlock % _apBlocksPerFlacBlock)),
+		    apBlockSize ());
 	}
 	else
 	{
@@ -246,11 +246,11 @@ FlacEngine::decodeFrame (short * buf)
 	    _buf = 0;
 	}
 
-	// If we chose _apFramesPerFlacFrame well, this conversion
+	// If we chose _apBlocksPerFlacBlock well, this conversion
 	// will always be exact
 
-	_currSamp += _f->samplesPerBlock () / _apFramesPerFlacFrame;
-	_currApFrame++;
+	_currSamp += _f->samplesPerBlock () / _apBlocksPerFlacBlock;
+	_currApBlock++;
     }
     else
     {
@@ -260,7 +260,7 @@ FlacEngine::decodeFrame (short * buf)
 
     return status;
 
-} // FlacEngine::decodeFrame
+} // FlacEngine::decodeBlock
 
 
 static const FLAC__int16 PCM_SILENCE = 0;
@@ -290,7 +290,7 @@ FlacEngine::writeAlsaPlayerBuf (unsigned int apSamps,
 
 
 bool
-FlacEngine::writeBuf (const FLAC__Frame * frame,
+FlacEngine::writeBuf (const FLAC__Frame * block,
 		      const FLAC__int32 * const buffer[],
 		      unsigned int flacChannels,
 		      unsigned int bps)
@@ -312,11 +312,11 @@ FlacEngine::writeBuf (const FLAC__Frame * frame,
     // aww... flac gives us signed PCM data, regardless of the signed-ness
     // of the original audio stream.  How thoughtful.
     //
-    // Decode a whole flac frame's worth of AlsaPlayer frames at once.
+    // Decode a whole flac block's worth of AlsaPlayer blocks at once.
 
     if (supportsBps (bps))
-	writeAlsaPlayerBuf (apFrameSize () * _apFramesPerFlacFrame,
-			    left, right, frame->header.blocksize,
+	writeAlsaPlayerBuf (apBlockSize () * _apBlocksPerFlacBlock,
+			    left, right, block->header.blocksize,
 			    bps == 8 ? 8 : 0);
     else
 	return false;

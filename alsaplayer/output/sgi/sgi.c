@@ -20,7 +20,7 @@
  * link and distribute AlsaPlayer on a SGI system. See the COPYING file
  * in the main AlsaPlayer directory.
  *
-*/ 
+*/
 
 #include "config.h"
 #include <stdio.h>
@@ -44,7 +44,7 @@ static int sgi_init ()
 
 static int sgi_open (const char *device)
 {
-	if (port != NULL) 
+	if (port != NULL)
 		return 1;
 	return 0;
 }
@@ -57,7 +57,7 @@ static void sgi_close ()
 static int sgi_write (void *data, int count)
 {
 	ALconfig	config;
-	int			frameSize, channelCount;
+	int			blockSize, channelCount;
 
 	config = alGetConfig(port);
 	if (config == NULL)
@@ -67,15 +67,15 @@ static int sgi_write (void *data, int count)
 	}
 
 	channelCount = alGetChannels(config);
-	frameSize = alGetWidth(config);
+	blockSize = alGetWidth(config);
 
-	if (frameSize == 0 || channelCount == 0)
+	if (blockSize == 0 || channelCount == 0)
 	{
 		printf("SGI: bad configuration.\n");
 		return 0;
 	}
 
-	alWriteFrames(port, data, count / (frameSize * channelCount));
+	alWriteBlocks(port, data, count / (blockSize * channelCount));
 	return 1;
 }
 

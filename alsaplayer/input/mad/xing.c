@@ -50,11 +50,11 @@ int xing_parse(struct xing *xing, struct mad_bitptr ptr, unsigned int bitlen)
   xing->flags = mad_bit_read(&ptr, 32);
   bitlen -= 64;
 
-  if (xing->flags & XING_FRAMES) {
+  if (xing->flags & XING_BLOCKS) {
     if (bitlen < 32)
       goto fail;
 
-    xing->frames = mad_bit_read(&ptr, 32);
+    xing->blocks = mad_bit_read(&ptr, 32);
     bitlen -= 32;
   }
 

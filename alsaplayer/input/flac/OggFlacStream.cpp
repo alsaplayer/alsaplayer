@@ -43,7 +43,7 @@ OggFlacStream::isOggFlacStream (const string & name)
       return false;
 
   OggFlacStream f (name, rdr, false);
-  
+
   return f.open ();
 
 } // OggFlacStream::isOggFlacStream
@@ -74,17 +74,17 @@ bool
 OggFlacStream::open ()
 {
     // it's illegal to call this on an already open stream
-    if (_decoder) 
+    if (_decoder)
 	return false;
 
     _decoder = OggFLAC__stream_decoder_new ();
-    if (!_decoder) 
+    if (!_decoder)
 	return false;
 
     bool status = true;
     status &= OggFLAC__stream_decoder_set_read_callback (_decoder,
 							 readCallBack);
-    status &= OggFLAC__stream_decoder_set_write_callback (_decoder, 
+    status &= OggFLAC__stream_decoder_set_write_callback (_decoder,
 							  writeCallBack);
     status &= OggFLAC__stream_decoder_set_metadata_callback (_decoder,
 							     metaCallBack);
@@ -96,7 +96,7 @@ OggFlacStream::open ()
     if (!status)
 	return false;
 
-    status = (OggFLAC__stream_decoder_init (_decoder) == 
+    status = (OggFLAC__stream_decoder_init (_decoder) ==
 	      OggFLAC__STREAM_DECODER_OK);
     if (!status)
 	return false;
@@ -105,9 +105,9 @@ OggFlacStream::open ()
     if (!OggFLAC__stream_decoder_process_until_end_of_metadata (_decoder))
 	return false;
 
-    // now that we've opened the stream, tell the engine it's safe to 
+    // now that we've opened the stream, tell the engine it's safe to
     // initialize itself.
-    
+
     if (!_engine->init ())
 	return false;
 
@@ -118,14 +118,14 @@ OggFlacStream::open ()
 
 
 bool
-OggFlacStream::processOneFrame ()
+OggFlacStream::processOneBlock ()
 {
     if (!_decoder)
 	return false;
 
     return OggFLAC__stream_decoder_process_single (_decoder);
 
-} // OggFlacStream::processOneFrame
+} // OggFlacStream::processOneBlock
 
 
 // static
@@ -168,19 +168,19 @@ OggFlacStream::errCallBack (const OggFLAC__StreamDecoder * decoder,
 // static
 FLAC__StreamDecoderWriteStatus
 OggFlacStream::writeCallBack (const OggFLAC__StreamDecoder * decoder,
-			      const FLAC__Frame * frame,
+			      const FLAC__Frame * block,
 			      const FLAC__int32 * const buffer[],
 			      void * client_data)
 {
     if (!client_data)
 	return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
-    
+
     OggFlacStream * f = (OggFlacStream *) client_data;
     if (!f)
 	return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
-    return f->realWriteCallBack (frame, buffer);
-    
+    return f->realWriteCallBack (block, buffer);
+
 } // OggFlacStream::writeCallBack
 
 

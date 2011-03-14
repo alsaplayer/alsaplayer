@@ -65,7 +65,7 @@ FlacSeekableStream::open ()
 {
     // it's illegal to call this on an already open stream
     if (_decoder) {
-	apError ("FlacSeekableStream::open(): existing decoder");    
+	apError ("FlacSeekableStream::open(): existing decoder");
 	return false;
     }
 
@@ -86,7 +86,7 @@ FlacSeekableStream::open ()
     bool status = true;
     status &= FLAC__seekable_stream_decoder_set_read_callback (_decoder,
 							       readCallBack);
-    status &= FLAC__seekable_stream_decoder_set_write_callback (_decoder, 
+    status &= FLAC__seekable_stream_decoder_set_write_callback (_decoder,
 								writeCallBack);
     status &= FLAC__seekable_stream_decoder_set_metadata_callback (_decoder,
 								   metaCallBack);
@@ -103,11 +103,11 @@ FlacSeekableStream::open ()
     status &= FLAC__seekable_stream_decoder_set_client_data (_decoder, (void *) this);
 
     if (!status) {
-	apError ("FlacSeekableStream::open(): status error, huh?");    
+	apError ("FlacSeekableStream::open(): status error, huh?");
 	return false;
     }
     status = (FLAC__seekable_stream_decoder_init (_decoder) == FLAC__SEEKABLE_STREAM_DECODER_OK);
-    
+
     if (!status) {
 #else
     if (FLAC__stream_decoder_init_stream(_decoder,
@@ -122,7 +122,7 @@ FlacSeekableStream::open ()
 					 (void *) this)
 	!= FLAC__STREAM_DECODER_INIT_STATUS_OK) {
 #endif
-	apError ("FlacSeekableStream::open(): can't initialize seekable stream decoder");    
+	apError ("FlacSeekableStream::open(): can't initialize seekable stream decoder");
 	return false;
     }
 
@@ -132,13 +132,13 @@ FlacSeekableStream::open ()
 #else
     if (!FLAC__stream_decoder_process_until_end_of_metadata (_decoder)) {
 #endif
-	apError ("FlacSeekableStream::open(): decoder error");    
+	apError ("FlacSeekableStream::open(): decoder error");
 	return false;
     }
 
-    // now that we've opened the stream, tell the engine it's safe to 
+    // now that we've opened the stream, tell the engine it's safe to
     // initialize itself.
-    
+
     if (!_engine->init ()) {
 	apError ("FlacSeekableStream::open(): engine init failed");
 	return false;
@@ -146,12 +146,12 @@ FlacSeekableStream::open ()
 
     // return the metaCallBack's status
     return _mcbSuccess;
-    
+
 } // FlacSeekableStream::open
 
 
 bool
-FlacSeekableStream::processOneFrame ()
+FlacSeekableStream::processOneBlock ()
 {
     if (!_decoder)
 	return false;
@@ -162,7 +162,7 @@ FlacSeekableStream::processOneFrame ()
     return FLAC__stream_decoder_process_single (_decoder);
 #endif
 
-} // FlacSeekableStream::processOneFrame
+} // FlacSeekableStream::processOneBlock
 
 
 bool
@@ -232,18 +232,18 @@ FlacSeekableStream::writeCallBack (const FLAC__SeekableStreamDecoder * /*decoder
 #else
 FlacSeekableStream::writeCallBack (const FLAC__StreamDecoder * /*decoder*/,
 #endif
-				   const FLAC__Frame * frame,
+				   const FLAC__Frame * block,
 				   const FLAC__int32 * const buffer[],
 				   void * client_data)
 {
     if (!client_data)
 	return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
-    
+
     FlacSeekableStream * f = (FlacSeekableStream *) client_data;
     if (!f)
 	return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
-    return f->realWriteCallBack (frame, buffer);
+    return f->realWriteCallBack (block, buffer);
 
 } // FlacSeekableStream::writeCallBack
 
@@ -280,12 +280,12 @@ FlacSeekableStream::readCallBack (const FLAC__StreamDecoder * /*decoder*/,
 #else
     return *bytes > 0 ? FLAC__STREAM_DECODER_READ_STATUS_CONTINUE :
 #endif
-	reader_eof (f->_datasource) ? 
+	reader_eof (f->_datasource) ?
 #ifdef LEGACY_FLAC
-	FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK : 
+	FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK :
 	FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_ERROR;
 #else
-	FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM : 
+	FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM :
 	FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 #endif
 
@@ -294,10 +294,10 @@ FlacSeekableStream::readCallBack (const FLAC__StreamDecoder * /*decoder*/,
 
 // static
 #ifdef LEGACY_FLAC
-FLAC__SeekableStreamDecoderSeekStatus 
+FLAC__SeekableStreamDecoderSeekStatus
 FlacSeekableStream::seekCallBack (const FLAC__SeekableStreamDecoder * /*decoder*/,
 #else
-FLAC__StreamDecoderSeekStatus 
+FLAC__StreamDecoderSeekStatus
 FlacSeekableStream::seekCallBack (const FLAC__StreamDecoder * /*decoder*/,
 #endif
 				  FLAC__uint64 offset,
@@ -316,7 +316,7 @@ FlacSeekableStream::seekCallBack (const FLAC__StreamDecoder * /*decoder*/,
 #else
 	return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
 #endif
-    
+
     return reader_seek (f->_datasource, offset, SEEK_SET) == 0 ?
 #ifdef LEGACY_FLAC
 	FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_OK :
@@ -331,10 +331,10 @@ FlacSeekableStream::seekCallBack (const FLAC__StreamDecoder * /*decoder*/,
 
 // static
 #ifdef LEGACY_FLAC
-FLAC__SeekableStreamDecoderTellStatus 
+FLAC__SeekableStreamDecoderTellStatus
 FlacSeekableStream::tellCallBack (const FLAC__SeekableStreamDecoder * /*decoder*/,
 #else
-FLAC__StreamDecoderTellStatus 
+FLAC__StreamDecoderTellStatus
 FlacSeekableStream::tellCallBack (const FLAC__StreamDecoder * /*decoder*/,
 #endif
 				  FLAC__uint64 * offset,
@@ -367,7 +367,7 @@ FlacSeekableStream::tellCallBack (const FLAC__StreamDecoder * /*decoder*/,
 #else
     return FLAC__STREAM_DECODER_TELL_STATUS_OK;
 #endif
-    
+
 } // FlacSeekableStream::tellCallBack
 
 

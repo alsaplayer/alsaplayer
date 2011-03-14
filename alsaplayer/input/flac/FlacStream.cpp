@@ -45,7 +45,7 @@ FlacStream::apError (const char * msg)
     if (!_reportErrors)
 	return;
     alsaplayer_error (msg);
-    
+
 } // FlacStream::apError
 
 
@@ -69,7 +69,7 @@ FlacStream::isFlacStream (const std::string & name)
         return false;
     FlacStream f (name, rdr, false);
     return f.open ();
-    
+
 } // FlacStream::isFlacStream
 
 
@@ -114,7 +114,7 @@ FlacStream::open ()
 {
     // it's illegal to call this on an already open stream
     if (_decoder) {
-	apError ("FlacStream::open(): existing decoder");    
+	apError ("FlacStream::open(): existing decoder");
 	return false;
     }
 
@@ -127,7 +127,7 @@ FlacStream::open ()
     bool status = true;
     status &= FLAC__stream_decoder_set_read_callback (_decoder,
 						      readCallBack);
-    status &= FLAC__stream_decoder_set_write_callback (_decoder, 
+    status &= FLAC__stream_decoder_set_write_callback (_decoder,
 						     writeCallBack);
     status &= FLAC__stream_decoder_set_metadata_callback (_decoder,
 							metaCallBack);
@@ -136,11 +136,11 @@ FlacStream::open ()
     status &= FLAC__stream_decoder_set_client_data (_decoder, (void *) this);
 
     if (!status) {
-	apError("FlacStream::open(): status error, huh?");    
+	apError("FlacStream::open(): status error, huh?");
 	return false;
     }
     status = (FLAC__stream_decoder_init (_decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_METADATA);
-    
+
     if (!status) {
 	apError("FlacStream::open(): can't initialize stream decoder");
 #else
@@ -162,31 +162,31 @@ FlacStream::open ()
 
     // this will invoke the metaCallBack
     if (!FLAC__stream_decoder_process_until_end_of_metadata (_decoder)) {
-	apError("FlacStream::open(): decoder error");    
+	apError("FlacStream::open(): decoder error");
 	return false;
     }
-    // now that we've opened the stream, tell the engine it's safe to 
+    // now that we've opened the stream, tell the engine it's safe to
     // initialize itself.
-    
+
     if (!_engine->init ()) {
 	apError("FlacStream::open(): engine init failed");
 	return false;
     }
     // return the metaCallBack's status
     return _mcbSuccess;
-    
+
 } // FlacStream::open
 
 
 bool
-FlacStream::processOneFrame ()
+FlacStream::processOneBlock ()
 {
     if (!_decoder)
 	return false;
 
     return FLAC__stream_decoder_process_single (_decoder);
 
-} // FlacStream::processOneFrame
+} // FlacStream::processOneBlock
 
 
 void
@@ -209,7 +209,7 @@ FlacStream::realMetaCallBack (const FLAC__StreamMetadata * md)
 
     // assume the worst!
     _mcbSuccess = false;
-    
+
     if (!FlacEngine::supportsBlockSizes (md->data.stream_info.min_blocksize,
 					 md->data.stream_info.max_blocksize))
 	return;
@@ -245,7 +245,7 @@ FlacStream::metaCallBack (const FLAC__StreamDecoder * decoder,
     }
 
     f->realMetaCallBack (md);
-    
+
 } // FlacStream::metaCallBack
 
 
@@ -260,11 +260,11 @@ FlacStream::realErrCallBack (const char * name,
 	break;
 
     case FLAC__STREAM_DECODER_ERROR_STATUS_BAD_HEADER:
-	apError ("%s: corrupted frame header", name);
+	apError ("%s: corrupted block header", name);
 	break;
 
     case FLAC__STREAM_DECODER_ERROR_STATUS_FRAME_CRC_MISMATCH:
-	apError ("%s: frame CRC error", name);
+	apError ("%s: block CRC error", name);
 	break;
 
     default:
@@ -293,11 +293,11 @@ FlacStream::errCallBack (const FLAC__StreamDecoder * decoder,
 
 
 FLAC__StreamDecoderWriteStatus
-FlacStream::realWriteCallBack (const FLAC__Frame * frame,
+FlacStream::realWriteCallBack (const FLAC__Frame * block,
 			       const FLAC__int32 * const buffer[])
 {
-    return _engine->writeBuf (frame, buffer, channels (), bps ()) ? 
-	FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE : 
+    return _engine->writeBuf (block, buffer, channels (), bps ()) ?
+	FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE :
 	FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
 } // FlacStream::realWriteCallBack
@@ -306,19 +306,19 @@ FlacStream::realWriteCallBack (const FLAC__Frame * frame,
 // static
 FLAC__StreamDecoderWriteStatus
 FlacStream::writeCallBack (const FLAC__StreamDecoder *,
-			 const FLAC__Frame * frame,
+			 const FLAC__Frame * block,
 			 const FLAC__int32 * const buffer[],
 			 void * client_data)
 {
     if (!client_data)
 	return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
-    
+
     FlacStream * f = (FlacStream *) client_data;
     if (!f)
 	return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
-    return f->realWriteCallBack (frame, buffer);
-    
+    return f->realWriteCallBack (block, buffer);
+
 } // FlacStream::writeCallBack
 
 
@@ -327,8 +327,8 @@ FlacStream::realReadCallBack (FLAC__byte buffer[], size_t * bytes)
 {
     *bytes = reader_read (buffer, *bytes, _datasource);
     return *bytes > 0 ? FLAC__STREAM_DECODER_READ_STATUS_CONTINUE :
-	reader_eof (_datasource) ? 
-	FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM : 
+	reader_eof (_datasource) ?
+	FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM :
 	FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 
 } // FlacStream::realReadCallBack

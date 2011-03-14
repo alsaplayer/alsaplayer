@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
-*/ 
+*/
 #ifndef __CONTROL_H__
 #define __CONTROL_H__
 
@@ -85,9 +85,9 @@ int ap_set_position(int session, int pos);
 int ap_get_position(int session, int *val);
 int ap_set_position_relative(int session, int pos);
 int ap_get_length(int session, int *length);
-int ap_set_frame(int session, int frame);
-int ap_get_frame(int session, int *val);
-int ap_get_frames(int session, int *val);
+int ap_set_block(int session, int block);
+int ap_get_block(int session, int *val);
+int ap_get_blocks(int session, int *val);
 
 int ap_get_stream_type(int session, char *str);
 int ap_get_status(int session, char *str);

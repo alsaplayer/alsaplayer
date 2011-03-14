@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
-*/ 
+*/
 
 #include "info_window.h"
 #include "prefs.h"
@@ -29,11 +29,11 @@
 #define _(String) (String)
 #define N_(String) String
 #endif
-                                            
+
 static GtkWidget*
 create_info_window()
 {
-	GtkWidget *frame;
+	GtkWidget *block;
 	GtkWidget *main_box;
 	GtkWidget *speed_label;
 	GtkWidget *balance_label;
@@ -41,38 +41,38 @@ create_info_window()
 	GtkWidget *format_label;
 	GtkWidget *volume_label;
 	GtkWidget *position_label;
-	
-	frame = gtk_frame_new(NULL);
+
+	block = gtk_frame_new(NULL);
 	main_box = gtk_layout_new(NULL, NULL);
 
-	g_object_set_data(G_OBJECT(frame), "layout", main_box);
-	gtk_container_add(GTK_CONTAINER(frame), main_box);
-	
+	g_object_set_data(G_OBJECT(block), "layout", main_box);
+	gtk_container_add(GTK_CONTAINER(block), main_box);
+
 	speed_label = gtk_label_new(NULL);
-	g_object_set_data(G_OBJECT(frame), "speed_label", speed_label);
+	g_object_set_data(G_OBJECT(block), "speed_label", speed_label);
 	gtk_layout_put(GTK_LAYOUT(main_box), speed_label, 2, 0);
-		
+
 	balance_label = gtk_label_new(NULL);
-	g_object_set_data(G_OBJECT(frame), "balance_label", balance_label);
+	g_object_set_data(G_OBJECT(block), "balance_label", balance_label);
 	gtk_layout_put(GTK_LAYOUT(main_box), balance_label, 0, 0);
-	
+
 	title_label = gtk_label_new(NULL);
-	g_object_set_data(G_OBJECT(frame), "title_label", title_label);
+	g_object_set_data(G_OBJECT(block), "title_label", title_label);
 	gtk_layout_put(GTK_LAYOUT(main_box), title_label, 0, 0);
-	
+
 	format_label = gtk_label_new(NULL);
-	g_object_set_data(G_OBJECT(frame), "format_label", format_label);
+	g_object_set_data(G_OBJECT(block), "format_label", format_label);
 	gtk_layout_put(GTK_LAYOUT(main_box), format_label, 0, 0);
-	
+
 	volume_label = gtk_label_new(NULL);
-	g_object_set_data(G_OBJECT(frame), "volume_label", volume_label);
+	g_object_set_data(G_OBJECT(block), "volume_label", volume_label);
 	gtk_layout_put(GTK_LAYOUT(main_box), volume_label, 0, 0);
-	
+
 	position_label = gtk_label_new(NULL);
-	g_object_set_data(G_OBJECT(frame), "position_label", position_label);
+	g_object_set_data(G_OBJECT(block), "position_label", position_label);
 	gtk_layout_put(GTK_LAYOUT(main_box), position_label, 0, 25);
-	
-	return frame;	
+
+	return block;
 }
 
 InfoWindow::InfoWindow()
@@ -85,11 +85,11 @@ InfoWindow::InfoWindow()
 	format = GTK_WIDGET(g_object_get_data(G_OBJECT(window), "format_label"));
 	speed = GTK_WIDGET(g_object_get_data(G_OBJECT(window), "speed_label"));
 	layout = GTK_WIDGET(g_object_get_data(G_OBJECT(window), "layout"));
-		
+
 	leftwidth = 0;
 	rightwidth = 0;
 	labelheight = 0;
-	
+
 	const char *val = prefs_get_string(ap_prefs, "gtk2_interface", "background_colour", "#000000");
 	this->set_background_color(val);
 	val = prefs_get_string(ap_prefs, "gtk2_interface", "font_colour", "#ffffff");
@@ -115,24 +115,24 @@ void InfoWindow::set_balance(const gchar *text)
 void InfoWindow::set_positions()
 {
 	gint x, y, width, height;
-	
+
 	if ((this->labelheight < 2) || (this->leftwidth < 2) || (this->rightwidth < 2) || (this->labelheight != this->volume->allocation.height)) {
 		this->leftwidth = (this->speed->allocation.width > this->balance->allocation.width)? this->speed->allocation.width:this->balance->allocation.width;
 		this->rightwidth = (this->volume->allocation.width > this->position->allocation.width)? this->volume->allocation.width:this->position->allocation.width;
 		this->labelheight = this->volume->allocation.height;
-		
+
 		gtk_widget_set_size_request(this->window, -1, this->labelheight * 2 + this->labelheight / 3);
 	}
-	
+
 	width = this->layout->allocation.width;
 	height = this->layout->allocation.height;
-	
+
 	//speed has fixed position
 	// 2 px padding
 	x = 2;
 	y = height - this->labelheight;
 	gtk_layout_move(GTK_LAYOUT(this->layout), this->balance, x, y);
-	
+
 	x = this->leftwidth + this->labelheight;
 	y = 0;
 	gtk_widget_set_size_request (this->title, width - x - this->rightwidth - this->labelheight, -1);
@@ -142,15 +142,15 @@ void InfoWindow::set_positions()
 	y = height - this->labelheight;
 	gtk_widget_set_size_request (this->format, width - x - this->rightwidth - this->labelheight, -1);
 	gtk_layout_move(GTK_LAYOUT(this->layout), this->format, x, y);
-	
+
 	x = width - this->volume->allocation.width -2;
 	y = 0;
 	gtk_layout_move(GTK_LAYOUT(this->layout), this->volume, x, y);
-	
+
 	x = width - this->position->allocation.width - 2;
 	y = height - this->labelheight;
 	gtk_layout_move(GTK_LAYOUT(this->layout), this->position, x, y);
-	
+
 }
 
 void InfoWindow::set_position(const gchar *text)
@@ -176,7 +176,7 @@ void InfoWindow::set_speed(const gchar *text)
 void InfoWindow::set_background_color(const gchar* str)
 {
 	GdkColor color;
-	
+
 	if (!gdk_color_parse(str, &color))
 		return;
 
@@ -186,10 +186,10 @@ void InfoWindow::set_background_color(const gchar* str)
 void InfoWindow::set_font_color(const gchar* str)
 {
 	GdkColor color;
-	
+
 	if (!gdk_color_parse(str, &color))
 		return;
-	
+
 	gtk_widget_modify_fg(this->volume, GTK_STATE_NORMAL, &color);
 	gtk_widget_modify_fg(this->position, GTK_STATE_NORMAL, &color);
 	gtk_widget_modify_fg(this->title, GTK_STATE_NORMAL, &color);
@@ -201,15 +201,15 @@ void InfoWindow::set_font_color(const gchar* str)
 void InfoWindow::set_fonts(const gchar* str)
 {
 	PangoFontDescription *fonts;
-	
+
 	fonts = pango_font_description_from_string(str);
-	
+
 	gtk_widget_modify_font(this->volume, fonts);
 	gtk_widget_modify_font(this->position, fonts);
 	gtk_widget_modify_font(this->title, fonts);
 	gtk_widget_modify_font(this->format, fonts);
 	gtk_widget_modify_font(this->speed, fonts);
 	gtk_widget_modify_font(this->balance, fonts);
-	
+
 	pango_font_description_free(fonts);
 }

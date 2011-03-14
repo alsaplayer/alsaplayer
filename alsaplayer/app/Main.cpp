@@ -125,7 +125,7 @@ void exit_sighandler(int x)
 	if (sigcount == 1) {
 		alsaplayer_error("alsaplayer interrupted by signal %d", x);
 		exit(1);
-	}	
+	}
 	if (sigcount > 5) {
 		kill(getpid(), SIGKILL);
 	}
@@ -184,7 +184,7 @@ interface_plugin_info_type load_interface(const char *name)
 		alsaplayer_error("Error loading %s", path);
 		alsaplayer_error("Please remove this file from your system");
 		return NULL;
-	}	
+	}
 
 	return plugin_info;
 }
@@ -229,7 +229,7 @@ static void list_available_plugins(const char *plugindir)
 		snprintf(path, sizeof(path), "%s/%s/%s", pluginroot, plugindir, entry->d_name);
 		if (stat(path, &buf)) {
 			continue;
-		}	
+		}
 		if (S_ISREG(buf.st_mode)) {
 			char *ext = strrchr(path, '.');
 			if (!ext)
@@ -244,7 +244,7 @@ static void list_available_plugins(const char *plugindir)
 				*ext = '\0';
 			if (strncmp(path, "lib", 3)) {
 				continue;
-			}	
+			}
 			char *name = path + 3;
 			if (strcmp(plugindir, "output") == 0) { // Remove trailing _out
 				ext = strrchr(name, '_');
@@ -254,8 +254,8 @@ static void list_available_plugins(const char *plugindir)
 				ext = strrchr(name, '_');
 				if (ext)
 					*ext = '\0';
-			}	
-			
+			}
+
 			if (first) { // don't print comma
 				first = false;
 			} else {
@@ -346,9 +346,9 @@ static void version()
 static int get_interface_from_argv0 (char *argv0, char *str)
 {
 	char *bs = strrchr (argv0, '/');
-	
+
 	if (bs)  argv0 = ++bs;
-	
+
 	if (sscanf(argv0, "alsaplayer-%s", str) == 1)  return 1;
   	if (sscanf(argv0, "jackplayer-%s", str) == 1)  return 1;
 
@@ -386,7 +386,7 @@ int main(int argc, char **argv)
 	int do_status = 0;
 	int do_speed = 0;
 	float speed_val = 0.0;
-		
+
 	int use_freq = OUTPUT_RATE;
 	float use_vol = 1.0;
 	int use_session = 0;
@@ -396,7 +396,7 @@ int main(int argc, char **argv)
 	const char *use_output = NULL;
 	char *use_interface = NULL;
 	char *use_config = NULL;
-	
+
 	int opt;
 	int option_index;
 	const char *options = "bCc:d:eEf:F:g:hi:JI:l:n:NMp:qrs:vRSQPVxo:";
@@ -439,8 +439,8 @@ int main(int argc, char **argv)
 		{ "quit", 0, 0, 'A' },
 		{ "status", 0, 0, 'B' },
 		{ 0, 0, 0, 0 }
-	};	
-		
+	};
+
 
 	// First setup signal handler
 	signal(SIGPIPE, nonfatal_sighandler);   // PIPE (socket control)
@@ -503,7 +503,7 @@ int main(int argc, char **argv)
 				if (use_fragsize > 32768) {
 					alsaplayer_error("fragment sizes larger than 32768 bytes are not supported");
 					return 1;
-				}	
+				}
 				break;
 			case 'F':
 				use_freq = atoi(optarg);
@@ -603,7 +603,7 @@ int main(int argc, char **argv)
 				do_remote_control = 1;
 				do_stop = 1;
 				break;
-			case 'T': 
+			case 'T':
 				do_remote_control = 1;
 				do_start = 1;
 				break;
@@ -635,21 +635,21 @@ int main(int argc, char **argv)
 			default:
 				alsaplayer_error("Unknown option '%c'", opt);
 				break;
-		}	
+		}
 	}
-	
+
 	prefsdir = get_prefsdir();
-	
+
 	mkdir(prefsdir, 0700);	/* XXX We don't do any error checking here */
 	snprintf(thefile, sizeof(thefile)-21, "%s/config", prefsdir);
-	if (use_config) 
+	if (use_config)
 		ap_prefs = prefs_load(use_config);
 	else
 		ap_prefs = prefs_load(thefile);
 	if (!ap_prefs) {
 		alsaplayer_error("Invalid config file %s\n", use_config ? use_config : thefile);
 		return 1;
-	}	
+	}
 	/* Initialize some settings (and populate the prefs system if needed */
 
 	if (use_fragsize < 0)
@@ -663,7 +663,7 @@ int main(int argc, char **argv)
 
 	if (!global_pluginroot) {
 		global_pluginroot = strdup (ADDON_DIR);
-	}	
+	}
 
 
 	if (use_session == 0) {
@@ -678,7 +678,7 @@ int main(int argc, char **argv)
 			if (do_remote_control) {
 				alsaplayer_error("No active sessions");
 				return 1;
-			}	
+			}
 			do_enqueue = 0;
 		} else {
 			//alsaplayer_error("Found session %d", use_session);
@@ -687,8 +687,8 @@ int main(int argc, char **argv)
 				//alsaplayer_error("Using session %d, not doing multiopen", use_session);
 				do_enqueue = 1;
 				do_replace = 1;
-			}	
-		}	
+			}
+		}
 	}
 
 	// Check if we're in remote control mode
@@ -720,13 +720,13 @@ int main(int argc, char **argv)
 				fprintf(stdout, "genre: %s\n", res);
 			if (ap_get_file_path(use_session, res) && strlen(res))
 				fprintf(stdout, "path: %s\n", res);
-			if (ap_get_frames(use_session, &ires)) 
-				fprintf(stdout, "frames: %d\n", ires);
+			if (ap_get_blocks(use_session, &ires))
+				fprintf(stdout, "blocks: %d\n", ires);
 			if (ap_get_length(use_session, &ires))
 				fprintf(stdout, "length: %d second%s\n", ires, (ires == 1) ? "": "s");
 			if (ap_get_position(use_session, &ires))
 				fprintf(stdout, "position: %d\n", ires);
-			fprintf(stdout, "-----------------------------------------\n");					
+			fprintf(stdout, "-----------------------------------------\n");
 			return 0;
 		} else if (do_setvol) {
 			ap_set_volume(use_session, use_vol);
@@ -739,7 +739,7 @@ int main(int argc, char **argv)
 			return 0;
 		} else if (do_pause) {
 			if (ap_is_paused(use_session, &bool_val)) {
-				if (bool_val) 
+				if (bool_val)
 					ap_unpause(use_session);
 				else
 					ap_pause(use_session);
@@ -771,21 +771,21 @@ int main(int argc, char **argv)
 		} else if (do_seek >= 0) {
 			ap_set_position(use_session, do_seek);
 			return 0;
-		} else 	
+		} else
 			alsaplayer_error("No remote control command executed.");
 	}
-				
-	
+
+
 	// Check if we need to enqueue the files
 	if (do_enqueue) {
 		char queue_name[2048];
 		int count = 0;
 		int was_playing = 0;
 		int playlist_length = 0;
-	
+
 		count = optind;
 		ap_result = 1;
-		
+
 		if (do_replace && count < argc) {
 			ap_is_playing(use_session, &was_playing);
 			if (was_playing) {
@@ -796,8 +796,8 @@ int main(int argc, char **argv)
 			ap_get_playlist_length(use_session, &playlist_length);
 			if (!playlist_length) { // Empty list so fire up after add
 				was_playing = 1;
-			}		
-		}	
+			}
+		}
 		while (count < argc && ap_result) {
 			if (is_playlist(argv[count])) {
 				ap_add_playlist(use_session, argv[count]);
@@ -819,7 +819,7 @@ int main(int argc, char **argv)
 			count++;
 			//alsaplayer_error("Adding %s", queue_name);
 			ap_result = ap_add_path(use_session, queue_name);
-			//alsaplayer_error("ap_result = %d", ap_result);	
+			//alsaplayer_error("ap_result = %d", ap_result);
 		}
 		if (was_playing)
 			ap_jump_to(use_session, 1);
@@ -833,7 +833,7 @@ int main(int argc, char **argv)
 	if (strcmp(argv[0], "jackplayer") == 0) {
 		use_output = "jack";
 	}
-	
+
 	// Check the output option
 	if (use_output == NULL) {
 		use_output = prefs_get_string(ap_prefs, "main",
@@ -880,11 +880,11 @@ int main(int argc, char **argv)
 	// Initialise playlist - must be done before things try to register with it
 	playlist = new Playlist(node);
 
-	if (!prefs_get_bool(ap_prefs, "main", "play_on_start", false))	
+	if (!prefs_get_bool(ap_prefs, "main", "play_on_start", false))
 		playlist->Pause();
 	else
 		playlist->UnPause();
-	
+
 	if (!playlist) {
 		alsaplayer_error("Failed to create Playlist object");
 		return 1;
@@ -898,9 +898,9 @@ int main(int argc, char **argv)
 					alsaplayer_error("Loading playlist (%s)", argv[optind]);
 				playlist->Load(std::string(argv[optind++]),
 						playlist->Length(), false);
-			} else {	
+			} else {
 				newitems.push_back(std::string(argv[optind++]));
-			}	
+			}
 		}
 		playlist->Insert(newitems, playlist->Length());
 	} else {
@@ -908,7 +908,7 @@ int main(int argc, char **argv)
 		snprintf(thefile, sizeof(thefile)-28, "%s/alsaplayer.m3u", prefsdir);
 		playlist->Load(thefile, playlist->Length(), false);
 	}
-		
+
 	// Loop song
 	if (do_loopsong) {
 		playlist->LoopSong();
@@ -924,13 +924,13 @@ int main(int argc, char **argv)
 	// Set start volume
 	playlist->GetCorePlayer()->SetVolume(start_vol);
 
-	
+
 	interface_plugin_info_type interface_plugin_info;
 	interface_plugin *ui;
 
 	if (get_interface_from_argv0 (argv[0], str))
 		use_interface = str;
-	
+
 	if (use_interface && *use_interface) {
 		if (!(interface_plugin_info = load_interface(use_interface))) {
 			alsaplayer_error("Failed to load interface %s\n", use_interface);
@@ -969,11 +969,11 @@ int main(int argc, char **argv)
 			ui->close();
 			// Unfortunately gtk+ is a pig when it comes to
 			// cleaning up its resources; it doesn't!
-			// so we can never safely dlclose gtk+ based 
+			// so we can never safely dlclose gtk+ based
 			// user interfaces, bah!
 			//dlclose(ui->handle);
 			control_socket_stop();
-		}	
+		}
 	}
 	// Save playlist before exit
 	prefsdir = get_prefsdir();
@@ -985,7 +985,7 @@ int main(int argc, char **argv)
 		if (prefs_save(ap_prefs) < 0) {
 			alsaplayer_error("failed to save preferences.");
 		}
-	}	
+	}
 
 _fatal_err:
 	delete playlist;

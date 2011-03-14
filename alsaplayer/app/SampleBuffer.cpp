@@ -179,14 +179,14 @@ int SampleBuffer::GetBufferSize()
 }
 
 
-int SampleBuffer::GetBufferSizeBytes(int frame_size)
+int SampleBuffer::GetBufferSizeBytes(int block_size)
 {
-	if (frame_size < 0)
+	if (block_size < 0)
 		return buffer_size * sample_size;
 	else {
 		int byte_count = buffer_size * sample_size;
-		int frame_mul = frame_size * (byte_count / frame_size);
-		return frame_mul;
+		int block_mul = block_size * (byte_count / block_size);
+		return block_mul;
 	}
 }
 

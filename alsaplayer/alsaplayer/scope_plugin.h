@@ -46,16 +46,16 @@
  * wasted. Setting the scopes to a nice level of 10 or higher pretty much
  * insures this. If you don't like this policy you can lower the value. Keep
  * in mind that negative values will only work if you run the HOST as root
- */ 
+ */
 #define SCOPE_NICE	10
 
 /**
  * The default sleep time in microseconds for scopes. After every render
  * iteration a scope should sleep for this amount of time. You should use the
  * dosleep() call i.e. dosleep(SCOPE_SLEEP). A value of 20000 will let scopes
- * run at 100000/20000 = 50 frames per second. If the scopes are consuming
+ * run at 100000/20000 = 50 blocks per second. If the scopes are consuming
  * too much CPU consider raising this value.
- */ 
+ */
 #define SCOPE_SLEEP 20000
 
 /**
@@ -84,7 +84,7 @@
 typedef int scope_version_type;
 
 /**
- * The init function of a scope plugin. This function should initialize 
+ * The init function of a scope plugin. This function should initialize
  * all data structures needed for the scope plugin. Return value should be
  * 1 on success, 0 if initialization fails.
  *
@@ -100,7 +100,7 @@ typedef void(*scope_start_type)(void);
 
 /**
  * This function should tell the HOST if the scope is running i.e. on-screen
- * and rendering. A value of 1 should be returned if this is the case, 0 if 
+ * and rendering. A value of 1 should be returned if this is the case, 0 if
  * the scope is not active.
  */
 typedef int(*scope_running_type)(void);
@@ -114,14 +114,14 @@ typedef void(*scope_stop_type)(void);
 /**
  * The shutdown function is called just before the plugin is unloaded or just
  * before the HOST decides to exit. All data structures allocated in the init
- * routine should be freed here. 
+ * routine should be freed here.
  */
 typedef void(*scope_shutdown_type)(void);
 
 /**
  * @param buffer pointer to buffer data
  * @param count number of short (int16) samples in buffer
- * 
+ *
  * The set_data function should be defined if your scope wants to get it hands
  * on PCM data. The format of the buffer is short (int16) interleaved stereo
  * data. A count value of 1024 means there are 2048 short samples in the
@@ -139,7 +139,7 @@ typedef void(*scope_set_data_type)(void *buffer, int count);
  *
  * This function should be defined if your scope wants to get FFT data.
  * The HOST typically calculates 256 FFT values per channel (going from
- * low frequency range to high). The value is betwee 0-256. The buffer format 
+ * low frequency range to high). The value is betwee 0-256. The buffer format
  * is NON-interleaved int (int32). So if samples = 256 and channels = 2 then
  * there are 2 * 256 number of samples in the buffer. The first 256 are for
  * channel 1, the other 256 for channel 2.
@@ -200,7 +200,7 @@ typedef struct _scope_plugin
 	 */
 	scope_set_data_type set_data;
 	/** Should point to the function that collects FFT data. If you
-	 * don't want FFT data set to NULL. NB. set_data and set_fft can't 
+	 * don't want FFT data set to NULL. NB. set_data and set_fft can't
 	 * both be NULL, at least one must be set.
 	 */
 	scope_set_fft_type set_fft;
@@ -208,7 +208,7 @@ typedef struct _scope_plugin
 
 /**
  * Every scope plugin should have a scope_plugin_info() function that
- * returns a pointer to a scope_plugin structure that is filled with pointers 
+ * returns a pointer to a scope_plugin structure that is filled with pointers
  * to your function implementations.
  */
 typedef scope_plugin*(*scope_plugin_info_type)(void);

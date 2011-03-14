@@ -308,11 +308,11 @@ static unsigned int jack_set_sample_rate(unsigned int rate)
 	return sample_rate;
 }
 
-int process(jack_nframes_t nframes, void *arg)
+int process(jack_nframes_t nblocks, void *arg)
 {
 #if TEST_MASTER
 	jack_transport_info_t tinfo;
-	static int framepos = 0;
+	static int blockpos = 0;
 #endif
 	subscriber *subs = (subscriber *)arg;
 
@@ -332,10 +332,10 @@ int process(jack_nframes_t nframes, void *arg)
 			}
 		}
 
-		sample_t *out1 = (sample_t *) jack_port_get_buffer(my_output_port1, nframes);
-		sample_t *out2 = (sample_t *) jack_port_get_buffer(my_output_port2, nframes);
+		sample_t *out1 = (sample_t *) jack_port_get_buffer(my_output_port1, nblocks);
+		sample_t *out2 = (sample_t *) jack_port_get_buffer(my_output_port2, nblocks);
 
-		memset(mix_buffer, 0, nframes * 4);
+		memset(mix_buffer, 0, nblocks * 4);
 
 		latency = jack_port_get_total_latency(client, my_output_port1);
 
@@ -345,20 +345,20 @@ int process(jack_nframes_t nframes, void *arg)
 				continue;
 			}
 			if (!stopped)
-				i->active = i->streamer(i->arg, mix_buffer, nframes * 2);
+				i->active = i->streamer(i->arg, mix_buffer, nblocks * 2);
 		}
-		sample_move_dS_s16(out1, mix_buffer, nframes, sizeof(short) << 1);
-		sample_move_dS_s16(out2, mix_buffer + sizeof(short), nframes, sizeof(short) << 1);
+		sample_move_dS_s16(out1, mix_buffer, nblocks, sizeof(short) << 1);
+		sample_move_dS_s16(out2, mix_buffer + sizeof(short), nblocks, sizeof(short) << 1);
 	}
 #if TEST_MASTER
 	if (jack_master) { // master control
 		tinfo.valid = jack_transport_bits_t(JackTransportPosition | JackTransportState | JackTransportLoop);
-		framepos++;
+		blockpos++;
 		tinfo.loop_start = tinfo.loop_end = 0;
 		tinfo.bar = tinfo.beat = tinfo.tick = 0;
-		if (framepos < 200 || framepos > 600) {
+		if (blockpos < 200 || blockpos > 600) {
 			tinfo.transport_state = JackTransportRolling;
-			tinfo.frame = framepos;
+			tinfo.block = blockpos;
 		} else {
 			tinfo.transport_state = JackTransportStopped;
 		}

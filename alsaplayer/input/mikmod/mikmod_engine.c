@@ -25,7 +25,7 @@
 #include <mikmod.h>
 #include "input_plugin.h"
 
-#define MIKMOD_FRAME_SIZE	4608
+#define MIKMOD_BLOCK_SIZE	4608
 
 extern MDRIVER drv_alsaplayer;
 
@@ -132,7 +132,7 @@ static int mikmod_open (input_object *obj, const char *name)
 	}
 	data = (struct mikmod_local_data *)obj->local_data;
 
-	if (!(data->audio_buffer = malloc(MIKMOD_FRAME_SIZE))) {
+	if (!(data->audio_buffer = malloc(MIKMOD_BLOCK_SIZE))) {
 		Player_Free(mf);
 		free(obj->local_data);
 		obj->local_data = NULL;
@@ -165,13 +165,13 @@ static void mikmod_close (input_object *obj)
 }
 
 
-static int mikmod_play_frame (input_object *obj, short *buf)
+static int mikmod_play_block (input_object *obj, short *buf)
 {
 	struct mikmod_local_data *data =
 		(struct mikmod_local_data *)obj->local_data;
 
 	int length = 0;
-	/*  printf ("playing frame\n"); */
+	/*  printf ("playing block\n"); */
 
 	if (obj && obj->local_data == NULL) {
 		printf("HUUUUUUUUUUUUUHHH??????????????????\n");
@@ -180,34 +180,34 @@ static int mikmod_play_frame (input_object *obj, short *buf)
 	if (!Player_Active ())
 		return 0;
 
-	length = VC_WriteBytes(data->audio_buffer, MIKMOD_FRAME_SIZE);
+	length = VC_WriteBytes(data->audio_buffer, MIKMOD_BLOCK_SIZE);
 
 	if (buf)
-		memcpy(buf, data->audio_buffer, MIKMOD_FRAME_SIZE);
+		memcpy(buf, data->audio_buffer, MIKMOD_BLOCK_SIZE);
 	return 1;
 }
 
 
-static int mikmod_frame_seek (input_object *obj, int frame)
+static int mikmod_block_seek (input_object *obj, int block)
 {
 	/* printf ("unable to seek in modules!\n"); */
 	return 0;
 }
 
 
-static int mikmod_frame_size (input_object *obj)
+static int mikmod_block_size (input_object *obj)
 {
-	return MIKMOD_FRAME_SIZE / sizeof (short);
+	return MIKMOD_BLOCK_SIZE / sizeof (short);
 }
 
 
-static int mikmod_nr_frames (input_object *obj)
+static int mikmod_nr_blocks (input_object *obj)
 {
 	return 0;
 }
 
 
-static long mikmod_frame_to_sec (input_object *obj, int frame)
+static long mikmod_block_to_sec (input_object *obj, int block)
 {
 	return 0;
 }
@@ -256,11 +256,11 @@ input_plugin mikmod_plugin = {
 	mikmod_can_handle,
 	mikmod_open,
 	mikmod_close,
-	mikmod_play_frame,
-	mikmod_frame_seek,
-	mikmod_frame_size,
-	mikmod_nr_frames,
-	mikmod_frame_to_sec,
+	mikmod_play_block,
+	mikmod_block_seek,
+	mikmod_block_size,
+	mikmod_nr_blocks,
+	mikmod_block_to_sec,
 	mikmod_sample_rate,
 	mikmod_channels,
 	mikmod_stream_info,

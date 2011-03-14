@@ -45,7 +45,7 @@ typedef void(*speed_changed_type)(void *, float new_speed);
 typedef void(*pan_changed_type)(void *, float new_pan);
 typedef void(*position_notify_type)(void *, int pos);
 typedef void(*stop_notify_type)(void *);
-typedef void(*start_notify_type)(void *);		
+typedef void(*start_notify_type)(void *);
 
 typedef struct _coreplayer_notifier
 {
@@ -70,15 +70,15 @@ typedef struct _sample_buf
 class CorePlayer // Much more abstraction to come, well maybe not
 {
  private:
-	int total_frames;
+	int total_blocks;
 	int write_buf_changed;
 	int read_direction;
-	int frames_in_buffer;
+	int blocks_in_buffer;
 	int jump_point;
 	int last_read;
 	bool streaming;
 	int repitched;
-	int new_frame_number;
+	int new_block_number;
 	float pitch_point;
 	float pitch;
 	float pitch_multi;
@@ -94,11 +94,11 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	float save_speed;
 
 	std::set<coreplayer_notifier *> notifiers;
-	
+
 	// INPUT plugin stuff
 	input_object *the_object;
 	input_plugin *plugin; // Pointer to the current plugin
-	
+
 	pthread_t producer_thread;
 	pthread_mutex_t player_mutex;
 	pthread_mutex_t counter_mutex;
@@ -111,7 +111,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 #endif
 	sample_buf *buffer;
 	sample_buf *read_buf, *write_buf, *new_write_buf;
-	int FrameSeek(int);
+	int BlockSeek(int);
 	int FilledBuffers();
 	void ResetBuffer();
 	void SetSpeedMulti(float multi) { pitch_multi = multi; }
@@ -138,7 +138,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	static int plugin_count;
 	static pthread_mutex_t plugins_mutex;
 	static input_plugin plugins[MAX_INPUT_PLUGINS];
-	
+
 	CorePlayer(AlsaNode *node=(AlsaNode *)NULL);
 	~CorePlayer();
 
@@ -146,28 +146,28 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	void UnRegisterNotifier(coreplayer_notifier *);
 
 	AlsaNode *GetNode() { return node; }
-	int GetPosition();	// Current position in frames
+	int GetPosition();	// Current position in blocks
 	void PositionUpdate();	// Notify the interfaces about the position
 	int SetSpeed(float val);	// Set the playback speed: 1.0 = 100%
 	float GetSpeed();	// Get speed
 	float GetVolume() { return volume; }	// Get Volume level
 	void SetVolume(float vol);	// Set volume level
 	float GetPan() { return pan; }	// Get Pan level
-	
-	void SetPan(float p);	// Set Pan level: 
+
+	void SetPan(float p);	// Set Pan level:
 					// 0.0	= center
 					// -1.0 = right channel muted
 					// 1.0  = left channel muted
-	
-	int GetCurrentTime(int frame=-1);
-					// Returns the time position of frame in
+
+	int GetCurrentTime(int block=-1);
+					// Returns the time position of block in
 					// hundreths of seconds
 	int GetStreamInfo(stream_info *info); // Return stream info
-	int GetFrames();	// Total number of frames
+	int GetBlocks();	// Total number of blocks
 	int GetTracks();	// Total number of tracks
 	int GetSampleRate();	// Samplerat of this player
 	int GetChannels();	// Number of channels
-	int GetFrameSize();	// Frame size in bytes
+	int GetBlockSize();	// Block size in bytes
 	input_plugin * GetPlayer(const char *); // This one is temporary
 	int GetLatency() { if (node) return node->GetLatency(); else return 0; }
 
@@ -181,8 +181,8 @@ class CorePlayer // Much more abstraction to come, well maybe not
 	void Pause ();
 	void UnPause ();
 	bool IsPaused ();
-	
-	int IsActive() { return streaming; }	
+
+	int IsActive() { return streaming; }
 	int IsPlaying() { return producing; }
 };
 

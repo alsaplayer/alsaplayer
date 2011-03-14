@@ -76,7 +76,7 @@ ap_key_t *ap_key_new(const char *key_id)
 {
 	ap_key_t *key;
 	key = (ap_key_t *)malloc(sizeof(ap_key_t));
-	
+
 	if (key) {
 		memset(key, 0, sizeof(ap_key_t));
 		if (strlen(key_id) > KEYID_LEN) {
@@ -84,9 +84,9 @@ ap_key_t *ap_key_new(const char *key_id)
 			key->key_id[KEYID_LEN-1] = 0;
 		} else {
 			strcpy(key->key_id, key_id);
-		}	
+		}
 		return key;
-	}	
+	}
 	return NULL;
 }
 
@@ -98,7 +98,7 @@ void ap_key_delete(ap_key_t *key)
 			free(key->data);
 		}
 		free(key);
-	}	
+	}
 }
 
 
@@ -106,17 +106,17 @@ void ap_message_delete(ap_message_t *msg)
 {
 	int c;
 	ap_key_t *last;
-	
+
 	if (msg) {
 		//printf("going to delete msg (%d keys)\n", msg->header.nr_keys);
 		for (c = 0, msg->current = msg->root; c < msg->header.nr_keys; c++) {
 			last = msg->current;
 			msg->current = msg->current->next;
 			ap_key_delete(last);
-		}	
+		}
 		free(msg);
 		//puts("delete msg successful");
-	}	
+	}
 }
 
 
@@ -124,7 +124,7 @@ void ap_message_add_key(ap_message_t *msg, ap_key_t *key)
 {
 	if (!msg || !key)
 		return;
-	
+
 	if (msg->root == NULL) {
 		//printf("adding first key... (%s)\n", key->key_id);
 		msg->root = key;
@@ -147,31 +147,31 @@ ap_message_t *ap_message_receive(int fd)
 	ap_message_t *msg;
 
 	msg = ap_message_new();
-	
+
 	if (!msg)
 		return NULL;
-	
+
 	memset(msg, 0, sizeof(ap_message_t));
-	
+
 	if (read (fd, msg, sizeof (ap_message_t)) != sizeof (ap_message_t)) {
 		ap_message_delete(msg);
 		return NULL;
-	}	
-	
-	// Check version before parsing	
+	}
+
+	// Check version before parsing
 	if (msg->header.version != AP_CONTROL_VERSION) {
 		fprintf(stderr, "protocol version mismatch (client): %x != %x",
 			msg->header.version, AP_CONTROL_VERSION);
 		ap_message_delete(msg);
 		return NULL;
-	}	
+	}
 	// List variables are invalid for this address space so reset them
 	msg->root = msg->tail = msg->current = NULL;
-	
+
 	// Also reset nr_keys
 	keys_to_read = msg->header.nr_keys;
 	msg->header.nr_keys = 0;
-	
+
 	//printf("receiving message with %d keys (msg->root = %x)\n",
 	//		keys_to_read, msg->root);
 	for (c = 0; c < keys_to_read; c++) {
@@ -218,8 +218,8 @@ int ap_message_add_float(ap_message_t *msg, const char *key, float val)
 	*((float*)new_key->data) = val;
 	new_key->length = sizeof(float);
 
-	ap_message_add_key(msg, new_key);	
-	
+	ap_message_add_key(msg, new_key);
+
 	return 1;
 }
 
@@ -235,9 +235,9 @@ int ap_message_add_int32(ap_message_t *msg, const char *key, int32_t val)
 	*((int32_t*)new_key->data) = val;
 	//printf("key value = %d (%d)\n", *((int32_t*)new_key->data), val);
 	new_key->length = sizeof(int32_t);
-	
-	ap_message_add_key(msg, new_key);	
-	
+
+	ap_message_add_key(msg, new_key);
+
 	return 1;
 }
 
@@ -245,7 +245,7 @@ int ap_message_add_int32(ap_message_t *msg, const char *key, int32_t val)
 ap_key_t *ap_message_find_key(ap_message_t *msg, const char *key, int32_t key_type)
 {
 	ap_key_t *current;
-	
+
 	if (msg) {
 		current = msg->root;
 		while (current) {
@@ -297,14 +297,14 @@ int ap_message_add_string(ap_message_t *msg, const char *key_id, const char *val
 {
 	ap_key_t *new_key;
 	char *str;
-	
+
 	new_key = ap_key_new(key_id);
 	new_key->key_type = KTYPE_STRING;
 	new_key->data = str = strdup(val);
 	new_key->length = strlen(val)+1; // Also copy Null pointer!
 
 	ap_message_add_key(msg, new_key);
-	
+
 	return 1;
 }
 
@@ -313,8 +313,8 @@ int ap_message_add_string(ap_message_t *msg, const char *key_id, const char *val
 int ap_message_send(int fd, ap_message_t *msg)
 {
 	int c;
-	ap_key_t *current;	
-	
+	ap_key_t *current;
+
 	if (!msg)
 		return 0;
 
@@ -327,7 +327,7 @@ int ap_message_send(int fd, ap_message_t *msg)
 		if (current == NULL) {
 			fprintf(stderr, "problem!\n");
 			continue;
-		}	
+		}
 		if (write(fd, current, sizeof(ap_key_t)) != sizeof(ap_key_t)) {
 			fprintf(stderr, "error writing key\n");
 			continue;
@@ -335,7 +335,7 @@ int ap_message_send(int fd, ap_message_t *msg)
 		if (write(fd, current->data, current->length) != current->length) {
 			fprintf(stderr, "error writing key data\n");
 			continue;
-		}	
+		}
 	}
 	//printf("successfully sent message with %d keys\n", msg->header.nr_keys);
 	return 1;
@@ -352,7 +352,7 @@ int ap_session_running(int session)
 
 	sprintf(path, "/tmp/alsaplayer_%s_%d", pwd == NULL ? "anonymous" :
 			pwd->pw_name, session);
-	if (stat(path, &statbuf) != 0) 
+	if (stat(path, &statbuf) != 0)
 		return 0;
 	if (S_ISSOCK(statbuf.st_mode)) {
 		if (ap_ping(session))
@@ -394,11 +394,11 @@ int ap_find_session(char *session_name, int *session)
 								*session = session_id;
 								closedir(dir);
 								return 1;
-							} 
-						}	
+							}
+						}
 					}
 				}
-			}	
+			}
 		}
 		closedir(dir);
 	}
@@ -420,7 +420,7 @@ int ap_set_speed(int session, float speed)
 	int fd;
 	ap_message_t *msg, *reply;
 	int32_t *result;
-	
+
 	fd = ap_connect_session(session);
 	if (fd < 0)
 		return 0;
@@ -430,10 +430,10 @@ int ap_set_speed(int session, float speed)
 	ap_message_send(fd, msg);
 	ap_message_delete(msg);
 	msg = NULL;
-	
+
 	reply = ap_message_receive(fd);
 	close(fd);
-		
+
 	if ((result = ap_message_find_int32(reply, "ack"))) {
 		ap_message_delete(reply);
 		return 1;
@@ -448,7 +448,7 @@ int ap_get_speed(int session, float *val)
 	int fd;
 	ap_message_t *msg, *reply;
 	float *result;
-	
+
 	fd = ap_connect_session(session);
 	if (fd < 0)
 		return 0;
@@ -460,7 +460,7 @@ int ap_get_speed(int session, float *val)
 
 	reply = ap_message_receive(fd);
 	close(fd);
-	
+
 	if ((result = ap_message_find_float(reply, "speed"))) {
 		*val = *result;
 		ap_message_delete(reply);
@@ -477,7 +477,7 @@ int ap_cmd_set_int(int session, int32_t cmd, int val)
 	int fd;
 	ap_message_t *msg, *reply;
 	int32_t *result;
-	
+
 	fd = ap_connect_session(session);
 	if (fd < 0)
 		return 0;
@@ -507,7 +507,7 @@ int ap_cmd_set_float(int session, int32_t cmd, float val)
 	int fd;
 	ap_message_t *msg, *reply;
 	int32_t *result;
-	
+
 	fd = ap_connect_session(session);
 	if (fd < 0)
 		return 0;
@@ -543,7 +543,7 @@ int ap_cmd_get_float(int session, int32_t cmd, float *val)
 	int fd;
 	ap_message_t *msg, *reply;
 	float *res;
-	
+
 	fd = ap_connect_session(session);
 	if (fd < 0)
 		return 0;
@@ -580,7 +580,7 @@ int ap_cmd_get_int(int session, int32_t cmd, int *val)
 	int fd;
 	ap_message_t *msg, *reply;
 	int32_t *res;
-	
+
 	fd = ap_connect_session(session);
 	if (fd < 0)
 		return 0;
@@ -617,7 +617,7 @@ int ap_is_looping(int session, int *looping)
 int ap_set_playlist_looping(int session, int looping)
 {
 	return (ap_cmd_set_int(session, AP_SET_PLAYLIST_LOOPING, looping));
-} 
+}
 
 int ap_is_playlist_looping(int session, int *looping)
 {
@@ -680,9 +680,9 @@ int ap_get_playlist_length(int session, int *length)
 	return (ap_cmd_get_int(session, AP_GET_PLAYLIST_LENGTH, length));
 }
 
-int ap_set_frame(int session, int frame)
+int ap_set_block(int session, int block)
 {
-	return (ap_cmd_set_int(session, AP_SET_POS_FRAME, frame));
+	return (ap_cmd_set_int(session, AP_SET_POS_BLOCK, block));
 }
 
 int ap_jump_to(int session, int pos)
@@ -690,14 +690,14 @@ int ap_jump_to(int session, int pos)
 	return (ap_cmd_set_int(session, AP_JUMP_TO, pos));
 }
 
-int ap_get_frame(int session, int *val)
+int ap_get_block(int session, int *val)
 {
-	return (ap_cmd_get_int(session, AP_GET_POS_FRAME, val));
+	return (ap_cmd_get_int(session, AP_GET_POS_BLOCK, val));
 }
 
-int ap_get_frames(int session, int *val)
+int ap_get_blocks(int session, int *val)
 {
-	return (ap_cmd_get_int(session, AP_GET_SONG_LENGTH_FRAME, val));
+	return (ap_cmd_get_int(session, AP_GET_SONG_LENGTH_BLOCK, val));
 }
 
 int ap_is_playing(int session, int *val)
@@ -717,25 +717,25 @@ int ap_get_single_string_command(int session, int32_t cmd, char *str, int maxlen
 
 	str[0] = 0; // Make sure the string is always NULL terminated
 	            // Even if we fail to get the data
-	
+
 	fd = ap_connect_session(session);
 	if (fd < 0)
 		return 0;
 	msg = ap_message_new();
 	msg->header.cmd = cmd;
-	
+
 	ap_message_send(fd, msg);
 	ap_message_delete(msg);
 	msg = NULL;
 
 	reply = ap_message_receive(fd);
 	close(fd);
-	
+
 	if ((result = ap_message_find_string(reply, "string"))) {
 		if (strlen(result) > (size_t)maxlen) {
 			strncpy(str, result, maxlen-1);
 			str[maxlen] = 0;
-		} else 	
+		} else
 			strcpy(str, result);
 		ap_message_delete(reply);
 		return 1;
@@ -747,7 +747,7 @@ int ap_get_single_string_command(int session, int32_t cmd, char *str, int maxlen
 
 int ap_get_session_name(int session, char *str)
 {
-	return (ap_get_single_string_command(session, 
+	return (ap_get_single_string_command(session,
 				AP_GET_SESSION_NAME, str, AP_SESSION_MAX));
 }
 
@@ -765,7 +765,7 @@ int ap_get_file_path(int session, char *str)
 
 int ap_get_artist(int session, char *str)
 {
-	return (ap_get_single_string_command(session, 
+	return (ap_get_single_string_command(session,
 				AP_GET_ARTIST, str, AP_ARTIST_MAX));
 }
 
@@ -783,19 +783,19 @@ int ap_get_comment(int session, char *str)
 
 int ap_get_album(int session, char *str)
 {
-	return (ap_get_single_string_command(session, 
+	return (ap_get_single_string_command(session,
 				AP_GET_ALBUM, str, AP_ALBUM_MAX));
 }
 
 int ap_get_year(int session, char *str)
 {
-	return (ap_get_single_string_command(session, 
+	return (ap_get_single_string_command(session,
 				AP_GET_YEAR, str, AP_YEAR_MAX));
 }
 
 int ap_get_track_number(int session, char *str)
 {
-	return (ap_get_single_string_command(session, 
+	return (ap_get_single_string_command(session,
 				AP_GET_TRACK_NUMBER, str, AP_TRACK_NUMBER_MAX));
 }
 
@@ -826,10 +826,10 @@ int ap_ping(int session)
 	ap_message_send(fd, msg);
 	ap_message_delete(msg);
 	msg = NULL;
-	
+
 	reply = ap_message_receive(fd);
 	close(fd);
-		
+
 	if ((pong = ap_message_find_int32(reply, "pong"))) {
 		ret_val = *pong;
 		ap_message_delete(reply);
@@ -855,10 +855,10 @@ int ap_add_and_play(int session, const char *path)
 	ap_message_send(fd, msg);
 	ap_message_delete(msg);
 	msg = NULL;
-	
+
 	reply = ap_message_receive(fd);
 	close(fd);
-	
+
 	if ((result = ap_message_find_int32(reply, "ack"))) {
 		ret_val = *result;
 		ap_message_delete(reply);
@@ -885,10 +885,10 @@ int ap_add_path(int session, const char *path)
 	ap_message_send(fd, msg);
 	ap_message_delete(msg);
 	msg = NULL;
-	
+
 	reply = ap_message_receive(fd);
 	close(fd);
-	
+
 	if ((result = ap_message_find_int32(reply, "ack"))) {
 		ret_val = *result;
 		ap_message_delete(reply);
@@ -945,10 +945,10 @@ int ap_sort (int session, char *seq)
 	ap_message_send(fd, msg);
 	ap_message_delete(msg);
 	msg = NULL;
-	
+
 	reply = ap_message_receive(fd);
 	close(fd);
-	
+
 	if ((result = ap_message_find_int32(reply, "ack"))) {
 		ret_val = *result;
 		ap_message_delete(reply);
@@ -965,22 +965,22 @@ static int ap_do_command_only(int session, int32_t cmd)
 {
 	int fd;
 	int32_t *result, ret_val;
-	
+
 	ap_message_t *msg, *reply;
 
 	fd = ap_connect_session(session);
 	if (fd < 0)
 		return 0;
-	
+
 	msg = ap_message_new();
 	msg->header.cmd = cmd;
 	ap_message_send(fd, msg);
 	ap_message_delete(msg);
 	msg = NULL;
-	
+
 	reply = ap_message_receive(fd);
-	close(fd);	
-	
+	close(fd);
+
 	if ((result = ap_message_find_int32(reply, "ack"))) {
 		ret_val = *result;
 		ap_message_delete(reply);
@@ -1071,7 +1071,7 @@ int ap_get_string_set_int(int session, int32_t cmd, char* str, int maxlen, int v
 	    if (strlen(result) > (size_t)maxlen) {
 	      strncpy(str, result, maxlen-1);
 	      str[maxlen] = 0;
-	    } else 	
+	    } else
 	      strcpy(str, result);
 	    ap_message_delete(reply);
 	    return 1;
@@ -1115,7 +1115,7 @@ int ap_set_string_set_int(int session, int32_t cmd, const char* string, int val)
 	}
 	ap_message_delete(reply);
 	return 0;
-}        
+}
 
 int ap_get_playlist(int session, int *argc, char ***the_list) {
 	int fd;
@@ -1124,20 +1124,20 @@ int ap_get_playlist(int session, int *argc, char ***the_list) {
 	int *result, nritems, c;
 	char strnum[64];
 	char *res;
-	
+
 	fd = ap_connect_session(session);
 	if (fd < 0)
 		return 0;
 	msg = ap_message_new();
 	msg->header.cmd = AP_GET_PLAYLIST;
-	
+
 	ap_message_send(fd, msg);
 	ap_message_delete(msg);
 	msg = NULL;
 
 	reply = ap_message_receive(fd);
 	close(fd);
-	
+
 	if ((result = ap_message_find_int32(reply, "items"))) {
 		nritems = *result;
 		if (nritems > 0) {
@@ -1146,12 +1146,12 @@ int ap_get_playlist(int session, int *argc, char ***the_list) {
 			*argc = 0;
 			ap_message_delete(reply);
 			return 1;
-		}	
+		}
 		list = (char **)malloc(sizeof(char *) * nritems);
 		if (!list) {
 			ap_message_delete(reply);
 			return 0;
-		}	
+		}
 		for (c=0; c < nritems; c++) {
 			sprintf(strnum, "%d", c+1);
 			res = ap_message_find_string(reply, strnum);

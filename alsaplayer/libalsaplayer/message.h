@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
-*/ 
+*/
 #ifndef __AMESSAGE_H__
 #define __AMESSAGE_H__
 
@@ -55,11 +55,11 @@
 #define AP_GET_YEAR             0xcc14
 #define AP_ADD_PATH             0xcc15
 #define AP_GET_SONG_LENGTH_SECOND	0xcc16
-#define AP_GET_SONG_LENGTH_FRAME	0xcc17
+#define AP_GET_SONG_LENGTH_BLOCK	0xcc17
 #define AP_SET_POS_SECOND               0xcc18
 #define AP_GET_POS_SECOND               0xcc19
-#define AP_SET_POS_FRAME                0xcc1a
-#define AP_GET_POS_FRAME                0xcc1b
+#define AP_SET_POS_BLOCK                0xcc1a
+#define AP_GET_POS_BLOCK                0xcc1b
 #define AP_GET_STREAM_TYPE              0xcc1c
 #define AP_GET_STATUS			0xcc1d
 #define AP_SET_POS_SECOND_RELATIVE	0xcc1e
@@ -93,14 +93,14 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif	
+#endif
 
 struct _ap_hdr {
 	int32_t version;
 	int32_t cmd;
 	int32_t result;
 	int32_t nr_keys;
-};	
+};
 
 struct _ap_key {
 	int32_t length;
@@ -108,7 +108,7 @@ struct _ap_key {
 	char key_id[KEYID_LEN];
 	void *data;
 	struct _ap_key *next;
-};	
+};
 
 typedef struct _ap_hdr ap_hdr_t;
 typedef struct _ap_key ap_key_t;
@@ -141,7 +141,7 @@ char *ap_message_find_string(ap_message_t *, const char *);
 
 #ifdef __cplusplus
 }
-#endif	
+#endif
 
 
 

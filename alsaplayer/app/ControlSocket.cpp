@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
- */ 
+ */
 #include "AlsaPlayer.h"
 #include <cstdio>
 #include <cstdlib>
@@ -100,8 +100,8 @@ static void socket_looper(void *arg)
 			// Live session so skip it immediately
 			session_id++;
 			continue;
-		}	
-		sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ? 
+		}
+		sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
 				"anonymous" : pwd->pw_name, session_id);
 		if (bind(socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
 			chmod(saddr.sun_path, 00600); // Force permission
@@ -114,7 +114,7 @@ static void socket_looper(void *arg)
 	if (!session_ok) {
 		alsaplayer_error("Out of alsaplayer sockets (MAX = %d)", MAX_AP_SESSIONS);
 		return;
-	}	
+	}
 	global_session_id = session_id;
 
 	while (socket_thread_running) {
@@ -135,12 +135,12 @@ static void socket_looper(void *arg)
 				msg->header.version, AP_CONTROL_VERSION);
 			close(fd);
 			continue;
-		}	
+		}
 
 		ap_message_t *reply = ap_message_new();
 
 		//alsaplayer_error("server: got something (%x)", msg->header.cmd);
-	
+
 		player = playlist->GetCorePlayer();
 
 		nr_requests++;
@@ -167,16 +167,16 @@ static void socket_looper(void *arg)
 			case AP_ADD_PATH:
 				if ((path = ap_message_find_string(msg, "path1"))) {
 					playlist->Insert(path, playlist->Length());
-				}	
+				}
 				ap_message_add_int32(reply, "ack", 1);
 				break;
 			case AP_ADD_PLAYLIST:
 				if ((path = ap_message_find_string(msg, "path1"))) {
 					playlist->Load(path, playlist->Length(), 0);
-				}	
+				}
 				ap_message_add_int32(reply, "ack", 1);
 				break;
-			case AP_PLAY: 
+			case AP_PLAY:
 				if (player) {
 					playlist->UnPause();
 					if (player->IsPlaying()) {
@@ -196,7 +196,7 @@ static void socket_looper(void *arg)
 				}
 				ap_message_add_int32(reply, "ack", 0);
 				break;
-			case AP_NEXT: 
+			case AP_NEXT:
 				playlist->Next();
 				playlist->UnPause();
 				ap_message_add_int32(reply, "ack", 1);
@@ -213,7 +213,7 @@ static void socket_looper(void *arg)
 					ap_message_add_int32(reply, "ack", 1);
 				} else {
 					ap_message_add_int32(reply, "ack", 0);
-				}	
+				}
 				break;
 			case AP_SHUFFLE_PLAYLIST:
 				playlist->Shuffle();
@@ -231,7 +231,7 @@ static void socket_looper(void *arg)
 				break;
 			case AP_UNPAUSE:
 				playlist->UnPause();
-				if (player) 
+				if (player)
 					player->UnPause();
 				ap_message_add_int32(reply, "ack", 1);
 				break;
@@ -259,15 +259,15 @@ static void socket_looper(void *arg)
 					player = playlist->GetCorePlayer();
 					if (player) {
 						player->SetSpeed(*float_val);
-						ap_message_add_int32(reply, "ack", 1);	
-					}	
+						ap_message_add_int32(reply, "ack", 1);
+					}
 				}
 				break;
 			case AP_GET_SPEED:
 				if (player) {
 					ap_message_add_float(reply, "speed", player->GetSpeed());
 					ap_message_add_int32(reply, "ack", 1);
-				}	
+				}
 				break;
 			case AP_IS_PAUSED:
                                 ap_message_add_int32(reply, "int", playlist->IsPaused());
@@ -277,7 +277,7 @@ static void socket_looper(void *arg)
 				if (player) {
 					ap_message_add_int32(reply, "int", player->IsPlaying());
 					ap_message_add_int32(reply, "ack", 1);
-				}	
+				}
 				break;
 			case AP_IS_LOOPING:
 				ap_message_add_int32(reply, "int", playlist->LoopingSong());
@@ -301,8 +301,8 @@ static void socket_looper(void *arg)
 					sprintf(strnum, "%d", pc);
 					item = playlist->GetItem(pc);
 					if (item->title.size()) {
-						sprintf(tmp, "%s %s", item->title.c_str(), 
-			                        item->artist.size() ? (std::string("- ") + 
+						sprintf(tmp, "%s %s", item->title.c_str(),
+			                        item->artist.size() ? (std::string("- ") +
 						item->artist).c_str() : "");
 						ap_message_add_string(reply, strnum, tmp);
 					} else {
@@ -312,9 +312,9 @@ static void socket_looper(void *arg)
 							path++;
 						} else {
 							path = tmp;
-						}	
+						}
 						ap_message_add_string(reply, strnum, path);
-					}	
+					}
 				}
 				playlist->Unlock();
 				ap_message_add_int32(reply, "ack", 1);
@@ -345,7 +345,7 @@ static void socket_looper(void *arg)
 				if (player) {
 					ap_message_add_float(reply, "float",  player->GetVolume());
 					ap_message_add_int32(reply, "ack", 1);
-				}	
+				}
 				break;
 			case AP_SET_PAN:
 				if (player) {
@@ -359,7 +359,7 @@ static void socket_looper(void *arg)
 				if (player) {
 					ap_message_add_float(reply, "float",  player->GetPan());
 					ap_message_add_int32(reply, "ack", 1);
-				}	
+				}
 				break;
 			case AP_GET_TITLE:
 				if (player) {
@@ -446,17 +446,17 @@ static void socket_looper(void *arg)
 				}
 				ap_message_add_int32(reply, "ack", 1);
 				break;
-			case AP_GET_POS_SECOND:	
+			case AP_GET_POS_SECOND:
 				if (player) {
-					ap_message_add_int32(reply, "int", 
+					ap_message_add_int32(reply, "int",
 						player->GetCurrentTime() / 100);
 					ap_message_add_int32(reply, "ack", 1);
-				}	
+				}
 				break;
 			case AP_SET_POS_SECOND_RELATIVE:
 				if (player) {
 					if ((int_val = ap_message_find_int32(msg, "int"))) {
-						fsize = player->GetFrameSize();
+						fsize = player->GetBlockSize();
 						if (fsize) {
 							*int_val += ( player->GetCurrentTime() / 100);
 							*int_val *= player->GetSampleRate();
@@ -466,7 +466,7 @@ static void socket_looper(void *arg)
 							if (*int_val < 0)
 								*int_val = 0;
 							player->Seek(*int_val);
-						}	
+						}
 					}
 				}
 				ap_message_add_int32(reply, "ack", 1);
@@ -474,14 +474,14 @@ static void socket_looper(void *arg)
 			case AP_SET_POS_SECOND:
 				if (player) {
 					if ((int_val = ap_message_find_int32(msg, "int"))) {
-						fsize = player->GetFrameSize();
+						fsize = player->GetBlockSize();
 						if (fsize) {
 							*int_val *= player->GetSampleRate();
 							*int_val /= fsize;
 							*int_val *= player->GetChannels();
 							*int_val *= 2; // 16-bit ("2" x 8-bit)
 							player->Seek(*int_val);
-						}	
+						}
 					}
 				}
 				ap_message_add_int32(reply, "ack", 1);
@@ -492,24 +492,24 @@ static void socket_looper(void *arg)
 				break;
 			case AP_GET_SONG_LENGTH_SECOND:
 				if (player) {
-					total_time = player->GetCurrentTime(player->GetFrames());
+					total_time = player->GetCurrentTime(player->GetBlocks());
 					ap_message_add_int32(reply, "int", (int32_t)(total_time / 100));
 					ap_message_add_int32(reply, "ack", 1);
 				}
 				break;
-			case AP_GET_SONG_LENGTH_FRAME:
+			case AP_GET_SONG_LENGTH_BLOCK:
 				if (player) {
-					ap_message_add_int32(reply, "int", player->GetFrames());
+					ap_message_add_int32(reply, "int", player->GetBlocks());
 					ap_message_add_int32(reply, "ack", 1);
 				}
 				break;
-			case AP_GET_POS_FRAME:
+			case AP_GET_POS_BLOCK:
 				if (player) {
 					ap_message_add_int32(reply, "int", player->GetPosition());
 					ap_message_add_int32(reply, "ack", 1);
 				}
 				break;
-			case AP_SET_POS_FRAME:
+			case AP_SET_POS_BLOCK:
 				if (player) {
 					if ((int_val = ap_message_find_int32(msg, "int"))) {
 						player->Seek(*int_val);
@@ -566,7 +566,7 @@ static void socket_looper(void *arg)
 					}
 				}
 				break;
-		    
+
 			default: alsaplayer_error("CMD unknown or not implemented= %x",
 					msg->header.cmd);
 				 break;
@@ -575,11 +575,11 @@ static void socket_looper(void *arg)
 		ap_message_send(fd, reply);
 		ap_message_delete(reply);
 		ap_message_delete(msg);
-		close(fd);	
+		close(fd);
 	}
 	if (global_verbose) {
 		alsaplayer_error("control: received %ld requests", nr_requests);
-	}		
+	}
 	unlink(saddr.sun_path);
 }
 

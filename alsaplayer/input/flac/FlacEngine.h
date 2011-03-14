@@ -73,7 +73,7 @@ class FlacEngine
 
 
     //---------------------------------------------------------
-    // Get the number of channels in an AlsaPlayer audio frame.
+    // Get the number of channels in an AlsaPlayer audio block.
     //---------------------------------------------------------
 
     int   apChannels () const;
@@ -87,50 +87,50 @@ class FlacEngine
 
 
     //------------------------------------------------------
-    // Get the number of bytes in an AlsaPlayer audio frame.
+    // Get the number of bytes in an AlsaPlayer audio block.
     //------------------------------------------------------
 
-    int   apFrameSize () const;
+    int   apBlockSize () const;
 
 
     //-----------------------------------------------------------------
-    // Get the number of AlsaPlayer audio frames contained in the flac
+    // Get the number of AlsaPlayer audio blocks contained in the flac
     // audio stream to which the engine is attached.
     //-----------------------------------------------------------------
 
-    int   apFrames () const;
+    int   apBlocks () const;
 
 
     //-------------------------------------------------------------------
-    // Given an AlsaPlayer frame number, return the time in seconds at
-    // which the frame is played relative to the beginning of the stream.
+    // Given an AlsaPlayer block number, return the time in seconds at
+    // which the block is played relative to the beginning of the stream.
     //-------------------------------------------------------------------
 
-    float frameTime (int frame) const;
+    float blockTime (int block) const;
 
 
     //----------------------------------------------------------------
-    // Seek to an AlsaPlayer frame in the stream.  The real seek is
-    // deferred until the next time the frame method is invoked.
+    // Seek to an AlsaPlayer block in the stream.  The real seek is
+    // deferred until the next time the block method is invoked.
     //
     // Returns false if the seek is illegal, in which case the current
-    // frame position is not changed.
+    // block position is not changed.
     //----------------------------------------------------------------
 
-    bool  seekToFrame (int frame);
+    bool  seekToBlock (int block);
 
 
     //----------------------------------------------------------------------
-    // Decode the current AlsaPlayer frame, placing the uncompressed audio
+    // Decode the current AlsaPlayer block, placing the uncompressed audio
     // samples info a pre-allocated buffer buf.  The buffer must be at
-    // least as large as an AlsaPlayer frame (use apFrameSize to get this
+    // least as large as an AlsaPlayer block (use apBlockSize to get this
     // information from the engine).
     //
     // Returns false if the decode process fails, or if the stream is
     // out of samples.
     //----------------------------------------------------------------------
 
-    bool  decodeFrame (short * buf);
+    bool  decodeBlock (short * buf);
 
 
  private:
@@ -152,7 +152,7 @@ class FlacEngine
     // Write the uncompressed audio data into the buffer set with setBuf.
     //-------------------------------------------------------------------
 
-    bool  writeBuf (const FLAC__Frame * frame, const FLAC__int32 * const buffer[],
+    bool  writeBuf (const FLAC__Frame * block, const FLAC__int32 * const buffer[],
 		    unsigned int flacSamples, unsigned int bps);
 
 
@@ -175,7 +175,7 @@ class FlacEngine
 
     FlacStream *       _f;
     short *           _buf;
-    int              _apFramesPerFlacFrame;
+    int              _apBlocksPerFlacBlock;
 
 
     //-------------------
@@ -183,8 +183,8 @@ class FlacEngine
     //-------------------
 
     FLAC__uint64     _currSamp;          // current sample position
-    int              _currApFrame;       // current AlsaPlayer frame
-    int              _lastDecodedFrame;  // last flac frame that was
+    int              _currApBlock;       // current AlsaPlayer block
+    int              _lastDecodedBlock;  // last flac block that was
                                          // successfully decoded
 
 

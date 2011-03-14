@@ -48,10 +48,6 @@ extern "C" { 	/* Make sure MAD symbols are not mangled
 		 * since we compile them with regular gcc */
 #endif
 
-#ifndef HAVE_LIBMAD /* Needed if we use our own (outdated) copy */
-#include "frame.h"
-#include "synth.h"
-#endif
 #include <mad.h>
 
 #ifdef __cplusplus
@@ -63,7 +59,7 @@ extern "C" { 	/* Make sure MAD symbols are not mangled
 #define BLOCK_SIZE 4096
 #define MAX_NUM_SAMPLES 8192
 #define STREAM_BUFFER_SIZE	(32 * 1024)
-#define FRAME_RESERVE	2000
+#define BLOCK_RESERVE	2000
 
 # if !defined(O_BINARY)
 #  define O_BINARY  0
@@ -75,9 +71,9 @@ struct mad_local_data {
 	long map_offset;
 	int bytes_avail;
 	struct stat stat;
-	ssize_t	*frames;
-	int highest_frame;
-	int current_frame;
+	ssize_t	*blocks;
+	int highest_block;
+	int current_block;
 	char path[FILENAME_MAX+1];
 	char filename[FILENAME_MAX+1];
 	struct mad_synth  synth;
@@ -122,7 +118,7 @@ char const *error_str(enum mad_error error, char *str)
 		case MAD_ERROR_BADCRC:		 return ("CRC check failed");
 		case MAD_ERROR_BADBITALLOC:	 return ("forbidden bit allocation value");
 		case MAD_ERROR_BADSCALEFACTOR:	 return ("bad scalefactor index");
-		case MAD_ERROR_BADFRAMELEN:	 return ("bad frame length");
+		case MAD_ERROR_BADFRAMELEN:	 return ("bad block length");
 		case MAD_ERROR_BADBIGVALUES:	 return ("bad big_values count");
 		case MAD_ERROR_BADBLOCKTYPE:	 return ("reserved block_type");
 		case MAD_ERROR_BADSCFSI:	 return ("bad scalefactor selection info");
@@ -184,7 +180,7 @@ static void mad_init_decoder(struct mad_local_data *data)
 }
 
 
-static int mad_frame_seek(input_object *obj, int frame)
+static int mad_frame_seek(input_object *obj, int block)
 {
 	struct mad_local_data *data;
 	struct mad_header header;
@@ -198,17 +194,17 @@ static int mad_frame_seek(input_object *obj, int frame)
 	if (!data || !data->seekable)
 		return 0;
 
-	//alsaplayer_error("frame_seek(..., %d)", frame);
+	//alsaplayer_error("block_seek(..., %d)", block);
 	mad_header_init(&header);
 
 	data->bytes_avail = 0;
-	if (frame <= data->highest_frame) {
+	if (block <= data->highest_block) {
 		skip = 0;
 
-		if (frame > 4) {
+		if (block > 4) {
 			skip = 3;
 		}
-		byte_offset = data->frames[frame-skip];
+		byte_offset = data->blocks[block-skip];
 
 		/* Prepare the buffer for a read */
 		fill_buffer(data, byte_offset);
@@ -223,15 +219,15 @@ static int mad_frame_seek(input_object *obj, int frame)
 		}
 		data->bytes_avail = data->stream.bufend -
 			data->stream.next_frame;
-		data->current_frame = frame;
+		data->current_block = block;
 		data->seeking = 0;
-		return data->current_frame;
+		return data->current_block;
 	}
 
 	data->seeking = 1;
-	fill_buffer(data, data->frames[data->highest_frame]);
+	fill_buffer(data, data->blocks[data->highest_block]);
 	mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
-	while (data->highest_frame < frame) {
+	while (data->highest_block < block) {
 		if (data->bytes_avail < 3072) {
 			fill_buffer(data, data->map_offset + MAD_BUFSIZE - data->bytes_avail);
 			mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
@@ -244,15 +240,15 @@ static int mad_frame_seek(input_object *obj, int frame)
 				return 0;
 			}
 		}
-		data->frames[++data->highest_frame] =
+		data->blocks[++data->highest_block] =
 			data->map_offset + data->stream.this_frame - data->mad_map;
 		data->bytes_avail = data->stream.bufend - data->stream.next_frame;
 	}
 
-	data->current_frame = data->highest_frame;
-	if (data->current_frame > 4) {
+	data->current_block = data->highest_block;
+	if (data->current_block > 4) {
 		skip = 3;
-		fill_buffer(data, data->frames[data->current_frame-skip]);
+		fill_buffer(data, data->blocks[data->current_block-skip]);
 		mad_stream_buffer(&data->stream, data->mad_map, data->bytes_avail);
 		skip++;
 		while (skip != 0) {
@@ -266,24 +262,24 @@ static int mad_frame_seek(input_object *obj, int frame)
 	}
 
 	data->seeking = 0;
-	return data->current_frame;
+	return data->current_block;
 
 	return 0;
 }
 
-static int mad_frame_size(input_object *obj)
+static int mad_block_size(input_object *obj)
 {
-	if (!obj || !obj->frame_size) {
-		puts("No frame size!");
+	if (!obj || !obj->block_size) {
+		puts("No block size!");
 		return 0;
 	}
-	return obj->frame_size / sizeof (short);
+	return obj->block_size / sizeof (short);
 }
 
 
 /* #define MAD_DEBUG */
 
-static int mad_play_frame(input_object *obj, short *buf)
+static int mad_play_block(input_object *obj, short *buf)
 {
 	struct mad_local_data *data;
 	struct mad_pcm *pcm;
@@ -323,21 +319,21 @@ static int mad_play_frame(input_object *obj, short *buf)
 				return 0;
 			}
 			//alsaplayer_error("MAD error: %s (not fatal)", error_str(data->stream.error, data->str));
-			memset(buf, 0, obj->frame_size);
+			memset(buf, 0, obj->block_size);
 			return 1;
 		}
 	}
-	data->current_frame++;
-	if (data->seekable && data->current_frame < (obj->nr_frames + FRAME_RESERVE)) {
-		data->frames[data->current_frame] =
+	data->current_block++;
+	if (data->seekable && data->current_block < (obj->nr_blocks + BLOCK_RESERVE)) {
+		data->blocks[data->current_block] =
 			data->map_offset + data->stream.this_frame - data->mad_map;
-		if (data->current_frame > 3 &&
-				(data->frames[data->current_frame] -
-				 data->frames[data->current_frame-3]) < 6) {
+		if (data->current_block > 3 &&
+				(data->blocks[data->current_block] -
+				 data->blocks[data->current_block-3]) < 6) {
 			return 0;
 		}
-		if (data->highest_frame < data->current_frame)
-			data->highest_frame = data->current_frame;
+		if (data->highest_block < data->current_block)
+			data->highest_block = data->current_block;
 	}
 
 	mad_synth_frame (&data->synth, &data->frame);
@@ -348,22 +344,22 @@ static int mad_play_frame(input_object *obj, short *buf)
 		nsamples = pcm->length;
 		nchannels = pcm->channels;
 		if (nchannels != obj->nr_channels) {
-			alsaplayer_error("ERROR: bad data stream! (channels: %d != %d, frame %d)",
+			alsaplayer_error("ERROR: bad data stream! (channels: %d != %d, block %d)",
 					nchannels,
 					obj->nr_channels,
-					data->current_frame);
+					data->current_block);
 			mad_frame_mute(&data->frame);
-			memset(buf, 0, obj->frame_size);
+			memset(buf, 0, obj->block_size);
 			return 1;
 		}
 		obj->nr_channels = nchannels;
 		if (data->samplerate != data->frame.header.samplerate) {
-			alsaplayer_error("ERROR: bad data stream! (samplerate: %d != %d, frame %d)",
+			alsaplayer_error("ERROR: bad data stream! (samplerate: %d != %d, block %d)",
 					data->samplerate,
 					data->frame.header.samplerate,
-					data->current_frame);
+					data->current_block);
 			mad_frame_mute(&data->frame);
-			memset(buf, 0, obj->frame_size);
+			memset(buf, 0, obj->block_size);
 			return 1;
 		}
 		data->samplerate = data->frame.header.samplerate;
@@ -384,7 +380,7 @@ static int mad_play_frame(input_object *obj, short *buf)
 }
 
 
-static  long mad_frame_to_sec(input_object *obj, int frame)
+static  long mad_frame_to_sec(input_object *obj, int block)
 {
 	struct mad_local_data *data;
 	unsigned long sec = 0;
@@ -393,18 +389,18 @@ static  long mad_frame_to_sec(input_object *obj, int frame)
 		return 0;
 	data = (struct mad_local_data *)obj->local_data;
 	if (data) {
-		sec = data->samplerate ? frame * (obj->frame_size >> 2) /
+		sec = data->samplerate ? block * (obj->block_size >> 2) /
 			(data->samplerate / 100) : 0;
 	}
 	return sec;
 }
 
 
-static int mad_nr_frames(input_object *obj)
+static int mad_nr_blocks(input_object *obj)
 {
 	if (!obj)
 		return 0;
-	return obj->nr_frames;
+	return obj->nr_blocks;
 }
 
 /* TODO: Move all id3 code into the separated file. */
@@ -567,12 +563,12 @@ static void parse_id3 (const char *path, stream_info *info)
 
 			}
 
-		/* -- -- read frames -- -- */
+		/* -- -- read blocks -- -- */
 		while (reader_tell (fd) <= header_size + 10) {
 			unsigned int size = 0;
 
 
-			/* Get name of this frame */
+			/* Get name of this block */
 			if (reader_read (buf, name_size, fd) != (unsigned)name_size) {
 				reader_close (fd);
 				return;
@@ -603,7 +599,7 @@ static void parse_id3 (const char *path, stream_info *info)
 				size = from_synchsafe4 (sb);
 			}
 
-			/* skip frame flags */
+			/* skip block flags */
 //			if (reader_seek (fd, 1, SEEK_CUR) == -1) {
 //				reader_close (fd);
 //				return;
@@ -660,7 +656,7 @@ static void parse_id3 (const char *path, stream_info *info)
 			/* make sure buffer is zero-terminated for sscanf */
 			buf[name_size + size] = 0;
 
-			/* !!! Ok. There we have frame name and data. */
+			/* !!! Ok. There we have block name and data. */
 			/* Lets use it. */
 			if (name_size == 4) {
 				if (memcmp (buf, "TIT2", 4)==0)
@@ -699,7 +695,7 @@ static void parse_id3 (const char *path, stream_info *info)
 				}
 			} /* end of 'if name_size == 4' */
 
-		} /* end of frames read */
+		} /* end of blocks read */
 
 		/* end parsing */
 		reader_close (fd);
@@ -719,7 +715,7 @@ static void parse_id3 (const char *path, stream_info *info)
 	}
 
 	if (memcmp(buf, "TAG", 3) == 0) {
-		/* ID3v1 frame found */
+		/* ID3v1 block found */
 
 		/* title */
 		strncpy (info->title, buf + 3, 30);
@@ -868,7 +864,7 @@ static float mad_can_handle(const char *path)
 }
 
 
-static ssize_t find_initial_frame(uint8_t *buf, int size)
+static ssize_t find_initial_block(uint8_t *buf, int size)
 {
 	uint8_t *data = buf;
 	int ext_header = 0;
@@ -1003,13 +999,13 @@ static int mad_open(input_object *obj, const char *path)
 	fill_buffer(data, -1);
 	//alsaplayer_error("initial bytes_avail = %d", data->bytes_avail);
 	if (obj->flags & P_PERFECTSEEK) {
-		data->offset = find_initial_frame(data->mad_map,
+		data->offset = find_initial_block(data->mad_map,
 				data->bytes_avail < STREAM_BUFFER_SIZE ? data->bytes_avail :
 				STREAM_BUFFER_SIZE);
 	} else {
 		data->offset = 0;
 	}
-	data->highest_frame = 0;
+	data->highest_block = 0;
 	if (data->offset < 0) {
 		//fprintf(stderr, "mad_open() couldn't find valid MPEG header\n");
 		data->offset = 0;
@@ -1025,7 +1021,7 @@ static int mad_open(input_object *obj, const char *path)
 				data->bytes_avail - data->offset);
 		data->bytes_avail -= data->offset;
 	}
-first_frame:
+first_block:
 
 	if ((mad_header_decode(&data->frame.header, &data->stream) == -1)) {
 		switch (data->stream.error) {
@@ -1036,9 +1032,9 @@ first_frame:
 			case MAD_ERROR_BADBITRATE:
 			case MAD_ERROR_BADLAYER:
 			case MAD_ERROR_BADSAMPLERATE:
-				//alsaplayer_error("Error %x (frame %d)", data->stream.error, data->current_frame);
+				//alsaplayer_error("Error %x (block %d)", data->stream.error, data->current_block);
 				data->bytes_avail-=(data->stream.next_frame - data->stream.this_frame);
-				goto first_frame;
+				goto first_block;
 				break;
 			case MAD_ERROR_BADBITALLOC:
 				return 0;
@@ -1049,7 +1045,7 @@ first_frame:
 				break;
 			default:
 				alsaplayer_error("ERROR: %s", error_str(data->stream.error, data->str));
-				alsaplayer_error("No valid frame found at start (pos: %d, error: 0x%x --> %x %x %x %x) (%s)", data->offset, data->stream.error,
+				alsaplayer_error("No valid block found at start (pos: %d, error: 0x%x --> %x %x %x %x) (%s)", data->offset, data->stream.error,
 						data->stream.this_frame[0],
 						data->stream.this_frame[1],
 						data->stream.this_frame[2],
@@ -1086,7 +1082,7 @@ first_frame:
 	{
 		int64_t time;
 		int64_t samples;
-		int64_t frames;
+		int64_t blocks;
 
 		long oldpos = reader_tell(data->mad_fd);
 		reader_seek(data->mad_fd, 0, SEEK_END);
@@ -1102,27 +1098,27 @@ first_frame:
 
 		samples = 32 * MAD_NSBSAMPLES(&data->frame.header);
 
-		obj->frame_size = (int) samples << 2; /* Assume 16-bit stereo */
-		frames = data->samplerate * (time+1) / samples;
-		if (data->xing.flags & XING_FRAMES) {
-			obj->nr_frames = data->xing.frames;
+		obj->block_size = (int) samples << 2; /* Assume 16-bit stereo */
+		blocks = data->samplerate * (time+1) / samples;
+		if (data->xing.flags & XING_BLOCKS) {
+			obj->nr_blocks = data->xing.blocks;
 		} else {
-			obj->nr_frames = (int) frames;
+			obj->nr_blocks = (int) blocks;
 		}
 		obj->nr_tracks = 1;
 	}
-	/* Determine if nr_frames makes sense */
+	/* Determine if nr_blocks makes sense */
 	if (!(obj->flags & P_SEEK) && (obj->flags & P_STREAMBASED)) {
-		obj->nr_frames = -1;
+		obj->nr_blocks = -1;
 	}
 
-	/* Allocate frame index */
-	if (!data->seekable  || obj->nr_frames > 1000000 ||
-			(data->frames = (ssize_t *)malloc((obj->nr_frames + FRAME_RESERVE) * sizeof(ssize_t))) == NULL) {
+	/* Allocate block index */
+	if (!data->seekable  || obj->nr_blocks > 1000000 ||
+			(data->blocks = (ssize_t *)malloc((obj->nr_blocks + BLOCK_RESERVE) * sizeof(ssize_t))) == NULL) {
 		data->seekable = 0; // Given really
 	}	else {
 		data->seekable = 1;
-		data->frames[0] = 0;
+		data->blocks[0] = 0;
 	}
 	data->mad_init = 1;
 
@@ -1156,8 +1152,8 @@ static void mad_close(input_object *obj)
 			mad_stream_finish(&data->stream);
 			data->mad_init = 0;
 		}
-		if (data->frames) {
-			free(data->frames);
+		if (data->blocks) {
+			free(data->blocks);
 		}
 		free(obj->local_data);
 		obj->local_data = NULL;
@@ -1188,11 +1184,11 @@ input_plugin *input_plugin_info (void)
 	mad_plugin.can_handle = mad_can_handle;
 	mad_plugin.open = mad_open;
 	mad_plugin.close = mad_close;
-	mad_plugin.play_frame = mad_play_frame;
-	mad_plugin.frame_seek = mad_frame_seek;
-	mad_plugin.frame_size = mad_frame_size;
-	mad_plugin.nr_frames = mad_nr_frames;
-	mad_plugin.frame_to_sec = mad_frame_to_sec;
+	mad_plugin.play_block = mad_play_block;
+	mad_plugin.block_seek = mad_frame_seek;
+	mad_plugin.block_size = mad_block_size;
+	mad_plugin.nr_blocks = mad_nr_blocks;
+	mad_plugin.block_to_sec = mad_frame_to_sec;
 	mad_plugin.sample_rate = mad_sample_rate;
 	mad_plugin.channels = mad_channels;
 	mad_plugin.stream_info = mad_stream_info;

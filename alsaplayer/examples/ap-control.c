@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 {
 	int items = 0, c;
 	char **playlist;
-	
+
 	if (argc < 2)
 		usage();
 
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 				}
 				free(playlist);
 			}
-		}	
+		}
 		return 0;
 	}
 
@@ -163,21 +163,21 @@ int main(int argc, char *argv[])
 
 	if (!strcmp(argv[1], "time"))
 	{
-		int pos_frame, pos_sec;
-		int length_frame, length_sec;
+		int pos_block, pos_sec;
+		int length_block, length_sec;
 
 		if (!ap_session_running(0))
 			return 1;
 
 		// Totals
-		ap_get_frames(0, &length_frame);
+		ap_get_blocks(0, &length_block);
 		ap_get_length(0, &length_sec);
 
 		// Current position
-		ap_get_frame(0, &pos_frame);
+		ap_get_block(0, &pos_block);
 		ap_get_position(0, &pos_sec);
 
-		printf("Frame: %d/%d\n", pos_frame, length_frame);
+		printf("Block: %d/%d\n", pos_block, length_block);
 		printf("Seconds: %d/%d\n", pos_sec, length_sec);
 
 		return 0;

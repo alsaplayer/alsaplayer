@@ -61,13 +61,13 @@
 #define BUFFER_SIZE     4096
 
 #define DEFAULT_DEVICE	"/dev/cdrom"
-#define FRAME_LEN	4
+#define BLOCK_LEN	4
 #define N_BUF 8
 #define OVERLAY 3
 #define KEYLEN 12
 #define OFS 12
 #define RETRYS 20
-#define IFRAMESIZE (CD_FRAMESIZE_RAW/sizeof(int))
+#define IBLOCKSIZE (CD_FRAMESIZE_RAW/sizeof(int))
 #define BLEN 255
 
 /* global variables */
@@ -638,7 +638,7 @@ char * cddb_lookup (const char *address, const char *char_port, int discID, stru
 	tmpbuf[0] = '\0';
 	for (i = 0; i < tl->max; i++)
 	{
-		/* put the frame offset of the starting location of each track in a string */
+		/* put the block offset of the starting location of each track in a string */
 		//snprintf (offsets, sizeof (offsets), "%s %d ", tmpbuf,
 		snprintf (offsets, sizeof (offsets), "%s%c%d", tmpbuf, separator,
 				tl->l_frame[i] + (75 * (tl->l_sec[i] + (60 * tl->l_min[i]))));
@@ -1055,7 +1055,7 @@ static int cdda_open(input_object *obj, const char *name)
 
 #ifdef DEBUG
 	cd_disp_TOC(&data->tl);
-	alsaplayer_error("IFRAMESIZE = %d\n", IFRAMESIZE);
+	alsaplayer_error("IBLOCKSIZE = %d\n", IBLOCKSIZE);
 #endif
 
 	obj->nr_channels = 2;
@@ -1141,10 +1141,10 @@ static void cdda_close(input_object *obj)
 }
 
 
-static int cdda_play_frame(input_object *obj, short *buf)
+static int cdda_play_block(input_object *obj, short *buf)
 {
 	struct cdda_local_data *data;
-	unsigned char bla[CD_FRAMESIZE_RAW*FRAME_LEN];
+	unsigned char bla[CD_FRAMESIZE_RAW*BLOCK_LEN];
 
 	if (!obj)
 		return 0;
@@ -1163,15 +1163,15 @@ static int cdda_play_frame(input_object *obj, short *buf)
 		return 0;
 	}
 	memset(bla, 0, sizeof(bla));
-	if (cd_read_audio(data->cdrom_fd, data->track_start + data->rel_pos, FRAME_LEN, bla)) {
+	if (cd_read_audio(data->cdrom_fd, data->track_start + data->rel_pos, BLOCK_LEN, bla)) {
 		return 0;
 	}
-	data->rel_pos += FRAME_LEN;
+	data->rel_pos += BLOCK_LEN;
 	if (buf) {
-		memcpy(buf, bla, (CD_FRAMESIZE_RAW * FRAME_LEN));
+		memcpy(buf, bla, (CD_FRAMESIZE_RAW * BLOCK_LEN));
 #ifdef __BYTE_ORDER
 #if __BYTE_ORDER == __BIG_ENDIAN
-		swab (buf, buf, (CD_FRAMESIZE_RAW * FRAME_LEN));
+		swab (buf, buf, (CD_FRAMESIZE_RAW * BLOCK_LEN));
 #endif
 #endif
 	}
@@ -1179,43 +1179,43 @@ static int cdda_play_frame(input_object *obj, short *buf)
 }
 
 
-static int cdda_frame_seek(input_object *obj, int index)
+static int cdda_block_seek(input_object *obj, int index)
 {
 	struct cdda_local_data *data;
 	if (!obj)
 		return 0;
 	data = (struct cdda_local_data *)obj->local_data;
 	if (data)
-		data->rel_pos = (index * FRAME_LEN);
+		data->rel_pos = (index * BLOCK_LEN);
 	return 1;
 }
 
 
-static int cdda_frame_size(input_object *obj)
+static int cdda_block_size(input_object *obj)
 {
-	return (CD_FRAMESIZE_RAW * FRAME_LEN) / sizeof (short) ;
+	return (CD_FRAMESIZE_RAW * BLOCK_LEN) / sizeof (short) ;
 }
 
 
 
-static int cdda_nr_frames(input_object *obj)
+static int cdda_nr_blocks(input_object *obj)
 {
 	struct cdda_local_data *data;
-	int nr_frames = 0;
+	int nr_blocks = 0;
 
 	if (!obj)
 		return 0;
 	data = (struct cdda_local_data *)obj->local_data;
 
 	if (data)
-		nr_frames = data->track_length >> 2;
-	return nr_frames;
+		nr_blocks = data->track_length >> 2;
+	return nr_blocks;
 }
 
 
-static  long cdda_frame_to_sec(input_object *obj, int frame)
+static  long cdda_block_to_sec(input_object *obj, int block)
 {
-	unsigned long byte_count = FRAME_LEN * frame * CD_FRAMESIZE_RAW;
+	unsigned long byte_count = BLOCK_LEN * block * CD_FRAMESIZE_RAW;
 
 	return (byte_count / 1764); /* 44Khz stereo 16 bit, fixed */
 	/* 1764 = 176400 / 100 voor de 100ste seconden representatie */
@@ -1308,11 +1308,11 @@ static input_plugin cdda_plugin;
    cdda_can_handle,
    cdda_open,
    cdda_close,
-   cdda_play_frame,
-   cdda_frame_seek,
-   cdda_frame_size,
-   cdda_nr_frames,
-   cdda_frame_to_sec,
+   cdda_play_block,
+   cdda_block_seek,
+   cdda_block_size,
+   cdda_nr_blocks,
+   cdda_block_to_sec,
    cdda_sample_rate,
    cdda_channels,
    cdda_stream_info,
@@ -1335,11 +1335,11 @@ input_plugin *input_plugin_info(void)
 	cdda_plugin.can_handle = cdda_can_handle;
 	cdda_plugin.open = cdda_open;
 	cdda_plugin.close = cdda_close;
-	cdda_plugin.play_frame = cdda_play_frame;
-	cdda_plugin.frame_seek = cdda_frame_seek;
-	cdda_plugin.frame_size = cdda_frame_size;
-	cdda_plugin.nr_frames = cdda_nr_frames;
-	cdda_plugin.frame_to_sec = cdda_frame_to_sec;
+	cdda_plugin.play_block = cdda_play_block;
+	cdda_plugin.block_seek = cdda_block_seek;
+	cdda_plugin.block_size = cdda_block_size;
+	cdda_plugin.nr_blocks = cdda_nr_blocks;
+	cdda_plugin.block_to_sec = cdda_block_to_sec;
 	cdda_plugin.sample_rate = cdda_sample_rate;
 	cdda_plugin.channels = cdda_channels;
 	cdda_plugin.stream_info = cdda_stream_info;

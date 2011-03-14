@@ -64,25 +64,25 @@ flac_sample_rate (input_object * obj)
 
 
 static int
-flac_frame_size (input_object * obj)
+flac_block_size (input_object * obj)
 {
     if (!obj)
 	return 0;
-    return obj->frame_size;
+    return obj->block_size;
 }
 
 
 static int
-flac_nr_frames (input_object * obj)
+flac_nr_blocks (input_object * obj)
 {
     if (!obj)
 	return 0;
-    return obj->nr_frames;
+    return obj->nr_blocks;
 }
 
 
 static long
-flac_frame_to_centisec (input_object * obj, int frame)
+flac_block_to_centisec (input_object * obj, int block)
 {
     if (!obj)
 	return 0;
@@ -91,12 +91,12 @@ flac_frame_to_centisec (input_object * obj, int frame)
     if (!f)
 	return 0;
 
-    return (long) f->engine ()->frameTime (frame) * 100;
+    return (long) f->engine ()->blockTime (block) * 100;
 }
 
 
 static int
-flac_frame_seek (input_object * obj, int frame)
+flac_block_seek (input_object * obj, int block)
 {
     if (!obj)
 	return 0;
@@ -104,12 +104,12 @@ flac_frame_seek (input_object * obj, int frame)
     Flac::FlacStream * f = (Flac::FlacStream *) obj->local_data;
     if (!f)
       return 0;
-    return f->engine ()->seekToFrame (frame);
+    return f->engine ()->seekToBlock (block);
 }
 
 
 static int
-flac_play_frame (input_object * obj, short * buf)
+flac_play_block (input_object * obj, short * buf)
 {
     if (!obj || !buf)
 	return 0;
@@ -117,7 +117,7 @@ flac_play_frame (input_object * obj, short * buf)
     Flac::FlacStream * f = (Flac::FlacStream *) obj->local_data;
     if (!f)
 	return 0;
-    return f->engine ()->decodeFrame (buf);
+    return f->engine ()->decodeBlock (buf);
 }
 
 
@@ -167,7 +167,7 @@ flac_open (input_object * obj, const char * name)
 
     if (f && f->open ())
     {
-	obj->frame_size  = f->engine ()->apFrameSize ();
+	obj->block_size  = f->engine ()->apBlockSize ();
 
 	// attach a song info tag
 
@@ -183,7 +183,7 @@ flac_open (input_object * obj, const char * name)
 	    obj->flags |= P_FILEBASED;
 	obj->nr_channels  = f->engine ()->apChannels ();
 	obj->flags       |= P_REENTRANT;
-	obj->nr_frames    = f->engine ()->apFrames ();
+	obj->nr_blocks    = f->engine ()->apBlocks ();
 	obj->nr_tracks    = 1;
 	obj->ready        = 1;
 	obj->local_data   = (void *) f;
@@ -194,10 +194,10 @@ flac_open (input_object * obj, const char * name)
 	alsaplayer_error ("flac_open: unable to open flac stream or "
 			  "unsupported flac stream (%s)", name);
 	delete f;
-	obj->frame_size  = 0;
+	obj->block_size  = 0;
 	obj->nr_channels = 0;
 	obj->flags       = 0;
-	obj->nr_frames   = 0;
+	obj->nr_blocks   = 0;
 	obj->nr_tracks   = 0;
 	obj->ready       = 0;
 	obj->local_data  = 0;
@@ -337,11 +337,11 @@ input_plugin_info (void)
     flac_plugin.can_handle   = flac_can_handle;
     flac_plugin.open         = flac_open;
     flac_plugin.close        = flac_close;
-    flac_plugin.play_frame   = flac_play_frame;
-    flac_plugin.frame_seek   = flac_frame_seek;
-    flac_plugin.frame_size   = flac_frame_size;
-    flac_plugin.nr_frames    = flac_nr_frames;
-    flac_plugin.frame_to_sec = flac_frame_to_centisec;
+    flac_plugin.play_block   = flac_play_block;
+    flac_plugin.block_seek   = flac_block_seek;
+    flac_plugin.block_size   = flac_block_size;
+    flac_plugin.nr_blocks    = flac_nr_blocks;
+    flac_plugin.block_to_sec = flac_block_to_centisec;
     flac_plugin.sample_rate  = flac_sample_rate;
     flac_plugin.channels     = flac_channels;
     flac_plugin.stream_info  = flac_stream_info;

@@ -132,7 +132,7 @@ static int vorbis_sample_rate(input_object *obj)
 }
 
 
-static int vorbis_frame_seek(input_object *obj, int frame)
+static int vorbis_block_seek(input_object *obj, int block)
 {
 	struct vorbis_local_data *data;
 	int64_t pos;
@@ -148,24 +148,24 @@ static int vorbis_frame_seek(input_object *obj, int frame)
 	if (data) {
 		if (obj->flags & P_STREAMBASED)
 			return 0;
-		pos = frame * (BLOCK_SIZE_BYTES >> 2);
+		pos = block * (BLOCK_SIZE_BYTES >> 2);
 		if (ov_pcm_seek(&data->vf, pos) == 0)
-			return frame;
+			return block;
 	}
 	return 0;
 }
 
-static int vorbis_frame_size(input_object *obj)
+static int vorbis_block_size(input_object *obj)
 {
 	if (!obj) {
-		puts("No frame size!!!!");
+		puts("No block size!!!!");
 		return 0;
 	}
-	return obj->frame_size / sizeof (short);
+	return obj->block_size / sizeof (short);
 }
 
 
-static int vorbis_play_frame(input_object *obj, short *buf)
+static int vorbis_play_block(input_object *obj, short *buf)
 {
 	int pcm_byte_index;
 	long ret;
@@ -236,7 +236,7 @@ static int vorbis_play_frame(input_object *obj, short *buf)
 }
 
 
-static  long vorbis_frame_to_sec(input_object *obj, int frame)
+static  long vorbis_block_to_sec(input_object *obj, int block)
 {
 	struct vorbis_local_data *data;
 	int sec;
@@ -244,16 +244,16 @@ static  long vorbis_frame_to_sec(input_object *obj, int frame)
 	if (!obj || !obj->local_data)
 		return 0;
 	data = (struct vorbis_local_data *)obj->local_data;
-	sec = (frame * BLOCK_SIZE_BYTES ) / (vorbis_sample_rate(obj) * 2 * 2 / 100);
+	sec = (block * BLOCK_SIZE_BYTES ) / (vorbis_sample_rate(obj) * 2 * 2 / 100);
 	return sec;
 }
 
-static int vorbis_nr_frames(input_object *obj)
+static int vorbis_nr_blocks(input_object *obj)
 {
 	struct vorbis_local_data *data;
 	vorbis_info *vi;
 	int64_t	l;
-	int frames = 10000;
+	int blocks = 10000;
 	if (!obj || !obj->local_data)
 		return 0;
 	data = (struct vorbis_local_data *)obj->local_data;
@@ -261,8 +261,8 @@ static int vorbis_nr_frames(input_object *obj)
 	if (!vi)
 		return 0;
 	l = ov_pcm_total(&data->vf, -1);
-	frames = (l / (BLOCK_SIZE_BYTES >> 2));
-	return frames;
+	blocks = (l / (BLOCK_SIZE_BYTES >> 2));
+	return blocks;
 }
 
 
@@ -428,7 +428,7 @@ static int vorbis_open(input_object *obj, const char *path)
 		return 0;
 	}
 	obj->nr_channels = vi->channels;
-	obj->frame_size = BLOCK_SIZE_BYTES;
+	obj->block_size = BLOCK_SIZE_BYTES;
 	obj->local_data = malloc(sizeof(struct vorbis_local_data));
 	if (!obj->local_data) {
 		ov_clear(&vf_temp);
@@ -486,11 +486,11 @@ input_plugin *input_plugin_info (void)
 	vorbis_plugin.can_handle = vorbis_can_handle;
 	vorbis_plugin.open = vorbis_open;
 	vorbis_plugin.close = vorbis_close;
-	vorbis_plugin.play_frame = vorbis_play_frame;
-	vorbis_plugin.frame_seek = vorbis_frame_seek;
-	vorbis_plugin.frame_size = vorbis_frame_size;
-	vorbis_plugin.nr_frames = vorbis_nr_frames;
-	vorbis_plugin.frame_to_sec = vorbis_frame_to_sec;
+	vorbis_plugin.play_block = vorbis_play_block;
+	vorbis_plugin.block_seek = vorbis_block_seek;
+	vorbis_plugin.block_size = vorbis_block_size;
+	vorbis_plugin.nr_blocks = vorbis_nr_blocks;
+	vorbis_plugin.block_to_sec = vorbis_block_to_sec;
 	vorbis_plugin.sample_rate = vorbis_sample_rate;
 	vorbis_plugin.channels = vorbis_channels;
 	vorbis_plugin.stream_info = vorbis_stream_info;

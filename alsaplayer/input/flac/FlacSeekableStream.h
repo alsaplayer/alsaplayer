@@ -56,7 +56,7 @@ class FlacSeekableStream : public FlacStream
     //------------------------------------------------------------------
     // Constructor and destructor.  The reader_type f belongs to the
     // FlacSeekableStream after construction, and it will be closed
-    // upon deletion of the FlacSeekableStream object.  If reportErrors 
+    // upon deletion of the FlacSeekableStream object.  If reportErrors
     // is false, the object will squelch all alsaplayer_error messages.
     // This is particularly useful when attempting to open streams
     // to determine whether they're FLAC streams.
@@ -65,7 +65,7 @@ class FlacSeekableStream : public FlacStream
     FlacSeekableStream (const std::string & name,
 			reader_type * f,
 			bool reportErrors = true);
-    
+
     virtual ~FlacSeekableStream ();
 
 
@@ -74,7 +74,7 @@ class FlacSeekableStream : public FlacStream
     //--------------------------------------------------------
 
     virtual bool open ();
-    virtual bool processOneFrame ();
+    virtual bool processOneBlock ();
 
 
     //---------------------------------------------
@@ -98,13 +98,13 @@ class FlacSeekableStream : public FlacStream
 		      const FLAC__StreamMetadata * md,
 			      void * client_data);
 
-    static FLAC__StreamDecoderWriteStatus 
+    static FLAC__StreamDecoderWriteStatus
 #ifdef LEGACY_FLAC
 	writeCallBack (const FLAC__SeekableStreamDecoder * decoder,
 #else
 	writeCallBack (const FLAC__StreamDecoder * decoder,
 #endif
-		       const FLAC__Frame * frame,
+		       const FLAC__Frame * block,
 		       const FLAC__int32 * const buffer[],
 		       void * client_data);
 
@@ -128,20 +128,20 @@ class FlacSeekableStream : public FlacStream
 			     void * client_data);
 
 #ifdef LEGACY_FLAC
-    static FLAC__SeekableStreamDecoderSeekStatus 
+    static FLAC__SeekableStreamDecoderSeekStatus
 	seekCallBack (const FLAC__SeekableStreamDecoder * decoder,
 #else
-    static FLAC__StreamDecoderSeekStatus 
+    static FLAC__StreamDecoderSeekStatus
 	seekCallBack (const FLAC__StreamDecoder * decoder,
 #endif
 		      FLAC__uint64 offset,
 		      void * client_data);
 
 #ifdef LEGACY_FLAC
-    static FLAC__SeekableStreamDecoderTellStatus 
+    static FLAC__SeekableStreamDecoderTellStatus
 	tellCallBack (const FLAC__SeekableStreamDecoder * decoder,
 #else
-    static FLAC__StreamDecoderTellStatus 
+    static FLAC__StreamDecoderTellStatus
 	tellCallBack (const FLAC__StreamDecoder * decoder,
 #endif
 		      FLAC__uint64 * offset,

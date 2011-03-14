@@ -62,7 +62,7 @@ class SampleBuffer {
 	int Seek(int index);
 	void SetReadDirection(int rd);
 	void ResetRead();
-	int GetBufferSizeBytes(int frame_size = -1);
+	int GetBufferSizeBytes(int block_size = -1);
 	int GetBufferSize();
 	int GetSamplesInBuffer();
 	int GetReadIndex();

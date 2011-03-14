@@ -57,7 +57,7 @@ class FlacStream
 
     static bool isFlacStream (const std::string & name);
 
-    
+
  public:
 
     //---------------------------------------------------------------
@@ -149,7 +149,7 @@ class FlacStream
 
 
     //----------------------------------------------------------------
-    // Process the next flac frame in the stream.  This has the side-
+    // Process the next flac block in the stream.  This has the side-
     // effect of calling the write callback if there is data to fetch
     // in the stream.
     //
@@ -157,7 +157,7 @@ class FlacStream
     // there's an error in the stream decoder.
     //----------------------------------------------------------------
 
-    virtual bool                processOneFrame ();
+    virtual bool                processOneBlock ();
 
 
     //-------------------------------------------------------------------
@@ -187,8 +187,8 @@ class FlacStream
     void         realErrCallBack (const char * name,
 				  FLAC__StreamDecoderErrorStatus status);
 
-    FLAC__StreamDecoderWriteStatus 
-                 realWriteCallBack (const FLAC__Frame * frame,
+    FLAC__StreamDecoderWriteStatus
+                 realWriteCallBack (const FLAC__Frame * block,
 				    const FLAC__int32 * const buffer[]);
 
 
@@ -197,7 +197,7 @@ class FlacStream
     // streams.
     //------------------------------------------------------------
 
-    FLAC__StreamDecoderReadStatus 
+    FLAC__StreamDecoderReadStatus
                  realReadCallBack (FLAC__byte buffer[],
 				   size_t * bytes);
 
@@ -219,7 +219,7 @@ class FlacStream
     unsigned int  _sampPerBlock;  // number of samples per block of data
     FLAC__uint64  _totalSamp;     // total number of samples in the stream
 
-    
+
  private:
 
     //-----------------------------------------------------------------
@@ -232,9 +232,9 @@ class FlacStream
 			      const FLAC__StreamMetadata * md,
 			      void * cilent_data);
 
-    static FLAC__StreamDecoderWriteStatus 
+    static FLAC__StreamDecoderWriteStatus
 	writeCallBack (const FLAC__StreamDecoder * decoder,
-		       const FLAC__Frame * frame,
+		       const FLAC__Frame * block,
 		       const FLAC__int32 * const buffer[],
 		       void * client_data);
 

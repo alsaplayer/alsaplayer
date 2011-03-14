@@ -82,7 +82,7 @@ typedef struct _input_object
 {
 	/**
 	 * Flag that should be set to 1 if your plugin is ready to accept
-	 * play_frame() callback
+	 * play_block() callback
 	 */
 	int ready;
 	/**
@@ -91,10 +91,10 @@ typedef struct _input_object
 	 */
 	int flags;
 	/**
-	 * The total number of frames in the stream. Should be set in the
+	 * The total number of blocks in the stream. Should be set in the
 	 * open() call.
 	 */
-	int nr_frames;
+	int nr_blocks;
 	/**
 	 * The number of tracks, if any, in the stream. Should be set in
 	 * the open() call.
@@ -106,10 +106,10 @@ typedef struct _input_object
 	 */
 	int nr_channels;
 	/**
-	 * The frame size in bytes. play_frame() will be called with this
+	 * The block size in bytes. play_block() will be called with this
 	 * value.
 	 */
-	int frame_size;
+	int block_size;
 	/** If your plugin needs extra space for its own variables assign the
 	 * allocated data structure to this pointer
 	 */
@@ -176,43 +176,43 @@ typedef void(*input_close_type)(input_object *obj);
 
 /**
  * @param obj input object
- * @param buffer buffer where we should write the frame to
+ * @param buffer buffer where we should write the block to
  *
- * Play/decode a single frame. This function should write exactly one frame
- * to the buffer. If there is not enough PCM data to fill the frame
+ * Play/decode a single block. This function should write exactly one block
+ * to the buffer. If there is not enough PCM data to fill the block
  * it should be padded with zeros (silence).
  */
-typedef int(*input_play_frame_type)(input_object *obj, short *buffer);
+typedef int(*input_play_block_type)(input_object *obj, short *buffer);
 
 /**
  * @param obj input object
- * @param frame
+ * @param block
  *
- * Seek to a specific frame number
+ * Seek to a specific block number
  */
-typedef int(*input_frame_seek_type)(input_object *obj, int frame);
+typedef int(*input_block_seek_type)(input_object *obj, int block);
 
 /**
  * @param obj input object
  *
- * Returns the frame size in bytes
+ * Returns the block size in bytes
  */
-typedef int(*input_frame_size_type)(input_object *obj);
+typedef int(*input_block_size_type)(input_object *obj);
 
 /**
  * @param obj input object
  *
- * Returns the total number of frames in the stream */
-typedef int(*input_nr_frames_type)(input_object *obj);
+ * Returns the total number of blocks in the stream */
+typedef int(*input_nr_blocks_type)(input_object *obj);
 
 /**
  * @param obj input object
- * @param frame frame number
+ * @param block block number
  *
  * Returns the offset from the start time in centiseconds (100th of a second)
- * for the frame given.
+ * for the block given.
  */
-typedef  long(*input_frame_to_sec_type)(input_object *obj ,int frame);
+typedef  long(*input_block_to_sec_type)(input_object *obj ,int block);
 
 /**
  * @param obj input object
@@ -280,11 +280,11 @@ typedef struct _input_plugin
 	input_can_handle_type can_handle;
 	input_open_type open;
 	input_close_type close;
-	input_play_frame_type play_frame;
-	input_frame_seek_type frame_seek;
-	input_frame_size_type frame_size;
-	input_nr_frames_type nr_frames;
-	input_frame_to_sec_type frame_to_sec;
+	input_play_block_type play_block;
+	input_block_seek_type block_seek;
+	input_block_size_type block_size;
+	input_nr_blocks_type nr_blocks;
+	input_block_to_sec_type block_to_sec;
 	input_sample_rate_type sample_rate;
 	input_channels_type channels;
 	input_stream_info_type stream_info;

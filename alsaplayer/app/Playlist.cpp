@@ -70,7 +70,7 @@ static const char *sort_seq;
                                   return (DIRECTION == DESCENDING) ? rc > 0 : rc < 0; }
 
 // Function is similar to strcmp, but this is for PlayItem type.
-// This function uses sort_seq variable. Also this function should 
+// This function uses sort_seq variable. Also this function should
 // be keept optimized for speed.
 static int sort_comparator (const PlayItem &a, const PlayItem &b) {
     int ai, bi;
@@ -114,7 +114,7 @@ static int sort_comparator (const PlayItem &a, const PlayItem &b) {
 		case 'C':	// Compare comments, ascending
 				COMPARE(comment, ASCENDING);
 
-		case 'y':	// Compare years, descending		
+		case 'y':	// Compare years, descending
 				ai = atoi (a.year.c_str ());
 				bi = atoi (b.year.c_str ());
 
@@ -186,7 +186,7 @@ void info_looper(Playlist *playlist)
 	while (playlist->active) {
 		//playlist->Lock ();
 		const char *path;
-	
+
 		if (p >= playlist->queue.end()) {
 		    /* Playlist cleared, shrinked or its an end of list */
 		    //playlist->Unlock ();
@@ -198,13 +198,13 @@ void info_looper(Playlist *playlist)
 
 			if (path && !strstr(path, "http://") &&
 					myplayer->Open((*p).filename.c_str())) { // Examine file
-				t_sec = myplayer->GetCurrentTime(myplayer->GetFrames());
+				t_sec = myplayer->GetCurrentTime(myplayer->GetBlocks());
 				if (t_sec) {
 					t_sec /= 100;
 					(*p).playtime = t_sec;
 				} else {
 					(*p).playtime = -1;
-				}		
+				}
 				if (myplayer->GetStreamInfo(&info)) {
 					(*p).title = info.title;
 					(*p).artist = info.artist;
@@ -214,7 +214,7 @@ void info_looper(Playlist *playlist)
 					(*p).track = info.track;
 					(*p).comment = info.comment;
 				}
-				myplayer->Close();	
+				myplayer->Close();
 			}
 			(*p).SetParsed();
 			// Notify interface of update
@@ -236,7 +236,7 @@ void info_looper(Playlist *playlist)
 		p++;
 		count++;
 		//playlist->Unlock ();
-	}	
+	}
 
 	delete myplayer;
 	//alsaplayer_error("exit info_looper()");
@@ -256,41 +256,41 @@ void playlist_looper(void *data)
 		if (!pl->IsPaused()) {
 			if (!(coreplayer = (CorePlayer *)(pl->coreplayer)))
 				return;
-			
+
 			if (!coreplayer->IsActive()) {
 				if (pl->Length()) {
 					if (pl->LoopingSong()) {
 						pl->Play(pl->GetCurrent());
-					} else {	
+					} else {
 						pl->Next();
-					}	
+					}
 					// TODO? set a flag to skip the dosleep()
-				}	
+				}
 			}
 
 			if (pl->Crossfading() && pl->Length() && pl->coreplayer->GetSpeed() >= 0.0) {
 				// Cross example
-				// Calc the frame to sec value
-				int nr_frames = coreplayer->GetFrames();
-				int totaltime = coreplayer->GetCurrentTime(nr_frames);
-				
-				float frametime = (float)totaltime  / (float)nr_frames;
+				// Calc the block to sec value
+				int nr_blocks = coreplayer->GetBlocks();
+				int totaltime = coreplayer->GetCurrentTime(nr_blocks);
+
+				float blocktime = (float)totaltime  / (float)nr_blocks;
 				float xstart = 300; // 3.0 seconds
-				float xframe = xstart / frametime;
-				//alsaplayer_error("xframe = %.2f", xframe);
-				if ((coreplayer->GetFrames() - coreplayer->GetPosition()) < (int)xframe) {
+				float xblock = xstart / blocktime;
+				//alsaplayer_error("xblock = %.2f", xblock);
+				if ((coreplayer->GetBlocks() - coreplayer->GetPosition()) < (int)xblock) {
 						if (pl->player1->IsActive() && pl->player2->IsActive()) {
 							alsaplayer_error("Stopping players in playlist_looper");
 							pl->player1->Stop();
 							pl->player2->Stop();
-						}	
+						}
 						if (pl->player1->IsActive()) {
 								pl->player2->SetSpeed(pl->coreplayer->GetSpeed());
 								pl->coreplayer = pl->player2;
 						} else {
 								pl->player1->SetSpeed(pl->coreplayer->GetSpeed());
 								pl->coreplayer = pl->player1;
-						}		
+						}
 						pl->Next();
 						// TODO? set a flag to skip the dosleep()
 				}
@@ -338,7 +338,7 @@ void insert_looper(void *data) {
 		if (!getcwd(cwd, PATH_MAX)) {
 			alsaplayer_error("Failed to get current working directory");
 			cwd[0] = 0;
-		}	
+		}
 		// Check items for adding to list
 		for(path = vetted_items.begin(); path != vetted_items.end() && playlist->active; path++) {
 			// Check that item is valid
@@ -363,7 +363,7 @@ void insert_looper(void *data) {
 	if(playlist->curritem == 0) {
 		playlist->curritem = 1;
 	}
-	
+
 	// Tell the subscribing interfaces about the changes
 	playlist->LockInterfaces();
 	if(playlist->interfaces.size() > 0) {
@@ -372,23 +372,23 @@ void insert_looper(void *data) {
 			(*i)->CbInsert(newitems, items->position);
 			(*i)->CbSetCurrent(playlist->curritem);
 		}
-	}	
-	if (playlist->cinterfaces.size() > 0) {	
+	}
+	if (playlist->cinterfaces.size() > 0) {
 		for (j = playlist->cinterfaces.begin();
 			j != playlist->cinterfaces.end(); j++) {
 			(*j)->cbinsert((*j)->data, newitems, items->position);
 			(*j)->cbsetcurrent((*j)->data, playlist->curritem);
-		}	
+		}
 	}
 	playlist->UnlockInterfaces();
 	// Free the list again
-	
+
 	/* Metadate gathering is disabled for now. It completely
 	 * breaks streaming and it was never very efficient. A complete
 	 * reimplementation will follow shortly */
 	if (playlist->active)
 		info_looper(playlist);
-	
+
 	playlist->Unlock();
 	delete items;
 }
@@ -432,14 +432,14 @@ Playlist::Playlist(AlsaNode *the_node) {
 	pthread_mutex_init(&playlist_load_mutex, NULL);
 
 	pthread_create(&playlist_thread, NULL, (void * (*)(void *))playlist_looper, this);
-}	
+}
 
 
 Playlist::~Playlist() {
 	active = false;
 	pthread_join(playlist_thread, NULL);
 	interfaces.clear();	// Unregister all interfaces
-	
+
 	if (player1)
 		delete player1;
 	if (player2)
@@ -502,10 +502,10 @@ void Playlist::Next() {
 	  } else if (curritem == queue.size()){
 	    if (LoopingPlaylist()){
 	      curritem = 1;
-	      PlayFile(queue[curritem -1]); 
+	      PlayFile(queue[curritem -1]);
 	    } else {
 		    Stop(); // Close track
-	    }	    
+	    }
 	  }
 	}
 	//puts("Notifying playlists...");
@@ -521,7 +521,7 @@ void Playlist::Next() {
 			for (j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
 				(*j)->cbsetcurrent((*j)->data, curritem);
 			}
-		}	
+		}
 	}
 	Unlock();
 }
@@ -555,7 +555,7 @@ void Playlist::Prev() {
 			for(j = cinterfaces.begin(); j != cinterfaces.end(); j++) {
 				(*j)->cbsetcurrent((*j)->data, curritem);
 			}
-		}	
+		}
 	}
 
 	Unlock();
@@ -613,7 +613,7 @@ void Playlist::SetCurrent(unsigned pos)
 {
 	std::set<PlaylistInterface *>::const_iterator i;
 	std::set<playlist_interface *>::const_iterator j;
-		
+
 	Lock();
 	curritem = pos;
 	// Tell the subscribing interfaces about the change
@@ -633,7 +633,7 @@ void Playlist::SetCurrent(unsigned pos)
 // Remove tracks from position start to end inclusive
 void Playlist::Remove(unsigned start, unsigned end) {
 	bool restart = 0;
-    
+
 	std::set<PlaylistInterface *>::const_iterator i;
 	std::set<playlist_interface *>::const_iterator j;
 
@@ -642,9 +642,9 @@ void Playlist::Remove(unsigned start, unsigned end) {
 		end = start;
 		start = tmp;
 	}
-	
+
 	Lock();
-				
+
 	if(start < 1) start = 1;
 	if(start > queue.size()) start = queue.size();
 	if(end < 1) end = 1;
@@ -662,7 +662,7 @@ void Playlist::Remove(unsigned start, unsigned end) {
 	} else if (queue.size() == 0) {
 		curritem = 0;
 		restart = 1;
-	}	
+	}
 
 	// Tell the subscribing interfaces about the change
 	if (interfaces.size() > 0) {
@@ -677,7 +677,7 @@ void Playlist::Remove(unsigned start, unsigned end) {
 			if (!restart)  (*j)->cbsetcurrent((*j)->data, curritem);
 		}
 	}
-	
+
 	Unlock();
 
 	if (restart && curritem == 0) {
@@ -693,16 +693,16 @@ void Playlist::Shuffle() {
 	std::set<PlaylistInterface *>::const_iterator i;
 	std::set<playlist_interface *>::const_iterator j;
 	std::vector<PlayItem>::iterator p;
-	
+
 	if (!queue.size ())  return;
-	
+
 	Lock();
 
 	// Mark curritem
 	if (curritem > 0) {
 		(*(queue.begin() + curritem - 1)).marked_to_keep_curritem = 1;
 	}
-	
+
 	// Shuffle
 	random_shuffle(queue.begin(), queue.end());
 
@@ -713,8 +713,8 @@ void Playlist::Shuffle() {
 			break;
 		}
 	}
-	
-	
+
+
 	// Tell the subscribing interfaces about the change
 	if(interfaces.size() > 0) {
 		// Clear and repopulate
@@ -797,7 +797,7 @@ Playlist::Load(std::string const &uri, unsigned position, bool force)
 
 	// Check extension
 	if(!force) {
-		if(!is_playlist(uri.c_str())) 
+		if(!is_playlist(uri.c_str()))
 			return E_PL_DUBIOUS;
 	}
 	// Open Playlist
@@ -847,7 +847,7 @@ Playlist::Load(std::string const &uri, unsigned position, bool force)
 				newfile = std::string(p);
 			} else {
 				continue;
-			}	
+			}
 		} else if (pls && (strncasecmp(path, "Title", 5) == 0 ||
 					strncasecmp(path, "Length", 6) == 0)) {
 			/* Ignore title/length lines */
@@ -948,7 +948,7 @@ void Playlist::UnRegister(PlaylistInterface * pl_if) {
 
 void Playlist::Stop() {
 	Pause();
-	player1->Stop(); 
+	player1->Stop();
 	player2->Stop();
 }
 
@@ -982,12 +982,12 @@ void Playlist::Sort (std::string const &seq) {
 	std::vector<PlayItem>::iterator p;
 
 	if (!queue.size ())  return;
-	
+
 	Lock();
 
 	// We will use global sort_seq variable, so lock it
 	pthread_mutex_lock(&playlist_sort_seq_mutex);
-	
+
 	// Let the sort_comparator function know seq value
 	sort_seq = seq.c_str ();
 
@@ -1004,9 +1004,9 @@ void Playlist::Sort (std::string const &seq) {
 	for (p = queue.begin (), curritem = 1; p != queue.end (); p++, curritem++)
 	    if ((*p).marked_to_keep_curritem == 1)
 		break;
-	
+
 	(*(queue.begin() + curritem - 1)).marked_to_keep_curritem = 0;
-	
+
 	// Tell the subscribing interfaces about the change
 	if (interfaces.size() > 0) {
 		// Clear and repopulate
@@ -1025,13 +1025,13 @@ void Playlist::Sort (std::string const &seq) {
 	}
 
 	Unlock();
-}	
+}
 
 
 bool Playlist::Eof()
 {
 	int length;
-	
+
 	if (!(length=Length()))
 		return true;
 	if (LoopingPlaylist())
@@ -1059,13 +1059,13 @@ static void additems(std::vector<std::string> *items, std::string path, int dept
 
 	// Try expand this URI
 	char **expanded = reader_expand (path.c_str ());
-    
+
 	if (expanded) {
 		char **c_uri = expanded;
-		
+
 		while (*c_uri)
 		    additems (items, *(c_uri++), depth-1);
-		    
+
 		reader_free_expanded (expanded);
 	} else {
 		items->push_back(path);

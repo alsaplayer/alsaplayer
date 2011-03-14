@@ -52,7 +52,7 @@ class OggFlacStream : public FlacStream
 
     static bool isOggFlacStream (const std::string & name);
 
-    
+
  public:
 
     //---------------------------------------------------------------
@@ -76,7 +76,7 @@ class OggFlacStream : public FlacStream
     //--------------------------------------------------------
 
     virtual bool open ();
-    virtual bool processOneFrame ();
+    virtual bool processOneBlock ();
 
 
     //----------------------------------------
@@ -98,9 +98,9 @@ class OggFlacStream : public FlacStream
 			      const FLAC__StreamMetadata * md,
 			      void * cilent_data);
 
-    static FLAC__StreamDecoderWriteStatus 
+    static FLAC__StreamDecoderWriteStatus
 	writeCallBack (const OggFLAC__StreamDecoder * decoder,
-		       const FLAC__Frame * frame,
+		       const FLAC__Frame * block,
 		       const FLAC__int32 * const buffer[],
 		       void * client_data);
 
