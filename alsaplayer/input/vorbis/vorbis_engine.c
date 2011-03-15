@@ -184,7 +184,7 @@ static int vorbis_play_block(input_object *obj, short *buf)
 	}
 	pcm_byte_index = 0;
 	while (bytes_needed > 0) {
-		ret = ov_read(&data->vf, buf + (pcm_byte_index / sizeof (buf [0])), bytes_needed,
+		ret = ov_read(&data->vf, (char *) (buf + (pcm_byte_index / sizeof (buf [0]))), bytes_needed,
 				data->bigendianp, 2, 1, &data->current_section);
 		switch(ret) {
 			case 0: /* EOF reached */
