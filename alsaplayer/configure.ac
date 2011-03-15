@@ -42,12 +42,10 @@ use_libid3tag=no
 can_systray=no
 have_systray=no
 
-if test "x$x_includes" = "xNONE"
-then
+if test "x$x_includes" = "xNONE" ; then
     x_includes=/usr/X11R6/include
 fi
-if test "x$x_libraries" = "xNONE"
-then
+if test "x$x_libraries" = "xNONE" ; then
    x_libraries=/usr/X11R6/lib
 fi
 
@@ -88,18 +86,20 @@ dnl Debugging stuff
 dnl ===============
 
 AC_ARG_ENABLE(debug,
-[  --enable-debug          Enable debugging (default=no)],, enable_debug=no)
+	AC_HELP_STRING([--enable-debug], [Enable debugging (default=no)]),,
+	enable_debug=no)
 
 if test "$enable_debug" = yes; then
-DFLAGS="$DFLAGS -g"
+	DFLAGS="$DFLAGS -g"
 fi
 
 
 AC_ARG_ENABLE(profiling,
-[  --enable-profiling      Enable profiling (-pg)],, enable_profiling=no)
+	AC_HELP_STRING([--enable-profiling], [Enable profiling (-pg)]),,
+	enable_profiling=no)
 
 if test "$enable_profiling" = yes; then
-DFLAGS="$DFLAGS -pg"
+	DFLAGS="$DFLAGS -pg"
 fi
 
 
@@ -111,10 +111,11 @@ dnl NLS stuff
 dnl =========
 
 AC_ARG_ENABLE(nls,
-[  --enable-nls            Enabled NLS support (default=yes)],, enable_nls=no)
+	AC_HELP_STRING([--enable-nls], [Enabled NLS support (default=yes)]),,
+	enable_nls=no)
 
 if test "$enable_nls" = yes; then
-echo NLS support use gettext
+	echo NLS support use gettext
 fi
 
 
@@ -123,7 +124,7 @@ dnl OpenGL
 dnl ======
 
 AC_ARG_ENABLE(opengl,
-[  --enable-opengl         Enable OpenGL plugins (default=yes)],,
+	AC_HELP_STRING([--enable-opengl], [Enable OpenGL plugins (default=yes)]),,
 	enable_opengl=yes)
 
 if test "x$enable_opengl" = xyes; then
@@ -156,13 +157,11 @@ AM_CONDITIONAL(HAVE_OPENGL, test "x$have_opengl" = xyes)
 dnl ================
 dnl Some input stuff
 dnl ================
-if test "$have_glib" = "no"
-then
+if test "$have_glib" = "no" ; then
 	have_gtk2=no
 fi
 
-if test "$have_ogg" = "yes"
-then
+if test "$have_ogg" = "yes" ; then
 	if test "$have_vorbis" = "yes"
 	then
 		have_oggvorbis=yes
@@ -174,25 +173,17 @@ else
 fi
 
 AC_ARG_ENABLE(mikmod,
-[  --enable-mikmod         Enable Mikmod plugin (default=yes)],
-[if test "$enableval" = "no"
-then
-	if test "$have_mikmod" = "yes"
-	then
-		have_mikmod=no
-	fi
-fi])
+	AC_HELP_STRING([--enable-mikmod], [Enable Mikmod plugin (default=yes)]),
+	[if test "$enableval" = "no" ; then
+		if test "$have_mikmod" = "yes" ; then have_mikmod=no ; fi
+	fi])
 
 
 AC_ARG_ENABLE(oggvorbis,
-[  --enable-oggvorbis      Enable Ogg Vorbis plugin (default=yes)],
-[if test "$enableval" = "no"
-then
-	if test "$have_oggvorbis" = "yes"
-	then
-		have_oggvorbis=no
-	fi
-fi])
+	AC_HELP_STRING([--enable-oggvorbis], [Enable Ogg Vorbis plugin (default=yes)]),
+	[if test "$enableval" = "no" ; then
+		if test "$have_oggvorbis" = "yes" ; then have_oggvorbis=no ; fi
+	fi])
 
 AM_CONDITIONAL(HAVE_OGGVORBIS,test "$have_oggvorbis" = "yes")
 
@@ -201,18 +192,15 @@ dnl flac library
 dnl ============
 
 AC_CHECK_LIB(FLAC, FLAC__stream_decoder_new,
-     FLC_LDADD="-lFLAC -lm"; have_flac=yes; AC_DEFINE(HAVE_LIBFLC, 1, [Define if you have FLAC library (-lFLAC)]), have_flac=no; FLC_LDADD=, -lm)
+     FLC_LDADD="-lFLAC -lm"; have_flac=yes;
+     AC_DEFINE(HAVE_LIBFLC, 1, [Define if you have FLAC library (-lFLAC)]), have_flac=no; FLC_LDADD=, -lm)
 
 
 AC_ARG_ENABLE(flac,
-[  --enable-flac           Enable FLAC plugin (default=yes)],
-[if test "$enableval" = "no"
-then
-	if test "$have_flac" = "yes"
-	then
-		have_flac=no
-	fi
-fi])
+	AC_HELP_STRING([--enable-flac], [Enable FLAC plugin (default=yes)]),
+	[if test "$enableval" = "no" ; then
+		if test "$have_flac" = "yes" ; then have_flac=no ; fi
+	fi])
 
 dnl ========================
 dnl check for libflac>=1.1.3
@@ -224,21 +212,17 @@ AC_CHECK_LIB(FLAC, [FLAC__stream_decoder_init_ogg_stream],
 dnl ===============
 dnl OggFLAC library
 dnl ===============
-if test "$have_libFLAC_113" = "no"
-then
+if test "$have_libFLAC_113" = "no" ; then
 	AC_CHECK_LIB(OggFLAC, OggFLAC__stream_decoder_new,
-	     OGGFLC_LDADD="-lOggFLAC -logg"; have_oggflac=yes; AC_DEFINE(HAVE_LIBOGGFLC, 1, [Define if you have OggFLAC library (-lOggFLAC)]), have_oggflac=no; OGGFLC_LDADD=, -lOggFLAC -lFLAC -logg -lm)
+	     OGGFLC_LDADD="-lOggFLAC -logg"; have_oggflac=yes;
+	     AC_DEFINE(HAVE_LIBOGGFLC, 1, [Define if you have OggFLAC library (-lOggFLAC)]), have_oggflac=no; OGGFLC_LDADD=, -lOggFLAC -lFLAC -logg -lm)
 fi
 
 AC_ARG_ENABLE(oggflac,
-[  --enable-oggflac        Enable OggFLAC plugin (default=yes)],
-[if test "$enableval" = "no"
-then
-	if test "$have_oggflac" = "yes"
-	then
-		have_oggflac=no
-	fi
-fi])
+	AC_HELP_STRING([--enable-oggflac], [Enable OggFLAC plugin (default=yes)]),
+	[if test "$enableval" = "no" ; then
+		if test "$have_oggflac" = "yes" ; then have_oggflac=no ; fi
+	fi])
 
 
 dnl ===========
@@ -246,17 +230,14 @@ dnl MAD library
 dnl ===========
 
 AC_CHECK_LIB(mad, mad_stream_init,
-     MAD_LDADD=-lmad; have_libmad=yes; AC_DEFINE(HAVE_LIBMAD, 1, [Define if you have MAD library (-lmad)]), have_libmad=no; MAD_LDADD=, -lmad)
+     MAD_LDADD=-lmad; have_libmad=yes;
+     AC_DEFINE(HAVE_LIBMAD, 1, [Define if you have MAD library (-lmad)]), have_libmad=no; MAD_LDADD=, -lmad)
 
 AC_ARG_ENABLE(mad,
-[  --enable-mad            Enable MAD plugin (default=yes)],
-[if test "$enableval" = "no"
-then
-	if test "$have_libmad" = "yes"
-	then
-		have_libmad=no
-	fi
-fi])
+	AC_HELP_STRING([--enable-mad], [Enable MAD plugin (default=yes)]),
+	[if test "$enableval" = "no" ; then
+		if test "$have_libmad" = "yes" ; then have_libmad=no ; fi
+	fi])
 
 dnl ==============
 dnl id3tab library
@@ -266,16 +247,14 @@ oldcflags=$CFLAGS
 CFLAGS="$CFLAGS -lz"
 
 AC_CHECK_LIB(id3tag, id3_file_open,
-     FLC_LDADD="$FLC_LDADD -lid3tag -lz"; use_libid3tag=yes; AC_DEFINE(HAVE_LIBID3TAG, 1, [Define if you have libid3tag library (-lid3tag)]), use_libid3tag=no)
+	FLC_LDADD="$FLC_LDADD -lid3tag -lz"; use_libid3tag=yes;
+	AC_DEFINE(HAVE_LIBID3TAG, 1, [Define if you have libid3tag library (-lid3tag)]), use_libid3tag=no)
+
 AC_ARG_ENABLE(id3tag,
-[  --enable-id3tag         Enable libid3tag support (default=yes)],
-[if test "$enableval" = "no"
-then
-	if test "$use_libid3tag" = "yes"
-	then
-		use_libid3tag=no
-	fi
-fi])
+	AC_HELP_STRING([--enable-id3tag], [Enable libid3tag support (default=yes)]),
+	[if test "$enableval" = "no" ; then
+		if test "$use_libid3tag" = "yes" ; then use_libid3tag=no ; fi
+	fi])
 
 
 CFLAGS=$oldcflags
@@ -298,7 +277,8 @@ dnl      implicitely require xosd 2.x instead of 1.x
 dnl      (which is exactly what we want)
 dnl ==========
 AC_CHECK_LIB(xosd, xosd_create,
-     XOSD_LDADD=-lxosd; have_xosd=yes; AC_DEFINE(HAVE_LIBXOSD, 1, [Define if you have XOSD library (-lxosd)]), have_xosd=no; XOSD_LDADD=, -lxosd)
+	XOSD_LDADD=-lxosd; have_xosd=yes;
+	AC_DEFINE(HAVE_LIBXOSD, 1, [Define if you have XOSD library (-lxosd)]), have_xosd=no; XOSD_LDADD=, -lxosd)
 AM_CONDITIONAL(HAVE_XOSD, test "x$have_xosd" = xyes)
 
 dnl ==========
@@ -324,13 +304,11 @@ dnl ================
 PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.10.0 gthread-2.0 >= 2.0.3 pango, can_systray=yes, can_systray=no)
 
 AC_ARG_ENABLE(systray,
-[  --enable-systray        Enable SysTray icon (default=no)],,
+	AC_HELP_STRING([--enable-systray], [Enable SysTray icon (default=no)]),,
 	enable_systray=no)
 
-if test "x$enable_systray" = xyes;
-then
-	if test "$can_systray" = "yes"
-	then
+if test "x$enable_systray" = xyes ; then
+	if test "$can_systray" = "yes" ; then
 		have_systray=yes
 	else
 		have_systray=no
@@ -349,10 +327,7 @@ if test "$enable_systray" = yes; then
     fi
 fi
 
-if test "$have_systray" = "yes"
-then
-		AC_DEFINE(HAVE_SYSTRAY, yes, [Define if we have the systray icon])
-fi
+AP_DEFINE_CONDITIONAL(HAVE_SYSTRAY, test "$have_systray" = "yes", [Define if we have the systray icon])
 
 dnl ==================
 dnl libsndfile library
@@ -424,8 +399,7 @@ dnl ===========
 dnl SPARC stuff
 dnl ===========
 
-if test "$ac_cv_header_sys_audioio_h" = "yes"
-then
+if test "$ac_cv_header_sys_audioio_h" = "yes" ; then
 	have_sparc=yes
 else
 	have_sparc=no
@@ -436,8 +410,7 @@ dnl =========
 dnl OSS stuff
 dnl =========
 
-if test "$ac_cv_header_sys_soundcard_h" = "yes"
-then
+if test "$ac_cv_header_sys_soundcard_h" = "yes" ; then
 	have_oss=yes
 else
 	have_oss=no
@@ -469,10 +442,9 @@ dnl ======================
 dnl JACK conditional stuff
 dnl ======================
 
-AC_ARG_ENABLE(jack,[  --enable-jack           Enable jack support (default=yes)],[if test "$enableval" = "no"
-then
-have_jack=no
-fi])
+AC_ARG_ENABLE(jack,
+	AC_HELP_STRING([--enable-jack], [Enable jack support (default=yes)]),
+	[if test "$enableval" = "no" ; then have_jack=no ; fi])
 
 
 dnl =====================================================
@@ -481,65 +453,38 @@ dnl is really modular
 dnl =====================================================
 
 AC_ARG_ENABLE(alsa,
-[  --enable-alsa		  Enable ALSA (default=yes)],
-[if test "$enableval" = "no"
-then
-have_alsa=no
-fi])
+	AC_HELP_STRING([--enable-alsa], [Enable ALSA (default=yes)]),
+	[if test "$enableval" = "no" ; then have_alsa=no ; fi])
 
 AC_ARG_ENABLE(esd,
-[  --enable-esd            Enable esd driver (default=yes)],
-[if test "$enableval" = "no"
-then
-have_esd=no
-fi])
-
+	AC_HELP_STRING([--enable-esd], [Enable esd driver (default=yes)]),
+	[if test "$enableval" = "no" ; then have_esd=no ; fi])
 
 AC_ARG_ENABLE(sparc,
-[  --enable-sparc          Enable SPARC driver (default=yes)],
-
-[if test "$enableval" = "no"
-then
-have_sparc=no
-fi])
-
+	AC_HELP_STRING([--enable-sparc], [Enable SPARC driver (default=yes)]),
+	[if test "$enableval" = "no" ; then have_sparc=no ; fi])
 
 AC_ARG_ENABLE(oss,
-[  --enable-oss            Enable OSS driver (default=yes)],
-[if test "$enableval" = "no"
-then
-have_oss=no
-fi])
-
+	AC_HELP_STRING([--enable-oss], [Enable OSS driver (default=yes)]),
+	[if test "$enableval" = "no" ; then have_oss=no ; fi])
 
 AC_ARG_ENABLE(sgi,
-[  --enable-sgi            Enable SGI driver (default=yes)],
-[if test "$enableval" = "no"
-then
-have_sgi=no
-fi])
+	AC_HELP_STRING([--enable-sgi], [Enable SGI driver (default=yes)]),
+	[if test "$enableval" = "no" ; then have_sgi=no ; fi])
 
 AC_ARG_ENABLE(gtk2,
-[  --enable-gtk2           Enable GTK2 graphical interface (default=yes)],
-[if test "$enableval" = "no"
-then
-have_gtk2=no
-fi])
+	AC_HELP_STRING([--enable-gtk2], [Enable GTK2 graphical interface (default=yes)]),
+	[if test "$enableval" = "no" ; then have_gtk2=no ; fi])
 
 AC_ARG_ENABLE(nas,
-[  --enable-nas            Enable NAS driver (default=yes)],
-[if test "$enableval" = "no"
-then
-have_nas=no
-fi])
+	AC_HELP_STRING([--enable-nas], [Enable NAS driver (default=yes)]),
+	[if test "$enableval" = "no" ; then have_nas=no ; fi])
 
-if test "x$ac_cv_header_mad_h" = "xno"
-then
+if test "x$ac_cv_header_mad_h" = "xno" ; then
 	have_libmad=no
 fi
 
-if test "x$ac_cv_header_id3tag_h" = "xno"
-then
+if test "x$ac_cv_header_id3tag_h" = "xno" ; then
 	use_libid3tag=no
 fi
 
@@ -587,7 +532,7 @@ AM_CONDITIONAL(ARCH_586,test "$ARCH_TYPE" = "i586")
 AM_CONDITIONAL(ARCH_686,test "$ARCH_TYPE" = "i686")
 AM_CONDITIONAL(ARCH_PPC,test "$ARCH_TYPE" = "ppc")
 AM_CONDITIONAL(ARCH_ULTRA,test "$ARCH_TYPE" = "sun4u")
-dnl cruft to satisfy gtk2's Makefile. Leave it in for now
+dnl cruft to satisfy gtk2s Makefile. Leave it in for now
 AM_CONDITIONAL(BUILD_EXTERNAL, test "a" = "b")
 
 AC_MSG_CHECKING(for gcc optimization flags)
@@ -601,46 +546,9 @@ AC_MSG_RESULT([$EXTRA_OPT_CFLAGS])
 
 ARCH_CFLAGS="$EXTRA_OPT_CFLAGS"
 
-if test "$ARCH_TYPE" = "i486" || test "$ARCH_TYPE" = "i586" || test "$ARCH_TYPE" = "i686"
-then
-	AC_DEFINE(ARCH_X86, 1, [Define if on x86 platform])
-fi
+AP_DEFINE_CONDITIONAL(HAVE_GLIB2, test "$have_glib2" = "yes", [Define if we have glib2])
+AP_DEFINE_CONDITIONAL(HAVE_GTK2, test "$have_gtk2" = "yes", [Define if we have gtk2])
 
-if test "$ARCH_TYPE" = "i486"
-then
-        AC_DEFINE(ARCH_486, 1, [Define if on a 486 platform])
-fi
-
-if test "$ARCH_TYPE" = "i586"
-then
-        AC_DEFINE(ARCH_586, 1, [Define if on a 586 platform])
-fi
-
-if test "$ARCH_TYPE" = "i686"
-then
-        AC_DEFINE(ARCH_686, 1, [Define if on a 686 platform])
-#		EXTRA_CPU_CFLAGS=$(if $CC -march=i686 -S -o /dev/null -xc /dev/null > /dev/null; then echo "-march=i686"; fi)
-fi
-
-if test "$ARCH_TYPE" = "ppc"
-then
-		AC_DEFINE(ARCH_PPC, 1, [Define if on a PPC platform])
-fi
-
-if test "$ARCH_TYPE" = "sun4u"
-then
-		AC_DEFINE(ARCH_ULTRA, 1, [Define if on a SUN ULTRA platform])
-fi
-
-if test "$have_glib2" = "yes"
-then
-		AC_DEFINE(HAVE_GLIB2, 1, [Define if we have glib2])
-fi
-
-if test "$have_gtk2" = "yes"
-then
-		AC_DEFINE(HAVE_GTK2, 1, [Define if we have gtk2])
-fi
 
 dnl ================================================================
 dnl Special assembly options. Note: Need to fix the above arch code!
@@ -648,18 +556,6 @@ dnl ================================================================
 
 dnl AC_CANONICAL_HOST
 AM_CONFIG_HEADER(config.h)
-
-case "$host" in
-	i?86-* | k?-* | athlon-*) dnl catch i386,i486,i586,i686,k6,k7
-		AC_DEFINE(FPM_INTEL, 1, [Define if we are on Intel])
-	;;
-	*-*)
-		echo "host_alias = $host_alias"
-		AC_DEFINE(FPM_64BIT, 1, [Use this otherwise])
-	;;
-esac
-
-ARCH_CFLAGS="$ARCH_CFLAGS $EXTRA_CPU_CFLAGS"
 
 AC_SUBST(ARCH_CFLAGS)
 
@@ -675,7 +571,6 @@ dnl ===========================
 dnl Check for library functions
 dnl ===========================
 
-AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MEMCMP
 AC_FUNC_MMAP
 AC_CHECK_FUNCS(madvise)
@@ -772,8 +667,7 @@ Configuration:
   Build systray icon:                 ${have_systray}"
 echo
 
-if test $have_jack = "no" -a $have_sparc = "no" -a $have_alsa = "no" -a $have_oss = "no" -a $have_esd = "no" -a $have_sgi = "no" -a $have_nas = "no"
-then
+if test $have_jack = "no" -a $have_sparc = "no" -a $have_alsa = "no" -a $have_oss = "no" -a $have_esd = "no" -a $have_sgi = "no" -a $have_nas = "no" ; then
 echo "
 **WARNING**: NO OUTPUT MODULES selected. AlsaPlayer won't be
 **WARNING**: able to produce sound output unless you manually
