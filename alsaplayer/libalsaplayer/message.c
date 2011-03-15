@@ -45,7 +45,7 @@ int ap_connect_session (int session)
 
 	if ((socket_fd = socket (AF_UNIX, SOCK_STREAM, 0)) != -1) {
 		saddr.sun_family = AF_UNIX;
-		sprintf (saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
+		snprintf (saddr.sun_path, sizeof (saddr.sun_path), "/tmp/alsaplayer_%s_%d", pwd == NULL ?
 				"anonymous" : pwd->pw_name, session);
 		if (connect (socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
 			if(socket_fd<0)
@@ -350,7 +350,7 @@ int ap_session_running(int session)
 
 	pwd = getpwuid(geteuid());
 
-	sprintf(path, "/tmp/alsaplayer_%s_%d", pwd == NULL ? "anonymous" :
+	snprintf(path, sizeof (path), "/tmp/alsaplayer_%s_%d", pwd == NULL ? "anonymous" :
 			pwd->pw_name, session);
 	if (stat(path, &statbuf) != 0)
 		return 0;
@@ -379,14 +379,14 @@ int ap_find_session(char *session_name, int *session)
 
 	pwd = getpwuid(geteuid());
 
-	sprintf(username, "%s", pwd == NULL ? "anonymous" : pwd->pw_name);
+	snprintf(username, sizeof (username), "%s", pwd == NULL ? "anonymous" : pwd->pw_name);
 
-	sprintf(test_path, "alsaplayer_%s_", username);
+	snprintf(test_path, sizeof (test_path), "alsaplayer_%s_", username);
 
 	if (dir) {
 		while ((entry = readdir(dir)) != NULL) {
 			if (strncmp(entry->d_name, test_path, strlen(test_path)) == 0) {
-				sprintf(tmp, "%s%%d", test_path);
+				snprintf(tmp, sizeof (tmp), "%s%%d", test_path);
 				if (sscanf(entry->d_name, tmp, &session_id) == 1) {
 					if (ap_session_running(session_id) == 1) {
 						if (ap_get_session_name(session_id, remote_name)) {
@@ -1153,7 +1153,7 @@ int ap_get_playlist(int session, int *argc, char ***the_list) {
 			return 0;
 		}
 		for (c=0; c < nritems; c++) {
-			sprintf(strnum, "%d", c+1);
+			snprintf(strnum, sizeof (strnum), "%d", c+1);
 			res = ap_message_find_string(reply, strnum);
 			if (res) {
 				list[c] = strdup(res);

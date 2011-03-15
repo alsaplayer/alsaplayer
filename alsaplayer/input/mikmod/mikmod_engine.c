@@ -233,7 +233,7 @@ static int mikmod_stream_info (input_object *obj, stream_info *info)
 		return 0;
 	data = (struct mikmod_local_data *)obj->local_data;
 
-	sprintf (info->stream_type, "%i channel %s",
+	snprintf (info->stream_type, sizeof (info->stream_type), "%i channel %s",
 			data->mf->numchn, data->mf->modtype);
 
 	info->artist[0] = 0;

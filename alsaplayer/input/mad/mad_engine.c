@@ -99,11 +99,11 @@ struct mad_local_data {
  * NAME:	error_str()
  * DESCRIPTION:	return a string describing a MAD error
  */
-	static
-char const *error_str(enum mad_error error, char *str)
+static char const *
+error_str(struct mad_local_data *data)
 {
 
-	switch (error) {
+	switch (data->stream.error) {
 		case MAD_ERROR_BUFLEN:
 		case MAD_ERROR_BUFPTR:
 			/* these errors are handled specially and/or should not occur */
@@ -130,8 +130,8 @@ char const *error_str(enum mad_error error, char *str)
 		default:;
 	}
 
-	sprintf(str, "error 0x%04x", error);
-	return str;
+	snprintf(data->str, sizeof (data->str), "error 0x%04x", data->stream.error);
+	return data->str;
 }
 
 
@@ -309,7 +309,7 @@ static int mad_play_block(input_object *obj, short *buf)
 		if (!MAD_RECOVERABLE(data->stream.error)) {
 			/*
 			   alsaplayer_error("MAD error: %s (%d). fatal",
-			   error_str(data->stream.error, data->str),
+			   error_str(data),
 			   data->bytes_avail);
 			   */
 			mad_frame_mute(&data->frame);
@@ -318,7 +318,7 @@ static int mad_play_block(input_object *obj, short *buf)
 			if (reader_eof(data->mad_fd)) {
 				return 0;
 			}
-			//alsaplayer_error("MAD error: %s (not fatal)", error_str(data->stream.error, data->str));
+			//alsaplayer_error("MAD error: %s (not fatal)", error_str(data));
 			memset(buf, 0, obj->block_size);
 			return 1;
 		}
@@ -768,7 +768,7 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 
 	if (data) {
 		if (!data->parse_id3) {
-			sprintf(data->sinfo.title, "%s", data->filename);
+			snprintf(data->sinfo.title, sizeof (data->sinfo.title), "%s", data->filename);
 		} else if (!data->parsed_id3) {
 			if (reader_seekable(data->mad_fd)) {
 				parse_id3 (data->path, &data->sinfo);
@@ -803,13 +803,13 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 		memcpy (info, &data->sinfo, sizeof (data->sinfo));
 
 		/* Compose path, stream_type and status fields */
-		sprintf(info->stream_type, "MP3 %dKHz %s %-3ldkbit",
+		snprintf(info->stream_type, sizeof (info->stream_type), "MP3 %dKHz %s %-3ldkbit",
 				data->frame.header.samplerate / 1000,
 				obj->nr_channels == 2 ? "stereo" : "mono",
 				data->frame.header.bitrate / 1000);
 
 		if (data->seeking)
-			sprintf(info->status, "Seeking...");
+			snprintf(info->status, sizeof (info->status), "Seeking...");
 	}
 	return 1;
 }
@@ -1039,12 +1039,12 @@ first_block:
 			case MAD_ERROR_BADBITALLOC:
 				return 0;
 			case MAD_ERROR_BADCRC:
-				alsaplayer_error("MAD_ERROR_BADCRC: %s", error_str(data->stream.error, data->str));
+				alsaplayer_error("MAD_ERROR_BADCRC: %s", error_str(data));
 			case MAD_ERROR_BADBIGVALUES:
 			case MAD_ERROR_BADDATAPTR:
 				break;
 			default:
-				alsaplayer_error("ERROR: %s", error_str(data->stream.error, data->str));
+				alsaplayer_error("ERROR: %s", error_str(data));
 				alsaplayer_error("No valid block found at start (pos: %d, error: 0x%x --> %x %x %x %x) (%s)", data->offset, data->stream.error,
 						data->stream.this_frame[0],
 						data->stream.this_frame[1],

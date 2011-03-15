@@ -311,7 +311,7 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 			long br = ov_bitrate_instant(&data->vf);
 			if (br > 0)
 				data->bitrate_instant = br;
-			sprintf(info->stream_type, "Vorbis %dKHz %s %-3dkbit",
+			snprintf(info->stream_type, sizeof (info->stream_type), "Vorbis %dKHz %s %-3dkbit",
 					(int)(vi->rate / 1000),
 					 obj->nr_channels == 1 ? "mono":"stereo",
 					(int)(data->bitrate_instant / 1000));

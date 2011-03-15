@@ -71,7 +71,7 @@
 #define BLEN 255
 
 /* global variables */
-static char *REAL_PATH = NULL;
+static char real_path [PATH_MAX];
 
 typedef struct
 {
@@ -421,15 +421,15 @@ char * cddb_save_to_disk(char *subdir, int cdID, char *message)
 {
 	FILE *destination;
 	DIR *thedir;
-	char *path, *retval;
-	char new[strlen (message)], *filename;
+	char *path;
+	char new[strlen (message)], filename [PATH_MAX];
 	int i = 0, j = 0;
 
 	/* check if we already have the subdir created */
-	path = (char *) malloc ((strlen (subdir) + strlen (REAL_PATH) + 2) * sizeof (char));
+	path = (char *) malloc ((strlen (subdir) + strlen (real_path) + 2) * sizeof (char));
 
 	/* print the message sent to the server */
-	sprintf(path, "%s", REAL_PATH);
+	snprintf(path, sizeof (path), "%s", real_path);
 	if (! (thedir=opendir(path))) { /* No cddb directory yet! */
 		if ((mkdir(path, 0744)) < 0) {
 			perror("mkdir");
@@ -441,7 +441,7 @@ char * cddb_save_to_disk(char *subdir, int cdID, char *message)
 	}
 	/* cddb directory should be there at this point */
 
-	sprintf (path, "%s/%s", REAL_PATH, subdir);
+	snprintf (path, sizeof (path), "%s/%s", real_path, subdir);
 	if (global_verbose)
 		alsaplayer_error("path = %s", path);
 	/* check if we have the directory in the disk */
@@ -471,14 +471,11 @@ char * cddb_save_to_disk(char *subdir, int cdID, char *message)
 		new[j] = message[i];
 
 	/* save it into the disc */
-	filename = (char *) malloc ((strlen (subdir) + strlen (REAL_PATH) + 11) * sizeof (char));
-	sprintf (filename, "%s/%s/%08x", REAL_PATH, subdir, cdID);
-	retval = strdup (filename);
+	snprintf (filename, sizeof (filename), "%s/%s/%08x", real_path, subdir, cdID);
 	if (global_verbose)
 		alsaplayer_error("filename = %s", filename);
 	/* create the file */
 	destination = fopen (filename, "w");
-	free(filename);
 	if (! destination)
 	{
 		alsaplayer_error("error creating file");
@@ -496,7 +493,7 @@ char * cddb_save_to_disk(char *subdir, int cdID, char *message)
 	/* close the file */
 	fclose (destination);
 
-	return (retval);
+	return strdup (filename);
 }
 
 /*
@@ -528,7 +525,7 @@ char * cddb_local_lookup (char *path, unsigned int cd_id)
 	}
 
 	/* set the cdrom_id */
-	sprintf (cdrom_id, "%08x", cd_id);
+	snprintf (cdrom_id, sizeof (cdrom_id), "%08x", cd_id);
 	cdrom_id[8] = '\0';
 
 	for (i = 0; i < number; i++)
@@ -537,7 +534,7 @@ char * cddb_local_lookup (char *path, unsigned int cd_id)
 		if ((strcmp (directory[i]->d_name, ".")) && (strcmp (directory[i]->d_name, "..")))
 		{
 			name = malloc((strlen (path) + strlen (directory[i]->d_name) + 15) * sizeof(char));
-			sprintf (name, "%s", path);
+			snprintf (name, sizeof (name), "%s", path);
 			strcat (name, "/");
 			strncat (name, directory[i]->d_name, strlen (directory[i]->d_name));
 			strcat (name, "/");
@@ -565,7 +562,8 @@ cut_html_head(char *answer)
 		return NULL;
 
 	char *new_answer;
-	int counter = 0, i = 0;
+	int counter = 0;
+	unsigned i = 0;
 
 	for (i = 0; i < strlen(answer); i++) {
 		if (*(answer+i) == '\n') {
@@ -768,7 +766,7 @@ char * cddb_lookup (const char *address, const char *char_port, int discID, stru
 	/* read from the server */
 
 	if (port > 80)
-		sprintf (msg, "cddb read %s %s\r\n", categ, newID);
+		snprintf (msg, sizeof (msg), "cddb read %s %s\r\n", categ, newID);
 	else {
 		server_fd = create_socket (address, port);
 		snprintf (msg, sizeof (msg), "GET /~cddb/cddb.cgi?cmd=cddb+read+%s+%s&hello=%s+%s+%s+%s&proto=6 HTTP/1.0\r\n\r\n", categ, newID, username, hostname,PACKAGE, VERSION);
@@ -787,7 +785,7 @@ char * cddb_lookup (const char *address, const char *char_port, int discID, stru
 	/* save the output into the disc */
 	if (global_verbose)
 	{
-		printf ("Saving CDDB information into %s/%s ...\n", REAL_PATH, newID);
+		printf ("Saving CDDB information into %s/%s ...\n", real_path, newID);
 		printf ("save_to_disk(%s)\n", answer);
 	}
 
@@ -853,7 +851,7 @@ void cddb_read_file (char *file, struct cdda_local_data *data)
 						alsaplayer_error("Error reading index number!");
 					}
 					token[i] = '\0';
-					sprintf (name, "%s", token);
+					snprintf (name, sizeof (name), "%s", token);
 					if (data->tracks[index].track) {
 						post = (char *)malloc(strlen(data->tracks[index].track) + strlen(name) + 1);
 						*post = '\0';
@@ -937,7 +935,7 @@ void cddb_update_info(struct cdda_local_data *data)
 	cd_id = cddb_disc_id(tl);
 
 	/* try to get the audio info from the hard disk.. */
-	file_name = cddb_local_lookup(REAL_PATH, cd_id);
+	file_name = cddb_local_lookup(real_path, cd_id);
 	if (file_name)
 	{
 		/* open the 'file_name' and search for album information */
@@ -955,7 +953,7 @@ void cddb_update_info(struct cdda_local_data *data)
 
 			/* fine, now we have the hard disk access! so, let's use it's information */
 			free(file_name);
-			file_name = cddb_local_lookup(REAL_PATH, cd_id);
+			file_name = cddb_local_lookup(real_path, cd_id);
 			if (file_name)
 				cddb_read_file (file_name, data);
 			else {
@@ -976,12 +974,8 @@ static int cdda_init(void)
 	char *prefsdir;
 
 	prefsdir = get_prefsdir();
-	REAL_PATH = (char *)malloc((strlen(prefsdir) + 8) * sizeof(char));
-	if (REAL_PATH) {
-		sprintf(REAL_PATH, "%s/cddb", prefsdir);
-		return 1;
-	}
-	return 0;
+	real_path [0] = 0;
+	return 1;
 }
 
 
@@ -1010,7 +1004,7 @@ void cd_adder(void *data) {
 	nr_tracks = (intptr_t)data;
 
 	for (i=1;i <= nr_tracks;i++) {
-		sprintf(track_name, "Track %02d.cdda", i);
+		snprintf(track_name, sizeof (track_name), "Track %02d.cdda", i);
 		ap_add_path(global_session_id, track_name);
 	}
 	pthread_exit(NULL);
@@ -1251,18 +1245,18 @@ static int cdda_stream_info(input_object *obj, stream_info *info)
 
 	tl = &data->tl;
 
-	sprintf(info->stream_type, "CD Audio, 44KHz, stereo");
+	snprintf(info->stream_type, sizeof (info->stream_type), "CD Audio, 44KHz, stereo");
 	if (data->tracks[1].artist)
-	  sprintf(info->artist, "%s", data->tracks[1].artist);
+	  snprintf(info->artist, sizeof (info->artist), "%s", data->tracks[1].artist);
 	if (data->tracks[1].album)
-	  sprintf(info->album, "%s", data->tracks[1].album);
+	  snprintf(info->album, sizeof (info->album), "%s", data->tracks[1].album);
 	info->status[0] = 0;
 	if (data->track_nr < 0)
 		info->title[0] = 0;
 	else if (data->track_nr == 0)
-		sprintf(info->title, "Full CD length playback");
+		snprintf(info->title, sizeof (info->title), "Full CD length playback");
 	else if (data->tracks[data->track_nr].track)
-			sprintf(info->title, "%s", data->tracks[data->track_nr].track);
+			snprintf(info->title, sizeof (info->title), "%s", data->tracks[data->track_nr].track);
 
 	//alsaplayer_error("title = %s\nalbum = %s\nartist = %s",
 	//		info->title, info->album, info->artist);
