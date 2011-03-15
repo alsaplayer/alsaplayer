@@ -378,7 +378,8 @@ static float vorbis_can_handle(const char *path)
 		     method to detect file types */
 		return 0.0;
 
-	if (!strncasecmp(ext, "ogg", 3)) {
+	if (!strncasecmp(ext, "ogg", 3)
+		|| !strncasecmp(ext, "oga", 3)) {
 		return 1.0;
 	} else
 		return 0.0;
