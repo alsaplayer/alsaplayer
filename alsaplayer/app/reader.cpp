@@ -39,14 +39,14 @@ static int register_plugin (reader_plugin *the_plugin)
 	int version;
 	int error_count = 0;
 	reader_plugin *tmp = &plugins[plugin_count];
-	
+
 	/* check version */
 	tmp->version = the_plugin->version;
 	if (tmp->version) {
 		if ((version = tmp->version) != READER_PLUGIN_VERSION) {
 			alsaplayer_error("Wrong version number on plugin (v%d, wanted v%d)",
 					version - READER_PLUGIN_BASE_VERSION,
-					READER_PLUGIN_VERSION - READER_PLUGIN_BASE_VERSION);      
+					READER_PLUGIN_VERSION - READER_PLUGIN_BASE_VERSION);
 			return 0;
 		}
 	}
@@ -61,7 +61,7 @@ static int register_plugin (reader_plugin *the_plugin)
 	if (tmp->author == NULL) {
 		alsaplayer_error("No author");
 		error_count++;
-	}	
+	}
 	if (tmp->init == NULL) {
 		alsaplayer_error("No init function");
 		error_count++;
@@ -110,10 +110,10 @@ static int register_plugin (reader_plugin *the_plugin)
 	if (error_count) {
 	    	alsaplayer_error("At least %d error(s) were detected", error_count);
 		return 0;
-	}	
-	
+	}
+
 	plugin_count++;
-	
+
 	if (global_verbose)
 		alsaplayer_error("Loading reader plugin: %s", tmp->name);
 
@@ -139,25 +139,25 @@ void reader_init (void)
 
     /* Initialize plugins array */
     memset (plugins, 0, sizeof(plugins));
-    
+
     /* Trying to open plugins dir */
     if (!(dir = opendir (ADDON_DIR "/reader")))  return;
-    
+
     /* for each entry in opened dir */
     while ((entry = readdir(dir)) != NULL) {
 		/* skip .. and . entries */
 		if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
-	
+
 		/* compose full plugin path */
-		sprintf(path, "%s/reader/%s", ADDON_DIR, entry->d_name);
+		snprintf(path, sizeof (path), "%s/reader/%s", ADDON_DIR, entry->d_name);
 		if (stat(path, &buf)) continue;
-	
+
 		/* skip not regular files */
 		if (!S_ISREG(buf.st_mode))  continue;
 
 		/* handle only .so files */
 		ext = strrchr(path, '.');
-		if (!ext++)  continue; 		
+		if (!ext++)  continue;
 		if (strcasecmp(ext, "so"))  continue;
 
 		/* trying to load plugin */
@@ -207,7 +207,7 @@ int reader_can_handle (const char *uri) {
 
     return 0;
 }
-   
+
 void reader_status(const char *str)
 {
 	alsaplayer_error(str);
@@ -224,16 +224,16 @@ reader_type *reader_open (const char *uri, reader_status_type status, void *data
 
     // Check for memory
     if (!h)  return NULL;
-    
+
     // Search for best reader plugin
     for (;i--;plugin++) {
 	float q = plugin->can_handle (uri);
-	
+
 	if (q == 1.0) {
 	    best_plugin = plugin;
 	    break;
 	}
-	
+
 	if (q > max_q) {
 	    max_q = q;
 	    best_plugin = plugin;
@@ -250,13 +250,13 @@ reader_type *reader_open (const char *uri, reader_status_type status, void *data
 	    free (h);
 	    return NULL;
 	}
-	
+
 	return h;
     }
- 
+
     /* First chance failed. */
     free (h);
-    
+
     /* Second chance!!! (try treat it as a file) */
     if (strncmp (uri, "file:", 5)) {
 	char new_uri [1024];
@@ -264,7 +264,7 @@ reader_type *reader_open (const char *uri, reader_status_type status, void *data
 	snprintf (new_uri, 1024, "file:%s", uri);
 	return reader_open (new_uri, status, data);
     }
-    
+
     /* Couldn't find reader */
     return NULL;
 }
@@ -335,12 +335,12 @@ char **reader_expand (const char *uri)
     // Search for best reader plugin
     for (;i--;plugin++) {
 	float q = plugin->can_expand (uri);
-	
+
 	if (q == 1.0) {
 	    best_plugin = plugin;
 	    break;
 	}
-	
+
 	if (q > max_q) {
 	    max_q = q;
 	    best_plugin = plugin;
@@ -351,7 +351,7 @@ char **reader_expand (const char *uri)
     if (best_plugin) {
 	return best_plugin->expand (uri);
     }
- 
+
     /* Second chance!!! (try treat it as a file) */
     if (strncmp (uri, "file:", 5)) {
 	char new_uri [1024];
@@ -359,7 +359,7 @@ char **reader_expand (const char *uri)
 	snprintf (new_uri, 1024, "file:%s", uri);
 	return reader_expand (new_uri);
     }
-    
+
     /* Couldn't find reader */
     return NULL;
 }
@@ -370,7 +370,7 @@ char **reader_expand (const char *uri)
 void reader_free_expanded (char **list)
 {
     char **uri = list;
-    
+
     if (!list)  return;
 
     while (*uri)  free (*(uri++));
@@ -384,7 +384,7 @@ void reader_free_expanded (char **list)
 int reader_readline (reader_type *h, char *buf, int size)
 {
     int len = 0;
-   
+
     if (!h || !buf) {
 	    return 0;
     }
@@ -400,7 +400,7 @@ int reader_readline (reader_type *h, char *buf, int size)
     }
 
     *buf = '\0';
-    
+
     return len;
 }
 

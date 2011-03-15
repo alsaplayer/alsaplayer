@@ -85,9 +85,9 @@ AlsaNode::AlsaNode(const char *name, const char *args, int realtime)
 		memset(&subs[i], 0, sizeof(subscriber));
 	}
 	if (global_session_name)
-		sprintf(client_name, "%s", global_session_name);
+		snprintf(client_name, sizeof (client_name), "%s", global_session_name);
 	else
-		sprintf(client_name, "alsaplayer-%d", getpid());
+		snprintf(client_name, sizeof (client_name), "alsaplayer-%d", getpid());
 
 	pthread_mutex_init(&thread_mutex, NULL);
 	pthread_mutex_init(&queue_mutex, NULL);

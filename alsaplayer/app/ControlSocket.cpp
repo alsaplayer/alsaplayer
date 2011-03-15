@@ -93,7 +93,7 @@ static void socket_looper(void *arg)
 	saddr.sun_family = AF_UNIX;
 	while (session_id < MAX_AP_SESSIONS && !session_ok) {
 		if (!ap_ping(session_id)) {
-			sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
+			snprintf(saddr.sun_path, sizeof (saddr.sun_path), "/tmp/alsaplayer_%s_%d", pwd == NULL ?
 					"anonymous" : pwd->pw_name, session_id);
 			unlink(saddr.sun_path); // Clean up a bit
 		} else {
@@ -101,7 +101,7 @@ static void socket_looper(void *arg)
 			session_id++;
 			continue;
 		}
-		sprintf(saddr.sun_path, "/tmp/alsaplayer_%s_%d", pwd == NULL ?
+		snprintf(saddr.sun_path, sizeof (saddr.sun_path), "/tmp/alsaplayer_%s_%d", pwd == NULL ?
 				"anonymous" : pwd->pw_name, session_id);
 		if (bind(socket_fd, (struct sockaddr *) &saddr, sizeof (saddr)) != -1) {
 			chmod(saddr.sun_path, 00600); // Force permission
@@ -298,15 +298,15 @@ static void socket_looper(void *arg)
 				playlist_length = playlist->Length();
 				ap_message_add_int32(reply, "items", playlist->Length());
 				for (pc=1; pc <= playlist_length; pc++) {
-					sprintf(strnum, "%d", pc);
+					snprintf(strnum, sizeof (strnum), "%d", pc);
 					item = playlist->GetItem(pc);
 					if (item->title.size()) {
-						sprintf(tmp, "%s %s", item->title.c_str(),
+						snprintf(tmp, sizeof (tmp), "%s %s", item->title.c_str(),
 			                        item->artist.size() ? (std::string("- ") +
 						item->artist).c_str() : "");
 						ap_message_add_string(reply, strnum, tmp);
 					} else {
-						sprintf(tmp, "%s", item->filename.c_str());
+						snprintf(tmp, sizeof (tmp), "%s", item->filename.c_str());
 						path = strrchr(tmp, '/');
 						if (path) {
 							path++;
@@ -441,7 +441,7 @@ static void socket_looper(void *arg)
 				if (global_session_name) {
 					ap_message_add_string(reply, "string", global_session_name);
 				} else {
-					sprintf(session_name, "alsaplayer-%d", global_session_id);
+					snprintf(session_name, sizeof (session_name), "alsaplayer-%d", global_session_id);
 					ap_message_add_string(reply, "string", session_name);
 				}
 				ap_message_add_int32(reply, "ack", 1);

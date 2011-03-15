@@ -121,7 +121,7 @@ void CorePlayer::UnRegisterNotifier(coreplayer_notifier *core_notif)
 
 void CorePlayer::load_input_addons()
 {
-        char path[PATH_MAX];
+	char path[PATH_MAX];
 
 	DIR *dir;
 	struct stat buf;
@@ -129,7 +129,7 @@ void CorePlayer::load_input_addons()
 
 	input_plugin_info_type input_plugin_info;
 
-	sprintf(path, "%s/input", addon_dir);
+	snprintf(path, sizeof (path), "%s/input", addon_dir);
 
 	memset(plugins, 0, sizeof(plugins));
 
@@ -141,7 +141,7 @@ void CorePlayer::load_input_addons()
 		    strcmp(entry->d_name, "..") == 0) {
 				continue;
 		}
-		sprintf(path, "%s/input/%s", addon_dir, entry->d_name);
+		snprintf(path, sizeof (path), "%s/input/%s", addon_dir, entry->d_name);
 		if (stat(path, &buf)) continue;
 		if (!S_ISREG(buf.st_mode)) continue;
 

@@ -217,7 +217,7 @@ flac_stream_info (input_object * obj, stream_info * info)
     if (!f)
 	return 0;
 
-    sprintf (info->stream_type, "%d-bit %dKhz %s flac",
+    snprintf (info->stream_type, sizeof (info->stream_type), "%d-bit %dKhz %s flac",
 	     f->bps (), f->sampleRate () / 1000,
 	     f->channels () == 1 ? "mono" :
 	     f->channels () == 2 ? "stereo" : "multi-channel");
@@ -225,9 +225,6 @@ flac_stream_info (input_object * obj, stream_info * info)
     Flac::FlacTag * t = f->tag ();
     if (t && ! t->title ().empty ())
     {
-	// strncpy limits come from looking at input_plugin.h; these should
-        // really be defined as constants somewhere
-
 	strncpy (info->artist, t->artist ().c_str (), 128);
 	strncpy (info->title, t->title ().c_str (), 128);
 	strncpy (info->album, t->album ().c_str (), 128);

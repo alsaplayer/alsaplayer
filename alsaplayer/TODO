@@ -1,5 +1,8 @@
 TODO list (March 2011, Erik de Castro Lopo)
 
+- Check that malloc result isn't cast.
+- Check all usage of strncpy.
+
 - Switch to float as internal data format.
 - Clean up input/output/etc plugin APIs.
 - Improve interpolation quality of varispeed.

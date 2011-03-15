@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
- *  Inspired by xine's prefs 
+ *  Inspired by xine's prefs
  *
 */
 #include "prefs.h"
@@ -28,23 +28,27 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif	
+#endif
 
 
-int prefs_cmp(const void *p1, const void *p2) 
+int prefs_cmp(const void *p1, const void *p2)
 {
 	int res;
 	prefs_key_t *a = (prefs_key_t *)p1;
 	prefs_key_t *b = (prefs_key_t *)p2;
+	int s1len, s2len;
 	char *s1, *s2;
 
-	s1 = (char *)malloc(strlen(a->section)+strlen(a->key)+1);
-	s2 = (char *)malloc(strlen(b->section)+strlen(b->key)+1);
-	sprintf(s1, "%s%s", a->section, a->key);
-	sprintf(s2, "%s%s", b->section, b->key);
-	
+	s1len = strlen(a->section)+strlen(a->key)+1;
+	s2len = strlen(b->section)+strlen(b->key)+1;
+
+	s1 = malloc(s1len);
+	s2 = malloc(s2len);
+	snprintf(s1, s1len, "%s%s", a->section, a->key);
+	snprintf(s2, s2len, "%s%s", b->section, b->key);
+
 	res = strcmp(s1, s2);
-	
+
 	free(s1);
 	free(s2);
 
@@ -56,19 +60,19 @@ prefs_key_t *prefs_sort(prefs_handle_t *prefs)
 	prefs_key_t *array;
 	prefs_key_t *p;
 	int c;
-	
+
 	array = (prefs_key_t *)malloc(prefs->count * sizeof(prefs_key_t));
 	if (!array)
 		return NULL;
 	for (c=0, p = prefs->keys; c < prefs->count; c++, p = p->next) {
 		array[c] = *p;
 	}
-	qsort(array, prefs->count, sizeof(prefs_key_t), prefs_cmp);	
-	
+	qsort(array, prefs->count, sizeof(prefs_key_t), prefs_cmp);
+
 	return array;
 }
 
-	
+
 prefs_handle_t *prefs_load(const char *filename)
 {
 	FILE *fd;
@@ -77,22 +81,22 @@ prefs_handle_t *prefs_load(const char *filename)
 	char *val;
 	char *key;
 	int error_count = 0;
-	
+
 	if (!filename)
 		return NULL;
-		
+
 	prefs = (prefs_handle_t *)malloc(sizeof(prefs_handle_t));
 
 	if (!prefs)
 		return NULL;
-	
+
 	memset(prefs, 0, sizeof(prefs_handle_t));
-	
+
 	if ((fd = fopen(filename, "r")) == NULL) {
-		if ((fd = fopen(filename, "w")) == NULL) {	
+		if ((fd = fopen(filename, "w")) == NULL) {
 			free(prefs);
 			return NULL;
-		}	
+		}
 	}
 	while (fgets(buf, 1023, fd) && error_count < 5) {
 		buf[1023] = 0;
@@ -101,7 +105,7 @@ prefs_handle_t *prefs_load(const char *filename)
 		else {
 			error_count++;
 			continue;
-		}	
+		}
 		if (buf[0] == '#')
 			continue;
 		if ((val = strchr(buf, '='))) {
@@ -109,15 +113,15 @@ prefs_handle_t *prefs_load(const char *filename)
 			val++;
 			if ((key = strchr(buf, '.'))) {
 				*key = 0; /* replace section separator with 0 */
-				key++;	
+				key++;
 				prefs_set_string(prefs, buf, key, val);
 			} else {
 				alsaplayer_error("Found old prefs format (%s), ignoring", buf);
 				continue;
-			}	
+			}
 		} else {
 			error_count++;
-		}	
+		}
 	}
 	fclose(fd);
 
@@ -126,7 +130,7 @@ prefs_handle_t *prefs_load(const char *filename)
 				            "*** WARNING: It is probably corrupted! Please remove it.\n",
 					filename);
 		return NULL;
-	}	
+	}
 	prefs->filename = strdup(filename);
 
 	return prefs;
@@ -139,8 +143,8 @@ void prefs_set_int(prefs_handle_t *prefs, const char *section, const char *key, 
 	assert(prefs);
 	assert(key);
 	assert(section);
-	
-	sprintf(str, "%d", val);
+
+	snprintf(str, sizeof (str), "%d", val);
 	prefs_set_string(prefs, section, key, str);
 }
 
@@ -152,8 +156,8 @@ void prefs_set_bool(prefs_handle_t *prefs, const char *section, const char *key,
 	assert(prefs);
 	assert(key);
 	assert(section);
-	
-	sprintf(str, "%s", val ? "true" : "false");
+
+	snprintf(str, sizeof (str), "%s", val ? "true" : "false");
 	prefs_set_string(prefs, section, key, str);
 }
 
@@ -165,13 +169,13 @@ static prefs_key_t *prefs_find_key(prefs_handle_t *prefs, const char *section, c
 	assert(prefs);
 	assert(key);
 	assert(section);
-	
+
 	entry = prefs->keys;
 	while (entry) {
 		if (strcmp(entry->section, section)==0 && strcmp(entry->key, key)==0)
 			return entry;
 		entry = entry->next;
-	}	
+	}
 	return NULL;
 }
 
@@ -190,7 +194,7 @@ void prefs_set_string(prefs_handle_t *prefs, const char *section, const char *ke
 		entry = (prefs_key_t *)malloc(sizeof(prefs_key_t));
 		if (!entry)
 			return;
-		
+
 		/* Set all field to NULL */
 		memset(entry, 0, sizeof(prefs_key_t));
 
@@ -213,17 +217,17 @@ void prefs_set_string(prefs_handle_t *prefs, const char *section, const char *ke
 			free(entry->key);
 			free(entry);
 			return;
-		}	
+		}
 
-		/* XXX Need to protect the following with a mutex */	
+		/* XXX Need to protect the following with a mutex */
 		if (prefs->last) {
 			prefs->last->next = entry;
 		} else { /* First key */
 			prefs->keys = entry;
 		}
 		prefs->count++;
-		prefs->last = entry;		
-	}		
+		prefs->last = entry;
+	}
 }
 
 void prefs_set_float(prefs_handle_t *prefs, const char *section, const char *key, float val)
@@ -233,8 +237,8 @@ void prefs_set_float(prefs_handle_t *prefs, const char *section, const char *key
 	assert(prefs);
 	assert(key);
 	assert(section);
-	
-	sprintf(str, "%.6f", val);
+
+	snprintf(str, sizeof (str), "%.6f", val);
 	prefs_set_string(prefs, section, key, str);
 }
 
@@ -247,8 +251,8 @@ int prefs_get_bool(prefs_handle_t *prefs, const char *section, const char *key, 
 	assert(prefs);
 	assert(key);
 	assert(section);
-	
-	sprintf(str, "%s", default_val ? "true" : "false");
+
+	snprintf(str, sizeof (str), "%s", default_val ? "true" : "false");
 	res = prefs_get_string(prefs, section, key, str);
 	if (strncasecmp(res, "true", 4) == 0 ||
 			strncasecmp(res, "yes", 3) == 0 ||
@@ -268,8 +272,8 @@ int prefs_get_int(prefs_handle_t *prefs, const char *section, const char *key, i
 	assert(prefs);
 	assert(key);
 	assert(section);
-	
-	sprintf(str, "%d", default_val);
+
+	snprintf(str, sizeof (str), "%d", default_val);
 	res = prefs_get_string(prefs, section, key, str);
 	if (sscanf(res, "%d", &val) != 1)
 		return default_val;
@@ -288,7 +292,7 @@ const char *prefs_get_string(prefs_handle_t *prefs, const char *section, const c
 		return entry->value;
 	} else {
 		prefs_set_string(prefs, section, key, default_val);
-	}	
+	}
 	return default_val;
 }
 
@@ -302,8 +306,8 @@ float prefs_get_float(prefs_handle_t *prefs, const char *section, const char *ke
 	assert(prefs);
 	assert(key);
 	assert(section);
-	
-	sprintf(str, "%.6f", default_val);
+
+	snprintf(str, sizeof (str), "%.6f", default_val);
 	res = prefs_get_string(prefs, section, key, str);
 	if (sscanf(res, "%f", &val) != 1)
 		return default_val;
@@ -317,7 +321,7 @@ int prefs_save(prefs_handle_t *prefs)
 	prefs_key_t *entry = NULL;
 	prefs_key_t *sorted = NULL;
 	int c;
-	
+
 	assert(prefs);
 
 	if (!prefs->filename || !strlen(prefs->filename)) {
@@ -325,10 +329,10 @@ int prefs_save(prefs_handle_t *prefs)
 	}
 
 	sorted = prefs_sort(prefs);
-	
+
 	if ((fd = fopen(prefs->filename, "w")) == NULL) {
 		return -1;
-	}	
+	}
 	entry = prefs->keys;
 	fprintf(fd,
 		"#\n"
@@ -340,17 +344,17 @@ int prefs_save(prefs_handle_t *prefs)
 	if (sorted) {
 		for (c=0; c < prefs->count; c++) {
 			fprintf(fd, "%s.%s=%s\n",
-				sorted[c].section, 
-				sorted[c].key, 
+				sorted[c].section,
+				sorted[c].key,
 				sorted[c].value);
 		}
 		free(sorted);
-	} else {	
+	} else {
 		while (entry) {
 			fprintf(fd, "%s.%s=%s\n", entry->section, entry->key, entry->value);
 			entry = entry->next;
 		}
-	}	
+	}
 	fclose(fd);
 
 	return 0;
@@ -360,7 +364,7 @@ int prefs_save(prefs_handle_t *prefs)
 void prefs_free(prefs_handle_t *prefs)
 {
 	prefs_key_t *entry;
-   
+
 	assert(prefs);
 
 	entry = prefs->keys;
@@ -370,17 +374,17 @@ void prefs_free(prefs_handle_t *prefs)
 		free (entry->section);
 		free (entry->key);
 		free (entry->value);
-	    
+
 		free (entry);
 		entry = next;
 	}
-    
+
 	if (prefs->filename)  free (prefs->filename);
 	free (prefs);
 }
 
 #ifdef __cplusplus
 }
-#endif	
+#endif
 
 

@@ -23,6 +23,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
+
 #include "utilities.h"
 #include "alsaplayer_error.h"
 
@@ -58,7 +60,7 @@ char *get_homedir(void)
 
 char *get_prefsdir(void)
 {
-	static char *prefs_path;
+	static char prefs_path [PATH_MAX];
 	static int prefs_path_init = 0;
 	char *homedir;
 
@@ -66,10 +68,7 @@ char *get_prefsdir(void)
 		return prefs_path;
 	}
 	homedir = get_homedir();
-	prefs_path = (char *)malloc(strlen(homedir) + 14);
-	if (!prefs_path) 
-		return NULL;
-	sprintf(prefs_path, "%s/.alsaplayer", homedir);
+	snprintf(prefs_path, sizeof (prefs_path), "%s/.alsaplayer", homedir);
 	prefs_path_init = 1;
 	return prefs_path;
 }
@@ -85,7 +84,7 @@ char *encode_percent(const char *furi)
 {
 	char *res;
 	int c, i, o, t;
-	
+
 	if (!furi)
 		return NULL;
 	/* count the percent signs */
@@ -107,7 +106,7 @@ char *encode_percent(const char *furi)
 			}
 			res[o++] = furi[i++];
 		}
-	}	
+	}
 	return res;
 }
 
@@ -138,7 +137,7 @@ char *parse_file_uri(const char *furi)
 				} else {
 					percent = 1;
 					e = 0;
-				}	
+				}
 				break;
 			default:
 				if (percent) {
@@ -162,7 +161,7 @@ char *parse_file_uri(const char *furi)
 	}
 	alsaplayer_error("parsed to: %s", res);
 	return res;
-		
+
 }
 
 

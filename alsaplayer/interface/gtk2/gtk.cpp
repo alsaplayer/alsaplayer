@@ -18,7 +18,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
-*/ 
+*/
 
 #include <cstdio>
 #include <cstdlib>
@@ -80,7 +80,7 @@ void load_scope_addons()
 				strcmp(entry->d_name, "..") == 0) {
 				continue;
 			}
-			sprintf(path, "%s/scopes2/%s", addon_dir, entry->d_name);
+			snprintf(path, sizeof (path), "%s/scopes2/%s", addon_dir, entry->d_name);
 			//alsaplayer_error(path);
 			if (stat(path, &buf)) continue;
 			if (S_ISREG(buf.st_mode)) {
@@ -94,8 +94,8 @@ void load_scope_addons()
 					continue;
 				if ((handle = dlopen(path, RTLD_NOW |RTLD_GLOBAL))) {
 					scope_plugin_info = (scope_plugin_info_type) dlsym(handle, "scope_plugin_info");
-					if (scope_plugin_info) { 
-#ifdef DEBUG					
+					if (scope_plugin_info) {
+#ifdef DEBUG
 						alsaplayer_error("Loading scope addon: %s\n", path);
 #endif
 						tmp = scope_plugin_info();
@@ -104,7 +104,7 @@ void load_scope_addons()
 								if (apRegisterScopePlugin(tmp) == -1) {
 									alsaplayer_error("%s is deprecated", path);
 								}
-						}		
+						}
 					} else {
 						dlclose(handle);
 					}
@@ -114,7 +114,7 @@ void load_scope_addons()
 			}
 		}
 		closedir(dir);
-	}	
+	}
 }
 
 int interface_gtk_init()
@@ -133,7 +133,7 @@ int interface_gtk_running()
 int interface_gtk_stop()
 {
 	global_update = -1;
-	
+
 	GDK_THREADS_ENTER();
 
 	gdk_flush();

@@ -918,19 +918,19 @@ gint indicator_callback(gpointer, int locking)
 		c_sec = 0;
 		c_min = 0;
 		c_hsec = 0;
-		sprintf(info.title, _("No stream"));
+		snprintf(info.title, sizeof (info.title), _("No stream"));
 	}
 	if (nr_blocks < 0 || strlen(info.status)) {
-		sprintf(str, "%s", info.status);
+		snprintf(str, sizeof (str), "%s", info.status);
 		if (!strlen(info.status)) {
 			alsaplayer_error("empty string");
 		}
 	} else {
 #ifdef SUBSECOND_DISPLAY
-		sprintf(str, "%02ld:%02ld.%02d / %02d:%02d", c_min, c_sec, c_hsec, t_min, t_sec);
+		snprintf(str, sizeof (str), "%02ld:%02ld.%02d / %02d:%02d", c_min, c_sec, c_hsec, t_min, t_sec);
 #else
 		if (nr_blocks >= 0)
-			sprintf(str, "%02ld:%02ld / %02ld:%02ld", c_min, c_sec, t_min, t_sec);
+			snprintf(str, sizeof (str), "%02ld:%02ld / %02ld:%02ld", c_min, c_sec, t_min, t_sec);
 #endif
 	}
 	if (locking)
@@ -943,12 +943,12 @@ gint indicator_callback(gpointer, int locking)
 		GDK_THREADS_ENTER();
 	infowindow->set_format(info.stream_type);
 	if (strlen(info.artist)) {
-		sprintf(title_string, "%s - %s", info.artist, info.title);
+		snprintf(title_string, sizeof (title_string), "%s - %s", info.artist, info.title);
 		infowindow->set_title(title_string);
 		if (prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_title", 0))
 			gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(playlist_window->GetWindow())), title_string);
 	} else if (strlen(info.title)) {
-		sprintf(title_string, "%s", info.title);
+		snprintf(title_string, sizeof (title_string), "%s", info.title);
 		infowindow->set_title(title_string);
 		if (prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_title", 0))
 			gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(playlist_window->GetWindow())), title_string);

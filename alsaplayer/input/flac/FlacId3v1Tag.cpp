@@ -90,8 +90,8 @@ FlacId3Tag::FlacId3Tag (const std::string & name)
     memcpy(tag.album, tag.raw+63, 30);
     memcpy(tag.year, tag.raw+93, 4);
     memcpy(tag.comment, tag.raw+97, 30);
-    sprintf (tag.genre, "%u", (unsigned char) tag.raw[127]);
-    sprintf (tag.track, "%u", (unsigned char) tag.raw[126]);
+    snprintf (tag.genre, sizeof (tag.genre), "%u", (unsigned char) tag.raw[127]);
+    snprintf (tag.track, sizeof (tag.track), "%u", (unsigned char) tag.raw[126]);
 
     _artist  = tag.artist;
     _title   = tag.title;
