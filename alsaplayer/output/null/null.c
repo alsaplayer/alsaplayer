@@ -1,4 +1,4 @@
-/*  null.c - NULL output plugin, useful, trust me :) 
+/*  null.c - NULL output plugin, useful, trust me :)
  *  Copyright (C) 1999 Andy Lo A Foe <andy@alsa-project.org>
  *
  *  This file is part of AlsaPlayer.
@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
-*/ 
+*/
 
 #include "config.h"
 #include <stdio.h>
@@ -46,7 +46,7 @@ static void null_close(void)
 }
 
 
-static int null_write(void *data, int count)
+static int null_write(short *data, int count)
 {
 	dosleep(10000);
 	return 1;

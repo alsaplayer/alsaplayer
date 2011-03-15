@@ -17,7 +17,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
-*/ 
+*/
 
 /* Note: This plugin has a kind of weird structure right now - most of its
  *       initialization takes place in nas_set_buffer. Sample rate cannot
@@ -118,7 +118,7 @@ nas_eventHandler(AuServer *aud, AuEvent *ev, AuEventHandlerRec *handler)
 void nas_flush()
 {
     AuEvent         ev;
-    
+
     while ((!Nas_Info.data_sent) && (!Nas_Info.finished)) {
         AuNextEvent(Nas_Info.aud, AuTrue, &ev);
         AuDispatchEvent(Nas_Info.aud, &ev);
@@ -167,7 +167,7 @@ static void nas_close()
 }
 
 
-static int nas_write(void *buf,int len)
+static int nas_write(short *buf,int len)
 {
     int buf_cnt = 0;
 
@@ -196,14 +196,14 @@ static int nas_set_buffer(int *fragment_size, int *fragment_count, int *channels
     unsigned char   format;
     AuUint32        buf_samples;
     int             i;
- 
+
     /* Sample format hardcoded to 16-bit signed, of native
        byte order, stereo */
 
     /* alsaplayer_error("nas_set_buffer(%d, %d, %d)", fragment_size, fragment_count, channels); */
-   
+
     *fragment_count = 3;
-    
+
     if (((char) *(short *)"x")=='x') /* ugly, but painless */
     {
 	format = AuFormatLinearSigned16LSB; /* little endian */
@@ -282,11 +282,11 @@ static int nas_set_buffer(int *fragment_size, int *fragment_count, int *channels
     Nas_Info.buf_cnt = 0;
     Nas_Info.data_sent = AuFalse;
     Nas_Info.finished = AuFalse;
-    
+
     AuStartFlow(Nas_Info.aud,	/* Au server */
                 Nas_Info.flow,  /* id */
                 NULL);          /* status */
-	return 1;	
+	return 1;
 }
 
 static unsigned int nas_set_sample_rate(unsigned int rate)

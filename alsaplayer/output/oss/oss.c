@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
-*/ 
+*/
 
 #include "config.h"
 #include <stdio.h>
@@ -65,7 +65,7 @@ static void oss_close(void)
 }
 
 
-static int oss_write(void *data, int count)
+static int oss_write(short *data, int count)
 {
 	write(oss_fd, data, count);
 	return 1;
@@ -78,12 +78,12 @@ static int oss_set_buffer(int *fragment_size, int *fragment_count, int *channels
 	int hops;
 	int size;
 	int count;
-	
+
 	size = *fragment_size;
 	count = *fragment_count;
-	
+
 	for (hops=0; size >>=1; hops++);
-	
+
 	val = (count << 16) + hops;
 	ioctl(oss_fd,SNDCTL_DSP_SETFRAGMENT,&val);
 	val = AFMT_S16_NE;
@@ -100,7 +100,7 @@ static unsigned int oss_set_sample_rate(unsigned int rate)
 	if (ioctl(oss_fd,SNDCTL_DSP_SPEED,&rate) < 0) {
 					alsaplayer_error("error setting sample_rate");
 					return 0;
-	}				
+	}
 	return rate;
 }
 

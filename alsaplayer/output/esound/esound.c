@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
-*/ 
+*/
 
 #include "config.h"
 #include <stdio.h>
@@ -39,9 +39,9 @@ static int esound_init(void)
 	int rate = 44100;
 
 	if (global_session_name) {
-		name = global_session_name; 
+		name = global_session_name;
 	}
-#if 0            
+#if 0
 	printf("ESD: loading libesd.so\n");
 	void *handle = dlopen("libesd.so", RTLD_LAZY);
 	if (handle == NULL) {
@@ -50,14 +50,14 @@ static int esound_init(void)
 	} else {
 		int (*esd_play_stream_fallback)(esd_format_t,int,
                         const char *, const char *);
-                        
+
                  esd_play_stream_fallback = dlsym(handle, "esd_play_stream_fallback");
                  eounsd_socket = (*esd_play_stream_fallback)(format, rate, host,
                                 name);
                 if (eounsd_socket < 0) {
 					/* printf("ESD: could not open socket connection\n"); */
 					dlclose(handle);
-					return 0; 
+					return 0;
                 }
 	}
 #else
@@ -65,14 +65,14 @@ static int esound_init(void)
 	if (esound_socket < 0) {
 		/* printf("ESD: could not open socket connection\n"); */
 		return 0;
-	}	
+	}
 #endif
 	return 1;
 }
 
 static int esound_open(const char *path)
 {
-	if (esound_socket >= 0) 
+	if (esound_socket >= 0)
 		return 1;
 	return 0;
 }
@@ -84,7 +84,7 @@ static void esound_close(void)
 }
 
 
-static int esound_write(void *data, int count)
+static int esound_write(short *data, int count)
 {
 	write(esound_socket, data, count);
 	return 1;
