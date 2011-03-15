@@ -695,7 +695,7 @@ AC_SUBST(ALSAPLAYER_MINOR_VERSION)
 AC_SUBST(ALSAPLAYER_MICRO_VERSION)
 AC_SUBST(ALSAPLAYER_VERSION)
 
-AC_OUTPUT([ intl/Makefile po/Makefile.in
+AC_OUTPUT([ po/Makefile.in
 Makefile
 alsaplayer.1
 alsaplayer.pc
