@@ -268,12 +268,22 @@ static float sndfile_can_handle (const char *name)
 		if (!strcasecmp(dot, "aif")
 			|| !strcasecmp(dot, "aiff")
 			|| !strcasecmp(dot, "au")
-			|| !strcasecmp(dot, "flac")
 			|| !strcasecmp(dot, "svx")
 			|| !strcasecmp(dot, "voc")
 			|| !strcasecmp(dot, "wav")
 			)
 			return 1.0;
+
+		if (strcasecmp(dot, "flac") == 0)
+		{
+			SNDFILE *file;
+			SF_INFO info;
+			memset (&info, 0, sizeof (info));
+			file = sf_open (name, SFM_READ, &info);
+			sf_close (file);
+			return file ? 1.0 : 0.0 ;
+		}
+
 	}
 	return 0.0;
 }
