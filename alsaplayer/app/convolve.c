@@ -79,7 +79,7 @@ struct _struct_convolve_state {
  */
 convolve_state *convolve_init(void)
 {
-	return (convolve_state *) malloc (sizeof(convolve_state));
+	return malloc (sizeof(convolve_state));
 }
 
 /*

@@ -201,7 +201,6 @@ flac_open (input_object * obj, const char * name)
 	obj->nr_tracks   = 0;
 	obj->ready       = 0;
 	obj->local_data  = 0;
-	alsaplayer_error ("flac_open: failed");
 	return 0;
     }
 }

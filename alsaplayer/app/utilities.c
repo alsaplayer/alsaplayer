@@ -123,7 +123,7 @@ char *parse_file_uri(const char *furi)
 		return NULL;
 	}
 	t=strlen(furi);
-	res = (char *)malloc(t+1);
+	res = malloc(t+1);
 	r=5;
 	w=0;
 	e=0;

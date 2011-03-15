@@ -411,7 +411,7 @@ static void buffer_thread (http_desc_t *desc)
 			if (desc->metadata) {
 			    free(desc->metadata);
 			}	
-			desc->metadata = (char *)malloc(strlen(p)+1);
+			desc->metadata = malloc(strlen(p)+1);
 			memcpy(desc->metadata, p, strlen(p));
 			pthread_mutex_unlock (&desc->meta_lock);
 		    } else {

@@ -184,25 +184,25 @@ static int cd_getinfo(int *cdrom_fd, char *cd_dev, struct cd_trk_list *tl)
 	tl->min=Th.cdth_trk0; /* first track */
 	tl->max=Th.cdth_trk1; /* last track */
 
-	if((tl->starts=(int *)malloc((tl->max-tl->min+2)*sizeof(int)))==NULL){
+	if((tl->starts=malloc((tl->max-tl->min+2)*sizeof(int)))==NULL){
 		alsaplayer_error("CDDA: list data allocation failed");
 		return 1;
 	}
-	if((tl->types=(char *)malloc(tl->max-tl->min+2))==NULL){
+	if((tl->types=malloc(tl->max-tl->min+2))==NULL){
 		alsaplayer_error("CDDA: list data allocation failed");
 		return 1;
 	}
 
 	/* length */
-	if((tl->l_min=(int *)malloc((tl->max-tl->min+2)*sizeof(int)))==NULL){
+	if((tl->l_min=malloc((tl->max-tl->min+2)*sizeof(int)))==NULL){
 		alsaplayer_error("CDDA: list data allocation failed");
 		return 1;
 	}
-	if((tl->l_sec=(int *)malloc((tl->max-tl->min+2)*sizeof(int)))==NULL){
+	if((tl->l_sec=malloc((tl->max-tl->min+2)*sizeof(int)))==NULL){
 		alsaplayer_error("CDDA: list data allocation failed");
 		return 1;
 	}
-	if((tl->l_frame=(int *)malloc((tl->max-tl->min+2)*sizeof(int)))==NULL){
+	if((tl->l_frame=malloc((tl->max-tl->min+2)*sizeof(int)))==NULL){
 		alsaplayer_error("CDDA: list data allocation failed");
 		return 1;
 	}
@@ -313,7 +313,7 @@ char * send_to_server (int server_fd, char *message)
 	int 	len = BUFFER_SIZE;
 	char	*response, *temp;
 
-	temp = (char *) malloc(BUFFER_SIZE);
+	temp = malloc(BUFFER_SIZE);
 
 	/* write 'message' to the server */
 	if (send (server_fd, message, strlen (message), MSG_DONTWAIT) < 0)
@@ -426,7 +426,7 @@ char * cddb_save_to_disk(char *subdir, int cdID, char *message)
 	int i = 0, j = 0;
 
 	/* check if we already have the subdir created */
-	path = (char *) malloc ((strlen (subdir) + strlen (real_path) + 2) * sizeof (char));
+	path = malloc ((strlen (subdir) + strlen (real_path) + 2) * sizeof (char));
 
 	/* print the message sent to the server */
 	snprintf(path, sizeof (path), "%s", real_path);
@@ -853,7 +853,7 @@ void cddb_read_file (char *file, struct cdda_local_data *data)
 					token[i] = '\0';
 					snprintf (name, sizeof (name), "%s", token);
 					if (data->tracks[index].track) {
-						post = (char *)malloc(strlen(data->tracks[index].track) + strlen(name) + 1);
+						post = malloc(strlen(data->tracks[index].track) + strlen(name) + 1);
 						*post = '\0';
 						strcat(post, data->tracks[index].track);
 						strcat(post, name);

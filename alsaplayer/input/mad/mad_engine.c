@@ -1114,7 +1114,7 @@ first_block:
 
 	/* Allocate block index */
 	if (!data->seekable  || obj->nr_blocks > 1000000 ||
-			(data->blocks = (ssize_t *)malloc((obj->nr_blocks + BLOCK_RESERVE) * sizeof(ssize_t))) == NULL) {
+			(data->blocks = malloc((obj->nr_blocks + BLOCK_RESERVE) * sizeof(ssize_t))) == NULL) {
 		data->seekable = 0; // Given really
 	}	else {
 		data->seekable = 1;

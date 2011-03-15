@@ -61,7 +61,7 @@ prefs_key_t *prefs_sort(prefs_handle_t *prefs)
 	prefs_key_t *p;
 	int c;
 
-	array = (prefs_key_t *)malloc(prefs->count * sizeof(prefs_key_t));
+	array = malloc(prefs->count * sizeof(prefs_key_t));
 	if (!array)
 		return NULL;
 	for (c=0, p = prefs->keys; c < prefs->count; c++, p = p->next) {
@@ -85,7 +85,7 @@ prefs_handle_t *prefs_load(const char *filename)
 	if (!filename)
 		return NULL;
 
-	prefs = (prefs_handle_t *)malloc(sizeof(prefs_handle_t));
+	prefs = malloc(sizeof(prefs_handle_t));
 
 	if (!prefs)
 		return NULL;
@@ -191,7 +191,7 @@ void prefs_set_string(prefs_handle_t *prefs, const char *section, const char *ke
 		free(entry->value);
 		entry->value = strdup(val);
 	} else { /* New entry */
-		entry = (prefs_key_t *)malloc(sizeof(prefs_key_t));
+		entry = malloc(sizeof(prefs_key_t));
 		if (!entry)
 			return;
 

@@ -1,6 +1,7 @@
 TODO list (March 2011, Erik de Castro Lopo)
 
 - Check that malloc result isn't cast.
+- Remove #Include "message.c" from app/Main.cpp
 - Check all usage of strncpy, strcpy, strcat etc.
 
 - Switch to float as internal data format.

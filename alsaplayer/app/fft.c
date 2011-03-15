@@ -91,7 +91,7 @@ fft_state *fft_init(void) {
     fft_state *state;
     unsigned int i;
 
-    state = (fft_state *) malloc (sizeof(fft_state));
+    state = malloc (sizeof(fft_state));
     if(!state) return NULL;
 
     for(i = 0; i < FFT_BUFFER_SIZE; i++) {

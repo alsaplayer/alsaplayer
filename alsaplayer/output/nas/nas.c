@@ -273,7 +273,7 @@ static int nas_set_buffer(int *fragment_size, int *fragment_count, int *channels
                            (AuPointer) &Nas_Info);     /* data */
 
     Nas_Info.buf_size = buf_samples *  *channels * AuSizeofFormat(format);
-    Nas_Info.buf = (char *) malloc(Nas_Info.buf_size);
+    Nas_Info.buf = malloc(Nas_Info.buf_size);
     if (Nas_Info.buf == NULL) {
         fprintf(stderr, "Unable to allocate input/output buffer of size %u\n",
              Nas_Info.buf_size);
