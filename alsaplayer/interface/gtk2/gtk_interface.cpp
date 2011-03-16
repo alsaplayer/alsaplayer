@@ -32,12 +32,6 @@
 #define N_(String) String
 #endif
 
-#if defined(HAVE_SYSTRAY) && HAVE_SYSTRAY == yes
-#define COMP_SYSTRAY
-#else
-#undef COMP_SYSTRAY
-#endif
-
 #include "AlsaPlayer.h"
 #include "config.h"
 #include "prefs.h"
@@ -87,7 +81,7 @@
 #include "PreferencesWindow.h"
 #include "ScopesWindow.h"
 #include "control.h"
-#ifdef COMP_SYSTRAY
+#if HAVE_SYSTRAY
 #include "StatusIcon.h"
 #endif
 
@@ -1550,14 +1544,14 @@ create_main_window (Playlist *pl)
 	global_ustr.speed_scale = speed_scale;
 	global_ustr.bal_scale = bal_scale;
 
-#ifdef COMP_SYSTRAY
+#if HAVE_SYSTRAY
 		/* temp? init of staticon */
 	gboolean staticon = status_icon_create(main_window);
 #endif
 
 	g_signal_connect(G_OBJECT(main_window), "expose-event", G_CALLBACK(configure_window), (gpointer)infowindow);
 
-#ifdef COMP_SYSTRAY
+#if HAVE_SYSTRAY
 	if (staticon)
 		g_signal_connect(G_OBJECT(main_window), "delete_event", G_CALLBACK(main_window_delete), NULL);
 	else
