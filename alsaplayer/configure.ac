@@ -59,6 +59,30 @@ dnl ===============
 AC_CHECK_LIB(pthread,pthread_create, ,
 AC_MSG_ERROR([** POSIX.4 threads not installed or broken **]))
 
+dnl ============================================================
+dnl Check for typedefs, structures, and compiler characteristics
+dnl ============================================================
+
+AC_C_CONST
+AC_TYPE_SIZE_T
+
+dnl ===========================
+dnl Check for library functions
+dnl ===========================
+
+AC_FUNC_MEMCMP
+AC_FUNC_MMAP
+AC_CHECK_FUNCS(madvise)
+
+dnl =======
+dnl DOXYGEN
+dnl =======
+AC_CHECK_PROG(HAVE_DOXYGEN, doxygen, true, false)
+if test $HAVE_DOXYGEN = "false"; then
+	AC_MSG_WARN([*** doxygen not found, docs will not be built])
+fi
+
+
 dnl =======================================================
 dnl alsaplayer control variables and their default values
 dnl this config procedure shamelessly stolen from libmikmod
@@ -189,8 +213,7 @@ if test "$have_glib" = "no" ; then
 fi
 
 if test "$have_ogg" = "yes" ; then
-	if test "$have_vorbis" = "yes"
-	then
+	if test "$have_vorbis" = "yes" ; then
 		have_oggvorbis=yes
 	else
 		have_oggvorbis=no
@@ -471,15 +494,6 @@ if test "x$ac_cv_header_id3tag_h" = "xno" ; then
 fi
 
 
-dnl =======
-dnl DOXYGEN
-dnl =======
-AC_CHECK_PROG(HAVE_DOXYGEN, doxygen, true, false)
-if test $HAVE_DOXYGEN = "false"; then
-	AC_MSG_WARN([*** doxygen not found, docs will not be built])
-fi
-
-
 AM_CONDITIONAL(HAVE_DOXYGEN, $HAVE_DOXYGEN)
 AM_CONDITIONAL(HAVE_LIBMAD,test "x$have_libmad" = xyes)
 AM_CONDITIONAL(USE_LIBID3TAG, test "x$use_libid3tag" = xyes)
@@ -530,29 +544,11 @@ ARCH_CFLAGS="$EXTRA_OPT_CFLAGS"
 AP_DEFINE_CONDITIONAL(HAVE_GLIB2, test "$have_glib2" = "yes", [Define if we have glib2])
 AP_DEFINE_CONDITIONAL(HAVE_GTK2, test "$have_gtk2" = "yes", [Define if we have gtk2])
 
-
 dnl ================================================================
 dnl Special assembly options. Note: Need to fix the above arch code!
 dnl ================================================================
 
 AC_SUBST(ARCH_CFLAGS)
-
-dnl ============================================================
-dnl Check for typedefs, structures, and compiler characteristics
-dnl ============================================================
-
-AC_C_CONST
-AC_TYPE_SIZE_T
-
-
-dnl ===========================
-dnl Check for library functions
-dnl ===========================
-
-AC_FUNC_MEMCMP
-AC_FUNC_MMAP
-AC_CHECK_FUNCS(madvise)
-AC_CHECK_FUNCS(strdup strstr)
 
 ADDON_DIR=${libdir}/$PACKAGE
 
