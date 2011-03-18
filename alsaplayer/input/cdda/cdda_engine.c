@@ -50,12 +50,14 @@
 #include <sys/types.h>
 #include <sys/param.h>
 #include <pthread.h>
+
 #include "input_plugin.h"
 #include "alsaplayer_error.h"
 #include "AlsaPlayer.h"
 #include "control.h"
 #include "prefs.h"
 #include "utilities.h"
+#include "ap_string.h"
 
 #define MAX_TRACKS	128
 #define BUFFER_SIZE     4096
@@ -503,7 +505,6 @@ char * cddb_save_to_disk(char *subdir, int cdID, char *message)
 char * cddb_local_lookup (char *path, unsigned int cd_id)
 {
 	int i, number, fd;
-	char *name;
 	char cdrom_id[9];
 	struct dirent	**directory;
 
@@ -533,26 +534,22 @@ char * cddb_local_lookup (char *path, unsigned int cd_id)
 		/* ignore '.' and '..' directories */
 		if ((strcmp (directory[i]->d_name, ".")) && (strcmp (directory[i]->d_name, "..")))
 		{
-			name = malloc((strlen (path) + strlen (directory[i]->d_name) + 15) * sizeof(char));
-			snprintf (name, sizeof (name), "%s", path);
-			strcat (name, "/");
-			strncat (name, directory[i]->d_name, strlen (directory[i]->d_name));
-			strcat (name, "/");
-			strncat (name, cdrom_id, 8);
+			char name [PATH_MAX];
+
+			snprintf (name, sizeof (name), "%s/%s/%s", path, directory[i]->d_name, cdrom_id);
 			if ((fd = open (name, O_RDONLY)) >= 0)
 			{
 				if (global_verbose)
 					printf ("OK\n");
 				close (fd);
-				return (name);
+				return strdup (name);
 			}
-			free (name);
 		}
 	}
 
 	if (global_verbose)
 		printf ("not found\n");
-	return (NULL);
+	return NULL;
 }
 
 char*
@@ -640,7 +637,7 @@ char * cddb_lookup (const char *address, const char *char_port, int discID, stru
 		//snprintf (offsets, sizeof (offsets), "%s %d ", tmpbuf,
 		snprintf (offsets, sizeof (offsets), "%s%c%d", tmpbuf, separator,
 				tl->l_frame[i] + (75 * (tl->l_sec[i] + (60 * tl->l_min[i]))));
-		strcpy (tmpbuf, offsets);
+		ap_strlcpy (tmpbuf, offsets, sizeof (tmpbuf));
 		counter += tl->l_frame[i] + (75 * tl->l_sec[i] + (60 * tl->l_min[i]));
 	}
 
@@ -812,7 +809,7 @@ char * cddb_lookup (const char *address, const char *char_port, int discID, stru
 void cddb_read_file (char *file, struct cdda_local_data *data)
 {
 	char line[BUFFER_SIZE], name[BUFFER_SIZE];
-	char *token = NULL, *tmp, *divider, *s, *post;
+	char *token = NULL, *tmp, *divider, *s;
 	int i, index = 1;
 	FILE *f;
 
@@ -853,10 +850,8 @@ void cddb_read_file (char *file, struct cdda_local_data *data)
 					token[i] = '\0';
 					snprintf (name, sizeof (name), "%s", token);
 					if (data->tracks[index].track) {
-						post = malloc(strlen(data->tracks[index].track) + strlen(name) + 1);
-						*post = '\0';
-						strcat(post, data->tracks[index].track);
-						strcat(post, name);
+						char post [512];
+						snprintf (post, sizeof (post), "%s%s", data->tracks[index].track, name);
 						free(data->tracks[index].track);
 						data->tracks[index].track = strdup(post);
 						free(post);
@@ -1026,9 +1021,9 @@ static int cdda_open(input_object *obj, const char *name)
 	else fname++; // Ignore '/'
 
 	if (ap_prefs) {
-		strcpy(device_name, prefs_get_string(ap_prefs, "cdda", "device", DEFAULT_DEVICE));
+		ap_strlcpy(device_name, prefs_get_string(ap_prefs, "cdda", "device", DEFAULT_DEVICE), sizeof (device_name));
 	} else {
-		strcpy(device_name, DEFAULT_DEVICE);
+		ap_strlcpy(device_name, DEFAULT_DEVICE, sizeof (device_name));
 	}
 #ifdef DEBUG
 	alsaplayer_error("device = %s, name = %s\n", device_name, fname);
@@ -1058,7 +1053,7 @@ static int cdda_open(input_object *obj, const char *name)
 	data->track_start  = 0;
 	data->rel_pos = 0;
 	data->track_nr = 0;
-	strcpy(data->device_path, device_name);
+	ap_strlcpy(data->device_path, device_name, sizeof (data->device_path));
 
 	if (prefs_get_bool(ap_prefs, "cdda", "do_cddb_lookup", 1)) {
 		/* look up cd in cddb */

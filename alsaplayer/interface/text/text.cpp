@@ -42,6 +42,7 @@
 #include "Playlist.h"
 #include "utilities.h"
 #include "interface_plugin.h"
+#include "ap_string.h"
 
 #define NR_BLOCKS	30
 #define SLEEPTIME	1000000
@@ -85,7 +86,7 @@ void position_notify(void *, int block)
 int interface_text_init(void)
 {
 	pthread_mutex_init(&finish_mutex, NULL);
-	strcpy(addon_dir, ADDON_DIR);
+	ap_strlcpy(addon_dir, ADDON_DIR, sizeof (addon_dir));
 	return 1;
 }
 

@@ -4,7 +4,8 @@ httpsources = http.c
 
 lib_LTLIBRARIES = $(httpltlibs)
 
-AM_CFLAGS = @DFLAGS@ -Wall -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer
+AM_CFLAGS = @DFLAGS@ -Wall -D_REENTRANT -I$(top_builddir) \
+	 -I$(top_srcdir)/libalsaplayer -I$(top_srcdir)/alsaplayer
 
 libdir = $(ADDON_DIR)/reader
 

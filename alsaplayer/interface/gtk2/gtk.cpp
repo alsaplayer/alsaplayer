@@ -47,6 +47,7 @@
 #include "utilities.h"
 #include "interface_plugin.h"
 #include "alsaplayer_error.h"
+#include "ap_string.h"
 
 static char addon_dir[1024];
 
@@ -119,7 +120,7 @@ void load_scope_addons()
 
 int interface_gtk_init()
 {
-	strcpy(addon_dir, ADDON_DIR);
+	ap_strlcpy(addon_dir, ADDON_DIR, sizeof (addon_dir));
 	return 1;
 }
 

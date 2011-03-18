@@ -29,27 +29,28 @@
 #include "string.h"
 #include "utilities.h"
 #include "alsaplayer_error.h"
+#include "ap_string.h"
 
 static void decode_uri(const char *src, char *dst, int len)
 {
     int j;
-   
+
     if (!is_uri(src)) {
-	    strncpy(dst, src, len);
+	    ap_strlcpy(dst, src, len);
 	    return;
-    }	    
+    }
     for (j=0; j<len && *src; j++, src++) {
 	if (*src == '%') {
 	    int c;
 	    char *pos;
 	    char buf [3] = {src[1], src[2], '\0'};
-	    
+
 	    if (src[1] == '%') {
 		dst [j] = '%';
 		src++;
 		continue;
 	    }
-	    
+
 	    c = strtoul (buf, &pos, 16);
 	    if (*pos == '\0') {
 		dst [j] = c;
@@ -67,12 +68,12 @@ static void *file_open(const char *uri, reader_status_type status, void *data)
 {
     char decoded_uri[1024];
     int offset = 0;
-    
+
     decode_uri (uri, decoded_uri, 1020);
     if (strncmp(decoded_uri, "file:", 5) == 0) {
 	    offset = 5;
-    }	    
-    
+    }
+
     return fopen (&decoded_uri[offset], "r");
 }
 
@@ -94,9 +95,9 @@ static float file_can_handle(const char *uri)
     /* Check for prefix */
     if (strncmp (decoded_uri, "file:", 5) == 0)
 	  offset = 5;
-    
+
     if (stat(&decoded_uri[offset], &buf))   return 0.0;
-    
+
     /* Is it a type we might have a chance of reading?
      * (Some plugins may cope with playing special devices, eg, a /dev/scd) */
     if (!(S_ISREG(buf.st_mode) ||
@@ -104,7 +105,7 @@ static float file_can_handle(const char *uri)
 	  S_ISBLK(buf.st_mode) ||
 	  S_ISFIFO(buf.st_mode) ||
 	  S_ISSOCK(buf.st_mode))) return 0.0;
-    
+
     return 1.0;
 }
 
@@ -151,14 +152,14 @@ static long file_tell (void *d)
 static float file_can_expand (const char *uri)
 {
     const char *path;
-    struct stat buf;   
+    struct stat buf;
     char decoded_uri[1024];
-    
+
     decode_uri (uri, decoded_uri, 1020);
-    
+
     /* Check for prefix */
     if (strncmp (decoded_uri, "file:", 5))  return 0.0;
- 
+
     /* Real path */
     path = &decoded_uri[5];
     if (!*path)  return 0.0;
@@ -166,7 +167,7 @@ static float file_can_expand (const char *uri)
     // Stat file, and don't follow symlinks
     if (lstat(path, &buf))  return 0.0;
     if (!S_ISDIR(buf.st_mode))  return 0.0;
-    
+
     return 1.0;
 }
 
@@ -180,37 +181,35 @@ static char **file_expand (const char *uri)
     int count = 0;
     char *s;
     char decoded_uri[1024];
-    
+    char tmp [512];
+
     decode_uri (uri, decoded_uri, 1020);
     dir = opendir (&decoded_uri[5]);
-    
+
     /* Allocate memory for empty list */
     expanded = malloc (sizeof(char*));
     *expanded = NULL;
-   
+
     /* return empty list on error */
     if (!dir)  return expanded;
-       
+
     /* iterate over a dir */
     while ((entry = readdir(dir)) != NULL) {
 	/* don't include . and .. entries */
 	if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)  continue;
 
 	/* compose */
-	s = malloc (sizeof(char) * (2 + strlen(&uri[5]) + strlen(entry->d_name)));
-	strcpy (s, &decoded_uri[5]);
-	strcat (s, "/");
-	strcat (s, entry->d_name);
-	expanded [count++] = s;
+	snprintf (tmp, sizeof (tmp), "%s/%s", decoded_uri + 5, entry->d_name);
+	expanded [count++] = strdup (tmp);
 
 	/* grow up our list */
 	expanded = realloc (expanded, (count+1)*sizeof(char*));
     }
-    
+
     /* set the end mark */
     expanded [count] = NULL;
-    
-    closedir(dir);  
+
+    closedir(dir);
 
     return expanded;
 }
@@ -228,7 +227,7 @@ static int file_seekable (void *d)
 }
 
 static long file_length (void *d)
-{    
+{
     long len, old=ftell ((FILE*)d);
 
     len = fseek ((FILE*)d, 0, SEEK_END);

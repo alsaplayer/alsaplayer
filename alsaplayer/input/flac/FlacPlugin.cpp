@@ -31,9 +31,12 @@
 #include <stdlib.h>
 #include <cstring>
 #include <cmath>
+
+#include "config.h"
+
 #include "input_plugin.h"
 #include "alsaplayer_error.h"
-#include "config.h"
+#include "ap_string.h"
 
 #include "FlacStream.h"
 #include "FlacEngine.h"
@@ -224,13 +227,13 @@ flac_stream_info (input_object * obj, stream_info * info)
     Flac::FlacTag * t = f->tag ();
     if (t && ! t->title ().empty ())
     {
-	strncpy (info->artist, t->artist ().c_str (), 128);
-	strncpy (info->title, t->title ().c_str (), 128);
-	strncpy (info->album, t->album ().c_str (), 128);
-	strncpy (info->genre, t->genre ().c_str (), 128);
-	strncpy (info->year, t->year ().c_str (), 10);
-	strncpy (info->track, t->track ().c_str (), 10);
-	strncpy (info->comment, t->comment ().c_str (), 128);
+	ap_strlcpy (info->artist, t->artist ().c_str (), sizeof (info->artist));
+	ap_strlcpy (info->title, t->title ().c_str (), sizeof (info->title));
+	ap_strlcpy (info->album, t->album ().c_str (), sizeof (info->album));
+	ap_strlcpy (info->genre, t->genre ().c_str (), sizeof (info->genre));
+	ap_strlcpy (info->year, t->year ().c_str (), sizeof (info->year));
+	ap_strlcpy (info->track, t->track ().c_str (), sizeof (info->track));
+	ap_strlcpy (info->comment, t->comment ().c_str (), sizeof (info->comment));
     }
     else
     {
@@ -239,7 +242,7 @@ flac_stream_info (input_object * obj, stream_info * info)
 	if (fname)
 	{
 	    fname++;
-	    strncpy (info->title, fname, 128);
+	    ap_strlcpy (info->title, fname, sizeof (info->title));
 	}
 	else
 	    info->title[0] = 0;

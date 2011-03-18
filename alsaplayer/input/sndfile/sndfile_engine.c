@@ -78,12 +78,12 @@ static int sndfile_open (input_object *obj, const char *name)
 
 	p = strrchr(name, '/');
 	if (p) {
-		strcpy(data->filename, ++p);
+		ap_strlcpy(data->filename, ++p, sizeof (data->filename));
 	} else {
-		strcpy(data->filename, name);
+		ap_strlcpy(data->filename, name, sizeof (data->filename));
 	}
 
-	strcpy(data->path, name);
+	ap_strlcpy(data->path, name, sizeof (data->path));
 	if (data->sfinfo.seekable)
 		obj->flags = P_SEEK;
 	return 1;
@@ -304,10 +304,10 @@ static int sndfile_stream_info (input_object *obj, stream_info *info)
 	}
 
 
-	strcpy(info->stream_type, "sndfile supported format");
-	strcpy(info->status, "");
-	strcpy(info->artist, "");
-	strcpy(info->title, data->filename);
+	ap_strlcpy(info->stream_type, "sndfile supported format", sizeof (info->stream_type));
+	ap_strlcpy(info->title, data->filename, sizeof (info->title));
+	info->status [0] = 0;
+	info->artist [0] = 0;
 
 	return 1;
 }

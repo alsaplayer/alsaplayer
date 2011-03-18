@@ -16,7 +16,8 @@ lib_LTLIBRARIES = $(cddaltlibs)
 
 AM_CFLAGS = -D_REENTRANT @ARCH_CFLAGS@
 
-INCLUDES = -I$(top_builddir) -I$(top_srcdir)/alsaplayer
+INCLUDES = -I$(top_builddir) -I$(top_srcdir)/libalsaplayer \
+				-I$(top_srcdir)/alsaplayer
 
 libdir = $(ADDON_DIR)/input
 

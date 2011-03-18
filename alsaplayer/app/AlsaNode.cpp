@@ -35,6 +35,7 @@
 #include "AlsaNode.h"
 #include "utilities.h"
 #include "alsaplayer_error.h"
+#include "ap_string.h"
 
 static const char *default_output_addons[] = {
 	"alsa",
@@ -54,14 +55,10 @@ extern void exit_sighandler(int);
 
 AlsaNode::AlsaNode(const char *name, const char *args, int realtime)
 {
-	int len;
-
 	follow_id = 1;
 	count = 0;
 	plugin_count = 0;
 	plugin = NULL;
-	driver_name = NULL;
-	driver_args = NULL;
 	nr_fragments = fragment_size = external_latency = 0;
 	init = false;
 	thread_running = false;
@@ -70,14 +67,10 @@ AlsaNode::AlsaNode(const char *name, const char *args, int realtime)
 
 	// Parse driver name,args
 	if (name && *name) {
-		len = strlen(name);
-		driver_name = new char[len+1];
-		strcpy(driver_name, name);
+		ap_strlcpy(driver_name, name, sizeof (driver_name));
 	}
 	if (args && *args) {
-		len = strlen(args);
-		driver_args = new char[len+1];
-		strcpy(driver_args, args);
+		ap_strlcpy(driver_args, args, sizeof (driver_args));
 	}
 
 
@@ -101,12 +94,10 @@ AlsaNode::~AlsaNode()
 	plugin->close();
 
 	if (driver_name) {
-		delete []driver_name;
-		driver_name = NULL;
+		driver_name [0] = 0;
 	}
 	if (driver_args) {
-		delete []driver_args;
-		driver_args = NULL;
+		driver_args [0] = 0;
 	}
 }
 

@@ -36,10 +36,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+
 #include "input_plugin.h"
 #include "alsaplayer_error.h"
 #include "reader.h"
 #include "prefs.h"
+#include "ap_string.h"
 
 #define MAD_BUFSIZE (32 * 1024)
 
@@ -452,11 +454,7 @@ static void fill_from_id3v2 (char *dst, const char *src, int max, int size)
 	if (!conv)	// convert error
 		return;
 
-	int min = (int) strlen(conv) > max ? max : (int) strlen(conv);	// gsti
-	strncpy (dst, conv, min);
-
-	if (min == max)	// gsti
-		dst[min-1] = 0;
+	ap_strlcpy (dst, conv, max);
 
 	if (conv)
 		free(conv);
@@ -718,23 +716,23 @@ static void parse_id3 (const char *path, stream_info *info)
 		/* ID3v1 block found */
 
 		/* title */
-		strncpy (info->title, buf + 3, 30);
+		ap_strlcpy (info->title, buf + 3, 30);
 		rstrip (info->title);
 
 		/* artist */
-		strncpy (info->artist, buf + 33, 30);
+		ap_strlcpy (info->artist, buf + 33, 30);
 		rstrip (info->artist);
 
 		/* album */
-		strncpy (info->album, buf + 63, 30);
+		ap_strlcpy (info->album, buf + 63, 30);
 		rstrip (info->album);
 
 		/* year */
-		strncpy (info->year, buf + 93, 4);
+		ap_strlcpy (info->year, buf + 93, 4);
 		rstrip (info->year);
 
 		/* comment */
-		strncpy (info->comment, buf + 97, 28);
+		ap_strlcpy (info->comment, buf + 97, 28);
 		rstrip (info->comment);
 
 		/* track number */
@@ -783,7 +781,7 @@ static int mad_stream_info(input_object *obj, stream_info *info)
 						*(s--) = '\0';
 				}
 			}
-			strncpy (data->sinfo.path, data->path, sizeof(data->sinfo.path));
+			ap_strlcpy (data->sinfo.path, data->path, sizeof(data->sinfo.path));
 			data->parsed_id3 = 1;
 		}
 		memset(metadata, 0, sizeof(metadata));
@@ -947,7 +945,7 @@ static void reader_status(void *ptr, const char *str)
 	if (data) {
 		//fprintf(stdout, "%s     \r", str);
 		//fflush(stdout);
-		strcpy(data->sinfo.status, str);
+		ap_strlcpy(data->sinfo.status, str, sizeof (data->sinfo.status));
 	}
 }
 
@@ -979,7 +977,7 @@ static int mad_open(input_object *obj, const char *path)
 
 	if (strncasecmp(path, "http://", 7) == 0) {
 		obj->flags |= P_STREAMBASED;
-		strcpy(data->sinfo.status, "Prebuffering");
+		ap_strlcpy(data->sinfo.status, "Prebuffering", sizeof (data->sinfo.status));
 	} else {
 		obj->flags |= P_FILEBASED;
 	}
@@ -1124,11 +1122,11 @@ first_block:
 
 	p = strrchr(path, '/');
 	if (p) {
-		strcpy(data->filename, ++p);
+		ap_strlcpy(data->filename, ++p, sizeof (data->filename));
 	} else {
-		strcpy(data->filename, path);
+		ap_strlcpy(data->filename, path, sizeof (data->filename));
 	}
-	strcpy(data->path, path);
+	ap_strlcpy(data->path, path, sizeof (data->path));
 
 	data->parse_id3 = prefs_get_bool(ap_prefs, "mad", "parse_id3", 1);
 

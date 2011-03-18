@@ -28,9 +28,11 @@
 #include <ogg/ogg.h>
 #include <vorbis/codec.h>
 #include <vorbis/vorbisfile.h>
+
 #include "alsaplayer_error.h"
 #include "input_plugin.h"
 #include "reader.h"
+#include "ap_string.h"
 
 #define BLOCK_SIZE_BYTES 4096	/* We can use any block size we like */
 
@@ -279,7 +281,7 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 	data = (struct vorbis_local_data *)obj->local_data;
 
 	if (data) {
-		strncpy (info->path, data->path, sizeof (info->path));
+		ap_strlcpy (info->path, data->path, sizeof (info->path));
 		if (obj->flags & P_SEEK && (comment = ov_comment(&data->vf, -1)) != NULL) {
 			t = vorbis_comment_query(comment, "title", 0);
 			a = vorbis_comment_query(comment, "artist", 0);
@@ -316,7 +318,7 @@ int vorbis_stream_info(input_object *obj, stream_info *info)
 					 obj->nr_channels == 1 ? "mono":"stereo",
 					(int)(data->bitrate_instant / 1000));
 		} else {
-			strcpy(info->stream_type, "Unkown OGG VORBIS");
+			ap_strlcpy(info->stream_type, "Unkown OGG VORBIS", sizeof (info->stream_type));
 		}
 		info->status[0] = 0;
 	}

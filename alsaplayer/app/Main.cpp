@@ -65,6 +65,7 @@
 #include "message.h"
 #include "control.h"
 #include "reader.h"
+#include "ap_string.h"
 
 #define MAX_REMOTE_SESSIONS	32
 
@@ -152,7 +153,7 @@ interface_plugin_info_type load_interface(const char *name)
 		return NULL;
 
 	if (strchr(name, '.'))
-		strncpy(path, name, sizeof(path));
+		ap_strlcpy(path, name, sizeof(path));
 	else
 		snprintf(path, sizeof(path), "%s/interface/lib%s_interface.so", pluginroot, name);
 #ifdef DEBUG
@@ -813,10 +814,10 @@ int main(int argc, char **argv)
 					alsaplayer_error("error getting cwd");
 					return 1;
 				}
-				strcat(queue_name, "/");
-				strncat(queue_name, argv[count], sizeof(queue_name)-strlen(queue_name));
+				ap_strlcat(queue_name, "/", sizeof(queue_name));
+				ap_strlcat(queue_name, argv[count], sizeof(queue_name));
 			} else
-				strncpy(queue_name, argv[count], sizeof(queue_name)-strlen(queue_name));
+				ap_strlcpy(queue_name, argv[count], sizeof(queue_name));
 			count++;
 			//alsaplayer_error("Adding %s", queue_name);
 			ap_result = ap_add_path(use_session, queue_name);

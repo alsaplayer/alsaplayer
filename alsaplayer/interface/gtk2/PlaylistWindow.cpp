@@ -56,6 +56,7 @@
 #include "prefs.h"
 #include "alsaplayer_error.h"
 #include "control.h"
+#include "ap_string.h"
 
 // Drag & Drop stuff
 #define TARGET_URI_LIST 0x0001
@@ -404,7 +405,6 @@ dnd_received(GtkWidget *widget,
 		guint             time,
 		gpointer          user_data)
 {
-	char *uri = NULL;
 	char *filename = NULL;
 	char *p, *s, *res;
 
@@ -423,8 +423,8 @@ dnd_received(GtkWidget *widget,
 
 	switch(info) {
 		case TARGET_URI_LIST:
-			uri = (char *)malloc(strlen((const char *)data->data)+1);
-			strcpy(uri, (const char *)data->data);
+			char uri [512];
+			ap_strlcpy(uri, (const char *)data->data, sizeof (uri));
 			filename = uri;
 			while (filename) {
 				if ((p=s=strstr(filename, "\r\n"))) {
@@ -452,7 +452,6 @@ dnd_received(GtkWidget *widget,
 				}
 				filename = p;
 			}
-			free(uri);
 			break;
 		default:
 			ap_message_error(gtk_widget_get_toplevel(widget), _("Unknown drop!"));

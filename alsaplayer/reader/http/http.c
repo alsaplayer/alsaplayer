@@ -106,10 +106,10 @@ static int cond_timedwait_relative (pthread_cond_t *cond, pthread_mutex_t *mut, 
     struct timespec timeout;
 
     gettimeofday (&now, NULL);
-	    
+
     timeout.tv_sec = now.tv_sec + delay / 1000000;
     timeout.tv_nsec = (now.tv_usec + delay % 1000000) * 1000;
-	    
+
     return pthread_cond_timedwait (cond, mut, &timeout);
 }
 
@@ -143,17 +143,17 @@ static int calc_time_to_wait (http_desc_t *desc)
 void shrink_buffer (http_desc_t *desc)
 {
     int low_pos = desc->begin + ((long int)http_buffer_size * (long int)desc->played_parts) / 16;
-    
+
     /* trying to shrink buffer */
     if (desc->len + HTTP_BLOCK_SIZE > http_buffer_size && desc->pos > low_pos) {
 	void *newbuf;
 	int shrinking_len = desc->pos - low_pos;
-     
+
 	desc->len -= shrinking_len;
 	desc->begin += shrinking_len;
-	
+
 	/* allocate new buffer with the part of old one */
-	newbuf = malloc (desc->len);    
+	newbuf = malloc (desc->len);
 	memcpy (newbuf, desc->buffer + shrinking_len, desc->len);
 
 	/* replace old buffer */
@@ -170,7 +170,7 @@ void status_notify (http_desc_t *desc)
     if (!desc->dont_wait && desc->status) {
 	int bck_len = desc->pos - desc->begin;
 	int fwd_len = desc->len - bck_len;
-	
+
 	if (desc->seekable)
 	    snprintf (sbuf, 1023, "Buf %dK | %dK", fwd_len/1024, bck_len/1024);
 	else
@@ -187,7 +187,7 @@ static void print_debug_info (http_desc_t *desc)
     struct timeval now;
 
     gettimeofday (&now, NULL);
-    
+
     printf ("%lld %ld %d %d %ld %d\n", (long long int)now.tv_sec * 1000 + (long long int)now.tv_usec/1000,
 	    desc->size, desc->begin, desc->begin + desc->len,
 	    desc->pos, desc->buffer_pos);
@@ -199,23 +199,23 @@ static void print_debug_info (http_desc_t *desc)
 
 /* ******************************************************************* */
 /* Parse URI.                                                           */
-static int parse_uri (const char *uri, char **host, int *port, char **path) 
+static int parse_uri (const char *uri, char **host, int *port, char **path)
 {
     char *slash, *colon;
     int l;
 
     *port = 80;
-    
+
      /* Trying to find end of a host part */
     slash = strchr (uri+7, '/');
     colon = strchr (uri+7, ':');
-    
+
     if ((slash && colon && slash > colon) || (!slash && colon)) {
 	/* As I see, there is port specified */
 	char *s;
-	
+
 	*port = (int)strtol (colon+1, &s, 10);
-	
+
 	/* Test, port should be digit */
 	if ((slash && s!=slash) || (!slash && *s!='\0')) {
 	    alsaplayer_error ("\nHTTP: Couldn't open %s: Port -- parse error.", uri);
@@ -228,17 +228,16 @@ static int parse_uri (const char *uri, char **host, int *port, char **path)
 	/* Calculate host part length */
 	l = slash  ?  slash - uri - 7  :  strlen (uri+7);
     }
-   
+
     /* Reset port if URI looks like 'foo.bar:/aaa.mp3' */
     if (colon && slash && slash==colon+1)
 	*port = 80;
-    
+
     /* Split URI */
-    //if (*host) 
+    //if (*host)
     //	    free(*host);
     *host = malloc ((l+1) * sizeof(char));
-    strncpy (*host, uri+7, l);
-    (*host) [l] = '\0';
+    ap_strlcpy (*host, uri+7, l);
 
     //if (*path)
     //	    free(*path);
@@ -252,12 +251,12 @@ static int sleep_for_data (int sock)
 {
     fd_set set;
     struct timeval tv;
-    
+
     tv.tv_sec = 5;
     tv.tv_usec = 0;
     FD_ZERO (&set);
     FD_SET (sock, &set);
-    
+
     if (select (sock+1, &set, NULL, NULL, &tv) < 1) {
 	alsaplayer_error ("HTTP: Connection is too slow.");
 	return 1;
@@ -281,17 +280,17 @@ static int get_response_head (int sock, char *response, int max)
 
 	/* wait for data */
 	if (sleep_for_data (sock))  return 1;
-	
+
 	/* read */
 	if (read (sock, response + len, 1) <=0 )
 	    break;
-	
+
 	len += 1;
     }
-    
+
     /* terminate string */
     response [len] = '\0';
-    
+
     return 0;
 } /* end of: get_response_head */
 
@@ -301,16 +300,16 @@ static int get_response_head (int sock, char *response, int max)
 static int read_data (int sock, void *ptr, size_t size)
 {
     int len;
-    
+
     /* wait for data */
     if (sleep_for_data (sock)) {
 	    return -1;
     }
     len = recv (sock, ptr, size, 0);
-    
+
     if (len == -1 && errno == EAGAIN) {
 	return 0;
-    }	
+    }
     return len;
 } /* end of: read_data */
 
@@ -325,16 +324,16 @@ static void buffer_thread (http_desc_t *desc)
     int rest = 0;
     int metasize = 0, metapos = 0, extra_read = 0;
     char *p;
-       
+
     /* Init */
     pthread_mutex_init (&mut, NULL);
-    
+
     if (desc->icy_metaint) {
 	BLOCK_SIZE = (HTTP_BLOCK_SIZE > desc->icy_metaint) ? desc->icy_metaint : HTTP_BLOCK_SIZE;
     }
 
     ibuffer = malloc (BLOCK_SIZE << 1);
-    
+
     /* Process while main thread allow it. */
     while (desc->going) {
 	void *newbuf;
@@ -345,7 +344,7 @@ static void buffer_thread (http_desc_t *desc)
 #endif
 
 	rest = metasize = 0;
-	
+
 	/* trying to shrink buffer */
 	pthread_mutex_lock (&desc->buffer_lock);
 	shrink_buffer (desc);
@@ -359,7 +358,7 @@ static void buffer_thread (http_desc_t *desc)
 	    /* Notice waiting function that the new block of data has arrived */
 	    desc->new_datablock = 1;
 	    pthread_cond_signal (&desc->new_datablock_signal);
-    
+
 	    /* Make pause */
 	    if (!desc->dont_wait) {
 		pthread_mutex_lock (&mut);
@@ -371,7 +370,7 @@ static void buffer_thread (http_desc_t *desc)
 
 	    continue;
 	}
-	
+
 	/* read to internal buffer */
         readed = read_data (desc->sock, ibuffer, BLOCK_SIZE);
 
@@ -383,13 +382,13 @@ static void buffer_thread (http_desc_t *desc)
 	    desc->going = 0;
 	} else {
 	    /* Something readed */
-	    
+
 	    /* Metadata stuff */
-	    if (desc->icy_metaint > 0 && 
+	    if (desc->icy_metaint > 0 &&
 		(desc->buffer_pos+readed) >  desc->icy_metaint) {
 		/* Metadata block is next! */
 		rest = (desc->buffer_pos+readed) - desc->icy_metaint;
-	
+
 		p = ((char *)ibuffer);
 		p += (readed-rest);
 		metapos = (readed-rest);
@@ -401,8 +400,8 @@ static void buffer_thread (http_desc_t *desc)
 			extra_read = read_data (desc->sock, ibuffer+readed, metasize);
 			readed += extra_read;
 			rest += extra_read;
-		    }	
-		    if (metasize > 4080) { 
+		    }
+		    if (metasize > 4080) {
 			alsaplayer_error("Invalid metasize (%d)", metasize);
 		    } else if (metasize > 0) {
 			p++;
@@ -410,7 +409,7 @@ static void buffer_thread (http_desc_t *desc)
 			pthread_mutex_lock (&desc->meta_lock);
 			if (desc->metadata) {
 			    free(desc->metadata);
-			}	
+			}
 			desc->metadata = malloc(strlen(p)+1);
 			memcpy(desc->metadata, p, strlen(p));
 			pthread_mutex_unlock (&desc->meta_lock);
@@ -428,7 +427,7 @@ static void buffer_thread (http_desc_t *desc)
             /* These operations are fast. -> doesn't break reader_read */
 	    /* ---------------- lock buffer ( */
 	    pthread_mutex_lock (&desc->buffer_lock);
-	
+
 	    /* enlarge buffer */
 	    newbuf = malloc (desc->len + (BLOCK_SIZE * 2)); /* HTTP_BLOCK_SIZE */
 	    memcpy (newbuf, desc->buffer, desc->len);
@@ -437,7 +436,7 @@ static void buffer_thread (http_desc_t *desc)
 		    memcpy(newbuf + desc->len + metapos, ibuffer+metapos+metasize, rest - metasize);
 		    readed -= metasize;
 		    desc->buffer_pos = rest - metasize;
-	    } else {    
+	    } else {
 		    memcpy (newbuf + desc->len, ibuffer, readed);
 	    }
 	    /* switch buffers */
@@ -448,7 +447,7 @@ static void buffer_thread (http_desc_t *desc)
 	    /* unlock buffer ) */
 	    pthread_mutex_unlock (&desc->buffer_lock);
 	}
-	
+
 	/* Notice waiting function that the new block of data has arrived */
 	desc->new_datablock = 1;
 	pthread_cond_signal (&desc->new_datablock_signal);
@@ -459,11 +458,11 @@ static void buffer_thread (http_desc_t *desc)
 	    cond_timedwait_relative (&desc->dont_wait_signal, &mut, calc_time_to_wait (desc));
 	    pthread_mutex_unlock (&mut);
 	}
-	
+
 	if (desc->dont_wait)
 	    desc->dont_wait--;
     }
-    
+
     free (ibuffer);
     pthread_exit (NULL);
 } /* end of: buffer_thread */
@@ -487,7 +486,7 @@ static int reconnect (http_desc_t *desc, char *redirect)
 
     /* Clear error status */
     desc->error = 0;
-    
+
     /* Stop filling thread */
     if (desc->going) {
 	desc->going = 0;
@@ -495,7 +494,7 @@ static int reconnect (http_desc_t *desc, char *redirect)
 	pthread_cond_signal (&desc->dont_wait_signal);
 	pthread_join (desc->buffer_thread, NULL);
     }
-    
+
     /* Close connection */
     if (desc->sock) {
 	close (desc->sock);
@@ -509,7 +508,7 @@ static int reconnect (http_desc_t *desc, char *redirect)
     }
     desc->begin = 0;
     desc->len = 0;
-    
+
     /* Look up for host IP */
     if (!(hp = gethostbyname (desc->host))) {
 	alsaplayer_error ("HTTP: Couldn't look up host %s.", desc->host);
@@ -522,7 +521,7 @@ static int reconnect (http_desc_t *desc, char *redirect)
 	alsaplayer_error ("HTTP: Couldn't open socket.");
 	return 1;
     }
-    
+
     flags = fcntl (desc->sock, F_GETFL, 0);
     fcntl (desc->sock, F_SETFL, flags | O_NONBLOCK);
 
@@ -544,7 +543,7 @@ static int reconnect (http_desc_t *desc, char *redirect)
     tv.tv_usec = 0;
     FD_ZERO (&set);
     FD_SET (desc->sock, &set);
-    
+
     if (select (desc->sock+1, NULL, &set, NULL, &tv) < 1) {
 	alsaplayer_error ("HTTP: Connection is too slow.");
 	return 1;
@@ -568,10 +567,10 @@ static int reconnect (http_desc_t *desc, char *redirect)
 			     "\r\n",
 			     desc->path, desc->host, PACKAGE, VERSION,
 			     desc->pos);
-    //alsaplayer_error("%s", request); 
+    //alsaplayer_error("%s", request);
     write (desc->sock, request, strlen (request));
     desc->begin = desc->buffer_pos = desc->pos;
- 
+
     /* Get response */
     if (get_response_head (desc->sock, response, 10240))
 	return 1;
@@ -590,18 +589,18 @@ static int reconnect (http_desc_t *desc, char *redirect)
     } else if (!strncmp (response, "ICY 404", 7)) {
 	 rc = 404;
     } else {
-	if (strlen(response)) {	
+	if (strlen(response)) {
 		alsaplayer_error ("HTTP: Wrong server protocol for http://%s:%u%s",
 			desc->host, desc->port, desc->path);
 		alsaplayer_error("ERROR:\n\"%s\"", response);
-	}	
+	}
 	return 1;
     }
 
     /* Check return code */
     if (strstr(response, "HTTP"))
     	rc = atoi (response + 9);
-    
+
     if (rc != 200 && rc != 206) {
 	/* Wrong code */
 	if (rc == 404) {
@@ -618,28 +617,28 @@ static int reconnect (http_desc_t *desc, char *redirect)
 			    /* Parse redirect */
 			    if (sscanf(s, "Location: %[^\r]", redirect)) {
 				    /* alsaplayer_error("Redirection: %s", redirect); */
-			    }		    
+			    }
 		    }
 		    return 1;
 	    }
 	} else if (rc == 400) {
 		if (desc->status) {
 			desc->status(desc->data, "Server is full");
-		}	
+		}
 		if (redirect)
 			redirect[0] = 0;
 		return 1;
 	} else if (rc == 401) {
 		if (desc->status) {
 			desc->status(desc->data, "Unauthorized access");
-		}	
+		}
 		if (redirect)
 			redirect[0] = 0;
 		return 1;
 	} else if (rc == 404) {
 		if (desc->status) {
 			desc->status(desc->data, "Resource not found");
-		}	
+		}
 		if (redirect)
 			redirect[0] = 0;
 		return 1;
@@ -647,7 +646,7 @@ static int reconnect (http_desc_t *desc, char *redirect)
 		/* unknown */
 		alsaplayer_error ("HTTP: We don't support %d response code: http://%s:%u%s",
 				rc, desc->host, desc->port, desc->path);
-		if (redirect) 
+		if (redirect)
 			redirect[0] = 0;
 		return 1;
 	}
@@ -668,11 +667,11 @@ static int reconnect (http_desc_t *desc, char *redirect)
 	//alsaplayer_error("Found metaint: %d", desc->icy_metaint);
     } else {
     	desc->icy_metaint = 0;
-    }	
-    
+    }
+
     /* Setup played parts */
     desc->played_parts = desc->seekable ? 5 : 0;
-    
+
     /* Attach thread to fill a buffer */
     desc->going = 1;
     pthread_create (&desc->buffer_thread, NULL, (void* (*)(void *)) buffer_thread, desc);
@@ -688,7 +687,7 @@ static int reconnect (http_desc_t *desc, char *redirect)
 static void http_close(void *d)
 {
     http_desc_t *desc = (http_desc_t*)d;
-    
+
     /* stop buffering thread */
     if (desc->going) {
 	desc->going = 0;
@@ -696,14 +695,14 @@ static void http_close(void *d)
 	pthread_cond_signal (&desc->dont_wait_signal);
 	pthread_join (desc->buffer_thread, NULL);
     }
-    
+
     /* free resources */
     if (desc->host)  free (desc->host);
     if (desc->path)  free (desc->path);
     if (desc->metadata) free (desc->metadata);
     if (desc->sock)  close (desc->sock);
     if (desc->buffer)  free (desc->buffer);
-    
+
     free (desc);
 } /* end of http_close */
 
@@ -714,7 +713,7 @@ static void *http_open(const char *uri, reader_status_type status, void *data)
     http_desc_t *desc;
     char redirect[10240];
     int tries = 0;
- 
+
     /* Alloc descripor and init members. */
     desc = malloc (sizeof (http_desc_t));
     desc->going = 0;
@@ -727,7 +726,7 @@ static void *http_open(const char *uri, reader_status_type status, void *data)
     desc->buffer_pos = 0;
     desc->begin = 0;
     desc->len = 0;
-    desc->direction = 0; 
+    desc->direction = 0;
     desc->metadata = NULL;
     desc->status = status;
     desc->data = data;
@@ -745,7 +744,7 @@ static void *http_open(const char *uri, reader_status_type status, void *data)
     /* Connect */
     if (desc->status) {
 	    desc->status(desc->data, "Connecting");
-    }	    
+    }
     while (tries++ < 5) {
 	redirect[0] = 0;
     	if (reconnect (desc, redirect)) {
@@ -782,7 +781,7 @@ static int http_init()
 
     /* Be sure http.buffer_size is available in config */
     prefs_set_int (ap_prefs, "http", "buffer_size", http_buffer_size);
-    
+
     return 1;
 }
 
@@ -802,11 +801,11 @@ static size_t http_metadata (void *d, size_t size, void *data)
 	size_t msize;
 
 	pthread_mutex_lock (&desc->meta_lock);
-	
+
 	if (!desc->metadata) {
 		pthread_mutex_unlock (&desc->meta_lock);
 		return 0;
-	}	
+	}
 	msize = strlen(desc->metadata);
 	if (msize > size)
 		msize = size;
@@ -825,16 +824,16 @@ static size_t http_read (void *ptr, size_t size, void *d)
     int tocopy;		    /* how much bytes we got? */
 
     /* Init temp mutex */
-    pthread_mutex_init (&mut, NULL);   
+    pthread_mutex_init (&mut, NULL);
 
     /* check for reopen */
     if (desc->begin > desc->pos || desc->begin + desc->len + 3*HTTP_BLOCK_SIZE < desc->pos)
 	reconnect (desc, NULL);
- 
+
     /* wait while the buffer will has entire block */
     while (1) {
 	int readed;
-	
+
 	/* check for error */
 	if (desc->error) {
 	    return 0;
@@ -843,7 +842,7 @@ static size_t http_read (void *ptr, size_t size, void *d)
 	/* We will work with buffer... we have to lock it! */
 	pthread_mutex_lock (&desc->buffer_lock);
 	readed = desc->begin + desc->len - desc->pos;
-	
+
 	/* done? */
 	if (readed > 0 && readed >= size) {
 	    tocopy = size;
@@ -861,14 +860,14 @@ static size_t http_read (void *ptr, size_t size, void *d)
 	    tocopy = 0;
 	    break;
 	}
-	
+
 	/* break waiting */
 	desc->dont_wait = 1;
 	pthread_cond_signal (&desc->dont_wait_signal);
-	
+
 	/* Allow buffer_thread to use buffer */
         pthread_mutex_unlock (&desc->buffer_lock);
-    
+
 	/* Wait for next portion of data */
 	if (!desc->new_datablock) {
 	    pthread_mutex_lock (&mut);
@@ -887,7 +886,7 @@ static size_t http_read (void *ptr, size_t size, void *d)
 	/* let them know about new state, heh */
 	status_notify (desc);
     }
-    
+
     /* Allow buffer_thread to use buffer. */
     pthread_mutex_unlock (&desc->buffer_lock);
 
@@ -900,16 +899,16 @@ static size_t http_read (void *ptr, size_t size, void *d)
 static int http_seek (void *d, long offset, int whence)
 {
     http_desc_t *desc = (http_desc_t*)d;
-  
+
     if (!desc->seekable)  return -1;
-    
+
     if (whence == SEEK_SET)
 	desc->pos = offset;
     else if (whence == SEEK_END)
 	desc->pos = desc->size + offset;
-    else 
+    else
 	desc->pos += offset;
- 
+
     return 0;
 }
 
@@ -949,10 +948,10 @@ static int http_seekable (void *d)
 static long http_length (void *d)
 {
     http_desc_t *desc = (http_desc_t*)d;
-    
+
     if (!desc->seekable)
 	return -1;
-    
+
     return desc->size;
 }
 
@@ -963,7 +962,7 @@ static int http_eof (void *d)
 
     if (!desc->seekable)
 	return 0;
-    
+
     return !(desc->pos < desc->size);
 }
 

@@ -237,8 +237,8 @@ static int mikmod_stream_info (input_object *obj, stream_info *info)
 			data->mf->numchn, data->mf->modtype);
 
 	info->artist[0] = 0;
-	strcpy (info->status, "No time data");
-	strcpy (info->title, (data->mf->songname[0]) ? data->mf->songname : data->fname);
+	ap_strlcpy (info->status, "No time data", sizeof (info->status));
+	ap_strlcpy (info->title, (data->mf->songname[0]) ? data->mf->songname : data->fname, sizeof (info->title));
 
 	return 1;
 }

@@ -45,8 +45,5 @@ alsaplayer_SOURCES = AlsaSubscriber.cpp \
 
 alsaplayer_LDADD = $(top_builddir)/libalsaplayer/libalsaplayer.la @LIBINTL@
 
-#$(top_builddir)/libalsaplayer/libalsaplayer.la :
-#	(cd $(top_builddir)/libalsaplayer/ && make)
-
 jackplayer:
 		ln -s alsaplayer jackplayer

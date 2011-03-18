@@ -56,18 +56,18 @@ class AlsaNode
 	output_plugin plugins[MAX_OUTPUT_PLUGINS];
 	output_plugin *plugin;
 	int plugin_count;
-	subscriber subs[MAX_SUB]; 
-	pthread_mutex_t queue_mutex; 
+	subscriber subs[MAX_SUB];
+	pthread_mutex_t queue_mutex;
 	pthread_mutex_t thread_mutex;
 	void *handle;
 	int count;
-	int follow_id; 
+	int follow_id;
 	int fragment_size;
 	int nr_fragments;
 	int sample_freq;
 	int external_latency;
-	char *driver_name;
-	char *driver_args;
+	char driver_name [512];
+	char driver_args [1024];
 	char client_name[32];
 	bool realtime_sched;
 	bool thread_running;
@@ -75,7 +75,7 @@ class AlsaNode
 	bool looping;
 	static void looper(void *);
 	pthread_t looper_thread;
- public:		
+ public:
 	AlsaNode(const char *name, const char *args, int realtime=0);
 	~AlsaNode();
 	int SetSamplingRate(int freq);

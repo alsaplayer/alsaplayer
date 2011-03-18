@@ -48,6 +48,8 @@
 #include "Effects.h"
 #include "utilities.h"
 #include "alsaplayer_error.h"
+#include "ap_string.h"
+
 //#include "MetadataReader.h" //TODO
 
 // some arch don't define PATH_MAX
@@ -250,7 +252,7 @@ CorePlayer::CorePlayer(AlsaNode *the_node)
 	the_object->ready = 0;
 
 	pthread_mutex_init(&the_object->object_mutex, NULL);
-	strcpy(addon_dir, ADDON_DIR);
+	ap_strlcpy(addon_dir, ADDON_DIR, sizeof (addon_dir));
 
 	// Load the input addons
 	pthread_mutex_lock(&plugins_mutex);

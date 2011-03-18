@@ -17,8 +17,6 @@
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include "message.h"
-#include "control.h"
 #include <sys/un.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -29,6 +27,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "message.h"
+#include "control.h"
+#include "ap_string.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,16 +77,10 @@ ap_message_t *ap_message_new(void)
 ap_key_t *ap_key_new(const char *key_id)
 {
 	ap_key_t *key;
-	key = (ap_key_t *)malloc(sizeof(ap_key_t));
+	key = (ap_key_t *)calloc(1, sizeof(ap_key_t));
 
 	if (key) {
-		memset(key, 0, sizeof(ap_key_t));
-		if (strlen(key_id) > KEYID_LEN) {
-			strncpy(key->key_id, key_id, KEYID_LEN-1);
-			key->key_id[KEYID_LEN-1] = 0;
-		} else {
-			strcpy(key->key_id, key_id);
-		}
+		ap_strlcpy(key->key_id, key_id, sizeof (key->key_id));
 		return key;
 	}
 	return NULL;
@@ -732,11 +728,7 @@ int ap_get_single_string_command(int session, int32_t cmd, char *str, int maxlen
 	close(fd);
 
 	if ((result = ap_message_find_string(reply, "string"))) {
-		if (strlen(result) > (size_t)maxlen) {
-			strncpy(str, result, maxlen-1);
-			str[maxlen] = 0;
-		} else
-			strcpy(str, result);
+		ap_strlcpy(str, result, maxlen);
 		ap_message_delete(reply);
 		return 1;
 	}
@@ -1068,11 +1060,7 @@ int ap_get_string_set_int(int session, int32_t cmd, char* str, int maxlen, int v
 	ack = ap_message_find_int32(reply, "ack");
 	if(*ack == 1) {
 	  if ((result = ap_message_find_string(reply, "string"))) {
-	    if (strlen(result) > (size_t)maxlen) {
-	      strncpy(str, result, maxlen-1);
-	      str[maxlen] = 0;
-	    } else
-	      strcpy(str, result);
+	    ap_strlcpy(str, result, maxlen);
 	    ap_message_delete(reply);
 	    return 1;
 	  }

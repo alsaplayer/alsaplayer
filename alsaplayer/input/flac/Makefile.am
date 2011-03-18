@@ -22,7 +22,8 @@ EXTRA_DIST = FlacEngine.cpp FlacPlugin.cpp FlacStream.cpp FlacTag.cpp \
 
 lib_LTLIBRARIES = $(flac_inltlibs)
 
-INCLUDES = -I$(top_builddir) -I$(top_srcdir)/alsaplayer
+INCLUDES = -I$(top_builddir) -I$(top_srcdir)/libalsaplayer \
+			-I$(top_srcdir)/alsaplayer
 
 COMMON_FLAGS = @ARCH_CFLAGS@
 

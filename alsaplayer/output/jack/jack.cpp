@@ -26,11 +26,13 @@
 #include <cstring>
 #include <cstdlib>
 #include <cstdio>
+
 #include "AlsaNode.h"
 #include "AlsaPlayer.h"
 #include "output_plugin.h"
 #include "alsaplayer_error.h"
 #include "prefs.h"
+#include "ap_string.h"
 
 #define TEST_MASTER 0
 
@@ -191,17 +193,17 @@ int srate(jack_nframes_t rate, void *)
 static int jack_init(void)
 {
 	// Always return ok for now
-	strncpy(dest_port1, prefs_get_string(ap_prefs,
-		"jack", "output1", "alsa_pcm:playback_1"), 127);
+	ap_strlcpy(dest_port1, prefs_get_string(ap_prefs,
+		"jack", "output1", "alsa_pcm:playback_1"), sizeof (dest_port1));
 	if (strncmp(dest_port1, "alsa_pcm:out", 12) == 0) {
 		alsaplayer_error("jack: discarding old alsa_pcm naming");
-		strcpy(dest_port1, "alsa_pcm:playback_1");
+		ap_strlcpy(dest_port1, "alsa_pcm:playback_1", sizeof (dest_port1));
 	}
-	strncpy(dest_port2, prefs_get_string(ap_prefs,
-		"jack", "output2", "alsa_pcm:playback_2"), 127);
+	ap_strlcpy(dest_port2, prefs_get_string(ap_prefs,
+		"jack", "output2", "alsa_pcm:playback_2"), sizeof (dest_port2));
 	if (strncmp(dest_port2, "alsa_pcm:out", 12) == 0){
 		alsaplayer_error("jack: discarding old alsa_pcm naming");
-		strcpy(dest_port2, "alsa_pcm:playback_2");
+		ap_strlcpy(dest_port2, "alsa_pcm:playback_2", sizeof (dest_port2));
 	}
 
 	return 1;
@@ -238,9 +240,8 @@ static int jack_open(const char *name)
 		// Check if the token is comma delimited, meaning port names
 		if ((s=strchr(t, ','))) {
 			*s++ = 0;
-			strncpy(dest_port1, t, 127);
-			strncpy(dest_port2, s, 127);
-			dest_port1[127] = dest_port2[127] = 0;
+			ap_strlcpy(dest_port1, t, sizeof (dest_port1));
+			ap_strlcpy(dest_port2, s, sizeof (dest_port2));
 			alsaplayer_error("jack: using ports \"%s\" and \"%s\" for output",
 					dest_port1, dest_port2);
 		} else if (strcmp(t, "noreconnect") == 0) {
