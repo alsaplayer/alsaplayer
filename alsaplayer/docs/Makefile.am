@@ -1,23 +1,23 @@
 EXTRA_DIST = wishlist.txt donations.txt
 
 clean-local:
-	rm -f *~ *.bak $(DOC_STAMPS) || true
+	rm -f *~ *.bak reference.doxygen.log || true
 
 if HAVE_DOXYGEN
 
-DOX=reference.doxygen
-
-DOC_STAMPS=html-build.stamp
-
 DOC_DIR=$(datadir)/doc/alsaplayer
 
-all-local: doxygen-build.stamp
+all-local: reference.doxygen.log
 
-doxygen-build.stamp: $(DOX)
-	@echo '*** Running doxygen ***'
-	doxygen $(DOX)
-	touch doxygen-build.stamp
-			
+reference.doxygen.log: reference.doxygen $(top_srcdir)/configure
+	$(AM_V_GEN)doxygen reference.doxygen
+	@UNDOCUMENTED=$$(cat $@); \
+	if test -n "$$UNDOCUMENTED" ; then \
+		echo "---------- UNDOCUMENTED CODE ----------"; \
+		echo "$$UNDOCUMENTED"; \
+		echo "---------------------------------------"; \
+		fi
+
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(DOC_DIR)/reference/html
 	(installfiles=`echo reference/html/*.html`; \
@@ -31,7 +31,7 @@ install-data-local:
 	fi)
 
 # we need doxygen stuff built so we can know what to uninstall
-uninstall-local: doxygen-build.stamp
+uninstall-local: reference.doxygen.log
 	(installfiles=`echo reference/html/*.html`; \
 	if test "$$installfiles" = 'reference/html/*.html'; \
 	then echo '-- Nothing to uninstall' ; \
@@ -47,7 +47,7 @@ dist-check-doxygen:
 endif
 
 distclean-local: clean
-	rm -f *.stamp || true
+	rm -f reference.doxygen.log || true
 	if test -d reference; then rm -rf reference; fi
 
 dist-hook: dist-hook-local
