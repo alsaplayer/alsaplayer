@@ -25,7 +25,6 @@ have_opengl=no
 have_oggvorbis=no
 have_flac=no
 have_libFLAC_113=no
-have_oggflac=no
 have_alsa=no
 have_oss=no
 have_esd=no
@@ -209,22 +208,6 @@ dnl ========================
 AC_CHECK_LIB(FLAC, [FLAC__stream_decoder_init_ogg_stream],
      have_libFLAC_113=yes, have_libFLAC_113=no)
 
-dnl ===============
-dnl OggFLAC library
-dnl ===============
-if test "$have_libFLAC_113" = "no" ; then
-	AC_CHECK_LIB(OggFLAC, OggFLAC__stream_decoder_new,
-	     OGGFLC_LDADD="-lOggFLAC -logg"; have_oggflac=yes;
-	     AC_DEFINE(HAVE_LIBOGGFLC, 1, [Define if you have OggFLAC library (-lOggFLAC)]), have_oggflac=no; OGGFLC_LDADD=, -lOggFLAC -lFLAC -logg -lm)
-fi
-
-AC_ARG_ENABLE(oggflac,
-	AC_HELP_STRING([--enable-oggflac], [Enable OggFLAC plugin (default=yes)]),
-	[if test "$enableval" = "no" ; then
-		if test "$have_oggflac" = "yes" ; then have_oggflac=no ; fi
-	fi])
-
-
 dnl ===========
 dnl MAD library
 dnl ===========
@@ -260,7 +243,6 @@ AC_ARG_ENABLE(id3tag,
 CFLAGS=$oldcflags
 
 AC_SUBST(FLC_LDADD)
-AC_SUBST(OGGFLC_LDADD)
 AC_SUBST(MAD_LDADD)
 
 dnl ==========
@@ -366,7 +348,6 @@ AC_CHECK_HEADERS(libintl.h)
 AC_CHECK_HEADERS(mad.h)
 AC_CHECK_HEADERS(id3tag.h)
 AC_CHECK_HEADERS(FLAC/stream_decoder.h)
-AC_CHECK_HEADERS(OggFLAC/stream_decoder.h)
 
 dnl ==========
 dnl ALSA stuff
@@ -502,7 +483,6 @@ AM_CONDITIONAL(HAVE_DOXYGEN, $HAVE_DOXYGEN)
 AM_CONDITIONAL(HAVE_LIBMAD,test "x$have_libmad" = xyes)
 AM_CONDITIONAL(USE_LIBID3TAG, test "x$use_libid3tag" = xyes)
 AM_CONDITIONAL(HAVE_FLC, test "x$have_flac" = xyes)
-AM_CONDITIONAL(HAVE_OGGFLC, test "x$have_oggflac" = xyes)
 AM_CONDITIONAL(HAVE_JACK,	test "x$have_jack" = xyes)
 AM_CONDITIONAL(HAVE_ALSA, test "x$have_alsa" = xyes)
 AM_CONDITIONAL(HAVE_OSS, test "x$have_oss" = xyes)
@@ -661,8 +641,6 @@ Configuration:
   Build cdda input plugin:            ${ac_cv_header_linux_cdrom_h}
   Build mikmod input plugin:          ${have_mikmod}
   Build FLAC input plugin:            ${have_flac}
-  Included OggFLAC input plugin:      ${have_libFLAC_113}
-  Separated OggFLAC input plugin:     ${have_oggflac}
   Build sndfile input plugin:         ${have_sndfile}
   Build systray icon:                 ${have_systray}"
 echo

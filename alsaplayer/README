@@ -27,7 +27,7 @@ AlsaPlayer is a new PCM player developed on the Linux Operating System. Since
 the first public beta release it support has been added for various other
 Operating Systems (mostly Unix variants). AlsaPlayer was written in the first
 place to excercise the new ALSA (Advanced Linux Sound Architecture) driver and
-library system. 
+library system.
 
 
 INTERFACE PLUGINS
@@ -41,7 +41,7 @@ only interface.
 
 INPUT PLUGINS
 -------------
-The program is very much plugin based. New file formats can be added simply 
+The program is very much plugin based. New file formats can be added simply
 by writing a new input plugin. The only requirement is that the data can be
 presented in PCM audio format.The following plugins are in various states
 of usability:
@@ -50,7 +50,7 @@ of usability:
   http://www.vorbis.com/
 - MPEG audio plugin, based on mpg123 0.59r, works quite well, being phased out
   however for:
-- MAD based audio plugin, based on the new MAD MPEG decoder library, uses a 
+- MAD based audio plugin, based on the new MAD MPEG decoder library, uses a
   tiny bit more CPU, but has much better output quality then mpg123.
   http://www.mars.org/home/rob/proj/mpeg/
 - CDDA plugin, play back audio CD's by ripping the data digitally off the disk
@@ -59,11 +59,7 @@ of usability:
   http://www.mikmod.org/
 - Audiofile library plugin, this one needs a bit of work still
   http://oss.sgi.com/projects/audiofile/
-- FLAC + OggFLAC plugin with support for both FLAC<=1.2 and FLAC-1.3 and 1.4.
-  FLAC<=1.2 is well tested and work fine. FLAC-1.3 and 1.4 is new, OggFLAC is
-  included in libflac, so ignore "Build OggFLAC input plugin: no" during the
-  configure step. It will be build with FLAC-1.3 or 1.4 if 
-  "Build FLAC input plugin: yes". As it is a new feature, feedback is welcomed.
+- FLAC (including OggFLAC) plugin with support for FLAC >= 1.3.
 
 OUTPUT PLUGINS
 --------------
@@ -124,7 +120,7 @@ output plugins for your system.
 ** IMPORTANT**: Make sure you run 'make install' after the compilation is
 finished. The various plugins need to be in a specific place on your system.
 If you don't want to install it on your system right away you can always use a
-different --prefix when running configure. 
+different --prefix when running configure.
 
 
 EMBEDDED MODE
@@ -157,12 +153,12 @@ Name        : alsaplayer-announce
 Description : notification of new versions (read-only)
 Address     : mailto:alsaplayer-announce-request@lists.tartarus.org
               with subject "subscribe"
- 
+
 Name        : alsaplayer-devel
 Description : discuss development of alsaplayer
 Address     : mailto:alsaplayer-devel-request@lists.tartarus.org
               with subject "subscribe"
- 
+
 Name        : alsaplayer-commits
 Description : keep up to date on the SVN commits
 Address     : http://lists.sourceforge.net/lists/listinfo/alsaplayer-commits
