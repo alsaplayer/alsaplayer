@@ -24,8 +24,11 @@
 #include <limits.h>
 #include <string.h>
 #include <sndfile.h>
+
 #include "input_plugin.h"
 #include "alsaplayer_error.h"
+#include "ap_string.h"
+
 static const int BLOCK_SAMPLES = 256;
 
 struct sf_local_data
@@ -111,7 +114,6 @@ static int sndfile_play_block (input_object *obj, short *buf)
 {
 	size_t	samples_to_read;
 	size_t	items_read;
-	size_t	samples;
 	size_t	i;
 	short	*buffer;
 

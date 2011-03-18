@@ -179,7 +179,6 @@ static char **file_expand (const char *uri)
     DIR *dir;
     char **expanded = NULL;
     int count = 0;
-    char *s;
     char decoded_uri[1024];
     char tmp [512];
 

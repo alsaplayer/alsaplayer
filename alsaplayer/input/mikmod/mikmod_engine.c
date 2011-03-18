@@ -23,7 +23,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <mikmod.h>
+
 #include "input_plugin.h"
+#include "ap_string.h"
 
 #define MIKMOD_BLOCK_SIZE	4608
 

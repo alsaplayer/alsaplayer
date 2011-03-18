@@ -38,6 +38,7 @@
 #include "alsaplayer_error.h"
 #include "utilities.h"
 #include "prefs.h"
+#include "ap_string.h"
 
 
 typedef struct http_desc_t_ {

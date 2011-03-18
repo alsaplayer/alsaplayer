@@ -854,7 +854,6 @@ void cddb_read_file (char *file, struct cdda_local_data *data)
 						snprintf (post, sizeof (post), "%s%s", data->tracks[index].track, name);
 						free(data->tracks[index].track);
 						data->tracks[index].track = strdup(post);
-						free(post);
 					} else {
 						data->tracks[index].track = strdup (name);
 					}
