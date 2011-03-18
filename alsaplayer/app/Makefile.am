@@ -43,7 +43,10 @@ alsaplayer_SOURCES = AlsaSubscriber.cpp \
 		ControlSocket.cpp \
 		prefs.c reader.cpp
 
-alsaplayer_LDADD = @LIBINTL@
+alsaplayer_LDADD = $(top_builddir)/libalsaplayer/libalsaplayer.la @LIBINTL@
+
+#$(top_builddir)/libalsaplayer/libalsaplayer.la :
+#	(cd $(top_builddir)/libalsaplayer/ && make)
 
 jackplayer:
 		ln -s alsaplayer jackplayer

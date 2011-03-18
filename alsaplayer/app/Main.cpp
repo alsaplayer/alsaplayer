@@ -62,7 +62,8 @@
 #include "utilities.h"
 #include "prefs.h"
 #include "alsaplayer_error.h"
-#include "message.c"		/* This is a dirty hack */
+#include "message.h"
+#include "control.h"
 #include "reader.h"
 
 #define MAX_REMOTE_SESSIONS	32

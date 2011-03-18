@@ -63,6 +63,8 @@ int ap_get_volume(int session, float *volume);
 int ap_set_pan(int session, float pan);
 int ap_get_pan(int session, float *pan);
 
+int ap_is_paused(int session , int *paused);
+
 int ap_set_looping(int session, int val);
 int ap_is_looping(int session, int *val);
 int ap_set_playlist_looping(int session, int val);

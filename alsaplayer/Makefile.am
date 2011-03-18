@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = po interface output input app alsaplayer extra docs \
-	libalsaplayer examples m4 reader scopes2
+SUBDIRS = po libalsaplayer interface output input app alsaplayer extra docs \
+	examples m4 reader scopes2
 
 EXTRA_DIST = config.rpath  bootstrap alsaplayer.spec
 
