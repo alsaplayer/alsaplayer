@@ -1,18 +1,63 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(alsaplayer)
+AC_INIT([alsaplayer],[0.99.82],[alsaplayer-devel@lists.tartarus.org],
+		[alsaplayer],[http://alsaplayer.sourceforge.net/])
 
-ALSAPLAYER_MAJOR_VERSION=0
-ALSAPLAYER_MINOR_VERSION=99
-ALSAPLAYER_MICRO_VERSION=81
+AC_CONFIG_SRCDIR([app/Main.cpp])
+AC_CANONICAL_TARGET([])
 
-BETA=
+AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_HEADERS([config.h])
 
-ALSAPLAYER_VERSION=$ALSAPLAYER_MAJOR_VERSION.$ALSAPLAYER_MINOR_VERSION.${ALSAPLAYER_MICRO_VERSION}${BETA}
-
-AM_INIT_AUTOMAKE(alsaplayer, ${ALSAPLAYER_VERSION})
+AM_INIT_AUTOMAKE($PACKAGE_NAME,$PACKAGE_VERSION)
 AM_SILENT_RULES([yes])
-AM_MAINTAINER_MODE
+
+dnl Add parameters for aclocal
+AC_SUBST(ACLOCAL_AMFLAGS, "-I m4")
+
+dnl Check for programs.
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_CXX
+AC_PROG_INSTALL
+AC_GNU_SOURCE
+
+AM_GNU_GETTEXT_VERSION([0.14.5])
+AM_GNU_GETTEXT([external])
+
+AC_PROG_LN_S
+dnl static libs make no sense for alsaplayer
+AM_DISABLE_STATIC
+AM_PROG_LIBTOOL
+AM_PROG_CC_C_O
+AC_PROG_MAKE_SET
+
+dnl ======================
+dnl Check for header files
+dnl ======================
+
+AC_HEADER_STDC
+AC_HEADER_DIRENT
+AC_CHECK_HEADERS(fcntl.h)
+AC_CHECK_HEADERS(malloc.h)
+AC_CHECK_HEADERS(sys/ioctl.h)
+AC_CHECK_HEADERS(sys/time.h)
+AC_CHECK_HEADERS(unistd.h)
+AC_CHECK_HEADERS(linux/cdrom.h)
+AC_CHECK_HEADERS(sys/soundcard.h)
+AC_CHECK_HEADERS(sys/audioio.h)
+AC_CHECK_HEADERS(audio/audiolib.h)
+AC_CHECK_HEADERS(libintl.h)
+AC_CHECK_HEADERS(mad.h)
+AC_CHECK_HEADERS(id3tag.h)
+AC_CHECK_HEADERS(FLAC/stream_decoder.h)
+
+dnl ===============
+dnl POSIX.4 threads
+dnl ===============
+
+AC_CHECK_LIB(pthread,pthread_create, ,
+AC_MSG_ERROR([** POSIX.4 threads not installed or broken **]))
 
 dnl =======================================================
 dnl alsaplayer control variables and their default values
@@ -48,26 +93,9 @@ if test "x$x_libraries" = "xNONE" ; then
    x_libraries=/usr/X11R6/lib
 fi
 
-dnl Check for programs.
-AC_PROG_CC
-AC_PROG_CPP
-AC_PROG_CXX
-AC_PROG_INSTALL
-AC_GNU_SOURCE
-
-AM_GNU_GETTEXT_VERSION([0.14.5])
-AM_GNU_GETTEXT([external])
-
-AC_PROG_LN_S
-dnl static libs make no sense for alsaplayer
-AM_DISABLE_STATIC
-AM_PROG_LIBTOOL
-AM_PROG_CC_C_O
-AC_PROG_MAKE_SET
 AM_PATH_LIBMIKMOD(3.1.7, have_mikmod=yes, have_mikmod=no)
 AM_PATH_OGG(have_ogg=yes, have_ogg=no)
 AM_PATH_VORBIS(have_vorbis=yes, have_vorbis=no)
-AC_HEADER_STDC
 
 dnl ======================
 dnl PKGCONFIG preparations
@@ -322,33 +350,6 @@ AC_SUBST(SNDFILE_LIBS)
 AC_SUBST(SNDFILE_CFLAGS)
 AM_CONDITIONAL(HAVE_SNDFILE, test "x$have_sndfile" = xyes)
 
-dnl ===============
-dnl POSIX.4 threads
-dnl ===============
-
-AC_CHECK_LIB(pthread,pthread_create, ,
-AC_MSG_ERROR([** POSIX.4 threads not installed or broken **]))
-
-dnl ======================
-dnl Check for header files
-dnl ======================
-
-AC_HEADER_STDC
-AC_HEADER_DIRENT
-AC_CHECK_HEADERS(fcntl.h)
-AC_CHECK_HEADERS(malloc.h)
-AC_CHECK_HEADERS(sys/ioctl.h)
-AC_CHECK_HEADERS(sys/time.h)
-AC_CHECK_HEADERS(unistd.h)
-AC_CHECK_HEADERS(linux/cdrom.h)
-AC_CHECK_HEADERS(sys/soundcard.h)
-AC_CHECK_HEADERS(sys/audioio.h)
-AC_CHECK_HEADERS(audio/audiolib.h)
-AC_CHECK_HEADERS(libintl.h)
-AC_CHECK_HEADERS(mad.h)
-AC_CHECK_HEADERS(id3tag.h)
-AC_CHECK_HEADERS(FLAC/stream_decoder.h)
-
 dnl ==========
 dnl ALSA stuff
 dnl ==========
@@ -534,9 +535,6 @@ dnl ================================================================
 dnl Special assembly options. Note: Need to fix the above arch code!
 dnl ================================================================
 
-dnl AC_CANONICAL_HOST
-AM_CONFIG_HEADER(config.h)
-
 AC_SUBST(ARCH_CFLAGS)
 
 dnl ============================================================
@@ -567,11 +565,6 @@ AC_SUBST(ALSA_LIB)
 AC_SUBST(ADDON_DIR)
 AC_SUBST(AS)
 AC_SUBST(ASFLAGS)
-
-AC_SUBST(ALSAPLAYER_MAJOR_VERSION)
-AC_SUBST(ALSAPLAYER_MINOR_VERSION)
-AC_SUBST(ALSAPLAYER_MICRO_VERSION)
-AC_SUBST(ALSAPLAYER_VERSION)
 
 AC_OUTPUT([ po/Makefile.in
 Makefile
