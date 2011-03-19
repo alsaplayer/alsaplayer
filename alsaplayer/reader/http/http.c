@@ -227,7 +227,7 @@ static int parse_uri (const char *uri, char **host, int *port, char **path)
 	l = colon - uri - 7;
     } else {
 	/* Calculate host part length */
-	l = slash  ?  slash - uri - 7  :  strlen (uri+7);
+	l = slash  ?  slash - uri - 7  :  (int) strlen (uri+7);
     }
 
     /* Reset port if URI looks like 'foo.bar:/aaa.mp3' */
@@ -237,8 +237,8 @@ static int parse_uri (const char *uri, char **host, int *port, char **path)
     /* Split URI */
     //if (*host)
     //	    free(*host);
-    *host = malloc ((l+1) * sizeof(char));
-    ap_strlcpy (*host, uri+7, l);
+    *host = malloc (l+1);
+    ap_strlcpy (*host, uri+7, l+1);
 
     //if (*path)
     //	    free(*path);
@@ -833,7 +833,7 @@ static size_t http_read (void *ptr, size_t size, void *d)
 
     /* wait while the buffer will has entire block */
     while (1) {
-	int readed;
+	size_t readed;
 
 	/* check for error */
 	if (desc->error) {
