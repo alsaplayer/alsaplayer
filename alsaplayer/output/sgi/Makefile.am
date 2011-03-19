@@ -17,7 +17,7 @@ endif
 
 lib_LTLIBRARIES = $(sgi_outltlibs)
 
-AM_CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include
+AM_CFLAGS = @DFLAGS@ -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/include
 
 libdir = $(ADDON_DIR)/output
 

@@ -25,7 +25,7 @@ libdir = $(ADDON_DIR)/input
 libmod_la_LDFLAGS = $(modldflags)
 LIBS = @LIBMIKMOD_LIBS@
 AM_CXXFLAGS = $(modcflags)
-AM_CFLAGS = $(modcflags)
+AM_CFLAGS = @DFLAGS@ $(modcflags)
 libmod_la_LIBADD = $(modldadd)
 
 libmod_la_SOURCES = 	$(modsources)

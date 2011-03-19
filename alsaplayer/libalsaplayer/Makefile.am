@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = libalsaplayer.la
 
-INCLUDES = -I$(top_srcdir)/alsaplayer
+AM_CFLAGS = @DFLAGS@ -I$(top_srcdir)/alsaplayer
 
 libalsaplayer_la_LDFLAGS = -export-dynamic -version-info 0:2:0
 

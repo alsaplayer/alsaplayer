@@ -16,7 +16,7 @@ EXTRA_DIST = sparc_out.c
 
 lib_LTLIBRARIES = $(sparc_outltlibs)
 
-AM_CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer
+AM_CFLAGS = @DFLAGS@ -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer
 
 libdir = $(ADDON_DIR)/output
 
