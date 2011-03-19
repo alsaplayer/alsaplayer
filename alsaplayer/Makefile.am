@@ -1,12 +1,12 @@
-AUTOMAKE_OPTIONS = foreign
-SUBDIRS = po libalsaplayer interface output input app alsaplayer extra docs \
-	examples m4 reader scopes2
+EXTRA_DIST = input_plugin.h output_plugin.h scope_plugin.h SampleBuffer.h \
+	 scope_config.h alsaplayer_convolve.h alsaplayer_fft.h utilities.h \
+	 interface_plugin.h stream_info.h CorePlayer.h Playlist.h AlsaNode.h \
+	 AlsaSubscriber.h Effects.h alsaplayer_error.h AlsaPlayer.h prefs.h \
+	 control.h reader.h object.h playitem.h playlist.h
 
-EXTRA_DIST = config.rpath  bootstrap alsaplayer.spec
+alsaplayerincludedir = $(includedir)/alsaplayer
 
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = alsaplayer.pc
-
-man_MANS = alsaplayer.1
-
-ACLOCAL_AMFLAGS = -I m4
+alsaplayerinclude_HEADERS = input_plugin.h output_plugin.h scope_plugin.h \
+	interface_plugin.h stream_info.h CorePlayer.h Playlist.h SampleBuffer.h AlsaNode.h \
+	Effects.h utilities.h alsaplayer_error.h AlsaSubscriber.h \
+	prefs.h AlsaPlayer.h control.h reader.h
