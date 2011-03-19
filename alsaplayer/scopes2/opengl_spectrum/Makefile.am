@@ -6,9 +6,9 @@ oglespectrumldflags = -export-dynamic -avoid-version
 
 else
 
-oglspectrumltlibs = 
-oglspectrumsources = 
-oglespectrumldflags = 
+oglspectrumltlibs =
+oglspectrumsources =
+oglespectrumldflags =
 
 endif
 
@@ -24,6 +24,6 @@ liboglspectrum_la_LDFLAGS = $(oglespectrumldflags)
 
 liboglspectrum_la_SOURCES = $(oglspectrumsources)
 
-AM_CFLAGS = -D_REENTRANT @ARCH_CFLAGS@ @DFLAGS@
+AM_CFLAGS = -D_REENTRANT @DFLAGS@
 
 INCLUDES = -I$(top_srcdir)/alsaplayer -I$(top_builddir)

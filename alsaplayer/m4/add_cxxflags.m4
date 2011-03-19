@@ -4,7 +4,7 @@ dnl Add the given option to CXXFLAGS, if it doesn't break the compiler
 
 AC_DEFUN([AP_ADD_CXXFLAGS],
 [AC_MSG_CHECKING([if $CXX accepts $1])
-	AC_LANG_PUSH([C++])
+	AC_LANG_ASSERT([C++])
 	ac_add_cxxflags__old_cxxflags="$CXXFLAGS"
 	CXXFLAGS="$CXXFLAGS $1"
 	AC_TRY_LINK([
@@ -15,5 +15,4 @@ AC_DEFUN([AP_ADD_CXXFLAGS],
 		AC_MSG_RESULT([no])
 		CXXFLAGS="$ac_add_cxxflags__old_cxxflags"
 		)
-	AC_LANG_POP
 ])# AP_ADD_CXXFLAGS

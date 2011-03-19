@@ -4,9 +4,7 @@ text_interfacesources = text.cpp
 
 lib_LTLIBRARIES = $(text_interfaceltlibs)
 
-COMMON_FLAGS = @ARCH_CFLAGS@
-
-AM_CXXFLAGS = @DFLAGS@ $(COMMON_FLAGS) -D_REENTRANT \
+AM_CXXFLAGS = @DFLAGS@ -D_REENTRANT \
 		-I$(top_builddir) -I$(top_srcdir)/libalsaplayer \
 		-I$(top_srcdir)/alsaplayer \
 		-DADDON_DIR=\"$(ADDON_DIR)\"

@@ -29,10 +29,8 @@ endif
 
 lib_LTLIBRARIES = $(gtk2_interfaceltlibs)
 
-COMMON_FLAGS = @DFLAGS@ @ARCH_CFLAGS@
-
 AM_CXXFLAGS = -I$(top_builddir) -I$(top_srcdir)/libalsaplayer \
-		-I$(top_srcdir)/alsaplayer @GTK2_CFLAGS@ $(COMMON_FLAGS) \
+		-I$(top_srcdir)/alsaplayer @GTK2_CFLAGS@ @DFLAGS@ \
 		-D_REENTRANT -DADDON_DIR=\"$(ADDON_DIR)\"
 
 libdir = $(ADDON_DIR)/interface

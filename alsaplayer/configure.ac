@@ -82,7 +82,6 @@ if test $HAVE_DOXYGEN = "false"; then
 	AC_MSG_WARN([*** doxygen not found, docs will not be built])
 fi
 
-
 dnl =======================================================
 dnl alsaplayer control variables and their default values
 dnl this config procedure shamelessly stolen from libmikmod
@@ -130,31 +129,6 @@ if test -z $PKG_CONFIG_PATH; then
 fi
 
 export PKG_CONFIG_PATH
-
-
-dnl ===============
-dnl Debugging stuff
-dnl ===============
-
-AC_ARG_ENABLE(debug,
-	AC_HELP_STRING([--enable-debug], [Enable debugging (default=no)]),,
-	enable_debug=no)
-
-if test "$enable_debug" = yes; then
-	DFLAGS="$DFLAGS -g"
-fi
-
-
-AC_ARG_ENABLE(profiling,
-	AC_HELP_STRING([--enable-profiling], [Enable profiling (-pg)]),,
-	enable_profiling=no)
-
-if test "$enable_profiling" = yes; then
-	DFLAGS="$DFLAGS -pg"
-fi
-
-
-AC_SUBST(DFLAGS)
 
 
 dnl =========
@@ -443,19 +417,14 @@ CFLAGS=$oldcflags
 AC_SUBST(NAS_LIB)
 
 
-dnl ======================
-dnl JACK conditional stuff
-dnl ======================
-
-AC_ARG_ENABLE(jack,
-	AC_HELP_STRING([--enable-jack], [Enable jack support (default=yes)]),
-	[if test "$enableval" = "no" ; then have_jack=no ; fi])
-
-
 dnl =====================================================
 dnl Sound output stuff. This will go away once everything
 dnl is really modular
 dnl =====================================================
+
+AC_ARG_ENABLE(jack,
+	AC_HELP_STRING([--enable-jack], [Enable jack support (default=yes)]),
+	[if test "$enableval" = "no" ; then have_jack=no ; fi])
 
 AC_ARG_ENABLE(alsa,
 	AC_HELP_STRING([--enable-alsa], [Enable ALSA (default=yes)]),
@@ -530,24 +499,56 @@ AM_CONDITIONAL(ARCH_ULTRA,test "$ARCH_TYPE" = "sun4u")
 dnl cruft to satisfy gtk2s Makefile. Leave it in for now
 AM_CONDITIONAL(BUILD_EXTERNAL, test "a" = "b")
 
-AC_MSG_CHECKING(for gcc optimization flags)
-old_cflags=$CFLAGS
-CFLAGS="$CFLAGS -O2 -funroll-loops -finline-functions -ffast-math -Wall"
-AC_TRY_COMPILE([#include <stdio.h>],
-[ printf ("hello, world"); ],
-[ EXTRA_OPT_CFLAGS="$CFLAGS -O2 -funroll-loops -finline-functions -ffast-math -Wall"],[ EXTRA_OPT_CFLAGS=""])
-CFLAGS=$old_cflags
-AC_MSG_RESULT([$EXTRA_OPT_CFLAGS])
+test_cflags="-O2 -funroll-loops -finline-functions -ffast-math -Wall -Wextra"
+for f in $test_cflags ; do
+	AP_ADD_CFLAGS($f)
+	done
 
-ARCH_CFLAGS="$EXTRA_OPT_CFLAGS"
+AC_LANG_PUSH([C++])
+for f in $test_cflags ; do
+	AP_ADD_CXXFLAGS($f)
+	done
+AC_LANG_POP
 
 AP_DEFINE_CONDITIONAL(HAVE_GLIB2, test "$have_glib2" = "yes", [Define if we have glib2])
 AP_DEFINE_CONDITIONAL(HAVE_GTK2, test "$have_gtk2" = "yes", [Define if we have gtk2])
+
+dnl ===============
+dnl Debugging stuff
+dnl ===============
+
+AC_ARG_ENABLE(debug,
+	AC_HELP_STRING([--enable-debug], [Enable debugging (default=no)]),,
+	enable_debug=no)
+
+if test "$enable_debug" = yes; then
+	DFLAGS="$DFLAGS -g"
+fi
+
+
+AC_ARG_ENABLE(profiling,
+	AC_HELP_STRING([--enable-profiling], [Enable profiling (-pg)]),,
+	enable_profiling=no)
+
+if test "$enable_profiling" = yes; then
+	DFLAGS="$DFLAGS -pg"
+fi
+
+AC_ARG_ENABLE(werror,
+	AC_HELP_STRING([--enable-werror], [enable -Werror in all Makefiles]))
+
+if test x$enable_werror = "xyes" ; then
+	AP_ADD_CFLAGS([-Werror])
+	AC_LANG_PUSH([C++])
+	AP_ADD_CXXFLAGS([-Werror])
+	AC_LANG_POP
+	fi
 
 dnl ================================================================
 dnl Special assembly options. Note: Need to fix the above arch code!
 dnl ================================================================
 
+AC_SUBST(DFLAGS)
 AC_SUBST(ARCH_CFLAGS)
 
 ADDON_DIR=${libdir}/$PACKAGE
@@ -556,7 +557,6 @@ dnl ================
 dnl Create Makefiles
 dnl ================
 
-AC_SUBST(ARCH_CFLAGS)
 AC_SUBST(ALSA_LIB)
 AC_SUBST(ADDON_DIR)
 AC_SUBST(AS)

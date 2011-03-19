@@ -16,11 +16,10 @@ endif
 
 lib_LTLIBRARIES = $(xosd_interfaceltlibs)
 
-COMMON_FLAGS = @ARCH_CFLAGS@
+COMMON_FLAGS =
 
-AM_CXXFLAGS = @DFLAGS@ $(COMMON_FLAGS) \
-		-D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
-		-DADDON_DIR=\"$(ADDON_DIR)\"
+AM_CXXFLAGS = @DFLAGS@ -D_REENTRANT -I$(top_builddir) \
+		-I$(top_srcdir)/alsaplayer -DADDON_DIR=\"$(ADDON_DIR)\"
 
 libdir = $(ADDON_DIR)/interface
 

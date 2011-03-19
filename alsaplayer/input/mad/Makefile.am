@@ -25,8 +25,8 @@ lib_LTLIBRARIES = $(mad_inltlibs)
 
 libdir = $(ADDON_DIR)/input
 
-COMMON_CFLAGS = -I$(top_builddir) -I$(top_srcdir)/libalsaplayer \
-	-I$(top_srcdir)/alsaplayer @ARCH_CFLAGS@ -D_REENTRANT @DFLAGS@
+COMMON_CFLAGS =  -D_REENTRANT @DFLAGS@ -I$(top_builddir) \
+		-I$(top_srcdir)/libalsaplayer -I$(top_srcdir)/alsaplayer
 
 AM_CFLAGS = $(COMMON_CFLAGS)
 

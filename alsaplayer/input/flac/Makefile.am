@@ -25,9 +25,7 @@ lib_LTLIBRARIES = $(flac_inltlibs)
 INCLUDES = -I$(top_builddir) -I$(top_srcdir)/libalsaplayer \
 			-I$(top_srcdir)/alsaplayer
 
-COMMON_FLAGS = @ARCH_CFLAGS@
-
-AM_CXXFLAGS = -D_REENTRANT $(COMMON_FLAGS)
+AM_CXXFLAGS = -D_REENTRANT
 
 libdir = $(ADDON_DIR)/input
 
