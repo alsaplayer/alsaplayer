@@ -443,7 +443,7 @@ static int vorbis_open(input_object *obj, const char *path)
 	data->bitrate_instant = 0;
 	data->bigendianp = is_big_endian();
 	memcpy(&data->vf, &vf_temp, sizeof(vf_temp));
-	memcpy(data->path, path, sizeof(data->path)-1);
+	ap_strlcpy(data->path, path, sizeof(data->path));
 
 	return 1;
 }

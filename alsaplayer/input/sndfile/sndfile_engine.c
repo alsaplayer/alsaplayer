@@ -59,6 +59,7 @@ static int sndfile_open (input_object *obj, const char *name)
 
 	data = (struct sf_local_data *) obj->local_data;
 
+	memset (&data->sfinfo, 0, sizeof (data->sfinfo));
 	data->sfhandle = sf_open(name, SFM_READ, &data->sfinfo);
 
 	if (data->sfhandle == NULL)
