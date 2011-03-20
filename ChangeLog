@@ -1,3 +1,222 @@
+Sat Mar 19 21:49:30 2011 +1100 
+ Erik de Castro Lopo erikd@mega-nerd.com 
+ Lift the actual alsaplayer code up a directory.  
+
+Sat Mar 19 20:41:54 2011 +1100 
+ Erik de Castro Lopo erikd@mega-nerd.com 
+ Move experimental fftscope midi and python dirs into attic.  
+
+Sat Mar 19 19:48:52 2011 +1100 
+ Erik de Castro Lopo erikd@mega-nerd.com 
+ Add .gitignore file.  
+
+Sat Mar 19 07:21:03 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Fix two minor valgrind warnings.  
+
+Sat Mar 19 07:12:42 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Make sure all AM_CFLAGS have @DFLAGS@.  
+
+Sat Mar 19 03:49:45 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Fix compiler warnings.  
+
+Sat Mar 19 01:52:40 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Change the way CFLAGS and CXXFLAGS are set up.  
+
+Sat Mar 19 00:29:21 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Add m4 macros add_cflags.m4 and add_cxxflags.m4.  
+
+Fri Mar 18 23:23:30 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ configure.ac : More cleanups.  
+
+Fri Mar 18 22:45:46 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Silence doxygen output noise. Explicitly output doxygen warnings.  
+
+Fri Mar 18 21:18:12 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Minor configure.ac tweaks.  
+
+Fri Mar 18 20:52:11 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Fix compiler warnings.  
+
+Fri Mar 18 11:33:36 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Clean up C string handling. Add functions ap_strlcpy() and ap_strlcat() and replace all instances
+of strcat/strcpy/strncat/strncpy.
+
+Fri Mar 18 09:32:06 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Replace #include of message.c with message.h. Also required having the alsaplayer app link to libalsaplayer.co.
+
+Fri Mar 18 07:04:56 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Remove deprecated OggFlac stuff.  
+
+Wed Mar 16 10:04:14 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ interface/gtk2/gtk_interface.cpp : Fix compile issue arising from configure.ac changes.  
+
+Tue Mar 15 11:15:26 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ configure.ac : Cleanup.  
+
+Tue Mar 15 11:14:16 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ docs/reference.doxygen.in : Remove deprecated tags.  
+
+Tue Mar 15 09:11:00 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Remove m4/audiofile.m4.  
+
+Tue Mar 15 08:38:15 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Fix compiler warnings.  
+
+Tue Mar 15 08:20:19 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ configure.ac : Insist on external gettext.  
+
+Tue Mar 15 08:16:02 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Remove typecast on return value of malloc() in C code.  
+
+Tue Mar 15 07:45:17 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ input/sndfile/sndfile_engine.c : Only handle FLAC if libsndfile has FLAC support.  
+
+Tue Mar 15 07:33:34 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Replace more sprintfs with snprintf.  
+
+Tue Mar 15 06:56:40 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Replace all uses of sprintf and snprintf.  
+
+Tue Mar 15 06:28:18 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ input/vorbis/vorbis_engine.c : Fix compiler warning.  
+
+Tue Mar 15 06:23:17 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Purge bundled gettext library in intl/ directory.  
+
+Tue Mar 15 02:41:19 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ input/vorbis/vorbis_engine.c : Accept files with 'oga' extension.  
+
+Mon Mar 14 09:04:26 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Terminology update. Change 'frame' to 'block' where appropriate. Alsaplayer used to use the work 'frame' to describe a block of N (N > 1)
+stereo sample pairs. The MPEG encoder/decoder and and speech related DSP
+algorithms also use 'frame' this way.
+
+However, Jack, Alsa, libsndfile, Apple's CoreAudio and others use the word
+'frame' to describe the M samples (where M is the number of channels) that
+belong to the same sampling instance.
+
+With this change we leave change Alsaplayer to agree with Jack, Alsa etc.
+
+Sun Mar 13 21:41:41 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Remove input/mpg123/ directory. This code wasn't currently being used, doesn't compile and bundles what
+looks like a really old, hacked version of the mpg123 sources.
+We already have the mad MP3 decoder and after the changes to the internals
+are done, we can look at doing a MP3 input using libmpg123 instead.
+
+Sun Mar 13 15:54:40 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ TODO : Add new section at top of file.  
+
+Sun Mar 13 10:24:05 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Rename output/alsa-final => output/alsa.  
+
+Sun Mar 13 10:12:15 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Purge alsa-0.5 output plugin.  
+
+Sat Mar 12 23:32:30 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ First step on the way to convert internal data format to float. Originally all audio data was passed aroung Alsaplayer using char* pointers
+even though the audio data was actually always 16 bit stereo PCM. This
+first step changes all the char* pointers to short*.
+
+Sat Mar 12 22:44:31 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ configure.ac : Remove left over audiofile cruft.  
+
+Sat Mar 12 22:11:10 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ input/sndfile/sndfile_engine.c : Reject files with > 2 channels.  
+
+Sat Mar 12 12:42:35 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ input/ : Prefer sndfile plugin over flac because sndfile handles 24 bit flac files.  
+
+Sat Mar 12 12:35:58 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ input/sndfile/sndfile_engine.c : Reject all files starting with 'http://'.  
+
+Sat Mar 12 10:23:25 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Remove redundant wav and audiofile plugins.  
+
+Sat Mar 12 02:33:21 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ input/flac/FlacPlugin.cpp : FIx segfault when FLAC fails to open a file.  
+
+Fri Mar 11 09:09:48 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ input/sndfile/sndfile_engine.c : Cleanup.  
+
+Fri Mar 11 07:44:58 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ alsaplayer/output_plugin.h : Fix doxygen comment.  
+
+Fri Mar 11 07:44:10 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ input/sndfile/sndfile_engine.c : Remove unused function getfilenamefrompath.  
+
+Fri Mar 11 07:42:59 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ docs/reference.doxygen.in : Remove deprecated USE_WINDOWS_ENCODING.  
+
+Sun Feb 6 21:00:13 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Remove old debugging cruft.  
+
+Sat Jan 29 23:35:48 2011 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Fix compiler warnings in jack output plugin. No able to figure out how to force it to use jack so this is
+untested.
+
+Wed Nov 10 17:30:12 2010 +0000 
+ dominique_libre dominique_libre@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Fix compilation failure on 64 bits systems with recent gcc versions  
+
+Wed Nov 10 11:29:22 2010 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Add AM_SILENT_RULES to configure.ac.  
+
+Wed Nov 10 11:26:35 2010 +0000 
+ mega-nerd mega-nerd@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Fix bootstrap aclocal invocation.  
+
+Tue Nov 9 22:46:45 2010 +0000 
+ dominique_libre dominique_libre@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Erik de Castro Lopo: patch that remove the  keyword from file headers,  confuses Bzr  
+
+Tue Nov 9 21:08:42 2010 +0000 
+ dominique_libre dominique_libre@d285aa52-1d29-0410-9d4c-b54c28f01bc6 
+ Erik de Castro Lopo: patch that fix automake warnings about underquoted macro names.  
+
 Sun Nov 7 2010
 --------------
 * Applied a patch by Dominik Kuhlen that fix a lot of compilation warnings.
