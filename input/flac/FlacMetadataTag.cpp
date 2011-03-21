@@ -125,7 +125,7 @@ FlacMetadataTag::hasMetadata (const std::string & name)
 FlacMetadataTag::FlacMetadataTag (const std::string & name)
     : FlacTag (name)
 {
-    FLAC__StreamMetadata *metadata;
+    FLAC__StreamMetadata *metadata = NULL;
     FLAC__StreamMetadata_VorbisComment_Entry *comment;
     unsigned int i,j;
     char *key, *value;
