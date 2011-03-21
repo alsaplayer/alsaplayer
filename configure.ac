@@ -523,6 +523,10 @@ AC_ARG_ENABLE(debug,
 
 if test "$enable_debug" = yes; then
 	DFLAGS="$DFLAGS -g"
+	AP_ADD_CFLAGS(-fstack-protector)
+	AC_LANG_PUSH([C++])
+	AP_ADD_CXXFLAGS(-fstack-protector)
+	AC_LANG_POP
 fi
 
 
