@@ -83,6 +83,14 @@ flac_nr_blocks (input_object * obj)
     return obj->nr_blocks;
 }
 
+static int64_t
+flac_frame_count (input_object * obj)
+{
+    if (!obj)
+	return 0;
+    return ((int64_t) obj->nr_blocks) * obj->block_size;
+}
+
 
 static long
 flac_block_to_centisec (input_object * obj, int block)
@@ -340,6 +348,7 @@ input_plugin_info (void)
     flac_plugin.block_seek   = flac_block_seek;
     flac_plugin.block_size   = flac_block_size;
     flac_plugin.nr_blocks    = flac_nr_blocks;
+    flac_plugin.frame_count  = flac_frame_count;
     flac_plugin.block_to_sec = flac_block_to_centisec;
     flac_plugin.sample_rate  = flac_sample_rate;
     flac_plugin.channels     = flac_channels;
