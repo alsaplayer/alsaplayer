@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
-*/ 
+*/
 
 #include "AboutWindow.h"
 
@@ -45,29 +45,29 @@ about_dialog_show(GtkWidget *aboutdialog)
 }
 
 gboolean
-about_delete_event(GtkWidget *widget, GdkEvent *event, gpointer user_data)
+about_delete_event(GtkWidget *widget, GdkEvent *, gpointer)
 {
 	if (GTK_WIDGET_VISIBLE(widget))
 		gtk_widget_hide(widget);
-	
-	return TRUE;	
+
+	return TRUE;
 }
 
 void
-about_response(GtkDialog *dialog, gint arg1, gpointer user_data)
+about_response(GtkDialog *dialog, gint arg1, gpointer)
 {
 	if (arg1 == GTK_RESPONSE_CANCEL)
 		about_delete_event(GTK_WIDGET(dialog), NULL, NULL);
-} 
-  
+}
+
 #include "pixmaps/logo.xpm"
-                                                                                                   
+
 GtkWidget*
-init_about_window(GtkWidget *main_window)
+init_about_window(GtkWidget *)
 {
 	GtkWidget *about_window = NULL;
 	GdkPixbuf *about_logo = NULL;
-	const gchar *authors[] = {"Andy Lo A Foe\t\t\t<andy@alsaplayer.org>", 
+	const gchar *authors[] = {"Andy Lo A Foe\t\t\t<andy@alsaplayer.org>",
 								"Dominique Michel\t\t<dominique@tuxfamilly.org>",
 								"Madej",
 								"\nPatches:",
@@ -76,7 +76,7 @@ init_about_window(GtkWidget *main_window)
 								"\nCheck AUTHORS file for a more complete list",
 								NULL};
 //	const gchar *artists[] = {"", NULL};
-	const gchar *documenters[] = {"Yvo Timmermans", 
+	const gchar *documenters[] = {"Yvo Timmermans",
 									"Dominique Michel",
 									"Andy Lo A Foe",
 									NULL};
@@ -92,11 +92,11 @@ GNU General Public Licence for more details.\n\
 \n\
 You should have received a copy of the GNU General Public Licence\n\
 along with AlsaPlayer; if not, see <http://www.gnu.org/licenses/>.");
-	
+
 	about_logo = gdk_pixbuf_new_from_xpm_data((const char **)logo_xpm);
 
 	about_window = gtk_about_dialog_new();
-	
+
 	gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(about_window), "AlsaPlayer");
 	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(about_window), VERSION);
 	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about_window), "Copyright © 1998-2010");
@@ -111,9 +111,9 @@ along with AlsaPlayer; if not, see <http://www.gnu.org/licenses/>.");
 
 	g_signal_connect(G_OBJECT(about_window), "delete-event", G_CALLBACK(about_delete_event), NULL);
 	g_signal_connect(G_OBJECT(about_window), "response", G_CALLBACK(about_response), NULL);
-	
+
 	g_object_unref(G_OBJECT(about_logo));
-	
+
 	return about_window;
 }
 

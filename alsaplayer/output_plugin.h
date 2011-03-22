@@ -124,4 +124,9 @@ typedef struct _output_plugin
 
 typedef output_plugin*(*output_plugin_info_type)(void);
 
+#ifdef __cplusplus
+extern "C"
+#endif
+output_plugin* output_plugin_info (void);
+
 #endif

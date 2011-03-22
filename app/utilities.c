@@ -73,8 +73,8 @@ char *get_prefsdir(void)
 	return prefs_path;
 }
 
-
-void encode_percent_free(char *p)
+#if 0
+static voidencode_percent_free(char *p)
 {
 	if (p)
 		free(p);
@@ -109,6 +109,7 @@ char *encode_percent(const char *furi)
 	}
 	return res;
 }
+#endif
 
 char *parse_file_uri(const char *furi)
 {

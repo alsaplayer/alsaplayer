@@ -17,12 +17,12 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
- */ 
+ */
 #include <dirent.h>
 #include <sys/stat.h>
 #include <gtk/gtk.h>
 #include <sys/time.h>
-#include <time.h>   
+#include <time.h>
 #include <math.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -30,16 +30,18 @@
 #include <string.h>
 #include <assert.h>
 #include <pthread.h>
+
 #include "scope_config.h"
 #include "prefs.h"
+#include "ap_unused.h"
 
 #define SPACE_WH	128	/* Leave this at 128 for now */
 
 static char actEq[257];
-static char oldEq[257];       
+static char oldEq[257];
 
 static char scX[257];
-static char scY[257];     
+static char scY[257];
 
 static GtkWidget *area = NULL;
 static GtkWidget *scope_win = NULL;
@@ -53,7 +55,8 @@ static gint running = 0;
 static void spacescope_hide(void);
 static int spacescope_running(void);
 
-void spacescope_set_data(void *audio_buffer, int size)
+static void
+spacescope_set_data(void *audio_buffer, int size)
 {
 	int i;
 	short *sound = (short *)audio_buffer;
@@ -61,7 +64,7 @@ void spacescope_set_data(void *audio_buffer, int size)
 	if (!sound) {
 		memset(&actEq, 0, sizeof(actEq));
 		return;
-	}		
+	}
 	if (running && sound) {
 		char *newset = actEq;
 		int bufsize = size / (size >= 512 ? 512 : size);
@@ -73,7 +76,8 @@ void spacescope_set_data(void *audio_buffer, int size)
 }
 
 
-void the_spacescope(void)
+static void
+the_spacescope(void)
 {
 	gint foo, bar;
 	char *oldset = oldEq;
@@ -102,23 +106,23 @@ void the_spacescope(void)
 	}
 	GDK_THREADS_ENTER();
 	spacescope_hide();
-	GDK_THREADS_LEAVE();	 
+	GDK_THREADS_LEAVE();
 }
 
-void stop_spacescope(void);
+static void stop_spacescope(void);
 
-static gboolean close_spacescope_window(GtkWidget *widget, GdkEvent *event, gpointer data)
+static gboolean
+close_spacescope_window(GtkWidget * UNUSED (widget), GdkEvent * UNUSED (event), gpointer UNUSED (data))
 {
-	GDK_THREADS_LEAVE();				
+	GDK_THREADS_LEAVE();
 	stop_spacescope();
 	GDK_THREADS_ENTER();
 
 	return TRUE;
 }
 
-
-
-GtkWidget *init_spacescope_window(void)
+static GtkWidget *
+init_spacescope_window(void)
 {
 	GtkWidget *spacescope_win;
 	GdkColor color;
@@ -129,8 +133,8 @@ GtkWidget *init_spacescope_window(void)
 
 	spacescope_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(spacescope_win), "Spacescope");
-	gtk_widget_set_usize(spacescope_win, SPACE_WH, SPACE_WH);	
-	gtk_window_set_policy (GTK_WINDOW (spacescope_win), FALSE, FALSE, TRUE);  
+	gtk_widget_set_usize(spacescope_win, SPACE_WH, SPACE_WH);
+	gtk_window_set_policy (GTK_WINDOW (spacescope_win), FALSE, FALSE, TRUE);
 
 	gtk_widget_realize(spacescope_win);
 	color.red = SCOPE_BG_RED << 8;
@@ -163,30 +167,32 @@ GtkWidget *init_spacescope_window(void)
 	for (i = 0; i < 256; i++) {
 		scX[i] = (char) (sin(((2*M_PI)/255)*i)*128);
 		scY[i] = (char) (-cos(((2*M_PI)/255)*i)*128);
-	} 
+	}
 	return spacescope_win;
-}  
+}
 
 void spacescope_hide(void)
 {
 	gint x, y;
 
 	if (scope_win) {
-		gdk_window_get_root_origin(scope_win->window, &x, &y);	
+		gdk_window_get_root_origin(scope_win->window, &x, &y);
 		gtk_widget_hide(scope_win);
-		gtk_widget_set_uposition(scope_win, x, y);	
+		gtk_widget_set_uposition(scope_win, x, y);
 	}
 }
 
-void stop_spacescope(void)
+static void
+stop_spacescope(void)
 {
 	if (running) {
 		running = 0;
 		pthread_join(spacescope_thread, NULL);
-	}	
+	}
 }
 
-void run_spacescope(void *data)
+static void
+run_spacescope(void * UNUSED (data))
 {
 	nice(SCOPE_NICE);
 	the_spacescope();
@@ -195,7 +201,8 @@ void run_spacescope(void *data)
 }
 
 
-void start_spacescope(void)
+static void
+start_spacescope(void)
 {
 	if (!is_init) {
 		is_init = 1;
@@ -204,14 +211,14 @@ void start_spacescope(void)
 	if (pthread_mutex_trylock(&spacescope_mutex) != 0) {
 		printf("spacescope already running\n");
 		return;
-	}		 
+	}
 	running = 1;
 	gtk_widget_show(scope_win);
 	pthread_create(&spacescope_thread, NULL, (void * (*)(void *))run_spacescope, NULL);
 }
 
 
-static int init_spacescope(void *arg)
+static int init_spacescope(void * UNUSED (arg))
 {
 	if (prefs_get_bool(ap_prefs, "spacescope", "active", 0))
 		start_spacescope();
@@ -232,7 +239,7 @@ static void shutdown_spacescope(void)
 	if (scope_win) {
 		gtk_widget_destroy(scope_win);
 		scope_win = NULL;
-	}				
+	}
 }
 
 
@@ -260,4 +267,4 @@ scope_plugin spacescope_plugin = {
 scope_plugin *scope_plugin_info(void)
 {
 	return &spacescope_plugin;
-}		
+}

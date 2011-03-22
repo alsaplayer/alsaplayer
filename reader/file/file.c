@@ -30,6 +30,7 @@
 #include "utilities.h"
 #include "alsaplayer_error.h"
 #include "ap_string.h"
+#include "ap_unused.h"
 
 static void decode_uri(const char *src, char *dst, int len)
 {
@@ -64,7 +65,7 @@ static void decode_uri(const char *src, char *dst, int len)
 }
 
 /* open stream, may return NULL */
-static void *file_open(const char *uri, reader_status_type status, void *data)
+static void *file_open(const char *uri, reader_status_type UNUSED (status), void * UNUSED (data))
 {
     char decoded_uri[1024];
     int offset = 0;
@@ -121,7 +122,7 @@ static void file_shutdown(void)
     return;
 }
 
-static size_t file_metadata (void *ptr, size_t size, void *d)
+static size_t file_metadata (void * UNUSED (ptr), size_t UNUSED (size), void * UNUSED (d))
 {
 	/* Not implemented */
 	return 0;
@@ -220,7 +221,7 @@ static int file_eof (void *d)
 }
 
 /* stream is seekable */
-static int file_seekable (void *d)
+static int file_seekable (void * UNUSED (d))
 {
     return 1;
 }

@@ -1,5 +1,5 @@
 /*  opengl_spectrum.c (C) 2002 by Andy Lo A Foe <andy@alsaplayer.org>
- 
+
  *  Based on code found in xmms:
  *  Copyright (C) 1998-2000  Peter Alm, Mikael Alm, Olle Hallnas, Thomas Nilsson and 4Front Technologies
  *
@@ -34,6 +34,7 @@
 #include "alsaplayer_error.h"
 #include "utilities.h"
 #include "prefs.h"
+#include "ap_unused.h"
 
 #define NUM_BANDS 16
 
@@ -73,9 +74,9 @@ static int window_h;
 static void stop_display(int);
 static void oglspectrum_start(void);
 
-static void wait_for_vsync()
+static void wait_for_vsync(void)
 {
-#ifdef NVIDIA_SYNC	
+#ifdef NVIDIA_SYNC
 	static int init = 0;
 	static int fd = -1;
 	static struct pollfd pollfds;
@@ -88,13 +89,13 @@ static void wait_for_vsync()
 			pollfds.events = 0xffff;
 			pollfds.revents = 0xffff;
 			alsaplayer_error("Using NVIDIA poll method for vsync");
-		}	 
-		init = 1;	
+		}
+		init = 1;
 	}
 	poll (&pollfds, 1, -1);
 #else
 	dosleep(10000);
-#endif	
+#endif
 }
 
 
@@ -153,11 +154,11 @@ static void draw_rectangle(GLfloat x1, GLfloat y1, GLfloat z1, GLfloat x2, GLflo
 {
 	if(y1 == y2)
 	{
-	
+
 		glVertex3f(x1, y1, z1);
 		glVertex3f(x2, y1, z1);
 		glVertex3f(x2, y2, z2);
-		
+
 		glVertex3f(x2, y2, z2);
 		glVertex3f(x1, y2, z2);
 		glVertex3f(x1, y1, z1);
@@ -167,7 +168,7 @@ static void draw_rectangle(GLfloat x1, GLfloat y1, GLfloat z1, GLfloat x2, GLflo
 		glVertex3f(x1, y1, z1);
 		glVertex3f(x2, y1, z2);
 		glVertex3f(x2, y2, z2);
-		
+
 		glVertex3f(x2, y2, z2);
 		glVertex3f(x1, y2, z1);
 		glVertex3f(x1, y1, z1);
@@ -181,16 +182,16 @@ static void draw_bar(GLfloat x_offset, GLfloat z_offset, GLfloat height, GLfloat
 	glColor3f(red,green,blue);
 	draw_rectangle(x_offset, height, z_offset, x_offset + width, height, z_offset + 0.1);
 	draw_rectangle(x_offset, 0, z_offset, x_offset + width, 0, z_offset + 0.1);
-	
+
 	glColor3f(0.5 * red, 0.5 * green, 0.5 * blue);
 	draw_rectangle(x_offset, 0.0, z_offset + 0.1, x_offset + width, height, z_offset + 0.1);
 	draw_rectangle(x_offset, 0.0, z_offset, x_offset + width, height, z_offset );
 
 	glColor3f(0.25 * red, 0.25 * green, 0.25 * blue);
-	draw_rectangle(x_offset, 0.0, z_offset , x_offset, height, z_offset + 0.1);	
+	draw_rectangle(x_offset, 0.0, z_offset , x_offset, height, z_offset + 0.1);
 	draw_rectangle(x_offset + width, 0.0, z_offset , x_offset + width, height, z_offset + 0.1);
 
-	
+
 }
 
 static void draw_bars(void)
@@ -198,13 +199,13 @@ static void draw_bars(void)
 	int x,y;
 	GLfloat x_offset, z_offset, r_base, b_base;
 
-	
+
 
 	glClearColor(0,0,0,0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glPushMatrix();
-	glTranslatef(0.0,-0.5,-5.0);	      
+	glTranslatef(0.0,-0.5,-5.0);
 	glRotatef(x_angle,1.0,0.0,0.0);
 	glRotatef(y_angle,0.0,1.0,0.0);
 	glRotatef(z_angle,0.0,0.0,1.0);
@@ -216,11 +217,11 @@ static void draw_bars(void)
 
 		b_base = y * (1.0 / 15);
 		r_base = 1.0 - b_base;
-			
+
 		for(x = 0; x < 16; x++)
 		{
-			x_offset = -1.6 + (x * 0.2);			
-				
+			x_offset = -1.6 + (x * 0.2);
+
 			draw_bar(x_offset, z_offset, heights[y][x], r_base - (x * (r_base / 15.0)), x * (1.0 / 15), b_base);
 		}
 	}
@@ -234,19 +235,20 @@ static void draw_bars(void)
 #define DEFAULT_W	640
 #define DEFAULT_H 480
 
-void *draw_thread_func(void *arg)
+static void *
+draw_thread_func(void * UNUSED (arg))
 {
 	Bool configured = FALSE;
 
-	window_w = prefs_get_int(ap_prefs, "opengl_spectrum", "width", DEFAULT_W);	
+	window_w = prefs_get_int(ap_prefs, "opengl_spectrum", "width", DEFAULT_W);
 	window_h = prefs_get_int(ap_prefs, "opengl_spectrum", "height", DEFAULT_H);
-	
+
 	if ((window = create_window(window_w, window_h)) == 0)
 	{
 		alsaplayer_error("unable to create window");
 		pthread_exit(NULL);
 	}
-	
+
 	XMapWindow(dpy, window);
 
 	glMatrixMode(GL_PROJECTION);
@@ -264,7 +266,7 @@ void *draw_thread_func(void *arg)
 			XEvent event;
 			KeySym keysym;
 			char buf[16];
-			
+
 			XNextEvent(dpy, &event);
 			switch(event.type)
 			{
@@ -278,12 +280,12 @@ void *draw_thread_func(void *arg)
 				break;
 			case KeyPress:
 
-				
+
 				XLookupString (&event.xkey, buf, 16, &keysym, NULL);
 				switch(keysym)
 				{
 				case XK_Escape:
-					
+
 					going = FALSE;
 					break;
 				case XK_z:
@@ -301,12 +303,12 @@ void *draw_thread_func(void *arg)
 				case XK_b:
 					/* xmms_remote_playlist_next(oglspectrum_vp.xmms_session); */
 					break;
-				case XK_Up:					
+				case XK_Up:
 					x_speed -= 0.1;
 					if(x_speed < -3.0)
 						x_speed = -3.0;
 					break;
-				case XK_Down:					
+				case XK_Down:
 					x_speed += 0.1;
 					if(x_speed > 3.0)
 						x_speed = 3.0;
@@ -315,7 +317,7 @@ void *draw_thread_func(void *arg)
 					y_speed -= 0.1;
 					if(y_speed < -3.0)
 						y_speed = -3.0;
-					
+
 					break;
 				case XK_Right:
 					y_speed += 0.1;
@@ -339,9 +341,9 @@ void *draw_thread_func(void *arg)
 					x_angle = 20.0;
 					y_angle = 45.0;
 					z_angle = 0.0;
-					break;					
+					break;
 				}
-				
+
 				break;
 			case ClientMessage:
 				if ((Atom)event.xclient.data.l[0] == wm_delete_window_atom)
@@ -356,7 +358,7 @@ void *draw_thread_func(void *arg)
 			x_angle += x_speed;
 			if(x_angle >= 360.0)
 				x_angle -= 360.0;
-			
+
 			y_angle += y_speed;
 			if(y_angle >= 360.0)
 				y_angle -= 360.0;
@@ -435,22 +437,22 @@ static void stop_display(int join_thread)
 	}
 }
 
-static int oglspectrum_init(void *arg)
+static int oglspectrum_init(void * UNUSED (arg))
 {
 	pthread_mutex_init(&scope_mutex, NULL);
 
 	if (prefs_get_bool(ap_prefs, "opengl_spectrum", "active", 0)) {
 		oglspectrum_start();
 	}
-	return 1;		
-}	
+	return 1;
+}
 
 static void oglspectrum_start(void)
 {
 	if (pthread_mutex_trylock(&scope_mutex) != 0) {
 		alsaplayer_error("spectrum already running");
 		return;
-	}	
+	}
 	start_display();
 }
 
@@ -459,14 +461,14 @@ static void oglspectrum_stop(void)
 	stop_display(1);
 }
 
-static void oglspectrum_set_fft(void *fft_buffer, int samples, int channels)
+static void oglspectrum_set_fft(void *fft_buffer, int samples, int UNUSED (channels))
 {
 	int i,c;
 	int y;
 	GLfloat val;
 	int *buf = (int *)fft_buffer;
 
-	
+
 	int xscale[] = {0, 1, 2, 3, 5, 7, 10, 14, 20, 28, 40, 54, 74, 101, 137, 187, 255};
 
 	for(y = 15; y > 0; y--) {
@@ -474,7 +476,7 @@ static void oglspectrum_set_fft(void *fft_buffer, int samples, int channels)
 			heights[y][i] = heights[y - 1][i];
 		}
 	}
-	
+
 	for(i = 0; i < NUM_BANDS; i++) {
 		for(c = xscale[i], y = 0; c < xscale[i + 1]; c++) {
 			if((buf[c]+buf[samples+c]) > y)

@@ -39,7 +39,7 @@
 #include "utilities.h"
 #include "prefs.h"
 #include "ap_string.h"
-
+#include "ap_unused.h"
 
 typedef struct http_desc_t_ {
     /* Info about stream */
@@ -141,7 +141,8 @@ static int calc_time_to_wait (http_desc_t *desc)
 }
 
 /* ------------------------------------------------ */
-void shrink_buffer (http_desc_t *desc)
+static void
+shrink_buffer (http_desc_t *desc)
 {
     int low_pos = desc->begin + ((long int)http_buffer_size * (long int)desc->played_parts) / 16;
 
@@ -164,7 +165,8 @@ void shrink_buffer (http_desc_t *desc)
 }
 
 /* ------------------------------------------------ */
-void status_notify (http_desc_t *desc)
+static void
+status_notify (http_desc_t *desc)
 {
     char sbuf[1024];
 
@@ -776,7 +778,7 @@ static float http_can_handle(const char *uri)
 
 /* ******************************************************************* */
 /* init plugin                                                         */
-static int http_init()
+static int http_init(void)
 {
     http_buffer_size = prefs_get_int (ap_prefs, "http", "buffer_size", DEFAULT_HTTP_BUFFER_SIZE);
 
@@ -788,7 +790,7 @@ static int http_init()
 
 /* ******************************************************************* */
 /* shutdown plugin                                                     */
-static void http_shutdown()
+static void http_shutdown(void)
 {
     return;
 }
@@ -925,14 +927,14 @@ static long http_tell (void *d)
 
 /* ******************************************************************* */
 /* directory test                                                      */
-static float http_can_expand (const char *uri)
+static float http_can_expand (const char * UNUSED (uri))
 {
     return 0.0;
 }
 
 /* ******************************************************************* */
 /* expand directory                                                    */
-static char **http_expand (const char *uri)
+static char **http_expand (const char * UNUSED (uri))
 {
     return NULL;
 }

@@ -67,7 +67,7 @@ static GtkTargetEntry drag_types[] = {
 static int n_drag_types = sizeof(drag_types)/sizeof(drag_types[0]);
 
 static void
-dialog_cancel_response(GtkWidget *dialog, gpointer data)
+dialog_cancel_response(GtkWidget *dialog, gpointer /*data*/)
 {
 // do we really need placing window ?
 //	gint x,y;
@@ -320,7 +320,7 @@ list_button_press_event(GtkWidget *widget, GdkEventButton *event, gpointer user_
 }
 
 static void
-shuffle_cb(GtkButton *button, gpointer user_data)
+shuffle_cb(GtkButton * /*button*/, gpointer user_data)
 {
 	PlaylistWindow *playlist_window = (PlaylistWindow *) user_data;
 	if (playlist_window) {
@@ -331,13 +331,13 @@ shuffle_cb(GtkButton *button, gpointer user_data)
 }
 
 static void
-dialog_popup(GtkButton *button, gpointer user_data)
+dialog_popup(GtkButton * /*button*/, gpointer user_data)
 {
 	gtk_widget_show_all(GTK_WIDGET(user_data));
 }
 
 static void
-clear_cb(GtkButton *button, gpointer user_data)
+clear_cb(GtkButton * /*button*/, gpointer user_data)
 {
 	PlaylistWindow *playlist_window = (PlaylistWindow *) user_data;
 	if (playlist_window) {
@@ -397,13 +397,13 @@ playlist_remove(GtkWidget *, gpointer user_data)
 
 static void
 dnd_received(GtkWidget *widget,
-		GdkDragContext   *drag_context,
+		GdkDragContext   * /*drag_context*/,
 		gint              x,
 		gint              y,
 		GtkSelectionData *data,
 		guint             info,
-		guint             time,
-		gpointer          user_data)
+		guint             /*time*/,
+		gpointer          /*user_data*/)
 {
 	char *filename = NULL;
 	char *p, *s, *res;
@@ -465,11 +465,11 @@ dnd_received(GtkWidget *widget,
 
 static void
 dnd_get(GtkWidget *widget,
-		GdkDragContext *drag_context,
+		GdkDragContext * /*drag_context*/,
 		GtkSelectionData *data,
-		guint info,
-		guint time,
-		gpointer user_data)
+		guint /*info*/,
+		guint /*time*/,
+		gpointer /*user_data*/)
 {
 	GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget));
 
@@ -514,7 +514,7 @@ dnd_get(GtkWidget *widget,
 		g_free(uris[i]);
 }
 
-static void dnd_delete(GtkWidget *widget, GdkDragContext *drag_context, gpointer user_data)
+static void dnd_delete(GtkWidget *widget, GdkDragContext * /*drag_context*/, gpointer /*user_data*/)
 {
 	GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget));
 

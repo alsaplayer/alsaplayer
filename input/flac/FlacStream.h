@@ -318,7 +318,7 @@ FlacStream::channels () const
 }
 
 inline bool
-FlacStream::seekAbsolute (FLAC__uint64 sample)
+FlacStream::seekAbsolute (FLAC__uint64)
 {
     return false;
 }

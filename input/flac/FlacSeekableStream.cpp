@@ -185,7 +185,7 @@ void
 #ifdef LEGACY_FLAC
 FlacSeekableStream::metaCallBack (const FLAC__SeekableStreamDecoder * decoder,
 #else
-FlacSeekableStream::metaCallBack (const FLAC__StreamDecoder * decoder,
+FlacSeekableStream::metaCallBack (const FLAC__StreamDecoder *,
 #endif
 				  const FLAC__StreamMetadata * md,
 				  void * client_data)
@@ -208,7 +208,7 @@ void
 #ifdef LEGACY_FLAC
 FlacSeekableStream::errCallBack (const FLAC__SeekableStreamDecoder * decoder,
 #else
-FlacSeekableStream::errCallBack (const FLAC__StreamDecoder * decoder,
+FlacSeekableStream::errCallBack (const FLAC__StreamDecoder *,
 #endif
 				 FLAC__StreamDecoderErrorStatus status,
 				 void * client_data)

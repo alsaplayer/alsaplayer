@@ -189,7 +189,7 @@ void volume_changed(void *, float vol)
 	notifier_unlock();
 }
 
-void position_notify(void *, int pos)
+void position_notify(void *, int)
 {
 	notifier_lock();
 	indicator_callback(NULL, 0);
@@ -215,7 +215,7 @@ void stop_notify(void *data)
 	playlist_window->SetStop();
 }
 
-void start_notify(void *data)
+void start_notify(void *)
 {
 //	PlaylistWindow::SetCurrentCb does it so this is useless
 
@@ -233,7 +233,7 @@ reverse_pic(GdkPixbuf *p)
 }
 
 static void
-ap_message_delete(GtkWidget *widget, GdkEvent *event, gpointer user_data)
+ap_message_delete(GtkWidget *widget, GdkEvent *, gpointer)
 {
 	gtk_widget_destroy(widget);
 }
@@ -298,7 +298,7 @@ gboolean ap_message_question(GtkWidget *parent, const gchar *message)
 }
 
 static gboolean
-main_window_delete(GtkWidget *widget, GdkEvent *event, gpointer user_data)
+main_window_delete(GtkWidget *widget, GdkEvent *, gpointer)
 {
 	global_update = -1;
 
@@ -393,7 +393,7 @@ gboolean release_event(GtkWidget *widget, GdkEvent *, gpointer data)
 	return FALSE;
 }
 
-gboolean button_release_event(GtkWidget *widget, GdkEvent *event, gpointer user_data)
+gboolean button_release_event(GtkWidget *widget, GdkEvent *event, gpointer)
 {
 	if (event->type != GDK_SCROLL)
 		return FALSE;
@@ -488,7 +488,7 @@ void smoother(void *data)
 pthread_t looper_thread;
 pthread_mutex_t looper_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-void looper(void *data)
+void looper(void *)
 {
 	// GtkAdjustment *adj = (GtkAdjustment *)data;
 	loop_struct *loop = &global_loop;
@@ -1035,7 +1035,7 @@ playlist_button_cb(GtkWidget *button, gpointer user_data)
 
 }
 
-gboolean alsaplayer_button_press(GtkWidget *widget, GdkEventButton *event, gpointer data)
+gboolean alsaplayer_button_press(GtkWidget *, GdkEventButton *event, gpointer data)
 {
 	if (event->button == 3) {
 		gtk_menu_popup (GTK_MENU (data), NULL, NULL, NULL, NULL,
@@ -1073,7 +1073,7 @@ update_info_window(GtkWidget *main_window)
 }
 
 static void
-preferences_cb(GtkMenuItem *item, gpointer user_data)
+preferences_cb(GtkMenuItem *, gpointer user_data)
 {
 	if (!GTK_WIDGET_VISIBLE(GTK_WIDGET(user_data)))
 		gtk_widget_show_all(GTK_WIDGET(user_data));
@@ -1082,7 +1082,7 @@ preferences_cb(GtkMenuItem *item, gpointer user_data)
 }
 
 static void
-about_cb(GtkMenuItem *item, gpointer user_data)
+about_cb(GtkMenuItem *, gpointer user_data)
 {
 	if (!GTK_WIDGET_VISIBLE(GTK_WIDGET(user_data)))
 		about_dialog_show(GTK_WIDGET(user_data));
@@ -1235,7 +1235,7 @@ loop_button_clicked(GtkWidget *widget, gpointer user_data)
 }
 
 static gboolean
-configure_window (GtkWidget *widget, GdkEvent *event, gpointer user_data)
+configure_window (GtkWidget *, GdkEvent *, gpointer user_data)
 {
 	InfoWindow* info = (InfoWindow *)user_data;
 

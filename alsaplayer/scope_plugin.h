@@ -213,4 +213,9 @@ typedef struct _scope_plugin
  */
 typedef scope_plugin*(*scope_plugin_info_type)(void);
 
+#ifdef __cplusplus
+extern "C"
+#endif
+scope_plugin* scope_plugin_info(void);
+
 #endif

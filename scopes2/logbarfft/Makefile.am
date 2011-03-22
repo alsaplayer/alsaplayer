@@ -14,7 +14,8 @@ logbarfftsources =
 
 endif
 
-AM_CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
+AM_CFLAGS = -D_REENTRANT -I$(top_builddir) \
+			-I$(top_srcdir)/libalsaplayer -I$(top_srcdir)/alsaplayer \
 			-I$(top_srcdir)/app/scopes \
 			@GTK2_CFLAGS@ @DFLAGS@
 

@@ -19,19 +19,22 @@
  *  Inspired by xine's prefs
  *
 */
-#include "prefs.h"
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "alsaplayer_error.h"
+#include "prefs.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 
-int prefs_cmp(const void *p1, const void *p2)
+static int
+prefs_cmp(const void *p1, const void *p2)
 {
 	int res;
 	prefs_key_t *a = (prefs_key_t *)p1;

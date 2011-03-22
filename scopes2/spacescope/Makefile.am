@@ -14,7 +14,8 @@ spacescopesources =
 
 endif
 
-AM_CFLAGS = -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer \
+AM_CFLAGS = -D_REENTRANT -I$(top_builddir) \
+			 -I$(top_srcdir)/libalsaplayer -I$(top_srcdir)/alsaplayer \
 			@GTK2_CFLAGS@ @DFLAGS@
 
 libdir = $(ADDON_DIR)/scopes2

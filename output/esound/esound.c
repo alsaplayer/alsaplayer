@@ -26,8 +26,10 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <dlfcn.h>
+
 #include "output_plugin.h"
 #include "AlsaPlayer.h"
+#include "ap_unused.h"
 
 static int esound_socket = -1;
 
@@ -70,7 +72,7 @@ static int esound_init(void)
 	return 1;
 }
 
-static int esound_open(const char *path)
+static int esound_open(const char * UNUSED (path))
 {
 	if (esound_socket >= 0)
 		return 1;
@@ -91,7 +93,7 @@ static int esound_write(short *data, int count)
 }
 
 
-static int esound_set_buffer(int *fragment_size, int *fragment_count, int *channels)
+static int esound_set_buffer(int * UNUSED (fragment_size), int * UNUSED (fragment_count), int * UNUSED (channels))
 {
 	printf("ESD: fragments fixed at 256/256, stereo\n");
 	return 1;

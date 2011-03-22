@@ -28,6 +28,7 @@
 #include "input_plugin.h"
 #include "alsaplayer_error.h"
 #include "ap_string.h"
+#include "ap_unused.h"
 
 static const int BLOCK_SAMPLES = 256;
 
@@ -94,7 +95,8 @@ static int sndfile_open (input_object *obj, const char *name)
 }
 
 
-void sndfile_close (input_object *obj)
+static void
+sndfile_close (input_object *obj)
 {
 	if (obj == NULL)
 		return;
@@ -220,7 +222,7 @@ sndfile_frame_count (input_object *obj)
 	return -1;
 }
 
-static int sndfile_block_size (input_object *obj)
+static int sndfile_block_size (input_object * UNUSED (obj))
 {
 	return BLOCK_SAMPLES;
 }

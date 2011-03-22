@@ -19,13 +19,16 @@
 */
 
 #include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
 #include "output_plugin.h"
 #include "alsaplayer_error.h"
 #include "utilities.h"
+#include "ap_unused.h"
 
 static int null_init(void)
 {
@@ -34,7 +37,7 @@ static int null_init(void)
 	return 1;
 }
 
-static int null_open(const char *name)
+static int null_open(const char * UNUSED (name))
 {
 	return 1;
 }
@@ -46,14 +49,14 @@ static void null_close(void)
 }
 
 
-static int null_write(short *data, int count)
+static int null_write(short * UNUSED (data), int UNUSED (count))
 {
 	dosleep(10000);
 	return 1;
 }
 
 
-static int null_set_buffer(int *fragment_size, int *fragment_count, int *channels)
+static int null_set_buffer(int * UNUSED (fragment_size), int * UNUSED (fragment_count), int * UNUSED (channels))
 {
 	return 1;
 }

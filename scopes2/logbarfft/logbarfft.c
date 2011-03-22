@@ -17,23 +17,25 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
-*/ 
+*/
 #include <pthread.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <gtk/gtk.h>
 #include <sys/time.h>
-#include <time.h>   
+#include <time.h>
 #include <math.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+
 #include "scope_config.h"
 #include "prefs.h"
+#include "ap_unused.h"
 
-#define BARS 16 
+#define BARS 16
 
 static GtkWidget *area = NULL;
 static GdkRgbCmap *color_map = NULL;
@@ -64,7 +66,8 @@ static const int default_colors[] = {
 };
 
 
-void logscope_set_fft(void *fft_data, int samples, int channels)
+static void
+logscope_set_fft(void *fft_data, int samples, int channels)
 {
 	if (!fft_data) {
 			memset(fft_buf, 0, sizeof(fft_buf));
@@ -88,7 +91,7 @@ static void the_fftscope(void)
 
 		memset(bits, 0, 256 * 128);
 
-		for (i=0; i < BARS; i++) { 
+		for (i=0; i < BARS; i++) {
 			val = 0;
 			for (j = xranges[i]; j < xranges[i + 1]; j++) {
 				/* k = (guint)(sqrt(fftout[j]) * fftmult); */
@@ -96,7 +99,7 @@ static void the_fftscope(void)
 				val += k;
 			}
 			if(val > 127) val = 127;
-			if (val > (guint)maxbar[ i ]) 
+			if (val > (guint)maxbar[ i ])
 				maxbar[ i ] = val;
 			else {
 				k = maxbar[ i ] - (4 + (8 / (128 - maxbar[ i ])));
@@ -117,7 +120,7 @@ static void the_fftscope(void)
 		gdk_flush();
 		GDK_THREADS_LEAVE();
 		dosleep(SCOPE_SLEEP);
-	}	
+	}
 	GDK_THREADS_ENTER();
 	fftscope_hide();
 	GDK_THREADS_LEAVE();
@@ -126,7 +129,8 @@ static void the_fftscope(void)
 
 static void stop_fftscope(void);
 
-static gboolean close_fftscope_window(GtkWidget *widget, GdkEvent *event, gpointer data)
+static gboolean
+close_fftscope_window(GtkWidget * UNUSED (widget), GdkEvent * UNUSED (event), gpointer UNUSED (data))
 {
 	GDK_THREADS_LEAVE();
 	stop_fftscope();
@@ -142,7 +146,7 @@ static GtkWidget *init_fftscope_window(void)
 	GdkColor color;
 	guint32 colors[129];
 	int i;
-	
+
 	pthread_mutex_init(&fftscope_mutex, NULL);
 
 	fftscope_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -151,12 +155,12 @@ static GtkWidget *init_fftscope_window(void)
 	gtk_window_set_policy (GTK_WINDOW (fftscope_win), FALSE, FALSE, FALSE);
 
 	gtk_widget_realize(fftscope_win);
-	
+
 	color.red = SCOPE_BG_RED << 8;
 	color.blue = SCOPE_BG_BLUE << 8;
 	color.green = SCOPE_BG_GREEN << 8;
 	gdk_color_alloc(gdk_colormap_get_system(), &color);
-	
+
 	colors[0] = 0;
 	for (i = 1; i < 64; i++) {
 		colors[i] = ((i*4) << 16) + (255 << 8);
@@ -167,10 +171,10 @@ static GtkWidget *init_fftscope_window(void)
 	gtk_container_add(GTK_CONTAINER(fftscope_win), area);
 	gtk_widget_realize(area);
 	gdk_window_set_background(area->window, &color);
-	
+
 	gtk_widget_show(area);
 	gtk_widget_show(fftscope_win);
-	
+
 	gtk_signal_connect(GTK_OBJECT(fftscope_win), "delete_event",
                 GTK_SIGNAL_FUNC(close_fftscope_window), fftscope_win);
 
@@ -184,7 +188,7 @@ static GtkWidget *init_fftscope_window(void)
 static void fftscope_hide(void)
 {
 	gint x, y;
-	
+
 	if (scope_win) {
 		gdk_window_get_root_origin(scope_win->window, &x, &y);
 		gtk_widget_hide(scope_win);
@@ -198,11 +202,12 @@ static void stop_fftscope(void)
 	if (running) {
 		running = 0;
 		pthread_join(fftscope_thread, NULL);
-	}	
+	}
 }
 
 
-static void run_fftscope(void *data)
+static void
+run_fftscope(void * UNUSED (data))
 {
 	nice(SCOPE_NICE); /* Be nice to most processes */
 
@@ -228,17 +233,18 @@ static void start_fftscope(void)
 }
 
 
-static int init_fftscope(void *arg)
+static int
+init_fftscope(void * UNUSED (arg))
 {
 	int i;
-	
+
 	for (i = 0; i < BARS; i++) {
 		maxbar[ i ] = 0;
-	}	
-	
+	}
+
 	if (prefs_get_bool(ap_prefs, "logbarfft", "active", 0))
 		start_fftscope();
-	
+
 	return 1;
 }
 

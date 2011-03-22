@@ -37,7 +37,8 @@ extern "C" {
 #endif
 
 
-int ap_connect_session (int session)
+static int
+ap_connect_session (int session)
 {
 	int socket_fd;
 	struct sockaddr_un saddr;
@@ -86,8 +87,8 @@ ap_key_t *ap_key_new(const char *key_id)
 	return NULL;
 }
 
-
-void ap_key_delete(ap_key_t *key)
+static void
+ap_key_delete(ap_key_t *key)
 {
 	if (key) {
 		if (key->data) {
@@ -116,7 +117,8 @@ void ap_message_delete(ap_message_t *msg)
 }
 
 
-void ap_message_add_key(ap_message_t *msg, ap_key_t *key)
+static void
+ap_message_add_key(ap_message_t *msg, ap_key_t *key)
 {
 	if (!msg || !key)
 		return;
@@ -238,7 +240,8 @@ int ap_message_add_int32(ap_message_t *msg, const char *key, int32_t val)
 }
 
 
-ap_key_t *ap_message_find_key(ap_message_t *msg, const char *key, int32_t key_type)
+static ap_key_t *
+ap_message_find_key(ap_message_t *msg, const char *key, int32_t key_type)
 {
 	ap_key_t *current;
 
@@ -468,7 +471,8 @@ int ap_get_speed(int session, float *val)
 
 
 /* Convenience function for commands that take a single int */
-int ap_cmd_set_int(int session, int32_t cmd, int val)
+static int
+ap_cmd_set_int(int session, int32_t cmd, int val)
 {
 	int fd;
 	ap_message_t *msg, *reply;
@@ -498,7 +502,8 @@ int ap_cmd_set_int(int session, int32_t cmd, int val)
 
 
 /* Convenience function for commands that take a single float */
-int ap_cmd_set_float(int session, int32_t cmd, float val)
+static int
+ap_cmd_set_float(int session, int32_t cmd, float val)
 {
 	int fd;
 	ap_message_t *msg, *reply;
@@ -534,7 +539,8 @@ int ap_cmd_set_float(int session, int32_t cmd, float val)
  * @param float *val Variable where the result will be copied to
  * @return true if command succeeded, false otherwise
  */
-int ap_cmd_get_float(int session, int32_t cmd, float *val)
+static int
+ap_cmd_get_float(int session, int32_t cmd, float *val)
 {
 	int fd;
 	ap_message_t *msg, *reply;
@@ -571,7 +577,8 @@ int ap_cmd_get_float(int session, int32_t cmd, float *val)
  * @param int *val Variable where the result will be copied to
  * @return true if command succeeded, false otherwise
  */
-int ap_cmd_get_int(int session, int32_t cmd, int *val)
+static int
+ap_cmd_get_int(int session, int32_t cmd, int *val)
 {
 	int fd;
 	ap_message_t *msg, *reply;
@@ -702,7 +709,8 @@ int ap_is_playing(int session, int *val)
 }
 
 /* Convenience function for commands that return a single string */
-int ap_get_single_string_command(int session, int32_t cmd, char *str, int maxlen)
+static int
+ap_get_single_string_command(int session, int32_t cmd, char *str, int maxlen)
 {
 	int fd;
 	ap_message_t *msg, *reply;
@@ -1037,7 +1045,8 @@ int ap_get_playlist_position(int session, int *pos)
 	return (ap_cmd_get_int(session, AP_GET_PLAYLIST_POSITION, pos));
 }
 
-int ap_get_string_set_int(int session, int32_t cmd, char* str, int maxlen, int val)
+static int
+ap_get_string_set_int(int session, int32_t cmd, char* str, int maxlen, int val)
 {
 	int fd, *ack;
 	ap_message_t *msg, *reply;
@@ -1074,7 +1083,8 @@ int ap_get_file_path_for_track(int session, char* path, int track)
         return (ap_get_string_set_int(session, AP_GET_FILE_PATH_FOR_TRACK, path, AP_FILE_PATH_MAX, track));
 }
 
-int ap_set_string_set_int(int session, int32_t cmd, const char* string, int val)
+static int
+ap_set_string_set_int(int session, int32_t cmd, const char* string, int val)
 {
 	int fd;
 	int32_t *result;

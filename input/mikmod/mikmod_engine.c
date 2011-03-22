@@ -26,6 +26,7 @@
 
 #include "input_plugin.h"
 #include "ap_string.h"
+#include "ap_unused.h"
 
 #define MIKMOD_BLOCK_SIZE	4608
 
@@ -190,43 +191,43 @@ static int mikmod_play_block (input_object *obj, short *buf)
 }
 
 
-static int mikmod_block_seek (input_object *obj, int block)
+static int mikmod_block_seek (input_object * UNUSED (obj), int UNUSED (block))
 {
 	/* printf ("unable to seek in modules!\n"); */
 	return 0;
 }
 
 
-static int mikmod_block_size (input_object *obj)
+static int mikmod_block_size (input_object * UNUSED (obj))
 {
 	return MIKMOD_BLOCK_SIZE / sizeof (short);
 }
 
 
-static int mikmod_nr_blocks (input_object *obj)
+static int mikmod_nr_blocks (input_object * UNUSED (obj))
 {
 	return 0;
 }
 
-static int64_t mikmod_frame_count (input_object *obj)
+static int64_t mikmod_frame_count (input_object * UNUSED (obj))
 {
 	return -1;
 }
 
 
-static long mikmod_block_to_sec (input_object *obj, int block)
+static long mikmod_block_to_sec (input_object * UNUSED (obj), int UNUSED (block))
 {
 	return 0;
 }
 
 
-static int mikmod_sample_rate (input_object *obj)
+static int mikmod_sample_rate (input_object * UNUSED (obj))
 {
 	return 44100;
 }
 
 
-static int mikmod_channels (input_object *obj)
+static int mikmod_channels (input_object * UNUSED (obj))
 {
 	return 2;
 }

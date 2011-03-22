@@ -22,7 +22,7 @@
 #define __READER_H__
 
 #include <stdio.h>
-   
+
 /*
  * Format of version number is 0x1000 + version
  * So 0x1001 is *binary* format version 1
@@ -41,15 +41,15 @@
  */
 #define READER_PLUGIN_VERSION	(READER_PLUGIN_BASE_VERSION + 5)
 
-/** 
- * reader plugin binary version. Must be set to READER_PLUGIN_VERSION 
+/**
+ * reader plugin binary version. Must be set to READER_PLUGIN_VERSION
  */
 typedef int reader_version_type;
 
 /**
- * Init plugin 
+ * Init plugin
  */
-typedef int (*reader_init_type)(void);   
+typedef int (*reader_init_type)(void);
 
 /**
  * Prepare the plugin for removal
@@ -71,14 +71,14 @@ typedef void (*reader_status_type)(void *data, const char *str);
 /**
  * @param uri URI of stream to open
  * @param status Callback function to report reader status. May be NULL
- * @param data Data pointer to pass to callback function. 
+ * @param data Data pointer to pass to callback function.
  *
  * Open stream */
 typedef void *(*reader_open_type)(const char *uri, reader_status_type status, void *data);
 
 /**
  * @param d stream descriptor (returned by reader_open_type function).
- * 
+ *
  * Close stream */
 typedef void(*reader_close_type)(void *d);
 
@@ -103,8 +103,8 @@ typedef struct _reader_plugin
 	 * Should point the a character array containing the name of this plugin
 	 */
 	char *name;
-	/** 
-	 * Should point to a character array containing the name of the 
+	/**
+	 * Should point to a character array containing the name of the
 	 * author(s) of this plugin.
 	 */
 	char *author;
@@ -128,13 +128,13 @@ typedef struct _reader_plugin
 	reader_eof_type eof;
 	reader_seekable_type seekable;
 } reader_plugin;
-  
+
 typedef struct _reader_type {
     void *fd;
     void *data;
     reader_plugin *plugin;
 } reader_type;
- 
+
 void reader_init (void);
 
 /* ******************************** API for input plugins ************** */
@@ -143,7 +143,7 @@ extern "C" {
 #endif
 
 int reader_can_handle (const char *uri);
-    
+
 reader_type *reader_open (const char *uri, reader_status_type status, void *data);
 int reader_close (reader_type *h);
 
@@ -173,5 +173,10 @@ void reader_free_expanded (char **list);
  * else the HOST will not be able to load the plugin.
  */
 typedef reader_plugin *(*reader_plugin_info_type)(void);
+
+#ifdef __cplusplus
+extern "C"
+#endif
+reader_plugin * reader_plugin_info (void);
 
 #endif

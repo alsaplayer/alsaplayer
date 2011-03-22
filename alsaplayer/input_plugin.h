@@ -309,4 +309,9 @@ typedef struct _input_plugin
  */
 typedef input_plugin*(*input_plugin_info_type)(void);
 
+#ifdef __cplusplus
+extern "C"
+#endif
+input_plugin* input_plugin_info (void);
+
 #endif

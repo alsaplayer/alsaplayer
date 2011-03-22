@@ -75,7 +75,7 @@ FlacStream::isFlacStream (const std::string & name)
 
 FlacStream::FlacStream (const std::string & name,
 			reader_type * f,
-			bool reportErrors)
+			bool)
      : _engine (new FlacEngine (this)),
       _mcbSuccess (false),
       _datasource (f),
@@ -232,7 +232,7 @@ FlacStream::realMetaCallBack (const FLAC__StreamMetadata * md)
 
 // static
 void
-FlacStream::metaCallBack (const FLAC__StreamDecoder * decoder,
+FlacStream::metaCallBack (const FLAC__StreamDecoder *,
 			  const FLAC__StreamMetadata * md,
 			  void * client_data)
 {
@@ -276,7 +276,7 @@ FlacStream::realErrCallBack (const char * name,
 
 // static
 void
-FlacStream::errCallBack (const FLAC__StreamDecoder * decoder,
+FlacStream::errCallBack (const FLAC__StreamDecoder *,
 			 FLAC__StreamDecoderErrorStatus status,
 			 void * client_data)
 {

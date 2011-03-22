@@ -27,8 +27,7 @@
  */
 
 #include "config.h"
-#include "cdda.h"
-#include "prefs.h"
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,6 +50,8 @@
 #include <sys/param.h>
 #include <pthread.h>
 
+#include "cdda.h"
+#include "prefs.h"
 #include "input_plugin.h"
 #include "alsaplayer_error.h"
 #include "AlsaPlayer.h"
@@ -58,6 +59,7 @@
 #include "prefs.h"
 #include "utilities.h"
 #include "ap_string.h"
+#include "ap_unused.h"
 
 #define MAX_TRACKS	128
 #define BUFFER_SIZE     4096
@@ -153,7 +155,8 @@ static char *resttime(int sec)
 }
 */
 
-void toc_fail(struct cd_trk_list *tl)
+static void
+toc_fail(struct cd_trk_list *tl)
 {
 	free(tl->starts);
 	free(tl->types);
@@ -258,7 +261,8 @@ static int cd_getinfo(int *cdrom_fd, char *cd_dev, struct cd_trk_list *tl)
  * create_socket - create a socket to communicate with the remote server
  * return the fd' int on success, or -1 on error.
  */
-int create_socket (const char *unchar_address, int int_port)
+static int
+create_socket (const char *unchar_address, int int_port)
 {
 	int sock, len;
 	struct	hostent		*remote;
@@ -309,7 +313,8 @@ int create_socket (const char *unchar_address, int int_port)
  * sent_to_server - send a message to the server, and return the server response
  * on success, or NULL on error
  */
-char * send_to_server (int server_fd, char *message)
+static char *
+send_to_server (int server_fd, char *message)
 {
 	ssize_t	total, i;
 	int 	len = BUFFER_SIZE;
@@ -372,7 +377,8 @@ char * send_to_server (int server_fd, char *message)
  * cddb_disc_id - generate the disc ID from the total music time
  * (routine token from the cddb.howto)
  */
-unsigned int cddb_disc_id (struct cd_trk_list *tl)
+static unsigned int
+cddb_disc_id (struct cd_trk_list *tl)
 {
 	int i, t = 0, n = 0;
 
@@ -419,7 +425,8 @@ int cddb_sum (int n)
  * information into the cddb directory. This function returns the filename on
  * success, or NULL on error.
  */
-char * cddb_save_to_disk(char *subdir, int cdID, char *message)
+static char *
+cddb_save_to_disk(char *subdir, int cdID, char *message)
 {
 	FILE *destination;
 	DIR *thedir;
@@ -502,7 +509,8 @@ char * cddb_save_to_disk(char *subdir, int cdID, char *message)
  * search for the CD info in the hard disk CDDB, returning NULL on error or the
  * filename on success.
  */
-char * cddb_local_lookup (char *path, unsigned int cd_id)
+static char *
+cddb_local_lookup (char *path, unsigned int cd_id)
 {
 	int i, number, fd;
 	char cdrom_id[9];
@@ -552,7 +560,7 @@ char * cddb_local_lookup (char *path, unsigned int cd_id)
 	return NULL;
 }
 
-char*
+static char*
 cut_html_head(char *answer)
 {
 	if(!answer)
@@ -583,7 +591,8 @@ cut_html_head(char *answer)
  * search for the song in the CDDB given address/port, returning it's name, or
  * NULL if not found.
  */
-char * cddb_lookup (const char *address, const char *char_port, int discID, struct cd_trk_list *tl)
+static char *
+cddb_lookup (const char *address, const char *char_port, int discID, struct cd_trk_list *tl)
 {
 	int port = atoi (char_port);
 	int server_fd, i, j;
@@ -806,7 +815,8 @@ char * cddb_lookup (const char *address, const char *char_port, int discID, stru
 /*
  * open the filename and put music title's into the global variable
  */
-void cddb_read_file (char *file, struct cdda_local_data *data)
+static void
+cddb_read_file (char *file, struct cdda_local_data *data)
 {
 	char line[BUFFER_SIZE], name[BUFFER_SIZE];
 	char *token = NULL, *tmp, *divider, *s;
@@ -914,7 +924,8 @@ void cddb_read_file (char *file, struct cdda_local_data *data)
 }
 
 
-void cddb_update_info(struct cdda_local_data *data)
+static void
+cddb_update_info(struct cdda_local_data *data)
 {
 	char *file_name = NULL;
 	const char *cddb_servername = NULL;
@@ -987,7 +998,9 @@ static float cdda_can_handle(const char *name)
 
 
 
-void cd_adder(void *data) {
+static void
+cd_adder(void *data)
+{
 	int i;
 	intptr_t nr_tracks;
 	char track_name[1024];
@@ -1179,7 +1192,7 @@ static int cdda_block_seek(input_object *obj, int index)
 }
 
 
-static int cdda_block_size(input_object *obj)
+static int cdda_block_size(input_object * UNUSED (obj))
 {
 	return (CD_FRAMESIZE_RAW * BLOCK_LEN) / sizeof (short) ;
 }
@@ -1214,7 +1227,7 @@ cdda_frame_count (input_object *obj)
 	return -1;
 }
 
-static  long cdda_block_to_sec(input_object *obj, int block)
+static  long cdda_block_to_sec(input_object * UNUSED (obj), int block)
 {
 	unsigned long byte_count = BLOCK_LEN * block * CD_FRAMESIZE_RAW;
 
@@ -1289,41 +1302,13 @@ static void cdda_shutdown(void)
 }
 
 
-static int cdda_track_seek(input_object *obj, int track)
+static int cdda_track_seek(input_object * UNUSED (obj), int UNUSED (track))
 {
 	return 1;
 }
 
 
 static input_plugin cdda_plugin;
-/*
-   = {
-   INPUT_PLUGIN_VERSION,
-   0,
-   "CDDA player v1.1",
-   "Andy Lo A Foe <andy@alsaplayer.org>",
-   NULL,
-   cdda_init,
-   cdda_shutdown,
-   NULL,
-   cdda_can_handle,
-   cdda_open,
-   cdda_close,
-   cdda_play_block,
-   cdda_block_seek,
-   cdda_block_size,
-   cdda_nr_blocks,
-   cdda_block_to_sec,
-   cdda_sample_rate,
-   cdda_channels,
-   cdda_stream_info,
-   cdda_nr_tracks,
-   cdda_track_seek
-   };
-   */
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 input_plugin *input_plugin_info(void)
 {
@@ -1349,7 +1334,3 @@ input_plugin *input_plugin_info(void)
 	cdda_plugin.track_seek = cdda_track_seek;
 	return &cdda_plugin;
 }
-
-#ifdef __cplusplus
-}
-#endif

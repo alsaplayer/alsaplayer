@@ -22,7 +22,7 @@
 #include <sys/stat.h>
 #include <gtk/gtk.h>
 #include <sys/time.h>
-#include <time.h>   
+#include <time.h>
 #include <math.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -30,9 +30,11 @@
 #include <string.h>
 #include <assert.h>
 #include <pthread.h>
+
 #include "scope_plugin.h"
 #include "utilities.h"
 #include "prefs.h"
+#include "ap_unused.h"
 
 static GtkWidget *window = NULL,*area;
 static GdkPixmap *bg_pixmap = NULL;
@@ -42,13 +44,13 @@ static pthread_mutex_t edit_mutex;
 static gint running = 0;
 static gint16 audio_data[2][256];
 
-#define WIDTH 256 
+#define WIDTH 256
 #define HEIGHT 128
 #define min(x,y) ((x)<(y)?(x):(y))
 #define BPL	((WIDTH + 2))
 
 static guchar rgb_buf[(WIDTH + 2) * (HEIGHT + 2)];
-static GdkRgbCmap *cmap = NULL; 
+static GdkRgbCmap *cmap = NULL;
 
 static int bscope_running(void);
 
@@ -59,11 +61,11 @@ static inline void draw_pixel_8(guchar *buffer,gint x, gint y, guchar c)
 
 
 #ifndef I386_ASSEM
-void bscope_blur_8(guchar *ptr,gint w, gint h, gint bpl)
+static void bscope_blur_8(guchar *ptr,gint UNUSED (w), gint h, gint bpl)
 {
 	register guint i,sum;
 	register guchar *iptr;
-	
+
 	iptr = ptr + bpl + 1;
 	i = bpl * h;
 	while(i--)
@@ -73,14 +75,15 @@ void bscope_blur_8(guchar *ptr,gint w, gint h, gint bpl)
 			sum -= 2;
 		*(iptr++) = sum;
 	}
-	
-	
+
+
 }
 #else
 extern void bscope_blur_8(guchar *ptr,gint w, gint h, gint bpl);
 #endif
 
-void generate_cmap(void)
+static void
+generate_cmap(void)
 {
 	guint32 colors[256],i,red,blue,green;
 	if(window)
@@ -106,13 +109,13 @@ static void stop_bscope(void)
 	if (running) {
 		running = 0;
 		pthread_join(bscope_thread, NULL);
-	}	
+	}
 }
 
 
-static gboolean close_bscope_window(GtkWidget *widget, GdkEvent *event, gpointer data)
+static gboolean close_bscope_window(GtkWidget * UNUSED (widget), GdkEvent * UNUSED (event), gpointer UNUSED (data))
 {
-	GDK_THREADS_LEAVE();            
+	GDK_THREADS_LEAVE();
 	stop_bscope();
 	GDK_THREADS_ENTER();
 	return TRUE;
@@ -122,13 +125,13 @@ static gboolean close_bscope_window(GtkWidget *widget, GdkEvent *event, gpointer
 static void bscope_init(void)
 {
 	GdkColor color;
-	
+
 	if(window)
 		return;
 
 	pthread_mutex_init(&bscope_mutex, NULL);
 	pthread_mutex_init(&edit_mutex, NULL);
-	
+
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(window),"Blurscope");
 	gtk_window_set_policy(GTK_WINDOW(window), FALSE, FALSE, FALSE);
@@ -138,16 +141,16 @@ static void bscope_init(void)
 	color.green = SCOPE_BG_GREEN << 8;
 	gdk_color_alloc(gdk_colormap_get_system(), &color);
 	gtk_signal_connect(GTK_OBJECT(window), "delete_event",
-			GTK_SIGNAL_FUNC(close_bscope_window), window);	
+			GTK_SIGNAL_FUNC(close_bscope_window), window);
 	gtk_widget_set_usize(window, WIDTH, HEIGHT);
-	
+
 	area = gtk_drawing_area_new();
 	gtk_container_add(GTK_CONTAINER(window),area);
 	gtk_widget_realize(area);
 	gdk_window_set_background(area->window, &color);
 	generate_cmap();
 	memset(rgb_buf,0,(WIDTH + 2) * (HEIGHT + 2));
-		
+
 	gtk_widget_show(area);
 	gdk_window_clear(window->window);
 	gdk_window_clear(area->window);
@@ -191,27 +194,27 @@ static inline void draw_vert_line(guchar *buffer, gint x, gint y1, gint y2)
 }
 
 
-static void bscope_hide();
+static void bscope_hide(void);
 
 static void bscope_set_data(void *audio_buffer, int size)
 {
-#ifndef FREQ_BLUR 	
+#ifndef FREQ_BLUR
 	short i;
-#endif	
+#endif
 	short *sound = (short *)audio_buffer;
-#ifdef FREQ_BLUR	
+#ifdef FREQ_BLUR
 	static gint i,y, prev_y;
 #endif
 	if (pthread_mutex_trylock(&edit_mutex) != 0) {
 			return;
-	}		
+	}
 	if (running && sound && size >= 1024) {
      	for(i=0;i<256;i++) {
            	audio_data[0][i] = *(sound++);
             audio_data[1][i] = *(sound++);
      	}
 	}
-#ifdef FREQ_BLUR	
+#ifdef FREQ_BLUR
 		bscope_blur_8(rgb_buf, WIDTH, HEIGHT, BPL);
 
 		prev_y = y = (HEIGHT / 2) + (audio_data[0][0] >> 9) + (audio_data[1][0] >> 9) / 2;
@@ -222,7 +225,7 @@ static void bscope_set_data(void *audio_buffer, int size)
 
 		for(i = 0; i < WIDTH; i++)
 		{
-			y = (HEIGHT / 2) + (audio_data[0][i >> 1] >> 9) + 
+			y = (HEIGHT / 2) + (audio_data[0][i >> 1] >> 9) +
 												 (audio_data[1][i >> 1] >> 9) / 2; /* Take half of other */
 			if(y < 0)
 				y = 0;
@@ -239,12 +242,12 @@ static void bscope_set_data(void *audio_buffer, int size)
 static void the_bscope(void)
 {
 	running = 1;
-	
+
 	while (running) {
 		gint i,y, prev_y;
 #ifndef FREQ_BLUR
 		pthread_mutex_lock(&edit_mutex);
-		
+
 		bscope_blur_8(rgb_buf, WIDTH, HEIGHT, BPL);
 
 		prev_y = y = (HEIGHT / 2) + (audio_data[0][0] >> 9) + (audio_data[1][0] >> 9) / 2;
@@ -255,7 +258,7 @@ static void the_bscope(void)
 
 		for(i = 0; i < WIDTH; i++)
 		{
-			y = (HEIGHT / 2) + (audio_data[0][i >> 1] >> 9) + 
+			y = (HEIGHT / 2) + (audio_data[0][i >> 1] >> 9) +
 												 (audio_data[1][i >> 1] >> 9) / 2; /* Take half of other */
 			if(y < 0)
 				y = 0;
@@ -265,13 +268,13 @@ static void the_bscope(void)
 			prev_y = y;
 		}
 		pthread_mutex_unlock(&edit_mutex);
-#endif	
-		
+#endif
+
 		GDK_THREADS_ENTER();
 		gdk_draw_indexed_image(area->window,area->style->white_gc,0,0,WIDTH,HEIGHT,GDK_RGB_DITHER_NONE,rgb_buf + BPL + 1,(WIDTH + 2),cmap);
 		gdk_flush();
 		GDK_THREADS_LEAVE();
-	
+
 		dosleep(SCOPE_SLEEP);
 	}
 	GDK_THREADS_ENTER();
@@ -281,21 +284,21 @@ static void the_bscope(void)
 }
 
 
-void bscope_hide(void)
+static void bscope_hide(void)
 {
-	gint x, y;	
+	gint x, y;
 	if (window) {
-		gdk_window_get_root_origin(window->window, &x, &y);	
+		gdk_window_get_root_origin(window->window, &x, &y);
 		gtk_widget_hide(window);
 		gtk_widget_set_uposition(window, x, y);
 	}
 }
 
 
-static void run_bscope(void *data)
+static void run_bscope(void * UNUSED (data))
 {
-	nice(SCOPE_NICE);	
-	the_bscope();	
+	nice(SCOPE_NICE);
+	the_bscope();
 	pthread_mutex_unlock(&bscope_mutex);
 	pthread_exit(NULL);
 }
@@ -315,13 +318,13 @@ static void start_bscope(void)
 }
 
 
-static int init_bscope(void *arg)
+static int init_bscope(void * UNUSED (arg))
 {
 	bscope_init();
 
 	if (prefs_get_bool(ap_prefs, "blurscope", "active", 0)) {
 		start_bscope();
-	}	
+	}
 	return 1;
 }
 

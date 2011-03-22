@@ -31,6 +31,7 @@
 */
 
 #include "config.h"
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <stdlib.h>
@@ -39,8 +40,10 @@
 #include <unistd.h>
 #include <audio/audiolib.h>
 #include <audio/soundlib.h>
+
 #include "output_plugin.h"
 #include "alsaplayer_error.h"
+#include "ap_unused.h"
 
 typedef struct
 {
@@ -115,7 +118,8 @@ nas_eventHandler(AuServer *aud, AuEvent *ev, AuEventHandlerRec *handler)
     return AuTrue;
 }
 
-void nas_flush()
+static void
+nas_flush(void)
 {
     AuEvent         ev;
 
@@ -126,13 +130,13 @@ void nas_flush()
     Nas_Info.data_sent = AuFalse;
 }
 
-static int nas_init()
+static int nas_init(void)
 {
 	// Always return ok for now
 	return 1;
 }
 
-static int nas_open(const char *device)
+static int nas_open(const char * UNUSED (device))
 {
 	char *server = NULL;
 
@@ -160,7 +164,7 @@ static int nas_open(const char *device)
 }
 
 
-static void nas_close()
+static void nas_close(void)
 {
 	AuCloseServer(Nas_Info.aud);
 	return;

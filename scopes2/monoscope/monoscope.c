@@ -23,17 +23,19 @@
 #include <sys/stat.h>
 #include <gtk/gtk.h>
 #include <sys/time.h>
-#include <time.h>   
+#include <time.h>
 #include <math.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+
 #include "scope_config.h"
 #include "prefs.h"
 #include "alsaplayer_convolve.h"
 #include "alsaplayer_error.h"
+#include "ap_unused.h"
 
 short newEq[CONVOLVE_BIG];	/* latest block of 512 samples. */
 static short copyEq[CONVOLVE_BIG];
@@ -59,20 +61,21 @@ static const int default_colors[] = {
 	230, 230, 230
 };
 
-void monoscope_set_data(void *audio_buffer, int size)
+static void
+monoscope_set_data(void *audio_buffer, int size)
 {
-	int i;	
+	int i;
 	short *sound = (short *)audio_buffer;
 
 	if (pthread_mutex_trylock(&update_mutex) != 0) {
 		/* alsaplayer_error("missing an update"); */
 		return;
-	}	
+	}
 	if (!sound) {
 		memset(&newEq, 0, sizeof(newEq));
 		pthread_mutex_unlock(&update_mutex);
 		return;
-	}	
+	}
 	if (running && size >= CONVOLVE_BIG) {
 		short * newset = newEq;
 		int skip = (size / (CONVOLVE_BIG * 2)) * 2;
@@ -85,10 +88,11 @@ void monoscope_set_data(void *audio_buffer, int size)
 }
 
 
-void the_monoscope()
+static void
+the_monoscope(void)
 {
 	int foo;
-	int bar;  
+	int bar;
 	int i, h;
 	guchar bits[ 257 * 129];
 	guchar *loc;
@@ -103,10 +107,10 @@ void the_monoscope()
 		pthread_mutex_lock(&update_mutex);
 		memcpy (copyEq, newEq, sizeof (short) * CONVOLVE_BIG);
 		thisEq = copyEq;
-#if 1					
+#if 1
 		val = convolve_match (avgEq, copyEq, state);
 		thisEq += val;
-#endif	
+#endif
 		pthread_mutex_unlock(&update_mutex);
 		memset(bits, 0, 256 * 128);
 		for (i=0; i < 256; i++) {
@@ -140,7 +144,7 @@ void the_monoscope()
 				if (foo < 0) {
 					for (h = 0; h <= (-foo); h++) {
 						*loc = h;
-						loc+=256; 
+						loc+=256;
 					}
 				} else {
 					for (h = 0; h <= foo; h++) {
@@ -176,13 +180,12 @@ void the_monoscope()
 	GDK_THREADS_LEAVE();
 }
 
+static void stop_monoscope(void);
 
-
-void stop_monoscope(void);
-
-static gboolean close_monoscope_window(GtkWidget *widget, GdkEvent *event, gpointer data)
+static gboolean
+close_monoscope_window(GtkWidget * UNUSED (widget), GdkEvent * UNUSED (event), gpointer UNUSED (data))
 {
-	GDK_THREADS_LEAVE();		
+	GDK_THREADS_LEAVE();
 	stop_monoscope();
 	GDK_THREADS_ENTER();
 
@@ -190,7 +193,8 @@ static gboolean close_monoscope_window(GtkWidget *widget, GdkEvent *event, gpoin
 }
 
 
-GtkWidget *init_monoscope_window(void)
+static GtkWidget *
+init_monoscope_window(void)
 {
 	GtkWidget *monoscope_win;
 	GdkColor color;
@@ -249,7 +253,7 @@ void monoscope_hide(void)
 		gtk_widget_set_uposition(scope_win, x, y);
 	} else {
 		printf("Tried to hide destroyed widget!\n");
-	}	
+	}
 }
 
 
@@ -258,11 +262,12 @@ void stop_monoscope(void)
 	if (running) {
 		running = 0;
 		pthread_join(monoscope_thread, NULL);
-	}	
+	}
 }
 
 
-void run_monoscope(void *data)
+static void
+run_monoscope(void * UNUSED (data))
 {
 	nice(SCOPE_NICE); /* Be nice to most processes */
 
@@ -273,7 +278,8 @@ void run_monoscope(void *data)
 }
 
 
-void start_monoscope(void)
+static void
+start_monoscope(void)
 {
 	if (!is_init) {
 		is_init = 1;
@@ -288,7 +294,8 @@ void start_monoscope(void)
 }
 
 
-static int init_monoscope(void *arg)
+static int
+init_monoscope(void * UNUSED (arg))
 {
 	state = convolve_init();
 	if(!state) return 0;
@@ -308,9 +315,9 @@ static void shutdown_monoscope(void)
 
 	if (monoscope_running())
 		stop_monoscope();
-	/*	
+	/*
 		if (state)
-		*/						
+		*/
 }
 
 static int monoscope_running(void)
@@ -336,4 +343,4 @@ scope_plugin monoscope_plugin = {
 scope_plugin *scope_plugin_info(void)
 {
 	return &monoscope_plugin;
-}	
+}

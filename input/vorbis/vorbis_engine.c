@@ -33,6 +33,7 @@
 #include "input_plugin.h"
 #include "reader.h"
 #include "ap_string.h"
+#include "ap_unused.h"
 
 #define BLOCK_SIZE_BYTES 4096	/* We can use any block size we like */
 
@@ -79,7 +80,7 @@ static int ovcb_seek(void *datasource, int64_t offset, int whence)
 	return (reader_seek(datasource, offset, whence));
 }
 
-static int ovcb_noseek(void *datasource, int64_t offset, int whence)
+static int ovcb_noseek(void * UNUSED (datasource), int64_t UNUSED (offset), int UNUSED (whence))
 {
 	/* When we are streaming without seeking support in reader plugin */
 	return -1;
@@ -282,7 +283,8 @@ vorbis_frame_count (input_object *obj)
 	return ov_pcm_total(&data->vf, -1);
 }
 
-int vorbis_stream_info(input_object *obj, stream_info *info)
+static int
+vorbis_stream_info(input_object *obj, stream_info *info)
 {
 	struct vorbis_local_data *data;
 	vorbis_comment *comment;
