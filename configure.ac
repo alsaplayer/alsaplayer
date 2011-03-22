@@ -503,6 +503,9 @@ test_cflags="-O2 -funroll-loops -finline-functions -ffast-math -Wall -Wextra"
 for f in $test_cflags ; do
 	AP_ADD_CFLAGS($f)
 	done
+AP_ADD_CFLAGS([-Wunused-variable])
+AP_ADD_CFLAGS([-Wmissing-prototypes])
+AP_ADD_CFLAGS([-Wstrict-prototypes])
 
 AC_LANG_PUSH([C++])
 for f in $test_cflags ; do
@@ -553,7 +556,6 @@ dnl Special assembly options. Note: Need to fix the above arch code!
 dnl ================================================================
 
 AC_SUBST(DFLAGS)
-AC_SUBST(ARCH_CFLAGS)
 
 ADDON_DIR=${libdir}/$PACKAGE
 
