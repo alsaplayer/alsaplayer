@@ -207,6 +207,13 @@ typedef int(*input_nr_blocks_type)(input_object *obj);
 
 /**
  * @param obj input object
+ *
+ * Returns the number of frames sample for in the stream (where a frame is
+ * one singled sample for every channel). */
+typedef int64_t (*input_frame_count_type)(input_object *obj);
+
+/**
+ * @param obj input object
  * @param block block number
  *
  * Returns the offset from the start time in centiseconds (100th of a second)
@@ -284,6 +291,7 @@ typedef struct _input_plugin
 	input_block_seek_type block_seek;
 	input_block_size_type block_size;
 	input_nr_blocks_type nr_blocks;
+	input_frame_count_type frame_count;
 	input_block_to_sec_type block_to_sec;
 	input_sample_rate_type sample_rate;
 	input_channels_type channels;

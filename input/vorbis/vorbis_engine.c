@@ -267,6 +267,20 @@ static int vorbis_nr_blocks(input_object *obj)
 	return blocks;
 }
 
+static int64_t
+vorbis_frame_count (input_object *obj)
+{
+	struct vorbis_local_data *data;
+	vorbis_info *vi;
+
+	if (!obj || !obj->local_data)
+		return 0;
+	data = (struct vorbis_local_data *)obj->local_data;
+	vi = ov_info(&data->vf, -1);
+	if (!vi)
+		return 0;
+	return ov_pcm_total(&data->vf, -1);
+}
 
 int vorbis_stream_info(input_object *obj, stream_info *info)
 {
@@ -493,6 +507,7 @@ input_plugin *input_plugin_info (void)
 	vorbis_plugin.block_seek = vorbis_block_seek;
 	vorbis_plugin.block_size = vorbis_block_size;
 	vorbis_plugin.nr_blocks = vorbis_nr_blocks;
+	vorbis_plugin.frame_count = vorbis_frame_count;
 	vorbis_plugin.block_to_sec = vorbis_block_to_sec;
 	vorbis_plugin.sample_rate = vorbis_sample_rate;
 	vorbis_plugin.channels = vorbis_channels;

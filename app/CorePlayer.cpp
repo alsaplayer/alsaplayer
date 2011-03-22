@@ -364,6 +364,10 @@ int CorePlayer::RegisterPlugin(input_plugin *the_plugin)
 		alsaplayer_error("No nr_blocks function");
 		error_count++;
 	}
+	if (the_plugin->frame_count == NULL) {
+		alsaplayer_error("No frame_count function");
+		error_count++;
+	}
 	if (the_plugin->block_size == NULL) {
 		alsaplayer_error("No block_size function");
 		error_count++;

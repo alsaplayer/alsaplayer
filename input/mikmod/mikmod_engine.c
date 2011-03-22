@@ -208,6 +208,11 @@ static int mikmod_nr_blocks (input_object *obj)
 	return 0;
 }
 
+static int64_t mikmod_frame_count (input_object *obj)
+{
+	return -1;
+}
+
 
 static long mikmod_block_to_sec (input_object *obj, int block)
 {
@@ -245,33 +250,30 @@ static int mikmod_stream_info (input_object *obj, stream_info *info)
 	return 1;
 }
 
-
-input_plugin mikmod_plugin = {
-	INPUT_PLUGIN_VERSION,
-	0,
-	"MikMod player v1.0",
-	"Paul Fisher <rao@gnu.org>",
-	NULL,
-	mikmod_init,
-	mikmod_shutdown,
-	NULL,
-	mikmod_can_handle,
-	mikmod_open,
-	mikmod_close,
-	mikmod_play_block,
-	mikmod_block_seek,
-	mikmod_block_size,
-	mikmod_nr_blocks,
-	mikmod_block_to_sec,
-	mikmod_sample_rate,
-	mikmod_channels,
-	mikmod_stream_info,
-	NULL,
-	NULL
-};
+static input_plugin mikmod_plugin;
 
 
 input_plugin *input_plugin_info (void)
 {
+	memset (&mikmod_plugin, 0, sizeof (mikmod_plugin));
+
+	mikmod_plugin.version = INPUT_PLUGIN_VERSION;
+	mikmod_plugin.name = "MikMod player v1.0";
+	mikmod_plugin.author = "Paul Fisher <rao@gnu.org>";
+	mikmod_plugin.init = mikmod_init;
+	mikmod_plugin.shutdown = mikmod_shutdown;
+	mikmod_plugin.can_handle = mikmod_can_handle;
+	mikmod_plugin.open = mikmod_open;
+	mikmod_plugin.close = mikmod_close;
+	mikmod_plugin.play_block = mikmod_play_block;
+	mikmod_plugin.block_seek = mikmod_block_seek;
+	mikmod_plugin.block_size = mikmod_block_size;
+	mikmod_plugin.nr_blocks = mikmod_nr_blocks;
+	mikmod_plugin.frame_count = mikmod_frame_count;
+	mikmod_plugin.block_to_sec = mikmod_block_to_sec;
+	mikmod_plugin.sample_rate = mikmod_sample_rate;
+	mikmod_plugin.channels = mikmod_channels;
+	mikmod_plugin.stream_info = mikmod_stream_info;
+
 	return &mikmod_plugin;
 }

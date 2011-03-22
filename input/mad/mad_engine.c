@@ -382,7 +382,7 @@ static int mad_play_block(input_object *obj, short *buf)
 }
 
 
-static  long mad_frame_to_sec(input_object *obj, int block)
+static  long mad_block_to_sec(input_object *obj, int block)
 {
 	struct mad_local_data *data;
 	unsigned long sec = 0;
@@ -402,7 +402,23 @@ static int mad_nr_blocks(input_object *obj)
 {
 	if (!obj)
 		return 0;
+
+	{
+		struct mad_local_data *data = (struct mad_local_data *)obj->local_data;
+		printf ("%s : nr_blocks (%s) %d, samplerate %d, channels %d\n", __func__,
+				data->filename, obj->nr_blocks, data->samplerate, data->synth.pcm.channels) ;
+	}
+
 	return obj->nr_blocks;
+}
+
+static int64_t
+mad_frame_count(input_object *obj)
+{
+	if (!obj)
+		return -1;
+	return ((int64_t) obj->nr_blocks) * 1148;
+
 }
 
 /* TODO: Move all id3 code into the separated file. */
@@ -1186,7 +1202,8 @@ input_plugin *input_plugin_info (void)
 	mad_plugin.block_seek = mad_frame_seek;
 	mad_plugin.block_size = mad_block_size;
 	mad_plugin.nr_blocks = mad_nr_blocks;
-	mad_plugin.block_to_sec = mad_frame_to_sec;
+	mad_plugin.frame_count = mad_frame_count;
+	mad_plugin.block_to_sec = mad_block_to_sec;
 	mad_plugin.sample_rate = mad_sample_rate;
 	mad_plugin.channels = mad_channels;
 	mad_plugin.stream_info = mad_stream_info;

@@ -205,6 +205,20 @@ static int sndfile_nr_blocks (input_object *obj)
 	return 0;
 }
 
+static int64_t
+sndfile_frame_count (input_object *obj)
+{
+	struct sf_local_data    *data;
+
+	if (!obj)
+		return 0;
+	data = (struct sf_local_data *) obj->local_data;
+
+	if (data->sfinfo.frames > 0)
+		return data->sfinfo.frames;
+
+	return -1;
+}
 
 static int sndfile_block_size (input_object *obj)
 {
@@ -344,6 +358,7 @@ input_plugin *input_plugin_info (void)
 	sndfile_plugin.block_seek = sndfile_block_seek;
 	sndfile_plugin.block_size = sndfile_block_size;
 	sndfile_plugin.nr_blocks = sndfile_nr_blocks;
+	sndfile_plugin.frame_count = sndfile_frame_count;
 	sndfile_plugin.block_to_sec = sndfile_block_to_sec;
 	sndfile_plugin.sample_rate = sndfile_sample_rate;
 	sndfile_plugin.channels = sndfile_channels;

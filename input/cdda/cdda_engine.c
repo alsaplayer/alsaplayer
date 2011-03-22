@@ -1200,6 +1200,19 @@ static int cdda_nr_blocks(input_object *obj)
 	return nr_blocks;
 }
 
+static int64_t
+cdda_frame_count (input_object *obj)
+{
+	struct cdda_local_data *data;
+
+	if (!obj)
+		return 0;
+	data = (struct cdda_local_data *)obj->local_data;
+
+	if (data && data->track_length > 0)
+		return data->track_length;
+	return -1;
+}
 
 static  long cdda_block_to_sec(input_object *obj, int block)
 {
@@ -1327,6 +1340,7 @@ input_plugin *input_plugin_info(void)
 	cdda_plugin.block_seek = cdda_block_seek;
 	cdda_plugin.block_size = cdda_block_size;
 	cdda_plugin.nr_blocks = cdda_nr_blocks;
+	cdda_plugin.frame_count = cdda_frame_count;
 	cdda_plugin.block_to_sec = cdda_block_to_sec;
 	cdda_plugin.sample_rate = cdda_sample_rate;
 	cdda_plugin.channels = cdda_channels;
