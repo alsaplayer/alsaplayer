@@ -641,7 +641,7 @@ create_playlist_window (PlaylistWindow *playlist_window)
 	gtk_drag_dest_set(list, GTK_DEST_DEFAULT_ALL,
 						drag_types, n_drag_types, (GdkDragAction) (GDK_ACTION_MOVE | GDK_ACTION_COPY));
 	gtk_drag_source_set(list, GDK_BUTTON1_MASK,
-						drag_types, n_drag_types, (GdkDragAction) (GDK_ACTION_MOVE | GDK_ACTION_COPY));
+						drag_types, n_drag_types, (GdkDragAction) (GDK_ACTION_MOVE));
 
 	add_file = create_filechooser(GTK_WINDOW(NULL), playlist_window);
 	g_object_set_data(G_OBJECT(main_window), "add_file", add_file);
