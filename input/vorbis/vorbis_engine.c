@@ -158,13 +158,9 @@ static int vorbis_block_seek(input_object *obj, int block)
 	return 0;
 }
 
-static int vorbis_block_size(input_object *obj)
+static int vorbis_block_size(input_object * UNUSED (obj))
 {
-	if (!obj) {
-		puts("No block size!!!!");
-		return 0;
-	}
-	return obj->block_size / sizeof (short);
+	return BLOCK_SIZE_BYTES / sizeof (short);
 }
 
 
