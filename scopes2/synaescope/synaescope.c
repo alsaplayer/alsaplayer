@@ -128,11 +128,11 @@ while (running) { \
     dosleep(SCOPE_SLEEP); \
 }
 
-static inline void addPixel(unsigned char *output, int x,int y,int br1,int br2) {
+static inline void addPixel(unsigned char *out, int x,int y,int br1,int br2) {
   unsigned char *p;
   if (x < 0 || x >= syn_width || y < 0 || y >= syn_height) return;
 
-  p = output + x * 2 + y * syn_width * 2;
+  p = out + x * 2 + y * syn_width * 2;
   if (p[0] < 255 - br1) p[0] += br1; else p[0] = 255;
   if (p[1] < 255 - br2) p[1] += br2; else p[1] = 255;
 }
@@ -166,14 +166,14 @@ static void synaescope_coreGo(void) {
 
   for(i=0 +1;i<FFT_BUFFER_SIZE;i++) {
     double x1 = fftout_l[bitReverse[i]];
-    double y1 = fftout_r[bitReverse[i]];
+    double y_1 = fftout_r[bitReverse[i]];
     double x2 = fftout_l[bitReverse[FFT_BUFFER_SIZE-i]];
     double y2 = fftout_r[bitReverse[FFT_BUFFER_SIZE-i]];
     double aa,bb;
-    corr_l[i] = sqrt(aa= (x1+x2)*(x1+x2) + (y1-y2)*(y1-y2) );
-    corr_r[i] = sqrt(bb= (x1-x2)*(x1-x2) + (y1+y2)*(y1+y2) );
+    corr_l[i] = sqrt(aa= (x1+x2)*(x1+x2) + (y_1-y2)*(y_1-y2) );
+    corr_r[i] = sqrt(bb= (x1-x2)*(x1-x2) + (y_1+y2)*(y_1+y2) );
     clarity[i] = (int)(
-      ( (x1+x2) * (x1-x2) + (y1+y2) * (y1-y2) )/(aa+bb) * 256 );
+      ( (x1+x2) * (x1-x2) + (y_1+y2) * (y_1-y2) )/(aa+bb) * 256 );
   }
 
   /* Asger Alstrupt's optimized 32 bit fade */

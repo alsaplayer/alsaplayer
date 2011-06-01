@@ -1087,7 +1087,7 @@ first_block:
 	/* Calculate some values */
 	data->bytes_avail = data->stream.bufend - data->stream.next_frame;
 	{
-		int64_t time;
+		int64_t duration;
 		int64_t samples;
 		int64_t blocks;
 
@@ -1099,14 +1099,14 @@ first_block:
 
 		reader_seek(data->mad_fd, oldpos, SEEK_SET);
 		if (data->bitrate)
-			time = (data->filesize * 8) / (data->bitrate);
+			duration = (data->filesize * 8) / (data->bitrate);
 		else
-			time = 0;
+			duration = 0;
 
 		samples = 32 * MAD_NSBSAMPLES(&data->frame.header);
 
 		obj->block_size = (int) samples << 2; /* Assume 16-bit stereo */
-		blocks = data->samplerate * (time+1) / samples;
+		blocks = data->samplerate * (duration+1) / samples;
 		if (data->xing.flags & XING_BLOCKS) {
 			obj->nr_blocks = data->xing.blocks;
 		} else {

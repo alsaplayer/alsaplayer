@@ -80,26 +80,26 @@ FlacId3Tag::FlacId3Tag (const std::string & name)
     if (!f)
 	return;
 
-    id3v1_struct tag;
-    memset ((void *) & tag, 0, sizeof (id3v1_struct));
-    if (!findId3Tag (f, tag.raw))
+    id3v1_struct tag_;
+    memset ((void *) & tag_, 0, sizeof (id3v1_struct));
+    if (!findId3Tag (f, tag_.raw))
 	return;
 
-    memcpy(tag.title, tag.raw+3, 30);
-    memcpy(tag.artist, tag.raw+33, 30);
-    memcpy(tag.album, tag.raw+63, 30);
-    memcpy(tag.year, tag.raw+93, 4);
-    memcpy(tag.comment, tag.raw+97, 30);
-    snprintf (tag.genre, sizeof (tag.genre), "%u", (unsigned char) tag.raw[127]);
-    snprintf (tag.track, sizeof (tag.track), "%u", (unsigned char) tag.raw[126]);
+    memcpy(tag_.title, tag_.raw+3, 30);
+    memcpy(tag_.artist, tag_.raw+33, 30);
+    memcpy(tag_.album, tag_.raw+63, 30);
+    memcpy(tag_.year, tag_.raw+93, 4);
+    memcpy(tag_.comment, tag_.raw+97, 30);
+    snprintf (tag_.genre, sizeof (tag_.genre), "%u", (unsigned char) tag_.raw[127]);
+    snprintf (tag_.track, sizeof (tag_.track), "%u", (unsigned char) tag_.raw[126]);
 
-    _artist  = tag.artist;
-    _title   = tag.title;
-    _track   = tag.track;
-    _album   = tag.album;
-    _year    = tag.year;
-    _comment = tag.comment;
-    _genre   = tag.genre;
+    _artist  = tag_.artist;
+    _title   = tag_.title;
+    _track   = tag_.track;
+    _album   = tag_.album;
+    _year    = tag_.year;
+    _comment = tag_.comment;
+    _genre   = tag_.genre;
 
 } // FlacId3Tag::FlacId3Tag
 

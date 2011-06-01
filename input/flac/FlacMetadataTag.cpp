@@ -126,7 +126,7 @@ FlacMetadataTag::FlacMetadataTag (const std::string & name)
     : FlacTag (name)
 {
     FLAC__StreamMetadata *metadata = NULL;
-    FLAC__StreamMetadata_VorbisComment_Entry *comment;
+    FLAC__StreamMetadata_VorbisComment_Entry *comment_;
     unsigned int i,j;
     char *key, *value;
 
@@ -134,8 +134,8 @@ FlacMetadataTag::FlacMetadataTag (const std::string & name)
 	return;
 
     for (i=0; i<metadata->data.vorbis_comment.num_comments; i++) {
-	comment = &metadata->data.vorbis_comment.comments[i];
-	if (parse_comment(comment, &key, &value)) {
+	comment_ = &metadata->data.vorbis_comment.comments[i];
+	if (parse_comment(comment_, &key, &value)) {
 	    // look through the field mappings to see which field we have, and
 	    // put it in the appropriate member
 	    for (j=0; field_mappings[j].name != NULL; j++) {

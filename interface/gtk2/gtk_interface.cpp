@@ -87,7 +87,7 @@
 
 #include "info_window.h"
 
-Playlist *playlist = NULL;
+Playlist *g_playlist = NULL;
 
 // Defines
 #ifdef SUBSECOND_DISPLAY
@@ -108,7 +108,7 @@ int global_update = 1;
 /* These are used to contain the size of the window manager borders around
    our windows, and are used to show/hide windows in the same positions. */
 
-static PlaylistWindow *playlist_window = NULL;
+static PlaylistWindow *g_playlist_window = NULL;
 static coreplayer_notifier notifier;
 
 typedef struct  _update_struct {
@@ -818,7 +818,7 @@ gint indicator_callback(gpointer, int locking)
 {
 	update_struct *ustr;
 	Playlist *pl;
-	CorePlayer *p;
+	CorePlayer *player;
 	GtkAdjustment *adj;
 	GdkDrawable *drawable;
 	GdkColor color;
@@ -833,11 +833,11 @@ gint indicator_callback(gpointer, int locking)
 
 	ustr = &global_ustr;
 	pl = (Playlist *)ustr->data;
-	p = pl->GetCorePlayer();
+	player = pl->GetCorePlayer();
 	drawable = ustr->drawing_area->window;
 
 	adj = GTK_RANGE(ustr->speed_scale)->adjustment;
-	double speed = (double) p->GetSpeed() * 100.0;
+	double speed = (double) player->GetSpeed() * 100.0;
 	if ((int)speed != (int)gtk_adjustment_get_value(adj))
 	{
 		if (locking)
@@ -847,7 +847,7 @@ gint indicator_callback(gpointer, int locking)
 				GDK_THREADS_LEAVE();
 	}
 	adj = GTK_RANGE(ustr->vol_scale)->adjustment;
-	double volume = (double) p->GetVolume() * 100.0;
+	double volume = (double) player->GetVolume() * 100.0;
 	if ((int)volume != (int)gtk_adjustment_get_value(adj))
 	{
 		if (locking)
@@ -857,9 +857,9 @@ gint indicator_callback(gpointer, int locking)
 				GDK_THREADS_LEAVE();
 	}
 	adj = GTK_RANGE(ustr->pos_scale)->adjustment;
-	if (p->CanSeek()) {
+	if (player->CanSeek()) {
 		adj->lower = 0;
-		adj->upper = p->GetBlocks() - 32; // HACK!!
+		adj->upper = player->GetBlocks() - 32; // HACK!!
 		if (locking)
 			GDK_THREADS_ENTER();
 		gtk_widget_set_sensitive(GTK_WIDGET(ustr->pos_scale), true);
@@ -882,21 +882,21 @@ gint indicator_callback(gpointer, int locking)
 	gdk_color_alloc(gdk_colormap_get_system(), &color);
 	if (locking)
 		GDK_THREADS_LEAVE();
-	sr = p->GetSampleRate();
-	nr_blocks = p->GetBlocks();
-	if (p->IsActive()) {
+	sr = player->GetSampleRate();
+	nr_blocks = player->GetBlocks();
+	if (player->IsActive()) {
 		int pos;
-		pos = global_update ? p->GetPosition() : (int) adj->value;
+		pos = global_update ? player->GetPosition() : (int) adj->value;
 				slider_val = pos;
 		secs = global_update ?
-						p->GetCurrentTime() : p->GetCurrentTime((int) adj->value);
+						player->GetCurrentTime() : player->GetCurrentTime((int) adj->value);
 		c_min = secs / 6000;
 		c_sec = (secs % 6000) / 100;
 #ifdef SUBSECOND_DISPLAY
 		c_hsec = secs % 100;
 #endif
 		if (nr_blocks >= 0) {
-			secs = p->GetCurrentTime(nr_blocks);
+			secs = player->GetCurrentTime(nr_blocks);
 			t_min = secs / 6000;
 			t_sec = (secs % 6000) / 100;
 		}
@@ -905,7 +905,7 @@ gint indicator_callback(gpointer, int locking)
 		gtk_adjustment_set_value(adj, pos);
 		if (locking)
 			GDK_THREADS_LEAVE();
-		p->GetStreamInfo(&info);
+		player->GetStreamInfo(&info);
 	} else {
 		t_min = 0;
 		t_sec = 0;
@@ -940,23 +940,23 @@ gint indicator_callback(gpointer, int locking)
 		snprintf(title_string, sizeof (title_string), "%s - %s", info.artist, info.title);
 		infowindow->set_title(title_string);
 		if (prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_title", 0))
-			gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(playlist_window->GetWindow())), title_string);
+			gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(g_playlist_window->GetWindow())), title_string);
 	} else if (strlen(info.title)) {
 		snprintf(title_string, sizeof (title_string), "%s", info.title);
 		infowindow->set_title(title_string);
 		if (prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_title", 0))
-			gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(playlist_window->GetWindow())), title_string);
+			gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(g_playlist_window->GetWindow())), title_string);
 	} else {
 		char *p = strrchr(info.path, '/');
 		if (p) {
 			p++;
 			infowindow->set_title(p);
 			if (prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_title", 0))
-				gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(playlist_window->GetWindow())), p);
+				gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(g_playlist_window->GetWindow())), p);
 		} else {
 			infowindow->set_title(info.path);
 			if (prefs_get_bool(ap_prefs, "gtk2_interface", "play_on_title", 0))
-				gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(playlist_window->GetWindow())), info.path);
+				gtk_window_set_title(GTK_WINDOW(gtk_widget_get_toplevel(g_playlist_window->GetWindow())), info.path);
 		}
 	}
 
@@ -1123,7 +1123,7 @@ create_main_menu(GtkWidget *main_window)
 	menu_item = gtk_menu_item_new_with_label(_("CD Player (CDDA)"));
 	gtk_menu_append(GTK_MENU(root_menu), menu_item);
 	g_signal_connect(G_OBJECT(menu_item), "activate",
-					   G_CALLBACK(cd_cb), playlist);
+					   G_CALLBACK(cd_cb), g_playlist);
 
 	menu_item = gtk_separator_menu_item_new();
 	gtk_menu_append(GTK_MENU(root_menu), menu_item);
@@ -1327,7 +1327,7 @@ create_main_window (Playlist *pl)
 	GtkWidget *preferences_window;
 
 	// Dirty trick
-	playlist = pl;
+	g_playlist = pl;
 
 	tooltips = gtk_tooltips_new();
 
@@ -1523,10 +1523,10 @@ create_main_window (Playlist *pl)
 	gtk_box_pack_start (GTK_BOX (volume_box), vol_scale, TRUE, TRUE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), vol_scale, _("Volume"), _("Change volume"));
 
-	playlist_window = new PlaylistWindow(playlist);
-	g_object_set_data(G_OBJECT(main_window), "playlist_window", playlist_window);
+	g_playlist_window = new PlaylistWindow(g_playlist);
+	g_object_set_data(G_OBJECT(main_window), "playlist_window", g_playlist_window);
 
-	gtk_box_pack_start (GTK_BOX (main_box), playlist_window->GetWindow(), TRUE, TRUE, 0);
+	gtk_box_pack_start (GTK_BOX (main_box), g_playlist_window->GetWindow(), TRUE, TRUE, 0);
 
 	scopes_window = init_scopes_window(main_window);
 	g_object_set_data(G_OBJECT(main_window), "scopes_window", scopes_window);
@@ -1539,7 +1539,7 @@ create_main_window (Playlist *pl)
 
 	global_ustr.vol_scale = vol_scale;
 	global_ustr.drawing_area = info_window;
-	global_ustr.data = playlist;
+	global_ustr.data = g_playlist;
 	global_ustr.pos_scale = pos_scale;
 	global_ustr.speed_scale = speed_scale;
 	global_ustr.bal_scale = bal_scale;
@@ -1559,7 +1559,7 @@ create_main_window (Playlist *pl)
 #else
 	g_signal_connect(G_OBJECT(main_window), "delete_event", G_CALLBACK(main_window_delete), NULL);
 #endif
-	g_signal_connect(G_OBJECT(main_window), "key_press_event", G_CALLBACK(key_press_cb), (gpointer)playlist_window);
+	g_signal_connect(G_OBJECT(main_window), "key_press_event", G_CALLBACK(key_press_cb), (gpointer)g_playlist_window);
 	g_signal_connect(G_OBJECT(main_window), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 
 	g_signal_connect(G_OBJECT(volume_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
@@ -1568,34 +1568,34 @@ create_main_window (Playlist *pl)
 	g_signal_connect(G_OBJECT(balance_button), "clicked", G_CALLBACK(balance_button_cb), (gpointer) bal_scale);
 
 	g_signal_connect(G_OBJECT(playlist_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
-  	g_signal_connect(G_OBJECT(playlist_button), "clicked", G_CALLBACK(playlist_button_cb), playlist_window);
+  	g_signal_connect(G_OBJECT(playlist_button), "clicked", G_CALLBACK(playlist_button_cb), g_playlist_window);
 	g_signal_connect(G_OBJECT(cd_button), "clicked", G_CALLBACK(cd_cb), pl);
 	g_signal_connect(G_OBJECT(play_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
-	g_signal_connect(G_OBJECT(play_button), "clicked", G_CALLBACK(play_cb), (gpointer) playlist_window);
+	g_signal_connect(G_OBJECT(play_button), "clicked", G_CALLBACK(play_cb), (gpointer) g_playlist_window);
 	g_signal_connect(G_OBJECT(stop_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
-	g_signal_connect(G_OBJECT(stop_button), "clicked", G_CALLBACK(stop_cb), playlist);
+	g_signal_connect(G_OBJECT(stop_button), "clicked", G_CALLBACK(stop_cb), g_playlist);
 	g_signal_connect(G_OBJECT(next_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
-	g_signal_connect(G_OBJECT(next_button), "clicked", G_CALLBACK(next_button_clicked), playlist_window);
+	g_signal_connect(G_OBJECT(next_button), "clicked", G_CALLBACK(next_button_clicked), g_playlist_window);
 	g_signal_connect(G_OBJECT(prev_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
-	g_signal_connect(G_OBJECT(prev_button), "clicked", G_CALLBACK(prev_button_clicked), playlist_window);
+	g_signal_connect(G_OBJECT(prev_button), "clicked", G_CALLBACK(prev_button_clicked), g_playlist_window);
 	g_signal_connect(G_OBJECT(reverse_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(reverse_button), "clicked", G_CALLBACK(reverse_play_cb), speed_scale);
 	g_signal_connect(G_OBJECT(pause_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(pause_button), "clicked", G_CALLBACK(pause_cb), speed_scale);
 	g_signal_connect(G_OBJECT(forward_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(forward_button), "clicked", G_CALLBACK(forward_play_cb), speed_scale);
-	g_signal_connect(G_OBJECT(vol_adj), "value_changed", G_CALLBACK(volume_cb), playlist);
+	g_signal_connect(G_OBJECT(vol_adj), "value_changed", G_CALLBACK(volume_cb), g_playlist);
 	g_signal_connect(G_OBJECT(vol_scale), "event", G_CALLBACK(button_release_event), NULL);
-	g_signal_connect(G_OBJECT(pos_scale), "button_release_event", G_CALLBACK(release_event), playlist);
+	g_signal_connect(G_OBJECT(pos_scale), "button_release_event", G_CALLBACK(release_event), g_playlist);
 	g_signal_connect(G_OBJECT(pos_scale), "button_press_event", G_CALLBACK(press_event), NULL);
 	g_signal_connect(G_OBJECT(pos_scale), "motion_notify_event", G_CALLBACK(move_event), NULL);
-	g_signal_connect(G_OBJECT(GTK_RANGE(speed_scale)->adjustment), "value_changed", G_CALLBACK(speed_cb), playlist);
+	g_signal_connect(G_OBJECT(GTK_RANGE(speed_scale)->adjustment), "value_changed", G_CALLBACK(speed_cb), g_playlist);
 	g_signal_connect(G_OBJECT(speed_scale), "event", G_CALLBACK(button_release_event), NULL);
 	g_signal_connect(G_OBJECT(speed_scale), "event", G_CALLBACK(button_release_event), NULL);
 	g_signal_connect(G_OBJECT(cd_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
-	g_signal_connect(G_OBJECT(GTK_RANGE(bal_scale)->adjustment), "value_changed", G_CALLBACK(pan_cb), playlist);
+	g_signal_connect(G_OBJECT(GTK_RANGE(bal_scale)->adjustment), "value_changed", G_CALLBACK(pan_cb), g_playlist);
 	g_signal_connect(G_OBJECT(bal_scale), "event", G_CALLBACK(button_release_event), NULL);
-	g_signal_connect(G_OBJECT(loop_button), "clicked", G_CALLBACK(loop_button_clicked), (gpointer)playlist);
+	g_signal_connect(G_OBJECT(loop_button), "clicked", G_CALLBACK(loop_button_clicked), (gpointer)g_playlist);
 	g_signal_connect(G_OBJECT(loop_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
 	g_signal_connect(G_OBJECT(looper_button), "clicked", G_CALLBACK(loop_cb), (gpointer)pos_scale);
 	g_signal_connect(G_OBJECT(looper_button), "button_press_event", G_CALLBACK(alsaplayer_button_press), (gpointer) menu);
@@ -1622,7 +1622,7 @@ void init_main_window(Playlist *pl)
 	notifier.position_notify = position_notify;
 
 	GDK_THREADS_LEAVE();
-	playlist->RegisterNotifier(&notifier, (void *)playlist_window);
+	g_playlist->RegisterNotifier(&notifier, (void *)playlist_window);
 	GDK_THREADS_ENTER();
 
 

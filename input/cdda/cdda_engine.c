@@ -820,7 +820,7 @@ cddb_read_file (char *file, struct cdda_local_data *data)
 {
 	char line[BUFFER_SIZE], name[BUFFER_SIZE];
 	char *token = NULL, *tmp, *divider, *s;
-	int i, index = 1;
+	int i, indx = 1;
 	FILE *f;
 
 	/* try to open the file */
@@ -850,22 +850,22 @@ cddb_read_file (char *file, struct cdda_local_data *data)
 						if ((token[i] == '\n') || (token[i] == '\r'))
 							break;
 					}
-					if (sscanf(line, "TTITLE%d=", &index)) {
-						//alsaplayer_error("Found index %d", index);
-						index++;
+					if (sscanf(line, "TTITLE%d=", &indx)) {
+						//alsaplayer_error("Found indx %d", indx);
+						indx++;
 					} else {
-						index = 1;
-						alsaplayer_error("Error reading index number!");
+						indx = 1;
+						alsaplayer_error("Error reading indx number!");
 					}
 					token[i] = '\0';
 					snprintf (name, sizeof (name), "%s", token);
-					if (data->tracks[index].track) {
+					if (data->tracks[indx].track) {
 						char post [512];
-						snprintf (post, sizeof (post), "%s%s", data->tracks[index].track, name);
-						free(data->tracks[index].track);
-						data->tracks[index].track = strdup(post);
+						snprintf (post, sizeof (post), "%s%s", data->tracks[indx].track, name);
+						free(data->tracks[indx].track);
+						data->tracks[indx].track = strdup(post);
 					} else {
-						data->tracks[index].track = strdup (name);
+						data->tracks[indx].track = strdup (name);
 					}
 				}
 				continue;
@@ -931,7 +931,7 @@ cddb_update_info(struct cdda_local_data *data)
 	const char *cddb_servername = NULL;
 	const char *cddb_serverport = NULL;
 	struct cd_trk_list *tl;
-	int index;
+	int indx;
 	unsigned int cd_id;
 
 	if (!data)
@@ -962,13 +962,13 @@ cddb_update_info(struct cdda_local_data *data)
 			if (file_name)
 				cddb_read_file (file_name, data);
 			else {
-				for (index = 1; index <= tl->max; index++)
-					data->tracks[index].track = strdup ("unrecognized song");
+				for (indx = 1; indx <= tl->max; indx++)
+					data->tracks[indx].track = strdup ("unrecognized song");
 			}
 
 		} else {
-			for (index = 1; index <= tl->max; index++)
-				data->tracks[index].track = strdup ("unrecognized song");
+			for (indx = 1; indx <= tl->max; indx++)
+				data->tracks[indx].track = strdup ("unrecognized song");
 		}
 	}
 }
@@ -1180,14 +1180,14 @@ static int cdda_play_block(input_object *obj, short *buf)
 }
 
 
-static int cdda_block_seek(input_object *obj, int index)
+static int cdda_block_seek(input_object *obj, int indx)
 {
 	struct cdda_local_data *data;
 	if (!obj)
 		return 0;
 	data = (struct cdda_local_data *)obj->local_data;
 	if (data)
-		data->rel_pos = (index * BLOCK_LEN);
+		data->rel_pos = (indx * BLOCK_LEN);
 	return 1;
 }
 

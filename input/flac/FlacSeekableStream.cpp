@@ -35,9 +35,9 @@
 namespace Flac
 {
 
-FlacSeekableStream::FlacSeekableStream (const std::string & name,
+FlacSeekableStream::FlacSeekableStream (const std::string & name_,
 					reader_type * f, bool reportErrors)
-    : FlacStream (name, f, reportErrors),
+    : FlacStream (name_, f, reportErrors),
       _decoder (0)
 {
 } // FlacSeekableStream::FlacSeekableStream

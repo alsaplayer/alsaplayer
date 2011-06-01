@@ -150,28 +150,28 @@ static Window create_window(int width, int height)
 }
 
 
-static void draw_rectangle(GLfloat x1, GLfloat y1, GLfloat z1, GLfloat x2, GLfloat y2, GLfloat z2)
+static void draw_rectangle(GLfloat x1, GLfloat y_1, GLfloat z1, GLfloat x2, GLfloat y_2, GLfloat z2)
 {
-	if(y1 == y2)
+	if(y_1 == y_2)
 	{
 
-		glVertex3f(x1, y1, z1);
-		glVertex3f(x2, y1, z1);
-		glVertex3f(x2, y2, z2);
+		glVertex3f(x1, y_1, z1);
+		glVertex3f(x2, y_1, z1);
+		glVertex3f(x2, y_2, z2);
 
-		glVertex3f(x2, y2, z2);
-		glVertex3f(x1, y2, z2);
-		glVertex3f(x1, y1, z1);
+		glVertex3f(x2, y_2, z2);
+		glVertex3f(x1, y_2, z2);
+		glVertex3f(x1, y_1, z1);
 	}
 	else
 	{
-		glVertex3f(x1, y1, z1);
-		glVertex3f(x2, y1, z2);
-		glVertex3f(x2, y2, z2);
+		glVertex3f(x1, y_1, z1);
+		glVertex3f(x2, y_1, z2);
+		glVertex3f(x2, y_2, z2);
 
-		glVertex3f(x2, y2, z2);
-		glVertex3f(x1, y2, z1);
-		glVertex3f(x1, y1, z1);
+		glVertex3f(x2, y_2, z2);
+		glVertex3f(x1, y_2, z1);
+		glVertex3f(x1, y_1, z1);
 	}
 }
 

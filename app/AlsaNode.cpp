@@ -200,15 +200,15 @@ int AlsaNode::SetStreamBuffers(int frag_size, int frag_count, int channels)
 {
 	assert(plugin);
 	int size;
-	int count;
+	int counter;
 	int chans;
 
 	size = frag_size;
-	count = frag_count;
+	counter = frag_count;
 	chans = channels;
 
-	if (plugin->set_buffer(&size, &count, &chans)) {
-		nr_fragments = count;
+	if (plugin->set_buffer(&size, &counter, &chans)) {
+		nr_fragments = counter;
 		fragment_size = size;
 		return 1;
 	} else {
@@ -495,17 +495,17 @@ bool AlsaNode::ReadyToRun()
 
 int AlsaNode::GetLatency()
 {
-	int count = 0;
+	int counter = 0;
 
 	assert(plugin);
 	//if (plugin->start_callbacks) {
 	//	return (fragment_size * nr_fragments);
 	//}
 
-	if (plugin->get_queue_count && (count = plugin->get_queue_count()) >= 0) {
-		return count;
-	} else if (plugin->get_latency && (count = plugin->get_latency()) >= 0) {
-		return count;
+	if (plugin->get_queue_count && (counter = plugin->get_queue_count()) >= 0) {
+		return counter;
+	} else if (plugin->get_latency && (counter = plugin->get_latency()) >= 0) {
+		return counter;
 	} else
 		return (external_latency + ((nr_fragments-1) * fragment_size));
 }

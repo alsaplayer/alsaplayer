@@ -276,9 +276,9 @@ FlacStream::engine () const
 }
 
 inline void
-FlacStream::setTag (FlacTag * tag)
+FlacStream::setTag (FlacTag * tag_)
 {
-    _tag = tag;
+    _tag = tag_;
 }
 
 inline const std::string &

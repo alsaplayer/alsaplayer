@@ -176,21 +176,21 @@ static void shutdown_bscope(void)
 	}
 }
 
-static inline void draw_vert_line(guchar *buffer, gint x, gint y1, gint y2)
+static inline void draw_vert_line(guchar *buffer, gint x, gint y_1, gint y_2)
 {
 	int y;
-	if(y1 < y2)
+	if(y_1 < y_2)
 	{
-		for(y = y1; y <= y2; y++)
+		for(y = y_1; y <= y_2; y++)
 			draw_pixel_8(buffer,x,y,0xFF);
 	}
-	else if(y2 < y1)
+	else if(y_2 < y_1)
 	{
-		for(y = y2; y <= y1; y++)
+		for(y = y_2; y <= y_1; y++)
 			draw_pixel_8(buffer,x,y,0xFF);
 	}
 	else
-		draw_pixel_8(buffer,x,y1,0xFF);
+		draw_pixel_8(buffer,x,y_1,0xFF);
 }
 
 

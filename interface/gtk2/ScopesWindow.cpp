@@ -403,19 +403,19 @@ scopes_window_response(GtkDialog *dialog, gint arg1, gpointer /*user_data*/)
 GtkWidget*
 create_scopes_window(void)
 {
-	GtkWidget *scopes_window;
+	GtkWidget *scopes_win;
 	GtkWidget *vbox;
 	GtkWidget *label;
 	GtkWidget *scrolledwindow;
 	GtkWidget *scopes_list;
 	GtkListStore *scopes_model;
 
-	scopes_window = gtk_dialog_new_with_buttons(_("Scopes"), NULL, GTK_DIALOG_DESTROY_WITH_PARENT,
+	scopes_win = gtk_dialog_new_with_buttons(_("Scopes"), NULL, GTK_DIALOG_DESTROY_WITH_PARENT,
 												GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE, NULL);
 
-	gtk_window_set_default_size (GTK_WINDOW(scopes_window), 200, 300);
+	gtk_window_set_default_size (GTK_WINDOW(scopes_win), 200, 300);
 
-	vbox = GTK_DIALOG(scopes_window)->vbox;
+	vbox = GTK_DIALOG(scopes_win)->vbox;
 
 	label = gtk_label_new(_("Double click to activate"));
 	gtk_box_pack_start (GTK_BOX(vbox), label, FALSE, FALSE, 3);
@@ -426,7 +426,7 @@ create_scopes_window(void)
 
 	scopes_model = gtk_list_store_new(2, G_TYPE_POINTER, G_TYPE_STRING);
  	scopes_list = gtk_tree_view_new_with_model(GTK_TREE_MODEL(scopes_model));
- 	g_object_set_data(G_OBJECT(scopes_window), "scopes_list", scopes_list);
+ 	g_object_set_data(G_OBJECT(scopes_win), "scopes_list", scopes_list);
  	gtk_container_add (GTK_CONTAINER(scrolledwindow), scopes_list);
 	g_object_unref(scopes_model);
 
@@ -440,11 +440,11 @@ create_scopes_window(void)
 	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(GTK_TREE_VIEW(scopes_list)), GTK_SELECTION_SINGLE);
 	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(scopes_list), FALSE);
 
-	g_signal_connect(G_OBJECT(scopes_window), "delete_event", G_CALLBACK(scopes_delete_event), NULL);
-	g_signal_connect(G_OBJECT(scopes_window), "response", G_CALLBACK(scopes_window_response), NULL);
+	g_signal_connect(G_OBJECT(scopes_win), "delete_event", G_CALLBACK(scopes_delete_event), NULL);
+	g_signal_connect(G_OBJECT(scopes_win), "response", G_CALLBACK(scopes_window_response), NULL);
 	g_signal_connect(G_OBJECT(scopes_list), "button_press_event", G_CALLBACK(scopes_list_button_press), NULL);
 
-	return scopes_window;
+	return scopes_win;
 }
 
 GtkWidget *init_scopes_window(GtkWidget * /*main_window*/)

@@ -134,7 +134,7 @@ static void convolve_run (stack_entry * top, unsigned size, double * scratch)
 		/* When we get here, the stack top is always a convolve,
 		 * with size > 4.  So we will split it.  We repeatedly split
 		 * the top entry until we get to size = 4. */
-			
+
 		left = top->v.left;
 		right = top->v.right;
 		out = top->v.out;
@@ -160,7 +160,7 @@ static void convolve_run (stack_entry * top, unsigned size, double * scratch)
 				s_left[i + size] = r;
 				s_left[i] = l;
 			}
-			
+
 			/* Push the combine entry onto the stack. */
 			top -= 3;
 			top[2].b.main = out;
@@ -199,19 +199,19 @@ static void convolve_run (stack_entry * top, unsigned size, double * scratch)
 			 * then folded back into the output.  We do this in
 			 * a slightly strange way, so as to avoid having
 			 * two loops. */
-			double * out = top->b.main;
+			double * outx = top->b.main;
 			double * mid = scratch + size * 4;
 			unsigned int i;
 			top++;
-			out[size * 2 - 1] = 0;
+			outx[size * 2 - 1] = 0;
 			for (i = 0; i < size-1; i++) {
 				double lo;
 				double hi;
-				lo = mid[0] - (out[0] + out[2 * size]) + out[size];
-				hi = mid[size] - (out[size] + out[3 * size]) + out[2 * size];
-				out[size] = lo;
-				out[2 * size] = hi;
-				out++;
+				lo = mid[0] - (outx[0] + outx[2 * size]) + outx[size];
+				hi = mid[size] - (outx[size] + outx[3 * size]) + outx[2 * size];
+				outx[size] = lo;
+				outx[2 * size] = hi;
+				outx++;
 				mid++;
 			}
 			size <<= 1;
@@ -258,14 +258,14 @@ int convolve_match (const int * lastchoice,
 	/* End-of-stack marker. */
 #if 	0  /* The following line produces a CRASH, need to figure out why?!! */
 	top[1].b.null = scratch;
-#endif	
+#endif
 	top[1].b.main = NULL;
 	/* The low 256x256, of which we want the high 256 outputs. */
 	top->v.left = left;
 	top->v.right = right;
 	top->v.out = right + 256;
 	convolve_run (top, 256, scratch);
-	
+
 	/* The high 256x256, of which we want the low 256 outputs. */
 	top->v.left = left + 256;
 	top->v.right = right;
@@ -286,7 +286,7 @@ int convolve_match (const int * lastchoice,
 		}
 	}
 	p++;
-	
+
 #if 0
 	{
 		/* This is some debugging code... */
@@ -294,7 +294,7 @@ int convolve_match (const int * lastchoice,
 		best = 0;
 		for (i = 0; i < 256; i++)
 			best += ((double) input[i+p]) * ((double) lastchoice[i] - avg);
-		
+
 		for (i = 0; i < 257; i++) {
 			double tot = 0;
 			unsigned int j;
@@ -308,7 +308,7 @@ int convolve_match (const int * lastchoice,
 
 		printf ("%i\n", p);
 	}
-#endif		
+#endif
 
 	return p;
 }

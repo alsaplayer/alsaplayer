@@ -73,7 +73,7 @@ FlacStream::isFlacStream (const std::string & name)
 } // FlacStream::isFlacStream
 
 
-FlacStream::FlacStream (const std::string & name,
+FlacStream::FlacStream (const std::string & name_,
 			reader_type * f,
 			bool)
      : _engine (new FlacEngine (this)),
@@ -87,7 +87,7 @@ FlacStream::FlacStream (const std::string & name,
       _totalSamp (0),
       _decoder (0),
       _tag (0),
-      _name (name)
+      _name (name_)
 {
 } // FlacStream::FlacStream
 
@@ -250,25 +250,25 @@ FlacStream::metaCallBack (const FLAC__StreamDecoder *,
 
 
 void
-FlacStream::realErrCallBack (const char * name,
+FlacStream::realErrCallBack (const char * name_,
 			     FLAC__StreamDecoderErrorStatus status)
 {
     switch (status)
     {
     case FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC:
-	apError ("%s: the decoder lost synchronization", name);
+	apError ("%s: the decoder lost synchronization", name_);
 	break;
 
     case FLAC__STREAM_DECODER_ERROR_STATUS_BAD_HEADER:
-	apError ("%s: corrupted block header", name);
+	apError ("%s: corrupted block header", name_);
 	break;
 
     case FLAC__STREAM_DECODER_ERROR_STATUS_FRAME_CRC_MISMATCH:
-	apError ("%s: block CRC error", name);
+	apError ("%s: block CRC error", name_);
 	break;
 
     default:
-	apError ("%s: an unknown error occurred", name);
+	apError ("%s: an unknown error occurred", name_);
     }
 
 } // FlacStream::realErrCallBack
