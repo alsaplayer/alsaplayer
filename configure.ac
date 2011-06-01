@@ -499,7 +499,7 @@ AM_CONDITIONAL(ARCH_ULTRA,test "$ARCH_TYPE" = "sun4u")
 dnl cruft to satisfy gtk2s Makefile. Leave it in for now
 AM_CONDITIONAL(BUILD_EXTERNAL, test "a" = "b")
 
-test_cflags="-O2 -funroll-loops -finline-functions -ffast-math -Wall -Wextra"
+test_cflags="-O2 -funroll-loops -finline-functions -ffast-math -Wall -Wextra -Wshadow"
 for f in $test_cflags ; do
 	AP_ADD_CFLAGS($f)
 	done
