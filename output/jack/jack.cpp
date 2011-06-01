@@ -338,7 +338,9 @@ int process(jack_nframes_t nblocks, void *arg)
 
 		memset(mix_buffer, 0, nblocks * 4);
 
-		latency = jack_port_get_total_latency(client, my_output_port1);
+		jack_latency_range_t latency_range;
+		jack_port_get_latency_range (my_output_port1, JackPlaybackLatency, &latency_range);
+		latency = latency_range.max;
 
 		for (c = 0; c < MAX_SUB; c++) {
 			i = subs + c;
