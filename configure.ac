@@ -273,7 +273,7 @@ AC_SUBST(MAD_LDADD)
 dnl ==========
 dnl JACK stuff
 dnl ==========
-PKG_CHECK_MODULES(JACK, jack >= 0.61.0, have_jack=yes, have_jack=no)
+PKG_CHECK_MODULES(JACK, jack >= 0.118.0, have_jack=yes, have_jack=no)
 AC_SUBST(JACK_LIBS)
 AC_SUBST(JACK_CFLAGS)
 
