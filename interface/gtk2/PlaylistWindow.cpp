@@ -794,21 +794,21 @@ void PlaylistWindow::CbSetCurrent(void *data, unsigned current)
 	} else {
 		if (playlist_window->current_entry <= playlist_window->GetPlaylist()->Length()) {
 			gchar *current_str = g_strdup_printf("%d", playlist_window->current_entry - 1);
-			gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list), &iter, current_str);
-			gtk_list_store_set (list, &iter, 0, NULL, -1);
+			if (gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list), &iter, current_str))
+				gtk_list_store_set (list, &iter, 0, NULL, -1);
 			g_free(current_str);
 		}
 	}
 	playlist_window->current_entry = current;
 
 	gchar *current_string = g_strdup_printf("%d", playlist_window->current_entry - 1);
-	gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list), &iter, current_string);
 
-	if (playlist_window->GetPlaylist()->GetCorePlayer()->IsPlaying())
-		gtk_list_store_set (list, &iter, 0, current_play_pix, -1);
-	else
-		gtk_list_store_set (list, &iter, 0, current_stop_pix, -1);
-
+	if (gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list), &iter, current_string)) {
+		if (playlist_window->GetPlaylist()->GetCorePlayer()->IsPlaying())
+			gtk_list_store_set (list, &iter, 0, current_play_pix, -1);
+		else
+			gtk_list_store_set (list, &iter, 0, current_stop_pix, -1);
+	}
 	g_free(current_string);
 	GDK_THREADS_LEAVE();
 }
@@ -825,18 +825,17 @@ void PlaylistWindow::CbUpdated(void *data,PlayItem & item, unsigned position) {
 	GtkTreeIter iter;
 
 	gchar *position_string = g_strdup_printf("%d", position);
-	gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list), &iter, position_string);
+	if (gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list), &iter, position_string)) {
+		gchar *list_item[4];
+		new_list_item(&item, list_item);
 
+		gtk_list_store_set (list, &iter, 0, NULL, 1, list_item[1], 2, list_item[2], 3, list_item[3], -1);
 
-	gchar *list_item[4];
-	new_list_item(&item, list_item);
-
-	gtk_list_store_set (list, &iter, 0, NULL, 1, list_item[1], 2, list_item[2], 3, list_item[3], -1);
-
-	g_free(list_item[0]);
-	g_free(list_item[1]);
-	g_free(list_item[2]);
-	g_free(list_item[3]);
+		g_free(list_item[0]);
+		g_free(list_item[1]);
+		g_free(list_item[2]);
+		g_free(list_item[3]);
+	}
 
 	g_free(position_string);
 
@@ -895,9 +894,8 @@ void PlaylistWindow::CbRemove(void *data, unsigned start, unsigned end)
 	while(i <= end) {
 
 		start_string = g_strdup_printf("%d", start - 1);
-		gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list), &iter, start_string);
-
-		gtk_list_store_remove(list, &iter);
+		if (gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list), &iter, start_string))
+			gtk_list_store_remove(list, &iter);
 
 		i++;
 	}
@@ -978,8 +976,8 @@ void PlaylistWindow::SetStop()
 	} else {
 		GDK_THREADS_ENTER();
 		gchar *current_string = g_strdup_printf("%d", current_entry - 1);
-		gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list1), &iter, current_string);
-		gtk_list_store_set (list1, &iter, 0, current_stop_pix, -1);
+		if (gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list1), &iter, current_string))
+			gtk_list_store_set (list1, &iter, 0, current_stop_pix, -1);
 		g_free(current_string);
 		GDK_THREADS_LEAVE();
 	}
@@ -1000,8 +998,8 @@ void PlaylistWindow::SetPlay()
 	} else {
 		GDK_THREADS_ENTER();
 		gchar *current_string = g_strdup_printf("%d", current_entry - 1);
-		gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list1), &iter, current_string);
-		gtk_list_store_set (list1, &iter, 0, current_play_pix, -1);
+		if (gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list1), &iter, current_string))
+			gtk_list_store_set (list1, &iter, 0, current_play_pix, -1);
 		g_free(current_string);
 		GDK_THREADS_LEAVE();
 	}
