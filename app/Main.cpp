@@ -503,21 +503,21 @@ int main(int argc, char **argv)
 					return 1;
 				}
 				if (use_fragsize > 32768) {
-					alsaplayer_error("fragment sizes larger than 32768 bytes are not supported");
+					alsaplayer_error("fragment size (%d) out of range (0-32768)", use_fragsize);
 					return 1;
 				}
 				break;
 			case 'F':
 				use_freq = atoi(optarg);
 				if (use_freq < 8000 || use_freq > 48000) {
-					alsaplayer_error("frequency out of range (8000-48000)");
+					alsaplayer_error("frequency (%d) out of range (8000-48000)", use_freq);
 					return 1;
 				}
 				break;
 			case 'g':
 				use_fragcount = atoi(optarg);
 				if (use_fragcount < 2 || use_fragcount > 128) {
-					alsaplayer_error("fragcount out of range (2-128)");
+					alsaplayer_error("fragcount (%d) out of range (2-128)", use_fragcount);
 					return 1;
 				}
 				break;
@@ -536,7 +536,7 @@ int main(int argc, char **argv)
 			case 'l':
 				start_vol = atof(optarg);
 				if (start_vol < 0.0 || start_vol > 1.0) {
-					alsaplayer_error("volume out of range: using 1.0");
+					alsaplayer_error("volume (%.3f) out of range: using 1.0", start_vol);
 					start_vol = 1.0;
 				}
 				break;
@@ -545,7 +545,7 @@ int main(int argc, char **argv)
 				do_setvol = 1;
 				use_vol = atof(optarg);
 				if (use_vol < 0.0 || use_vol > 1.0) {
-					alsaplayer_error("volume out of range: using 1.0");
+					alsaplayer_error("volume (%.3f) out of range: using 1.0", use_vol);
 					use_vol = 1.0;
 				}
 				break;
