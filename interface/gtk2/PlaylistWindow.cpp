@@ -61,6 +61,14 @@
 // Drag & Drop stuff
 #define TARGET_URI_LIST 0x0001
 
+
+typedef struct
+{	gchar artist [256] ;
+	gchar title [256] ;
+	gchar duration [16] ;
+} PlaylistEntry ;
+
+
 static GtkTargetEntry drag_types[] = {
 	        {strdup("text/uri-list"), 0, TARGET_URI_LIST}
 };
@@ -78,41 +86,35 @@ dialog_cancel_response(GtkWidget *dialog, gpointer /*data*/)
 }
 
 static void
-new_list_item(const PlayItem *item, gchar **list_item)
+new_list_item(const PlayItem *item, PlaylistEntry *entry)
 {
-	gchar *dirname;
-	gchar *filename;
-	gchar *new_path = (gchar *)g_strdup(item->filename.c_str());
-	char pt[1024];
-
-	list_item[0] = NULL;
+	const gchar *filename, *cptr;
 
 	if (item->playtime >= 0) {
-		snprintf(pt, sizeof (pt), "%02d:%02d", (item->playtime > 0) ? item->playtime / 60 : 0,
+		snprintf(entry->duration, sizeof (entry->duration), "%02d:%02d", (item->playtime > 0) ? item->playtime / 60 : 0,
 			(item->playtime > 0) ? item->playtime % 60 : 0);
 	} else {
-		snprintf(pt, sizeof (pt), "00:00");
+		snprintf(entry->duration, sizeof (entry->duration), "00:00");
 	}
-	list_item[3] = (gchar *)g_strdup(pt);
+
 	// Strip directory names
-	dirname = strrchr(new_path, '/');	// do not free
-	if (dirname) {
-			dirname++;
-			filename = (gchar *)g_strdup(dirname);
+	cptr = strrchr(item->filename.c_str(), '/');	// do not free
+	if (cptr) {
+			filename = cptr + 1;
 	} else
-			filename = (gchar *)g_strdup(new_path);
+			filename = item->filename.c_str();
+
 	if (item->title.size())
-		list_item[2] = g_strdup(item->title.c_str());
+		snprintf (entry->title, sizeof (entry->title), "%s", item->title.c_str());
 	else
-		list_item[2] = g_strdup(filename);
+		snprintf (entry->title, sizeof (entry->title), "%s", filename);
 
 	if (item->artist.size())
-		list_item[1] = g_strdup((gchar *)item->artist.c_str());
+		snprintf (entry->artist, sizeof (entry->artist), "%s", item->artist.c_str());
 	else
-		list_item[1] = g_strdup(_("Unknown"));
+		snprintf (entry->artist, sizeof (entry->artist), "%s", _("Unknown"));
 
-	g_free(new_path);
-	g_free(filename);
+	return;
 }
 
 static void
@@ -826,15 +828,10 @@ void PlaylistWindow::CbUpdated(void *data,PlayItem & item, unsigned position) {
 
 	gchar *position_string = g_strdup_printf("%d", position);
 	if (gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL(list), &iter, position_string)) {
-		gchar *list_item[4];
-		new_list_item(&item, list_item);
+		PlaylistEntry plentry;
+		new_list_item(&item, &plentry);
 
-		gtk_list_store_set (list, &iter, 0, NULL, 1, list_item[1], 2, list_item[2], 3, list_item[3], -1);
-
-		g_free(list_item[0]);
-		g_free(list_item[1]);
-		g_free(list_item[2]);
-		g_free(list_item[3]);
+		gtk_list_store_set (list, &iter, 0, NULL, 1, plentry.artist, 2, plentry.title, 3, plentry.duration, -1);
 	}
 
 	g_free(position_string);
@@ -859,17 +856,11 @@ void PlaylistWindow::CbInsert(void *data,std::vector<PlayItem> & items, unsigned
 	if(items.size() > 0) {
 		std::vector<PlayItem>::const_iterator item;
 		for(item = items.begin(); item != items.end(); item++, position++) {
-
-			gchar *list_item[4];
-			new_list_item(&(*item), list_item);
+			PlaylistEntry plentry;
+			new_list_item(&(*item), &plentry);
 
 			gtk_list_store_insert (list, &iter, position);
-			gtk_list_store_set (list, &iter, 0, NULL, 1, list_item[1], 2, list_item[2], 3, list_item[3], -1);
-
-			g_free(list_item[0]);
-			g_free(list_item[1]);
-			g_free(list_item[2]);
-			g_free(list_item[3]);
+			gtk_list_store_set (list, &iter, 0, NULL, 1, plentry.artist, 2, plentry.title, 3, plentry.duration, -1);
 		}
 	}
 
