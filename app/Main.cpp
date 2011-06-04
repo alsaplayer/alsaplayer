@@ -440,6 +440,30 @@ int main(int argc, char **argv)
 		{ "startvolume", 1, 0, 'l' },
 		{ "quit", 0, 0, 'A' },
 		{ "status", 0, 0, 'B' },
+
+		// Options that we want to be able to pass on to gtk_init(). See man
+		// gtk-options(7).
+		// Give all of these an option number of 128 because we're going to
+		// ignore them option switch statement anyway.
+		{ "gtk-module", 1, 0, 128 },
+		{ "gtk-debug", 1, 0, 128 },
+		{ "gtk-no-debug", 1, 0, 128 },
+		{ "g-fatal-warnings", 0, 0, 128 },
+
+		{ "display", 1, 0, 128 },
+		{ "screen", 1, 0, 128 },
+		{ "sync", 0, 0, 128 },
+		{ "no-xshm", 0, 0, 128 },
+		{ "name", 1, 0, 128 },
+		{ "class", 1, 0, 128 },
+		{ "gxid_host", 1, 0, 128 },
+		{ "gxid_port", 1, 0, 128 },
+		{ "xim-preedit", 0, 0, 128 },
+		{ "xim-status", 0, 0, 128 },
+		{ "gdk-debug", 1, 0, 128 },
+		{ "gdk-no-debug", 1, 0, 128 },
+
+		// End of list marker.
 		{ 0, 0, 0, 0 }
 	};
 
@@ -633,6 +657,9 @@ int main(int argc, char **argv)
 				do_remote_control = 1;
 				do_relative = 1;
 				do_seek = atoi(optarg);
+				break;
+			case 128:
+				// Gtk-option which we ignore.
 				break;
 			default:
 				alsaplayer_error("Unknown option '%c'", opt);
