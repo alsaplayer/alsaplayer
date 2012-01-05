@@ -62,7 +62,6 @@ static void socket_looper(void *arg)
 	char strnum[64];
 	char tmp[512];
 	long total_time;
-	void *data;
 	float *float_val;
 	char *path;
 	int32_t *int_val;
@@ -121,7 +120,6 @@ static void socket_looper(void *arg)
 		FD_ZERO(&set);
 		FD_SET(socket_fd, &set);
 		len = sizeof (saddr);
-		data = NULL;
 
 		if ((select(socket_fd + 1, &set, NULL, NULL, NULL) <= 0) ||
 				((fd = accept(socket_fd, (struct sockaddr *) &saddr, &len)) == -1))

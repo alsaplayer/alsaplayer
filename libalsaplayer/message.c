@@ -815,7 +815,6 @@ int ap_ping(int session)
 {
 	int fd;
 	int32_t *pong;
-	int32_t ret_val;
 	ap_message_t *msg, *reply;
 
 	fd = ap_connect_session(session);
@@ -831,7 +830,6 @@ int ap_ping(int session)
 	close(fd);
 
 	if ((pong = ap_message_find_int32(reply, "pong"))) {
-		ret_val = *pong;
 		ap_message_delete(reply);
 		// ret_val not used
 		return 1;
@@ -843,7 +841,7 @@ int ap_ping(int session)
 int ap_add_and_play(int session, const char *path)
 {
 	int fd;
-	int32_t *result, ret_val;
+	int32_t *result;
 	ap_message_t *msg, *reply;
 
 	fd = ap_connect_session(session);
@@ -860,7 +858,6 @@ int ap_add_and_play(int session, const char *path)
 	close(fd);
 
 	if ((result = ap_message_find_int32(reply, "ack"))) {
-		ret_val = *result;
 		ap_message_delete(reply);
 		return 1;
 	}
@@ -873,7 +870,7 @@ int ap_add_and_play(int session, const char *path)
 int ap_add_path(int session, const char *path)
 {
 	int fd;
-	int32_t *result, ret_val;
+	int32_t *result;
 	ap_message_t *msg, *reply;
 
 	fd = ap_connect_session(session);
@@ -890,7 +887,6 @@ int ap_add_path(int session, const char *path)
 	close(fd);
 
 	if ((result = ap_message_find_int32(reply, "ack"))) {
-		ret_val = *result;
 		ap_message_delete(reply);
 		return 1;
 	}
@@ -903,7 +899,7 @@ int ap_add_path(int session, const char *path)
 int ap_add_playlist(int session, const char *playlistfile)
 {
 	int fd;
-	int32_t *result, ret_val;
+	int32_t *result;
 	ap_message_t *msg, *reply;
 
 	fd = ap_connect_session(session);
@@ -920,7 +916,6 @@ int ap_add_playlist(int session, const char *playlistfile)
 	close(fd);
 
 	if ((result = ap_message_find_int32(reply, "ack"))) {
-		ret_val = *result;
 		ap_message_delete(reply);
 		return 1;
 	}
@@ -933,7 +928,7 @@ int ap_add_playlist(int session, const char *playlistfile)
 int ap_sort (int session, char *seq)
 {
 	int fd;
-	int32_t *result, ret_val;
+	int32_t *result;
 	ap_message_t *msg, *reply;
 
 	fd = ap_connect_session(session);
@@ -950,7 +945,6 @@ int ap_sort (int session, char *seq)
 	close(fd);
 
 	if ((result = ap_message_find_int32(reply, "ack"))) {
-		ret_val = *result;
 		ap_message_delete(reply);
 		return 1;
 	}

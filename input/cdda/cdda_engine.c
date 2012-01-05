@@ -976,9 +976,7 @@ cddb_update_info(struct cdda_local_data *data)
 
 static int cdda_init(void)
 {
-	char *prefsdir;
-
-	prefsdir = get_prefsdir();
+	get_prefsdir();
 	real_path [0] = 0;
 	return 1;
 }
@@ -1256,14 +1254,11 @@ static int cdda_channels(input_object *obj)
 static int cdda_stream_info(input_object *obj, stream_info *info)
 {
 	struct cdda_local_data *data;
-	struct cd_trk_list *tl;
 
 	assert(obj);
 	assert(info);
 
 	data = (struct cdda_local_data *)obj->local_data;
-
-	tl = &data->tl;
 
 	snprintf(info->stream_type, sizeof (info->stream_type), "CD Audio, 44KHz, stereo");
 	if (data->tracks[1].artist)

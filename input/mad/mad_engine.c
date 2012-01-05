@@ -842,11 +842,8 @@ static int mad_init(void)
 
 static int mad_channels(input_object *obj)
 {
-	struct mad_local_data *data;
-
 	if (!obj)
 		return 2; /* Default to 2, this is flaky at best! */
-	data = (struct mad_local_data *)obj->local_data;
 
 	return obj->nr_channels;
 }
@@ -963,7 +960,6 @@ static int mad_open(input_object *obj, const char *path)
 {
 	struct mad_local_data *data;
 	char *p;
-	int mode;
 
 	if (!obj)
 		return 0;
@@ -1072,8 +1068,6 @@ first_block:
 		// We use the xing data later on
 	}
 
-	mode = (data->frame.header.mode == MAD_MODE_SINGLE_CHANNEL) ?
-		1 : 2;
 	data->samplerate = data->frame.header.samplerate;
 	data->bitrate	= data->frame.header.bitrate;
 	mad_synth_frame (&data->synth, &data->frame);

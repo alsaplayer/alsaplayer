@@ -173,9 +173,6 @@ static int mikmod_play_block (input_object *obj, short *buf)
 	struct mikmod_local_data *data =
 		(struct mikmod_local_data *)obj->local_data;
 
-	int length = 0;
-	/*  printf ("playing block\n"); */
-
 	if (obj && obj->local_data == NULL) {
 		printf("HUUUUUUUUUUUUUHHH??????????????????\n");
 		return 0;
@@ -183,7 +180,7 @@ static int mikmod_play_block (input_object *obj, short *buf)
 	if (!Player_Active ())
 		return 0;
 
-	length = VC_WriteBytes(data->audio_buffer, MIKMOD_BLOCK_SIZE);
+	VC_WriteBytes(data->audio_buffer, MIKMOD_BLOCK_SIZE);
 
 	if (buf)
 		memcpy(buf, data->audio_buffer, MIKMOD_BLOCK_SIZE);

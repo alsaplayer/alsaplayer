@@ -820,21 +820,21 @@ gint indicator_callback(gpointer, int locking)
 	Playlist *pl;
 	CorePlayer *player;
 	GtkAdjustment *adj;
-	GdkDrawable *drawable;
 	GdkColor color;
 	stream_info info;
 	char title_string[256];
 	char str[60];
-	long slider_val=0, t_min=0, t_sec=0;
-	long c_hsec=0, secs=0, c_min=0, c_sec=0;
-	long sr=0;
+	long t_min=0, t_sec=0;
+#ifdef SUBSECOND_DISPLAY
+	long c_hsec=0, sr=0;
+#endif
+	long secs=0, c_min=0, c_sec=0;
 	int nr_blocks=0;
 //	static char old_str[60] = "";
 
 	ustr = &global_ustr;
 	pl = (Playlist *)ustr->data;
 	player = pl->GetCorePlayer();
-	drawable = ustr->drawing_area->window;
 
 	adj = GTK_RANGE(ustr->speed_scale)->adjustment;
 	double speed = (double) player->GetSpeed() * 100.0;
@@ -882,12 +882,13 @@ gint indicator_callback(gpointer, int locking)
 	gdk_color_alloc(gdk_colormap_get_system(), &color);
 	if (locking)
 		GDK_THREADS_LEAVE();
+#ifdef SUBSECOND_DISPLAY
 	sr = player->GetSampleRate();
+#endif
 	nr_blocks = player->GetBlocks();
 	if (player->IsActive()) {
 		int pos;
 		pos = global_update ? player->GetPosition() : (int) adj->value;
-				slider_val = pos;
 		secs = global_update ?
 						player->GetCurrentTime() : player->GetCurrentTime((int) adj->value);
 		c_min = secs / 6000;
@@ -898,7 +899,6 @@ gint indicator_callback(gpointer, int locking)
 		if (nr_blocks >= 0) {
 			secs = player->GetCurrentTime(nr_blocks);
 			t_min = secs / 6000;
-			t_sec = (secs % 6000) / 100;
 		}
 		if (locking)
 			GDK_THREADS_ENTER();
@@ -911,7 +911,9 @@ gint indicator_callback(gpointer, int locking)
 		t_sec = 0;
 		c_sec = 0;
 		c_min = 0;
+#ifdef SUBSECOND_DISPLAY
 		c_hsec = 0;
+#endif
 		snprintf(info.title, sizeof (info.title), _("No stream"));
 	}
 	if (nr_blocks < 0 || strlen(info.status)) {

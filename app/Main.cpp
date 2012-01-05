@@ -367,7 +367,6 @@ int main(int argc, char **argv)
 	int ap_result = 0;
 	int use_fragsize = -1; // Initialized
 	int use_fragcount = -1; // later
-	int do_reverb = 0;
 	int do_loopsong = 0;
 	int do_looplist = 0;
 	int do_enqueue = 0;
@@ -606,7 +605,6 @@ int main(int argc, char **argv)
 				global_verbose = 1;
 				break;
 			case 'R':
-				do_reverb = 1;
 				break;
 			case 'S':
 				do_loopsong = 1;

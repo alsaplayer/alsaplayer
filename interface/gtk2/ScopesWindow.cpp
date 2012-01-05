@@ -84,8 +84,6 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 	int *left_pos;
 	int *right_pos;
 
-	static double fftmult[FFT_BUFFER_SIZE / 2 + 1];
-
 	static sound_sample left_actEq[SCOPE_BUFFER];
 	static double left_fftout[FFT_BUFFER_SIZE / 2 + 1];
 	static fft_state *left_fftstate;
@@ -106,7 +104,6 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 			double mult = (double)128 / ((FFT_BUFFER_SIZE * 16384) ^ 2);
 			mult *= log(i + 1) / log(2);
 			mult *= 3;
-			fftmult[i] = mult;
 		}
 		right_fftstate = fft_init();
 		left_fftstate = fft_init();
@@ -152,8 +149,8 @@ bool  scope_feeder_func(void *arg, void *data, int size)
 		fft_perform(left_actEq, left_fftout, left_fftstate);
 
 		for (i = 0, left_pos = fft_buf, right_pos = fft_buf + 256; i < 256; i++) {
-			left_pos[i] = (int)(sqrt(left_fftout[i + 1])) >> 8; //* fftmult[i]);
-			right_pos[i] = (int)(sqrt(right_fftout[i + 1])) >> 8; //* fftmult[i]);
+			left_pos[i] = (int)(sqrt(left_fftout[i + 1])) >> 8;
+			right_pos[i] = (int)(sqrt(right_fftout[i + 1])) >> 8;
 		}
 		while (se && se->sp && se->active) {
 			if (se->sp->running()) {

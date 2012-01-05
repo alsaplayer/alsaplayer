@@ -124,7 +124,7 @@ load_dialog_cb(GtkDialog *dialog, gint response, gpointer user_data)
 	if ((response == GTK_RESPONSE_ACCEPT) && playlist_window)
 		playlist_window->LoadPlaylist();
 
-		dialog_cancel_response(GTK_WIDGET(dialog), NULL);
+	dialog_cancel_response(GTK_WIDGET(dialog), NULL);
 }
 
 static GtkWidget*

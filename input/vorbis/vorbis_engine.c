@@ -237,12 +237,10 @@ static int vorbis_play_block(input_object *obj, short *buf)
 
 static  long vorbis_block_to_sec(input_object *obj, int block)
 {
-	struct vorbis_local_data *data;
 	int sec;
 
 	if (!obj || !obj->local_data)
 		return 0;
-	data = (struct vorbis_local_data *)obj->local_data;
 	sec = (block * BLOCK_SIZE_BYTES ) / (vorbis_sample_rate(obj) * 2 * 2 / 100);
 	return sec;
 }

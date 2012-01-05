@@ -99,9 +99,7 @@ fft_state *fft_init(void) {
     }
     for(i = 0; i < FFT_BUFFER_SIZE / 2; i++) {
 	double j = 2 * PI * i / FFT_BUFFER_SIZE;
-	float test;
 	costable[i] = cos(j);
-	test = cos(j);
 	sintable[i] = sin(j);
     }
 
@@ -153,7 +151,7 @@ static void fft_prepare(const sound_sample *input, double * re, double * im) {
     unsigned int i;
     double *realptr = re;
     double *imagptr = im;
-    
+
     /* Get input, in reverse bit order */
     for(i = 0; i < FFT_BUFFER_SIZE; i++) {
 	*realptr++ = input[bitReverse[i]];
@@ -166,7 +164,7 @@ static void fft_prepare(const sound_sample *input, double * re, double * im) {
  * Note: only produces half as many data points as the input had.
  * This is roughly a consequence of the Nyquist sampling theorm thingy.
  * (FIXME - make this comment better, and helpful.)
- * 
+ *
  * The two divisions by 4 are also a consequence of this: the contributions
  * returned for each frequency are split into two parts, one at i in the
  * table, and the other at FFT_BUFFER_SIZE - i, except for i = 0 and
@@ -178,11 +176,11 @@ static void fft_output(const double * re, const double * im, double *output) {
     const double *realptr   = re;
     const double *imagptr   = im;
     double *endptr    = output + FFT_BUFFER_SIZE / 2;
- 
+
 #ifdef DEBUG
     unsigned int i, j;
 #endif
- 
+
     while(outputptr <= endptr) {
 	*outputptr = (*realptr * *realptr) + (*imagptr * *imagptr);
 	outputptr++; realptr++; imagptr++;
@@ -220,7 +218,7 @@ static void fft_calculate(double * re, double * im) {
     double fact_real, fact_imag;
     double tmp_real, tmp_imag;
     unsigned int factfact;
-    
+
     /* Set up some variables to reduce calculation in the loops */
     exchanges = 1;
     factfact = FFT_BUFFER_SIZE / 2;
@@ -239,7 +237,7 @@ static void fft_calculate(double * re, double * im) {
 	     */
 	    fact_real = costable[j * factfact];
 	    fact_imag = sintable[j * factfact];
-	    
+
 	    /* Loop through all the exchange groups */
 	    for(k = j; k < FFT_BUFFER_SIZE; k += exchanges << 1) {
 		int k1 = k + exchanges;

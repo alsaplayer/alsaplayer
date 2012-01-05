@@ -120,7 +120,6 @@ int interface_text_start(Playlist *playlist, int /* argc */, char ** /* argv */)
 	CorePlayer *coreplayer;
 	stream_info info;
 	stream_info old_info;
-	bool streamInfoRequested = false;
 	int nr_blocks, pos = -1, old_pos = -1, spaces, c;
 	char out_text[81];
 
@@ -155,14 +154,16 @@ int interface_text_start(Playlist *playlist, int /* argc */, char ** /* argv */)
 	while(going && !playlist->Eof()) {
 		unsigned long secs, t_min, t_sec, c_min, c_sec;
 		t_min = t_sec = c_min = c_sec = 0;
-		streamInfoRequested = false;
 
 
 		// single title loop
 		coreplayer = playlist->GetCorePlayer();
 
 		while (going && (coreplayer->IsActive() || coreplayer->IsPlaying())) {
-			int cur_val, block_val, i;
+#ifdef FANCY_INDICATOR
+			int cur_val, block_val;
+#endif
+			int i;
 
 			old_pos = pos;
 
@@ -171,7 +172,6 @@ int interface_text_start(Playlist *playlist, int /* argc */, char ** /* argv */)
 			pos = playlist->GetCurrent();
 			if (pos != old_pos) {
 				fprintf(stdout, "\n");
-				streamInfoRequested = false;
 			}
 			coreplayer->GetStreamInfo(&info);
 
@@ -182,14 +182,16 @@ int interface_text_start(Playlist *playlist, int /* argc */, char ** /* argv */)
 
 			nr_blocks = coreplayer->GetBlocks();
 			if (nr_blocks >= 0) {
-				block_val = secs = coreplayer->GetCurrentTime(nr_blocks);
+				secs = coreplayer->GetCurrentTime(nr_blocks);
 			} else {
-				block_val = secs = 0;
+				secs = 0;
 			}
-
 			t_min = secs / 6000;
 			t_sec = (secs % 6000) / 100;
+#ifdef FANCY_INDICATOR
+			block_val = secs;
 			cur_val = secs = coreplayer->GetCurrentTime();
+#endif
 			if (secs == 0) {
 				dosleep(SLEEPTIME);
 				continue;
