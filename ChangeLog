@@ -1,3 +1,15 @@
+2012-11-25  gettextize  <bug-gnu-gettext@gnu.org>
+
+	* m4/gettext.m4: Upgrade to gettext-0.18.1.
+	* m4/iconv.m4: Upgrade to gettext-0.18.1.
+	* m4/lib-ld.m4: Upgrade to gettext-0.18.1.
+	* m4/lib-link.m4: Upgrade to gettext-0.18.1.
+	* m4/lib-prefix.m4: Upgrade to gettext-0.18.1.
+	* m4/nls.m4: Upgrade to gettext-0.18.1.
+	* m4/po.m4: Upgrade to gettext-0.18.1.
+	* m4/progtest.m4: Upgrade to gettext-0.18.1.
+	* configure.ac (AM_GNU_GETTEXT_VERSION): Bump to 0.18.1.
+
 Sat Mar 26 08:44:46 2011 +0100
  Dominique Michel dominique.michel@vtxnet.ch
  patch from Patrick Shirkey <pshirkey@boosthardware.com>
