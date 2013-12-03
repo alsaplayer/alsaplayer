@@ -1320,7 +1320,7 @@ bool CorePlayer::IsPaused()
 
 void CorePlayer::Pause()
 {
-	save_speed = (GetSpeed () * ((float) output_rate / (float) input_rate));
+	save_speed = GetSpeed ();
 	SetSpeed (0.0);
 }
 
