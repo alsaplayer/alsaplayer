@@ -14,6 +14,12 @@ TODO list (March 2011, Erik de Castro Lopo)
 - Accept audio files as well as playlists in the file open dialog.
 
 
+User request:
+-------------
+Add support for multi-channel audio files.
+This will probably require substantial rewriting.
+Some voluteer? If so, add you in the TODO list.
+
 
 Old TODO list follows. These have not necessarily been dropped.
 

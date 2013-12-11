@@ -1,3 +1,14 @@
+Wed dec 11 19:50:00 +0100
+ Dominique Michel dominique.michel@vtxnet.ch
+ Updated TODO.
+ Fixes: https://github.com/alsaplayer/alsaplayer/issues/2
+
+Tue dec 03 2013
+ Dominique Michel dominique.michel@vtxnet.ch
+ Fix for speed when pauding/unpausing from the console
+ with JACK.
+ Fixes: https://github.com/alsaplayer/alsaplayer/issues/1
+
 2012-11-25  gettextize  <bug-gnu-gettext@gnu.org>
 
 	* m4/gettext.m4: Upgrade to gettext-0.18.1.
