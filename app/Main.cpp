@@ -333,7 +333,7 @@ static void help()
 		"\n"
 		"Experimental options:\n"
 		"\n"
-		"  -S,--loopsong         loop file\n"
+		"  -L,--loopsong         loop file\n"
 		"  -P,--looplist         loop playlist\n"
 		"  -x,--crossfade        crossfade playlist entries\n"
 		"\n");
@@ -606,7 +606,7 @@ int main(int argc, char **argv)
 				break;
 			case 'R':
 				break;
-			case 'S':
+			case 'L':
 				do_loopsong = 1;
 				break;
 			case 'P':
