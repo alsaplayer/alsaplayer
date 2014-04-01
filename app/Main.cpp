@@ -312,6 +312,7 @@ static void help()
 		"  --speed speed         floating point speed parameter\n"
 		"    1.0 = normal speed, -1.0 normal speed backwards\n"
 		"  --jump track          jump to specified playlist track\n"
+		"  --shuffle             shuffle playlist\n"
 		"  --clear               clear whole playlist\n"
 		"  --quit                quit session\n"
 		"\n"
@@ -373,6 +374,7 @@ int main(int argc, char **argv)
 	int do_replace = 0;
 	int do_realtime = 0;
 	int do_remote_control = 0;
+	int do_shuffle = 0;
 	int do_start = 0;
 	int do_stop = 0;
 	int do_prev = 0;
@@ -429,6 +431,7 @@ int main(int argc, char **argv)
 		{ "stop", 0, 0, 'U' },
 		{ "pause", 0, 0, 'O' },
 		{ "start", 0, 0, 'T' },
+		{ "shuffle", 0, 0, 'S' },
 		{ "prev", 0, 0, 'Q' },
 		{ "next", 0, 0, 'M' },
 		{ "jump", 1, 0, 'J' },
@@ -631,6 +634,10 @@ int main(int argc, char **argv)
 				do_remote_control = 1;
 				do_start = 1;
 				break;
+			case 'S':
+				do_remote_control = 1;
+				do_shuffle = 1;
+				break;
 			case 'Q':
 				do_remote_control = 1;
 				do_prev = 1;
@@ -757,6 +764,9 @@ int main(int argc, char **argv)
 			return 0;
 		} else if (do_setvol) {
 			ap_set_volume(use_session, use_vol);
+			return 0;
+		} else if (do_shuffle) {
+			ap_shuffle_playlist(use_session);
 			return 0;
 		} else if (do_start) {
 			ap_play(use_session);
