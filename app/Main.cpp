@@ -335,7 +335,7 @@ static void help()
 		"Experimental options:\n"
 		"\n"
 		"  -L,--loopsong         loop file\n"
-		"  -P,--looplist         loop playlist\n"
+		"  -P,--looplist on|off  switch playlist looping on or off [default=off]\n"
 		"  -x,--crossfade        crossfade playlist entries\n"
 		"\n");
 }
@@ -399,6 +399,7 @@ int main(int argc, char **argv)
 	const char *use_output = NULL;
 	char *use_interface = NULL;
 	char *use_config = NULL;
+	char *use_looplist = NULL;
 
 	int opt;
 	int option_index;
@@ -425,7 +426,7 @@ int main(int argc, char **argv)
 		{ "verbose", 0, 0, 'V' },
 		{ "reverb", 0, 0, 'R' },
 		{ "loopsong", 0, 0, 'L' },
-		{ "looplist", 0, 0, 'P' },
+		{ "looplist", 1, 0, 'P' },
 		{ "crossfade", 0, 0, 'x' },
 		{ "output", 1, 0, 'o' },
 		{ "stop", 0, 0, 'U' },
@@ -615,6 +616,7 @@ int main(int argc, char **argv)
 			case 'P':
 				do_remote_control = 1;
 				do_looplist = 1;
+				use_looplist = optarg;
 				break;
 			case 'x':
 				do_crossfade = 1;
@@ -810,6 +812,9 @@ int main(int argc, char **argv)
 			ap_set_position(use_session, do_seek);
 			return 0;
 		} else if (do_looplist) {
+			if (strcasecmp(use_looplist, "on") != 0) {
+				do_looplist = false;
+			}
 			ap_set_playlist_looping(use_session, do_looplist);
 			return 0;
 		} else
