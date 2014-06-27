@@ -312,6 +312,7 @@ static void help()
 		"  --speed speed         floating point speed parameter\n"
 		"    1.0 = normal speed, -1.0 normal speed backwards\n"
 		"  --jump track          jump to specified playlist track\n"
+		"  --shuffle             shuffle playlist\n"
 		"  --clear               clear whole playlist\n"
 		"  --quit                quit session\n"
 		"\n"
@@ -333,8 +334,8 @@ static void help()
 		"\n"
 		"Experimental options:\n"
 		"\n"
-		"  -S,--loopsong         loop file\n"
-		"  -P,--looplist         loop playlist\n"
+		"  -L,--loopsong         loop file\n"
+		"  -P,--looplist on|off  switch playlist looping on or off [default=off]\n"
 		"  -x,--crossfade        crossfade playlist entries\n"
 		"\n");
 }
@@ -373,6 +374,7 @@ int main(int argc, char **argv)
 	int do_replace = 0;
 	int do_realtime = 0;
 	int do_remote_control = 0;
+	int do_shuffle = 0;
 	int do_start = 0;
 	int do_stop = 0;
 	int do_prev = 0;
@@ -397,6 +399,7 @@ int main(int argc, char **argv)
 	const char *use_output = NULL;
 	char *use_interface = NULL;
 	char *use_config = NULL;
+	char *use_looplist = NULL;
 
 	int opt;
 	int option_index;
@@ -423,12 +426,13 @@ int main(int argc, char **argv)
 		{ "verbose", 0, 0, 'V' },
 		{ "reverb", 0, 0, 'R' },
 		{ "loopsong", 0, 0, 'L' },
-		{ "looplist", 0, 0, 'P' },
+		{ "looplist", 1, 0, 'P' },
 		{ "crossfade", 0, 0, 'x' },
 		{ "output", 1, 0, 'o' },
 		{ "stop", 0, 0, 'U' },
 		{ "pause", 0, 0, 'O' },
 		{ "start", 0, 0, 'T' },
+		{ "shuffle", 0, 0, 'S' },
 		{ "prev", 0, 0, 'Q' },
 		{ "next", 0, 0, 'M' },
 		{ "jump", 1, 0, 'J' },
@@ -606,11 +610,13 @@ int main(int argc, char **argv)
 				break;
 			case 'R':
 				break;
-			case 'S':
+			case 'L':
 				do_loopsong = 1;
 				break;
 			case 'P':
+				do_remote_control = 1;
 				do_looplist = 1;
+				use_looplist = optarg;
 				break;
 			case 'x':
 				do_crossfade = 1;
@@ -630,6 +636,10 @@ int main(int argc, char **argv)
 			case 'T':
 				do_remote_control = 1;
 				do_start = 1;
+				break;
+			case 'S':
+				do_remote_control = 1;
+				do_shuffle = 1;
 				break;
 			case 'Q':
 				do_remote_control = 1;
@@ -758,6 +768,9 @@ int main(int argc, char **argv)
 		} else if (do_setvol) {
 			ap_set_volume(use_session, use_vol);
 			return 0;
+		} else if (do_shuffle) {
+			ap_shuffle_playlist(use_session);
+			return 0;
 		} else if (do_start) {
 			ap_play(use_session);
 			return 0;
@@ -797,6 +810,12 @@ int main(int argc, char **argv)
 			return 0;
 		} else if (do_seek >= 0) {
 			ap_set_position(use_session, do_seek);
+			return 0;
+		} else if (do_looplist) {
+			if (strcasecmp(use_looplist, "on") != 0) {
+				do_looplist = false;
+			}
+			ap_set_playlist_looping(use_session, do_looplist);
 			return 0;
 		} else
 			alsaplayer_error("No remote control command executed.");
