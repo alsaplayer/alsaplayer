@@ -154,7 +154,7 @@ must be SUID root.
 Use the specified output driver.
 .SS Experimental options:
 .TP
-.B \-S,\-\-loopsong
+.B \-L,\-\-loopsong
 Loop the file.
 .TP
 .B \-P,\-\-looplist

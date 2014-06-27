@@ -333,7 +333,7 @@ static void help()
 		"\n"
 		"Experimental options:\n"
 		"\n"
-		"  -S,--loopsong         loop file\n"
+		"  -L,--loopsong         loop file\n"
 		"  -P,--looplist         loop playlist\n"
 		"  -x,--crossfade        crossfade playlist entries\n"
 		"\n");
@@ -400,8 +400,9 @@ int main(int argc, char **argv)
 
 	int opt;
 	int option_index;
-	const char *options = "bCc:d:eEf:F:g:hi:JI:l:n:NMp:qrs:vRSQPVxo:";
+	const char *options = "bCc:d:eEf:F:g:hi:JI:l:n:NMp:qrs:vRSLQPVxo:";
 	struct option long_options[] = {
+	/*	{ "long_option", take_argument, 0, 'short_option' }, */
 		{ "config", 1, 0, 'c' },
 		{ "device", 1, 0, 'd' },
 		{ "enqueue", 0, 0, 'e' },
@@ -563,6 +564,9 @@ int main(int argc, char **argv)
 					start_vol = 1.0;
 				}
 				break;
+			case 'L':
+				do_loopsong = 1;
+				break;
 			case 'Y':
 				do_remote_control = 1;
 				do_setvol = 1;
@@ -605,9 +609,6 @@ int main(int argc, char **argv)
 				global_verbose = 1;
 				break;
 			case 'R':
-				break;
-			case 'S':
-				do_loopsong = 1;
 				break;
 			case 'P':
 				do_looplist = 1;
