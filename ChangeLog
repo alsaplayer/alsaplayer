@@ -10,6 +10,7 @@ Wed Jun 27 2014
  Patch from Hermann Schwaerzler.
  app/Main.cpp: Change --looplist to a on/off switch.
  Modified patch from Herman Schwaerzler.
+ app/Main.cpp: Change --loopsong to a remote control option and on/off switch.
  Updated the -h option.
  alsaplayer.1.in: updated man page.
 

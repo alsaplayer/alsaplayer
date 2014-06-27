@@ -312,7 +312,8 @@ static void help()
 		"  --speed speed         floating point speed parameter\n"
 		"    1.0 = normal speed, -1.0 normal speed backwards\n"
 		"  --jump track          jump to specified playlist track\n"
-		"  --looplist on|off  switch playlist looping on or off [default off]\n"
+		"  --looplist on|off     switch playlist looping on or off [default off]\n"
+		"  --loopsong on|off     switch song looping on or off [default off]\n"
 		"  -S,--shuffle          shuffle playlist\n"
 		"  --clear               clear whole playlist\n"
 		"  --quit                quit session\n"
@@ -335,7 +336,6 @@ static void help()
 		"\n"
 		"Experimental options:\n"
 		"\n"
-		"  -L,--loopsong         loop file\n"
 		"  -x,--crossfade        crossfade playlist entries\n"
 		"\n");
 }
@@ -399,11 +399,12 @@ int main(int argc, char **argv)
 	const char *use_output = NULL;
 	char *use_interface = NULL;
 	char *use_config = NULL;
+	char *use_loopsong = NULL;
 	char *use_looplist = NULL;
 
 	int opt;
 	int option_index;
-	const char *options = "bCc:d:eEf:F:g:hi:JI:l:n:NMp:qrs:vRSLQVxo:";
+	const char *options = "bCc:d:eEf:F:g:hi:JI:l:n:NMp:qrs:vRSQVxo:";
 	struct option long_options[] = {
 	/*	{ "long_option", take_argument, 0, 'short_option' }, */
 		{ "config", 1, 0, 'c' },
@@ -426,7 +427,7 @@ int main(int argc, char **argv)
 		{ "version", 0, 0, 'v' },
 		{ "verbose", 0, 0, 'V' },
 		{ "reverb", 0, 0, 'R' },
-		{ "loopsong", 0, 0, 'L' },
+		{ "loopsong", 1, 0, 'L' },
 		{ "looplist", 1, 0, 'P' },
 		{ "crossfade", 0, 0, 'x' },
 		{ "output", 1, 0, 'o' },
@@ -569,7 +570,9 @@ int main(int argc, char **argv)
 				}
 				break;
 			case 'L':
+				do_remote_control = 1;
 				do_loopsong = 1;
+				use_loopsong = optarg;
 				break;
 			case 'Y':
 				do_remote_control = 1;
@@ -811,6 +814,12 @@ int main(int argc, char **argv)
 			return 0;
 		} else if (do_seek >= 0) {
 			ap_set_position(use_session, do_seek);
+			return 0;
+		} else if (do_loopsong) {
+			if (strcasecmp(use_loopsong, "on") != 0) {
+				do_loopsong = false;
+			}
+			ap_set_looping(use_session, do_loopsong);
 			return 0;
 		} else if (do_looplist) {
 			if (strcasecmp(use_looplist, "on") != 0) {
