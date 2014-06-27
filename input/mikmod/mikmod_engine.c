@@ -81,10 +81,10 @@ static float mikmod_can_handle (const char *name)
 		return 0.0;
 	ext++;
 
-	if (strstr(name, "MOD.") ||
-			strstr(name, "mod.") ||
-			strstr(name, "xm.") ||
-			strstr(name, "XM.")) {
+	if (strstr(ext, "MOD") ||
+			strstr(ext, "mod") ||
+			strstr(ext, "xm") ||
+			strstr(ext, "XM")) {
 		return 1.0;
 	}
 	if (!strcasecmp (ext, "669") ||
