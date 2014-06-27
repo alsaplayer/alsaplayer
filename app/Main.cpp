@@ -312,6 +312,7 @@ static void help()
 		"  --speed speed         floating point speed parameter\n"
 		"    1.0 = normal speed, -1.0 normal speed backwards\n"
 		"  --jump track          jump to specified playlist track\n"
+		"  -P,--looplist         loop playlist\n"
 		"  -S,--shuffle          shuffle playlist\n"
 		"  --clear               clear whole playlist\n"
 		"  --quit                quit session\n"
@@ -335,7 +336,6 @@ static void help()
 		"Experimental options:\n"
 		"\n"
 		"  -L,--loopsong         loop file\n"
-		"  -P,--looplist         loop playlist\n"
 		"  -x,--crossfade        crossfade playlist entries\n"
 		"\n");
 }
@@ -614,6 +614,7 @@ int main(int argc, char **argv)
 			case 'R':
 				break;
 			case 'P':
+				do_remote_control = 1;
 				do_looplist = 1;
 				break;
 			case 'x':
@@ -808,6 +809,9 @@ int main(int argc, char **argv)
 			return 0;
 		} else if (do_seek >= 0) {
 			ap_set_position(use_session, do_seek);
+			return 0;
+		} else if (do_looplist) {
+			ap_set_playlist_looping(use_session, do_looplist);
 			return 0;
 		} else
 			alsaplayer_error("No remote control command executed.");

@@ -6,6 +6,9 @@ Wed Jun 27 2014
  Modified patch from Hermann Schwaerzler.
  app/Main.cpp: Added -S --shuffle remote option.
  Patch from Hermann Schwaerzler.
+ app/Main.cpp: Change --looplist to a remote control option.
+ Patch from Hermann Schwaerzler.
+ Updated the -h option.
  alsaplayer.1.in: updated man page.
 
 Wed dec 11 19:50:00 +0100
