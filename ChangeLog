@@ -1,3 +1,10 @@
+Wed Jun 27 2014
+ Dominique Michel dominique.michel@vtxnet.ch
+ input/mikmod/mikmod_engine.c: Fix for files wrongly loaded as mikmod files.
+ Thanks to Hermann Schwaerzler for reporting.
+ app/Main.cpp: Fixed short and long option for --loopsong; changed to '-L'.
+ Modified patch from Hermann Schwaerzler.
+
 Wed dec 11 19:50:00 +0100
  Dominique Michel dominique.michel@vtxnet.ch
  Updated TODO.
