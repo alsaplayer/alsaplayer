@@ -125,8 +125,8 @@ will vary accordingly. I.e., with french LOCALE, a valid speed value is 1,5 and 
 .B \-\-jump #
 Jump to the specified playlist track.
 .TP
-.B \-P,\-\-looplist
-Loop the playlist.
+.B \-\-looplist <on|off>
+Switch playlist looping on or off [default off].
 .TP
 .B \-S, \-\-shuffle
 Shuffle the playlist
