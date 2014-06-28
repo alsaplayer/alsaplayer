@@ -18,6 +18,7 @@
  *
  */
 #include "AlsaPlayer.h"
+#include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <unistd.h>
