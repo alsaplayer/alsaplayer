@@ -7,6 +7,6 @@ Comment[fr]=lecteur audio versatile for the Audio Linux Sound Architecture
 Exec=alsaplayer
 TryExec=alsaplayer
 Icon=alsaplayer
-MimeType=audio/x-scpls;audio/x-mpegurl;audio/mpegurl;audio/mp3;audio/x-mp3;audio/mpeg;audio/x-mpeg;audio/x-wav;audio/ogg+vorbis;audio/ogg;application/flac;
+MimeType=audio/x-scpls;audio/x-mpegurl;audio/mpegurl;audio/mp3;audio/x-mp3;audio/mpeg;audio/x-mpeg;audio/x-wav;audio/ogg+vorbis;audio/ogg;audio/flac;
 Categories=AudioVideo;Audio;Player;
 StartupNotify=true

@@ -3,6 +3,7 @@ Sat Jun 28 2014
  app/ControlSocket.cpp: Fix seek and relative seek wrong time scale.
  Fixes: https://github.com/alsaplayer/alsaplayer/issues/4
  interface/gtk2/gtk_interface.cpp: Add missing seconds duration display.
+ extra/alsaplayer.desktop: Fix for flac MIME type.
 
 Wed Jun 27 2014
  Dominique Michel dominique.michel@vtxnet.ch
