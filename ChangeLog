@@ -11,6 +11,7 @@ Sat Jun 28 2014
  input/flac/FlacPlugin.cpp: Avoid const char to char conversion.
  app/Main.cpp: Fix long option.
  Thanks to piem Paul Brossier from Debian for these last 7 patches.
+ AUTHORS: Add Erik de Castro Lopo.
 
 Wed Jun 27 2014
  Dominique Michel dominique.michel@vtxnet.ch

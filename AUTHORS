@@ -1,5 +1,7 @@
 Core code by Andy Lo A Foe <andy@alsaplayer.org>
 
+Rewritten core with modern architecture by Erik de Castro Lopo at www.meganerd.com
+
 CDDA plugin uses some routines from dagrab by Marcello Urbani
 
 WAV plugin uses routines from aplay by Jaroslave Kysela
@@ -36,8 +38,8 @@ GTK2 interface and bug fixes by Madej. He also added html handling and code
 cleanup in the CDDA plugin. 
 
 Project administration by Dominique Michel <dominique_libre@sourceforge.net>.
-I also made some tests, added new sections into the man page and made some
-bug fixes.
+I also made some tests, added new sections into the man page and make some
+random bug fixes.
 
 It is also contributions from other peoples too. If I missed you, please drop
 me a word and I will add you in this file.
