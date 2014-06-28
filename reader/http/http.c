@@ -731,6 +731,8 @@ static void *http_open(const char *uri, reader_status_type status, void *data)
     desc->len = 0;
     desc->direction = 0;
     desc->metadata = NULL;
+    desc->host = NULL;
+    desc->path = NULL;
     desc->status = status;
     desc->data = data;
     pthread_mutex_init (&desc->buffer_lock, NULL);

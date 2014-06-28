@@ -6,6 +6,8 @@ Sat Jun 28 2014
  extra/alsaplayer.desktop: Fix for flac MIME type.
  app/ControlSocket.cpp: Fix missing header, use system PATH_MAX.
  alsaplayer/CorePlayer.h: Add missing linux specific header.
+ reader/http/http.c: Initialize host and path to NULL,
+ avoiding double free with http.
 
 Wed Jun 27 2014
  Dominique Michel dominique.michel@vtxnet.ch
