@@ -460,7 +460,7 @@ static void socket_looper(void *arg)
 							*int_val *= player->GetSampleRate();
 							*int_val /= fsize;
 							*int_val *= player->GetChannels();
-							*int_val *= 2; // 16-bit ("2" x 8-bit)a
+							// *int_val *= 2; // 16-bit ("2" x 8-bit)a
 							if (*int_val < 0)
 								*int_val = 0;
 							player->Seek(*int_val);
@@ -477,7 +477,7 @@ static void socket_looper(void *arg)
 							*int_val *= player->GetSampleRate();
 							*int_val /= fsize;
 							*int_val *= player->GetChannels();
-							*int_val *= 2; // 16-bit ("2" x 8-bit)
+							// *int_val *= 2; // 16-bit ("2" x 8-bit)
 							player->Seek(*int_val);
 						}
 					}

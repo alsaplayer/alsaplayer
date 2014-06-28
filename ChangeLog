@@ -1,7 +1,13 @@
+Sat Jun 28 2014
+ Dominique Michel dominique.michel@vtxnet.ch
+ app/ControlSocket.cpp: Fix seek and relative seek wrong time scale.
+ Fixes: https://github.com/alsaplayer/alsaplayer/issues/4
+
 Wed Jun 27 2014
  Dominique Michel dominique.michel@vtxnet.ch
  input/mikmod/mikmod_engine.c: Fix for files wrongly loaded as mikmod files.
  Thanks to Hermann Schwaerzler for reporting.
+ Fixes: https://github.com/alsaplayer/alsaplayer/issues/9
  app/Main.cpp: Fixed short and long option for --loopsong; changed to '-L'.
  Modified patch from Hermann Schwaerzler.
  app/Main.cpp: Added -S --shuffle remote option.
@@ -10,6 +16,7 @@ Wed Jun 27 2014
  Patch from Hermann Schwaerzler.
  app/Main.cpp: Change --looplist to a on/off switch.
  Modified patch from Herman Schwaerzler.
+ Fixes: https://github.com/alsaplayer/alsaplayer/pull/8
  app/Main.cpp: Change --loopsong to a remote control option and on/off switch.
  Updated the -h option.
  alsaplayer.1.in: updated man page.
