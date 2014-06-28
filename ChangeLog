@@ -5,6 +5,7 @@ Sat Jun 28 2014
  interface/gtk2/gtk_interface.cpp: Add missing seconds duration display.
  extra/alsaplayer.desktop: Fix for flac MIME type.
  app/ControlSocket.cpp: Fix missing header, use system PATH_MAX.
+ alsaplayer/CorePlayer.h: Add missing linux specific header.
 
 Wed Jun 27 2014
  Dominique Michel dominique.michel@vtxnet.ch

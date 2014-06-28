@@ -29,6 +29,10 @@
 #include "AlsaSubscriber.h"
 #include "input_plugin.h"
 
+#ifdef __linux__
+#include <linux/limits.h>
+#endif // __linux__
+
 // Tunable parameters
 
 #define BUF_SIZE (10240)	// Size of a single ringbuffer partition
