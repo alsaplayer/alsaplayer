@@ -334,9 +334,9 @@ input_plugin_info (void)
 
     flac_plugin.version      = INPUT_PLUGIN_VERSION;
 #ifdef LEGACY_FLAC
-    flac_plugin.name         = "flac player v1.1.2";
+    flac_plugin.name         = (char *)"flac player v1.1.2";
 #else
-    flac_plugin.name         = "flac player v1.1.3/1.1.4/1.2";
+    flac_plugin.name         = (char *)"flac player v1.1.3/1.1.4/1.2";
 #endif
     flac_plugin.author       = "Drew Hess";
     flac_plugin.init         = flac_init;
