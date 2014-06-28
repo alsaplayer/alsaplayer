@@ -163,9 +163,6 @@ must be SUID root.
 Use the specified output driver.
 .SS Experimental options:
 .TP
-.B \-L,\-\-loopsong
-Loop the file.
-.TP
 .B \-x,\-\-crossfade
 Crossfade playlist entries.
 .SH JACK OUTPUT PLUGIN
