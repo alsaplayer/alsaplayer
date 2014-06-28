@@ -899,6 +899,7 @@ gint indicator_callback(gpointer, int locking)
 		if (nr_blocks >= 0) {
 			secs = player->GetCurrentTime(nr_blocks);
 			t_min = secs / 6000;
+			t_sec = (secs % 6000) / 100;
 		}
 		if (locking)
 			GDK_THREADS_ENTER();
