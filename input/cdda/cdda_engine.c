@@ -327,7 +327,7 @@ send_to_server (int server_fd, char *message)
 	{
 		alsaplayer_error("%s: %s\n", message, strerror (errno));
 		free (temp);
-		return (NULL);
+		return NULL;
 	}
 
 	if (global_verbose) {
@@ -344,7 +344,7 @@ send_to_server (int server_fd, char *message)
 		{
 			alsaplayer_error("%s\n", strerror (errno));
 			free (temp);
-			return (NULL);
+			return NULL;
 		}
 		total += i;
 		if (total + BUFFER_SIZE > len)
@@ -358,7 +358,7 @@ send_to_server (int server_fd, char *message)
 	if (total < 2)
 	{
 		free (temp);
-		return (NULL);
+		return NULL;
 	}
 
 	temp[total-2] = '\0';		/* temp[total-1] == \r; temp[total] == \n	*/
@@ -431,15 +431,14 @@ cddb_save_to_disk(char *subdir, int cdID, char *message)
 	FILE *destination;
 	DIR *thedir;
 	char path [PATH_MAX];
-	char new[strlen (message)], filename [PATH_MAX];
-	int i = 0, j = 0;
+	char *new, filename [PATH_MAX];
 
 	/* print the message sent to the server */
 	snprintf(path, sizeof (path), "%s", real_path);
 	if (! (thedir=opendir(path))) { /* No cddb directory yet! */
 		if ((mkdir(path, 0744)) < 0) {
 			perror("mkdir");
-			return (NULL);
+			return NULL;
 		}
 	} else {
 		closedir(thedir);
@@ -458,7 +457,7 @@ cddb_save_to_disk(char *subdir, int cdID, char *message)
 		/* try to create it.. */
 		if ((mkdir (path, 0744)) < 0) {
 			perror ("mkdir");
-			return (NULL);
+			return NULL;
 		} else {
 			if (global_verbose)
 				printf ("directory created successfully\n");
@@ -467,12 +466,8 @@ cddb_save_to_disk(char *subdir, int cdID, char *message)
 		closedir(thedir);
 	}
 
-	while (message[i] != '\n')
-		i++;
-	i++;
-
-	for (; i < (int)strlen (message); i++, j++)
-		new[j] = message[i];
+	new = strchr (message, '\n');
+	new = new != NULL ? new + 1 : message;
 
 	/* save it into the disc */
 	snprintf (filename, sizeof (filename), "%s/%s/%08x", real_path, subdir, cdID);
@@ -483,12 +478,11 @@ cddb_save_to_disk(char *subdir, int cdID, char *message)
 	if (! destination)
 	{
 		alsaplayer_error("error creating file");
-		return (NULL);
+		return NULL;
 	}
 
 	/* copy the new string content into the file */
-	for (i = 0; i < (int)strlen (new); i++)
-		fputc (new[i], destination);
+	fputs(new, destination);
 
 	/* close the file */
 	fclose (destination);
@@ -513,7 +507,7 @@ cddb_local_lookup (char *path, unsigned int cd_id)
 	/* try to open the given directory */
 	if (! (opendir (path)))
 	{
-		return (NULL);
+		return NULL;
 	}
 
 	/* get the number of subdirectories in the 'path' dir */
@@ -521,7 +515,7 @@ cddb_local_lookup (char *path, unsigned int cd_id)
 	if (number < 0)
 	{
 		alsaplayer_error("scandir\n");
-		return (NULL);
+		return NULL;
 	}
 
 	/* set the cdrom_id */
@@ -599,7 +593,7 @@ cddb_lookup (const char *address, const char *char_port, int discID, struct cd_t
 	/* get the server fd from the create_socket function */
 	server_fd = create_socket (address, port);
 	if (server_fd < 0)
-		return (NULL);
+		return NULL;
 	else
 		if (global_verbose)
 			printf ("OK\n");
@@ -625,7 +619,7 @@ cddb_lookup (const char *address, const char *char_port, int discID, struct cd_t
 		{
 			alsaplayer_error("bad response from the server\n");
 			close (server_fd);
-			return (NULL);
+			return NULL;
 		}
 		separator=' ';
 	}
@@ -656,7 +650,7 @@ cddb_lookup (const char *address, const char *char_port, int discID, struct cd_t
 	{
 		alsaplayer_error("bad response from the server\n");
 		close (server_fd);
-		return (NULL);
+		return NULL;
 	}
 
 	/*
@@ -757,7 +751,7 @@ cddb_lookup (const char *address, const char *char_port, int discID, struct cd_t
 		alsaplayer_error("Could not find any matches for %08x\n\n", discID);
 		close (server_fd);
 		free(answer);
-		return (NULL);
+		return NULL;
 	}
 
 	/* read from the server */
@@ -776,7 +770,7 @@ cddb_lookup (const char *address, const char *char_port, int discID, struct cd_t
 	{
 		alsaplayer_error("could not receive the informations from %s\n", address);
 		close (server_fd);
-		return (NULL);
+		return NULL;
 	}
 
 	/* save the output into the disc */
@@ -791,7 +785,7 @@ cddb_lookup (const char *address, const char *char_port, int discID, struct cd_t
 	{
 		alsaplayer_error("could not create the file %s/%s, check permission\n", categ, newID);
 		close (server_fd);
-		return (NULL);
+		return NULL;
 	}
 
 	if (global_verbose)
