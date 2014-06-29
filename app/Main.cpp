@@ -404,7 +404,7 @@ int main(int argc, char **argv)
 
 	int opt;
 	int option_index;
-	const char *options = "bCc:d:eEf:F:g:hi:J:I:l:n:NMp:qrs:vRSQVxo:";
+	const char *options = "Cc:d:eEf:F:g:hi:J:I:l:n:NMp:qrs:vRSQVxo:";
 	struct option long_options[] = {
 	/*	{ "long_option", take_argument, 0, 'short_option' }, */
 		{ "config", 1, 0, 'c' },
