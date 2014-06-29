@@ -430,19 +430,15 @@ cddb_save_to_disk(char *subdir, int cdID, char *message)
 {
 	FILE *destination;
 	DIR *thedir;
-	char *path;
+	char path [PATH_MAX];
 	char new[strlen (message)], filename [PATH_MAX];
 	int i = 0, j = 0;
-
-	/* check if we already have the subdir created */
-	path = malloc ((strlen (subdir) + strlen (real_path) + 2) * sizeof (char));
 
 	/* print the message sent to the server */
 	snprintf(path, sizeof (path), "%s", real_path);
 	if (! (thedir=opendir(path))) { /* No cddb directory yet! */
 		if ((mkdir(path, 0744)) < 0) {
 			perror("mkdir");
-			free(path);
 			return (NULL);
 		}
 	} else {
@@ -462,7 +458,6 @@ cddb_save_to_disk(char *subdir, int cdID, char *message)
 		/* try to create it.. */
 		if ((mkdir (path, 0744)) < 0) {
 			perror ("mkdir");
-			free(path);
 			return (NULL);
 		} else {
 			if (global_verbose)
@@ -488,16 +483,12 @@ cddb_save_to_disk(char *subdir, int cdID, char *message)
 	if (! destination)
 	{
 		alsaplayer_error("error creating file");
-		free(path);
 		return (NULL);
 	}
 
 	/* copy the new string content into the file */
 	for (i = 0; i < (int)strlen (new); i++)
 		fputc (new[i], destination);
-
-	/* free path's memory */
-	free (path);
 
 	/* close the file */
 	fclose (destination);
