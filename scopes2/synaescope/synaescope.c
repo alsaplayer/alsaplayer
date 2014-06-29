@@ -576,7 +576,7 @@ init_synaescope(void * UNUSED (arg))
 {
     int i;
 
-    for(i = 0; i <= FFT_BUFFER_SIZE / 2 + 1; i++) {
+    for(i = 0; i <= FFT_BUFFER_SIZE / 2; i++) {
 	double mult = (double)128 / ((FFT_BUFFER_SIZE * 16384) ^ 2);
 	/* Result now guaranteed (well, almost) to be in range 0..128 */
 
