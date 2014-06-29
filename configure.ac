@@ -353,9 +353,11 @@ dnl ==========
 PKG_CHECK_MODULES(ALSA, alsa >= 1.0.4, have_alsa=yes, have_alsa=no)
 AC_SUBST(ALSA_LIBS)
 
-# Clean up ALSA_CFLAGS. For some insane reason, the ALSA people think its a
-# good idea to provide the a trailing '/alsa' to their include path, but the
-# only sensible way to access the alsa headers is by #include <alsa/header.h.
+# Clean up ALSA_CFLAGS.
+# For some insane reason, the ALSA people think its a good idea to provide a
+# trailing '/alsa' to their include path, but most people know the only
+# sensible way to access the package specific headers is via the namespaced
+# path, eg #include <alsa/header.h> for the alsa headers.
 #
 # Therefore we outright remove '-I/usr/include/alsa' because its completely
 # un-necessary  and then with whats left, remove the '/alsa' components.
