@@ -28,7 +28,7 @@ libdir = $(ADDON_DIR)/input
 AM_CFLAGS = @DFLAGS@ $(COMMON_CFLAGS) -D_REENTRANT -I$(top_builddir) \
 		-I$(top_srcdir)/libalsaplayer -I$(top_srcdir)/alsaplayer
 
-INCLUDES = -I$(ROOT_DIR)/app $(extra_cflags)
+AM_CPPFLAGS = -I$(ROOT_DIR)/app $(extra_cflags)
 
 libmad_in_la_SOURCES = $(mad_insources)
 

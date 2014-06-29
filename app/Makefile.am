@@ -19,11 +19,11 @@ LIBS = -lpthread -ldl $(SUN_LIBS)
 
 COMMON_FLAGS = @DFLAGS@ -D_REENTRANT -DADDON_DIR=\"$(ADDON_DIR)\"
 
-INCLUDES = -I$(top_srcdir)/alsaplayer -I$(top_srcdir)/libalsaplayer
+AM_CPPFLAGS = -I../intl -I$(top_srcdir)/intl \
+		-I$(top_srcdir)/alsaplayer -I$(top_srcdir)/libalsaplayer
 
-AM_CPPFLAGS = -I../intl -I$(top_srcdir)/intl
-
-AM_CXXFLAGS = $(COMMON_FLAGS)
+AM_CFLAGS = $(COMMON_FLAGS) $(AM_CPPFLAGS)
+AM_CXXFLAGS = $(COMMON_FLAGS) $(AM_CPPFLAGS)
 
 bin_PROGRAMS = alsaplayer
 
@@ -41,7 +41,7 @@ alsaplayer_SOURCES = AlsaSubscriber.cpp \
 		ControlSocket.cpp \
 		prefs.c reader.cpp
 
-alsaplayer_LDADD = $(top_builddir)/libalsaplayer/libalsaplayer.la @LIBINTL@
+alsaplayer_LDADD = $(top_builddir)/libalsaplayer/libalsaplayer.la
 
 jackplayer:
 		ln -s alsaplayer jackplayer

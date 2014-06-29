@@ -26,4 +26,5 @@ liboglspectrum_la_SOURCES = $(oglspectrumsources)
 
 AM_CFLAGS = -D_REENTRANT @DFLAGS@
 
-INCLUDES = -I$(top_builddir) -I$(top_srcdir)/libalsaplayer -I$(top_srcdir)/alsaplayer
+AM_CPPFLAGS = -I$(top_builddir) \
+		-I$(top_srcdir)/libalsaplayer -I$(top_srcdir)/alsaplayer
