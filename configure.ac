@@ -350,22 +350,18 @@ dnl ==========
 dnl ALSA stuff
 dnl ==========
 
+PKG_CHECK_MODULES(ALSA, alsa >= 1.0.4, have_alsa=yes, have_alsa=no)
+AC_SUBST(ALSA_LIBS)
 
-AC_MSG_CHECKING(for alsa version)
-AC_EGREP_CPP([AP_maGiC_VALUE],
-[
-#include <sys/asoundlib.h>
-#if defined(SND_LIB_MAJOR) && defined(SND_LIB_MINOR)
-#if SND_LIB_MAJOR>0 || (SND_LIB_MAJOR==0 && SND_LIB_MINOR>=6)
-AP_maGiC_VALUE
-#endif
-#endif
-],
-have_alsa=yes
-ALSA_LIB="-lasound"
-AC_MSG_RESULT([found latest])
-)
-
+# Clean up ALSA_CFLAGS. For some insane reason, the ALSA people think its a
+# good idea to provide the a trailing '/alsa' to their include path, but the
+# only sensible way to access the alsa headers is by #include <alsa/header.h.
+#
+# Therefore we outright remove '-I/usr/include/alsa' because its completely
+# un-necessary  and then with whats left, remove the '/alsa' components.
+ALSA_CFLAGS=$(echo $ALSA_CFLAGS | sed 's|-I/usr/include/alsa||g' | sed 's|/alsa||g')
+AC_SUBST(ALSA_CFLAGS)
+AM_CONDITIONAL(HAVE_ALSA, test "x$have_alsa" = xyes)
 
 dnl =========
 dnl ESD stuff

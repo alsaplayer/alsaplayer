@@ -16,11 +16,11 @@ EXTRA_DIST= alsa.c
 
 lib_LTLIBRARIES = $(alsa_outltlibs)
 
-AM_CFLAGS = @DFLAGS@ -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer
+AM_CFLAGS = @ALSA_CFLAGS@ @DFLAGS@ -D_REENTRANT -I$(top_builddir) -I$(top_srcdir)/alsaplayer
 
 libdir = $(ADDON_DIR)/output
 
 libalsa_out_la_LDFLAGS = $(alsa_outldflags)
-LIBS = @ALSA_LIB@
+LIBS = @ALSA_LIBS@
 
 libalsa_out_la_SOURCES= $(alsa_outsources)
