@@ -158,7 +158,6 @@ int interface_gtk_start(Playlist *playlist, int argc, char **argv)
 
 	the_coreplayer = playlist->GetCorePlayer();
 
-	g_thread_init(NULL);
 	if (!g_thread_supported()) {
 		alsaplayer_error("Sorry - this interface requires working threads.\n");
 		return 1;
