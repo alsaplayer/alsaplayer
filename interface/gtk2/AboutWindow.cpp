@@ -68,7 +68,8 @@ init_about_window(GtkWidget *)
 	GtkWidget *about_window = NULL;
 	GdkPixbuf *about_logo = NULL;
 	const gchar *authors[] = {"Andy Lo A Foe\t\t\t<andy@alsaplayer.org>",
-								"Dominique Michel\t\t<dominique@tuxfamilly.org>",
+								"Dominique Michel\t\t<dominique_libre@users.sf.net>",
+								"Erik de Castro Lopo\t\thttp://www.mega-nerd.com",
 								"Madej",
 								"\nPatches:",
 								"Hubert Chan",
@@ -99,10 +100,10 @@ along with AlsaPlayer; if not, see <http://www.gnu.org/licenses/>.");
 
 	gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(about_window), "AlsaPlayer");
 	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(about_window), VERSION);
-	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about_window), "Copyright © 1998-2010");
-	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(about_window), _("No comments yet"));
+	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(about_window), "http://alsaplayer.sourceforge.net");
+	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about_window), "Copyright © 1998-2014");
+	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(about_window), _("You like it, please contribute."));
 	gtk_about_dialog_set_license(GTK_ABOUT_DIALOG(about_window), license);
-	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(about_window), "www.alsaplayer.org");
 	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about_window), authors);
 //	gtk_about_dialog_set_artists(GTK_ABOUT_DIALOG(about_window), artists);
 	gtk_about_dialog_set_documenters(GTK_ABOUT_DIALOG(about_window), documenters);
