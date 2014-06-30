@@ -330,7 +330,16 @@ Width of the interface.
 .B xosd_interface.color=#55ff55
 Colour used by the XOSD interface.
 .TP
+.B xosd_interface.outline_color=black
+Colour used by the XOSD interface outline. Colors can be specified using hexadecimal notation prefixed by #, or by their name as in the file rgb.txt from your X11 distribution.
+.TP
 .B xosd_interface.font=-adobe-helvetica-medium-r-normal-*-24-*-*-*-*-*-*-*
+.TP
+.B xosd_interface.shadow=1
+Shadow offset
+.TP
+.B xosd_interface.outline_offset=1
+Wide of the outline
 .TP
 .B xosd_interface.h_offset=20
 Display horizontal offset from the left of the screen

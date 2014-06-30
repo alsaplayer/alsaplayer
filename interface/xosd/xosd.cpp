@@ -52,6 +52,9 @@
 
 #define OSD_FONT	"-adobe-helvetica-medium-r-normal-*-24-*-*-*-*-*-*-*"
 #define OSD_COLOR	"#55ff55"
+#define OSD_OUTL_COLOR	"black"
+#define OSD_SHADOW	1
+#define OSD_OUTL_OFF	1
 #define OSD_TIMEOUT	8
 #define OSD_LINES	5
 #define OSD_H_OFF	20
@@ -65,6 +68,9 @@ static xosd *osd = NULL;
 
 static const char *osd_font;
 static const char *osd_color;
+static const char *osd_outl_color;
+static int osd_shadow;
+static int osd_outl_off;
 static int osd_h_off;
 static int osd_v_off;
 static int osd_timeout;
@@ -83,6 +89,9 @@ int daemon_init()
 
 	osd_font = prefs_get_string(ap_prefs, "xosd_interface", "font", OSD_FONT);
 	osd_color = prefs_get_string(ap_prefs, "xosd_interface", "color", OSD_COLOR);
+	osd_outl_color = prefs_get_string(ap_prefs, "xosd_interface", "outline_color", OSD_OUTL_COLOR);
+	osd_shadow = prefs_get_int(ap_prefs, "xosd_interface", "shadow", OSD_SHADOW);
+	osd_outl_off = prefs_get_int(ap_prefs, "xosd_interface", "outline_offset", OSD_OUTL_OFF);
 	osd_h_off = prefs_get_int(ap_prefs, "xosd_interface", "h_offset", OSD_H_OFF);
 	osd_v_off = prefs_get_int(ap_prefs, "xosd_interface", "v_offset", OSD_V_OFF);
 	osd_timeout = prefs_get_int(ap_prefs, "xosd_interface", "timeout", OSD_TIMEOUT);
@@ -124,13 +133,15 @@ static void displayStreamInfo(CorePlayer *coreplayer)
 			printf("osd creation failed: %s\n", xosd_error);
 		else
 		{
-			xosd_set_pos(osd, XOSD_top);
-			xosd_set_align(osd, XOSD_left);
-			xosd_set_colour(osd, osd_color);
 			xosd_set_font(osd, osd_font);
-			xosd_set_shadow_offset(osd, 1);
-			xosd_set_horizontal_offset(osd, osd_h_off);
+			xosd_set_shadow_offset(osd, osd_shadow);
+			xosd_set_colour(osd, osd_color);
+			xosd_set_outline_offset(osd, osd_outl_off);
+			xosd_set_outline_colour(osd, osd_outl_color);
+			xosd_set_pos(osd, XOSD_top);
 			xosd_set_vertical_offset(osd, osd_v_off);
+			xosd_set_align(osd, XOSD_left);
+			xosd_set_horizontal_offset(osd, osd_h_off);
 			xosd_set_timeout(osd, osd_timeout);
 		}
 	}
