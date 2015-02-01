@@ -832,7 +832,9 @@ static size_t http_read (void *ptr, size_t size, void *d)
     pthread_mutex_init (&mut, NULL);
 
     /* check for reopen */
-    if (desc->begin > desc->pos || desc->begin + desc->len + 3*HTTP_BLOCK_SIZE < desc->pos)
+    if (desc->begin > desc->pos 
+	    || desc->begin + desc->len + 3*HTTP_BLOCK_SIZE < desc->pos
+	    || (!desc->going && desc->pos < desc->size))
 	reconnect (desc, NULL);
 
     /* wait while the buffer will has entire block */
