@@ -572,7 +572,8 @@ static int reconnect (http_desc_t *desc, char *redirect)
 			     desc->pos);
     //alsaplayer_error("%s", request);
     write (desc->sock, request, strlen (request));
-    desc->begin = desc->buffer_pos = desc->pos;
+    desc->begin = desc->pos;
+    desc->buffer_pos = 0;
 
     /* Get response */
     if (get_response_head (desc->sock, response, 10240))
@@ -832,7 +833,9 @@ static size_t http_read (void *ptr, size_t size, void *d)
     pthread_mutex_init (&mut, NULL);
 
     /* check for reopen */
-    if (desc->begin > desc->pos || desc->begin + desc->len + 3*HTTP_BLOCK_SIZE < desc->pos)
+    if (desc->begin > desc->pos 
+	    || desc->begin + desc->len + 3*HTTP_BLOCK_SIZE < desc->pos
+	    || (!desc->going && desc->pos < desc->size))
 	reconnect (desc, NULL);
 
     /* wait while the buffer will has entire block */
