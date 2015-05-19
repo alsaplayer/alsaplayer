@@ -292,6 +292,20 @@ static void socket_looper(void *arg)
 					ap_message_add_int32(reply, "ack", 1);
 				}
 				break;
+			case AP_IS_ONEBYONE:
+				ap_message_add_int32(reply, "int", playlist->IsOneByOne());
+                                ap_message_add_int32(reply, "ack", 1);
+                                break;
+			case AP_SET_ONEBYONE:
+                                if ((int_val = ap_message_find_int32(msg, "int"))) {
+                                        if (*int_val) {
+                                                playlist->SetOneByOne();
+                                        } else {
+                                                playlist->UnSetOneByOne();
+                                        }
+                                        ap_message_add_int32(reply, "ack", 1);
+                                }
+                                break;
 			case AP_GET_PLAYLIST:
 				playlist->Lock();
 				playlist_length = playlist->Length();

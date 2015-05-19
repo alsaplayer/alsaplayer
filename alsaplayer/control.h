@@ -67,6 +67,8 @@ int ap_is_paused(int session , int *paused);
 
 int ap_set_looping(int session, int val);
 int ap_is_looping(int session, int *val);
+int ap_set_onebyone(int session, int val);
+int ap_is_onebyone(int session, int *val);
 int ap_set_playlist_looping(int session, int val);
 int ap_is_playlist_looping(int session, int *val);
 

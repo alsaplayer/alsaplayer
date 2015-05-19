@@ -146,6 +146,7 @@ private:
 	bool loopingSong;	//  Loop the current song
 	bool loopingPlaylist;	// Loop the Playlist
 	bool crossfade; // Crossfade the playlist
+        bool onebyone; // Stop after each song
 	AlsaNode *our_node; // Node	
 	CorePlayer *coreplayer; // Core player - set this
 
@@ -237,6 +238,11 @@ public:
 	bool LoopingPlaylist() { return loopingPlaylist; }
 	void LoopPlaylist() { loopingPlaylist = true; }
 	void UnLoopPlaylist() { loopingPlaylist = false; }
+
+        // Play songs one by one
+        bool IsOneByOne() { return  onebyone; }
+        void SetOneByOne() { onebyone = true; }
+        void UnSetOneByOne() { onebyone = false; }
 
 	// Save playlist to file
 	enum plist_result Save(std::string, enum plist_format) const;

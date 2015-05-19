@@ -627,6 +627,16 @@ int ap_is_playlist_looping(int session, int *looping)
 	return (ap_cmd_get_int(session, AP_IS_PLAYLIST_LOOPING, looping));
 }
 
+int ap_set_onebyone(int session, int onebyone)
+{
+	return (ap_cmd_set_int(session, AP_SET_ONEBYONE, onebyone));
+}
+
+int ap_is_onebyone(int session, int *onebyone)
+{
+        return (ap_cmd_get_int(session, AP_IS_ONEBYONE, onebyone));
+}
+
 int ap_is_paused(int session , int *paused)
 {
 	 return (ap_cmd_get_int(session, AP_IS_PAUSED, paused));
