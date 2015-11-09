@@ -333,6 +333,19 @@ shuffle_cb(GtkButton * /*button*/, gpointer user_data)
 }
 
 static void
+onebyone_cb(GtkButton * /*button*/, gpointer data)
+{
+    PlaylistWindow *plw = (PlaylistWindow *)data;
+    Playlist *pl = plw->GetPlaylist();
+    if(pl->IsOneByOne()) {
+        pl->UnSetOneByOne();
+    }
+    else {
+        pl->SetOneByOne();
+    }
+}
+
+static void
 dialog_popup(GtkButton * /*button*/, gpointer user_data)
 {
 	gtk_widget_show_all(GTK_WIDGET(user_data));
@@ -557,6 +570,7 @@ create_playlist_window (PlaylistWindow *playlist_window)
 	GtkWidget *add_button;
 	GtkWidget *del_button;
 	GtkWidget *shuffle_button;
+    GtkWidget *onebyone_button;
 	GtkWidget *pl_button_box;
 	GtkWidget *load_button;
 	GtkWidget *save_button;
@@ -625,6 +639,10 @@ create_playlist_window (PlaylistWindow *playlist_window)
 	gtk_box_pack_start (GTK_BOX (button_box), shuffle_button, FALSE, FALSE, 0);
 	gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), shuffle_button, _("Randomize the playlist"), NULL);
 
+    onebyone_button = gtk_toggle_button_new_with_label(_("One by one"));
+    gtk_box_pack_start (GTK_BOX (button_box), onebyone_button, FALSE, FALSE, 0);
+    gtk_tooltips_set_tip(GTK_TOOLTIPS(tooltips), onebyone_button, _("Stop after each track"), NULL);
+
 	pl_button_box = gtk_hbox_new (FALSE, 0);
 	gtk_box_pack_end (GTK_BOX (button_box), pl_button_box, FALSE, FALSE, 0);
 
@@ -663,6 +681,8 @@ create_playlist_window (PlaylistWindow *playlist_window)
 	g_signal_connect(G_OBJECT(del_button), "clicked", G_CALLBACK(playlist_remove), (gpointer)playlist_window);
 	g_signal_connect(G_OBJECT(save_button), "clicked", G_CALLBACK(dialog_popup), (gpointer)save_list);
 	g_signal_connect(G_OBJECT(load_button), "clicked", G_CALLBACK(dialog_popup), (gpointer)load_list);
+
+    g_signal_connect(G_OBJECT(onebyone_button), "clicked", G_CALLBACK(onebyone_cb), (gpointer)playlist_window);
 
 	gtk_widget_grab_focus(GTK_WIDGET(list));
 

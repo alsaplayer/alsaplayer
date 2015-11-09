@@ -314,6 +314,7 @@ static void help()
 		"  --jump track          jump to specified playlist track\n"
 		"  --looplist on|off     switch playlist looping on or off [default off]\n"
 		"  --loopsong on|off     switch song looping on or off [default off]\n"
+        "  -t,--onebyone on|off  switch stop after each track on or off [default off]\n"
 		"  -S,--shuffle          shuffle playlist\n"
 		"  --clear               clear whole playlist\n"
 		"  --quit                quit session\n"
@@ -389,6 +390,7 @@ int main(int argc, char **argv)
 	int do_status = 0;
 	int do_speed = 0;
 	float speed_val = 0.0;
+	int do_onebyone = 0;
 
 	int use_freq = OUTPUT_RATE;
 	float use_vol = 1.0;
@@ -400,6 +402,7 @@ int main(int argc, char **argv)
 	char *use_interface = NULL;
 	char *use_config = NULL;
 	char *use_loopsong = NULL;
+	char *use_onebyone = NULL;
 	char *use_looplist = NULL;
 
 	int opt;
@@ -445,6 +448,7 @@ int main(int argc, char **argv)
 		{ "startvolume", 1, 0, 'l' },
 		{ "quit", 0, 0, 'A' },
 		{ "status", 0, 0, 'B' },
+        { "onebyone", 1, 0, 't' },
 
 		// Options that we want to be able to pass on to gtk_init(). See man
 		// gtk-options(7).
@@ -670,6 +674,11 @@ int main(int argc, char **argv)
 				do_relative = 1;
 				do_seek = atoi(optarg);
 				break;
+            case 't':
+				do_remote_control = 1;
+				do_onebyone = 1;
+				use_onebyone = optarg;
+				break;
 			case 128:
 				// Gtk-option which we ignore.
 				break;
@@ -821,6 +830,12 @@ int main(int argc, char **argv)
 			}
 			ap_set_looping(use_session, do_loopsong);
 			return 0;
+		} else if (do_onebyone) {
+			if (strcasecmp(use_onebyone, "on") != 0) {
+                                do_onebyone = false;
+                        }
+                        ap_set_onebyone(use_session, do_onebyone);
+                        return 0;
 		} else if (do_looplist) {
 			if (strcasecmp(use_looplist, "on") != 0) {
 				do_looplist = false;
@@ -972,6 +987,10 @@ int main(int argc, char **argv)
 	// Loop Playlist
 	if (do_looplist) {
 		playlist->LoopPlaylist();
+	}
+	// Play songs one by one
+	if (do_onebyone) {
+		playlist->SetOneByOne();
 	}
 	// Cross fading
 	if (do_crossfade) {

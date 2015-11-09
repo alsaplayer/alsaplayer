@@ -263,6 +263,9 @@ void playlist_looper(void *data)
 						pl->Play(pl->GetCurrent());
 					} else {
 						pl->Next();
+						if(pl->IsOneByOne()) {
+							pl->Stop();
+						}
 					}
 					// TODO? set a flag to skip the dosleep()
 				}

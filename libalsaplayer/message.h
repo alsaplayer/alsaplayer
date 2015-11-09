@@ -89,6 +89,9 @@
 #define AP_SET_CURRENT          0xcc35
 
 #define AP_GET_PLAYLIST		0xcc36
+
+#define AP_SET_ONEBYONE         0xcc37
+#define AP_IS_ONEBYONE          0xcc38
 /* Add new commands here */
 
 #ifdef __cplusplus
