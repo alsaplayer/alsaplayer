@@ -35,6 +35,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <algorithm>
 #include <csignal>
 #include <cassert>
 #include <unistd.h>
@@ -503,6 +504,10 @@ int main(int argc, char **argv)
 #if !defined(EMBEDDED)
 	init_effects();
 #endif
+
+	// Init random number generator
+	std::srand(time(0));
+
 	while ((opt = getopt_long(argc, argv, options, long_options, &option_index)) != EOF) {
 		switch(opt) {
 			case 'A':
