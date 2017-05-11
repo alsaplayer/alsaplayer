@@ -524,6 +524,7 @@ static void parse_id3 (const char *path, stream_info *info)
 		int f_extended_header = buf [5] & (1<<6);
 		int f_experimental = buf [5] & (1<<5);
 		int header_size = from_synchsafe4 (buf + 6);
+		unsigned int f_seek = 0;
 		int name_size = buf [3] == 2 ? 3 : 4;
 		int ext_size = 0;
 
@@ -571,7 +572,7 @@ static void parse_id3 (const char *path, stream_info *info)
 			}
 
 		/* -- -- read blocks -- -- */
-		while (reader_tell (fd) <= header_size + 10) {
+		while (f_seek <= header_size + 10) {
 			unsigned int size = 0;
 
 
@@ -580,6 +581,7 @@ static void parse_id3 (const char *path, stream_info *info)
 				reader_close (fd);
 				return;
 			}
+			f_seek += name_size;
 
 			if (buf [0] == '\0')  break;
 			if (buf [0] < 'A')  break;
@@ -593,6 +595,7 @@ static void parse_id3 (const char *path, stream_info *info)
 					reader_close (fd);
 					return;
 				}
+				f_seek += 3;
 
 				size = from_synchsafe3 (sb);
 			} else {
@@ -602,6 +605,7 @@ static void parse_id3 (const char *path, stream_info *info)
 					reader_close (fd);
 					return;
 				}
+				f_seek += 4;
 
 				size = from_synchsafe4 (sb);
 			}
@@ -638,6 +642,7 @@ static void parse_id3 (const char *path, stream_info *info)
 					start+=4;
 				}
 			}
+			f_seek += 2;
 
 
 
@@ -650,6 +655,10 @@ static void parse_id3 (const char *path, stream_info *info)
 					reader_close (fd);
 					return;
 				}
+				if (f_seek + size < f_seek) { // size is negative. WHY?
+					break;
+				}
+				f_seek += size;
 
 				continue;
 			}
@@ -659,6 +668,10 @@ static void parse_id3 (const char *path, stream_info *info)
 			if (reader_read (buf + name_size, size, fd) != size) {
 				reader_close (fd);
 				return;
+			}
+			f_seek += size;
+			if(f_seek + size < f_seek) {
+				break;
 			}
 			/* make sure buffer is zero-terminated for sscanf */
 			buf[name_size + size] = 0;
