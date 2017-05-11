@@ -1,46 +1,25 @@
-AlsaPlayer - PCM audio player for Linux and compatible OSes
+# AlsaPlayer - PCM audio player for Linux and compatible OSes
 
-Original version written by Andy Lo A Foe (andy@alsaplayer.org)
+Original version written by Andy Lo A Foe (andy@loafoe.nl)
 GZK2 interface written by Madej from Poland.
 Contributions from many other peoples. See the AUTHORS file for details.
 
-This file is part of AlsaPlayer.
-
-AlsaPlayer is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3 of the License or
-(at your option) any later version.
-
-AlsaPlayer is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public Licence
-along with this program. If not, see <http://www.gnu.org/licences/>.
-
-
-DESCRIPTION
------------
-
-AlsaPlayer is a new PCM player developed on the Linux Operating System. Since
+## DESCRIPTION
+AlsaPlayer is a PCM player developed on the Linux Operating System. Since
 the first public beta release it support has been added for various other
 Operating Systems (mostly Unix variants). AlsaPlayer was written in the first
 place to excercise the new ALSA (Advanced Linux Sound Architecture) driver and
 library system.
 
 
-INTERFACE PLUGINS
------------------
-
+## INTERFACE PLUGINS
 This cool feature allows you to completely customize your user interface.
 I.e. the core of AlsaPlayer is decoupled from the user interface. The default
 GTK2 interface is the best supported one. Among others, there is also a text
 only interface.
 
 
-INPUT PLUGINS
--------------
+## INPUT PLUGINS
 The program is very much plugin based. New file formats can be added simply
 by writing a new input plugin. The only requirement is that the data can be
 presented in PCM audio format.The following plugins are in various states
@@ -61,8 +40,7 @@ of usability:
   http://oss.sgi.com/projects/audiofile/
 - FLAC (including OggFLAC) plugin with support for FLAC >= 1.3.
 
-OUTPUT PLUGINS
---------------
+## OUTPUT PLUGINS
 AlsaPlayer also uses a plugin system for outputting audio data. The output
 mechanism was designed with ALSA in mind of course. Many other Unix audio
 systems map quite well on to it however. Supported output plugins include:
@@ -77,8 +55,7 @@ systems map quite well on to it however. Supported output plugins include:
   preferred output method these days. The underlying audio driver is ALSA.
 
 
-SCOPE PLUGINS
--------------
+## SCOPE PLUGINS
 Just as input and output support gets loaded in dynamically, scope (or
 visualization) plugins are laoded in dynamically also. This enables anyone to
 develop a visualization plugin without changing a single line of code in the
@@ -96,14 +73,11 @@ Nothing stops you from writing a kick ass *FULLSCREEN* (DGA) or even a
 *Hardwarde Accellerated OpenGL* visualization plugin for AlsaPlayer!
 
 
-EFFECTS PLUGINS
----------------
+## EFFECTS PLUGINS
 Work in progress...
 
 
-SCOKET CONTROL
----------------
-
+## SCOKET CONTROL
 AlsaPlayer can be controlled from an external program. You only need to
 link your application against the supplied libalsaplayer.so and in order
 to control AlsaPlayer from your own applications. Seeking, speed control and
@@ -111,21 +85,18 @@ playlist advancement are only a few of the commands available to you.
 See the "examples" directory for sample implementations.
 
 
-INSTALLATION
-------------
-
+## INSTALLATION
 Installing AlsaPlayer from source should be as easy as executing the configure
 script and then make. The configure script will try to detect all input and
 output plugins for your system.
-** IMPORTANT**: Make sure you run 'make install' after the compilation is
+
+*IMPORTANT*: Make sure you run 'make install' after the compilation is
 finished. The various plugins need to be in a specific place on your system.
 If you don't want to install it on your system right away you can always use a
 different --prefix when running configure.
 
 
-EMBEDDED MODE
--------------
-
+## EMBEDDED MODE
 For target systems with low CPU and RAM ressources you can run configure with
 "CFLAGS=-DEMBEDDED". This reduces CPU and RAM usage but imposes the following
 limitations:
@@ -135,56 +106,13 @@ limitations:
 - no effect plugins
 
 
-RUNNING
--------
-
+## RUNNING
 Just fire up the executable. You can pass files to play on the command line
 too. These will be added to the queue while the first entry will start playing
 automatically. The CD like button hides the menu. All other controls should be
 straight forward. Improvements to the interface will follow soon.
 
-
-MAILING LISTS
--------------
-
-We now have a couple of mailing lists for alsaplayer
-
-Name        : alsaplayer-announce
-Description : notification of new versions (read-only)
-Address     : mailto:alsaplayer-announce-request@lists.tartarus.org
-              with subject "subscribe"
-
-Name        : alsaplayer-devel
-Description : discuss development of alsaplayer
-Address     : mailto:alsaplayer-devel-request@lists.tartarus.org
-              with subject "subscribe"
-
-Name        : alsaplayer-commits
-Description : keep up to date on the SVN commits
-Address     : http://lists.sourceforge.net/lists/listinfo/alsaplayer-commits
-
-
-More information on these mailing lists and online archives can be found at
-http://lists.tartarus.org/mailman/listinfo/
-
-
-SVN REPOSITORY
---------------
-
-You can always check out the latest version of AlsaPlayer. Execute the
-following commands in the directory you want the sources in:
-
-svn co https://alsaplayer.svn.sourceforge.net/svnroot/alsaplayer/trunk alsaplayer
-
-A browsable SVN repositary is also available at:
-http://alsaplayer.svn.sourceforge.net/viewvc/alsaplayer/
-
-Thanks to the folks at SourceForge.net for providing these resources.
-
-
-OTHER INFO
-----------
-
-WWW Page : http://www.alsaplayer.org/
-Original author, Email : <andy@alsaplayer.org>
+## OTHER INFO
+WWW Page : http://alsaplayer.sourceforge.net/
+Original author, Email : <andy@loafoe.nl>
 Administrator, Email: <dominique@tuxfamily.org>
