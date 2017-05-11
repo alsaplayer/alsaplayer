@@ -1,4 +1,4 @@
-Core code by Andy Lo A Foe <andy@alsaplayer.org>
+Core code by Andy Lo A Foe <andy@loafoe.nl>
 
 Rewritten core with modern architecture by Erik de Castro Lopo at www.meganerd.com
 
@@ -12,7 +12,7 @@ The FFTscope fft routines, are (C) by Richard Boulton.
 
 Ralph Loader enhanced the Monoscope a great deal
 
-Erik Inge Bolsø wrote the NAS plugin
+Erik Inge BolsÃ¸ wrote the NAS plugin
 
 Looping code by Patrick Shirkey
 
