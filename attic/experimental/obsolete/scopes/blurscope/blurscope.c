@@ -1,5 +1,5 @@
 /*  blurscope.c
- *  Copyright (C) 2002 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 2002 Andy Lo A Foe <andy@loafoe.com>
  *  Ported from XMMS:
  *  Copyright (C) 1998-2000  Peter Alm, Mikael Alm, Olle Hallnas, Thomas Nilsson and 4Front Technologies
  *

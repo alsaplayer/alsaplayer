@@ -1,5 +1,5 @@
 /*  barfft.cpp
- *  Copyright (C) 1999-2002 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 1999-2002 Andy Lo A Foe <andy@loafoe.com>
  *  Based on code by Richard Boulton <richard@tartarus.org>
  *
  *  This file is part of AlsaPlayer.

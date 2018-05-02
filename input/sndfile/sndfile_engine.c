@@ -1,5 +1,5 @@
 /*
- *  sndfile_engine.c (C) 2002 by Andy Lo A Foe <andy@alsaplayer.org>
+ *  sndfile_engine.c (C) 2002 by Andy Lo A Foe <andy@loafoe.com>
  *
  *  This file is part of AlsaPlayer.
  *

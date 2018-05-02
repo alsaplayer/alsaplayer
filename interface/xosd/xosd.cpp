@@ -1,7 +1,7 @@
 /*
  *  daemon-xosd.cpp - XOSD Daemon interface
  *  Copyright (C) 2003 Frank Baumgart <frank.baumgart@gmx.net>
- *  Copyright (C) 2002 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 2002 Andy Lo A Foe <andy@loafoe.com>
  *
  *  This file is part of AlsaPlayer.
  *

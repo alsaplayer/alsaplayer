@@ -1,4 +1,4 @@
-/*  cdda.h (C) 1999-2003 by Andy Lo A Foe <andy@alsaplayer.org>
+/*  cdda.h (C) 1999-2003 by Andy Lo A Foe <andy@loafoe.com>
  *  This file is part of AlsaPlayer.
  *
  *  AlsaPlayer is free software; you can redistribute it and/or modify

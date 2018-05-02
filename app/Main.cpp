@@ -1,5 +1,5 @@
 /*  Main.cpp - main() function and other utils
- *  Copyright (C) 1998-2004 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 1998-2004 Andy Lo A Foe <andy@loafoe.com>
  *
  *  This file is part of AlsaPlayer.
  *
@@ -199,7 +199,7 @@ extern bool reverb_func(void *arg, void *data, int size);
 
 static const char *copyright_string =
     "AlsaPlayer " VERSION
-    "\n(C) 1999-2004 Andy Lo A Foe <andy@alsaplayer.org> and others.";
+    "\n(C) 1999-2004 Andy Lo A Foe <andy@loafoe.com> and others.";
 
 static void list_available_plugins(const char *plugindir)
 {

@@ -1,5 +1,5 @@
 /*  sparc_out.cpp - sparc output driver
- *  Copyright (C) 2007 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 2007 Andy Lo A Foe <andy@loafoe.com>
  *
  *  This file is part of AlsaPlayer.
  *

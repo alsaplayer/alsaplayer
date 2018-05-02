@@ -1,5 +1,5 @@
 /*  spacescope.c
- *  Copyright (C) 1998-2002 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 1998-2002 Andy Lo A Foe <andy@loafoe.com>
  *  Original code by Tinic Uro
  *
  *  This file is part of AlsaPlayer.

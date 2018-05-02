@@ -1,4 +1,4 @@
-/*  opengl_spectrum.c (C) 2002 by Andy Lo A Foe <andy@alsaplayer.org>
+/*  opengl_spectrum.c (C) 2002 by Andy Lo A Foe <andy@loafoe.com>
 
  *  Based on code found in xmms:
  *  Copyright (C) 1998-2000  Peter Alm, Mikael Alm, Olle Hallnas, Thomas Nilsson and 4Front Technologies

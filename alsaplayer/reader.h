@@ -1,6 +1,6 @@
 /*  reader.h
  *  Copyright (C) 2002 Evgeny Chukreev <codedj@echo.ru>
- *  Copyright (C) 2003 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 2003 Andy Lo A Foe <andy@loafoe.com>
  *
  *  This file is part of AlsaPlayer.
  *

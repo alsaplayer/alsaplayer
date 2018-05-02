@@ -1,5 +1,5 @@
 /*  CorePlayer.cpp - Core player object, most of the hacking is done here!
- *	Copyright (C) 1998-2003 Andy Lo A Foe <andy@alsaplayer.org>
+ *	Copyright (C) 1998-2003 Andy Lo A Foe <andy@loafoe.com>
  *
  *  This file is part of AlsaPlayer.
  *

@@ -1,5 +1,5 @@
 /*  AlsaSubscriber.cpp - Subscriber class to interface with AlsaNode
- *  Copyright (C) 1998-2002 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 1998-2002 Andy Lo A Foe <andy@loafoe.com>
  *
  *  This file is part of AlsaPlayer.
  *

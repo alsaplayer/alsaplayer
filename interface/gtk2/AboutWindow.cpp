@@ -67,7 +67,7 @@ init_about_window(GtkWidget *)
 {
 	GtkWidget *about_window = NULL;
 	GdkPixbuf *about_logo = NULL;
-	const gchar *authors[] = {"Andy Lo A Foe\t\t\t<andy@alsaplayer.org>",
+	const gchar *authors[] = {"Andy Lo A Foe\t\t\t<andy@loafoe.com>",
 								"Dominique Michel\t\t<dominique_libre@users.sf.net>",
 								"Erik de Castro Lopo\t\thttp://www.mega-nerd.com",
 								"Madej",

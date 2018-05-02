@@ -1,5 +1,5 @@
 /*  CorePlayer.h
- *  Copyright (C) 1998-2002 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 1998-2002 Andy Lo A Foe <andy@loafoe.com>
  *
  *  This file is part of AlsaPlayer.
  *

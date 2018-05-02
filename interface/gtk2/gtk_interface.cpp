@@ -1,5 +1,5 @@
 /*  gtk2_interface.cpp - gtk+ callbacks, etc
- *  Copyright (C) 2002 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 2002 Andy Lo A Foe <andy@loafoe.com>
  *  Copyright (C) 2007 Madej
  *
  *  This file is part of AlsaPlayer.

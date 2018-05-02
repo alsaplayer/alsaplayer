@@ -1,5 +1,5 @@
 /*
- *  cdda_engine.c (C) 1999-2003 by Andy Lo A Foe <andy@alsaplayer.org>
+ *  cdda_engine.c (C) 1999-2003 by Andy Lo A Foe <andy@loafoe.com>
  *  CDDB lookup code by Anders Rune Jensen
  *
  *	Based on code from dagrab 0.3 by Marcello Urbani <murbani@numerica.it>
@@ -1295,7 +1295,7 @@ input_plugin *input_plugin_info(void)
 	memset(&cdda_plugin, 0, sizeof(input_plugin));
 	cdda_plugin.version = INPUT_PLUGIN_VERSION;
 	cdda_plugin.name = "CDDA player v1.2";
-	cdda_plugin.author = "Andy Lo A Foe <andy@alsaplayer.org>";
+	cdda_plugin.author = "Andy Lo A Foe <andy@loafoe.com>";
 	cdda_plugin.init = cdda_init;
 	cdda_plugin.shutdown = cdda_shutdown;
 	cdda_plugin.can_handle = cdda_can_handle;

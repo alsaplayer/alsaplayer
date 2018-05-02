@@ -1,6 +1,6 @@
 /*
  *  gtk.cpp - GTK interface plugin main file
- *  Copyright (C) 2001 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 2001 Andy Lo A Foe <andy@loafoe.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

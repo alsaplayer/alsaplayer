@@ -1,5 +1,5 @@
 /*  fftscope.c
- *  Copyright (C) 2002 Andy Lo A Foe <andy@alsaplayer.org>
+ *  Copyright (C) 2002 Andy Lo A Foe <andy@loafoe.com>
  *  Copyright (C) 1999 Richard Boulton <richard@tartarus.org>
  *  Original code by Tinic Uro
  *

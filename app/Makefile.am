@@ -6,7 +6,7 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ##
 ## If you would like to negotiate alternate licensing terms, you may do
-## so by contacting the author: Andy Lo A Foe <andy@alsaplayer.org>
+## so by contacting the author: Andy Lo A Foe <andy@loafoe.com>
 ##
 
 if ARCH_ULTRA
