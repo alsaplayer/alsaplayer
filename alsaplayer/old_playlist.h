@@ -1,7 +1,5 @@
-/*  playlist.h
- *
+/*  Playlist.h
  *  Copyright (C) 1999-2002 Andy Lo A Foe <andy@alsaplayer.org>
- *  Rewritten for glibc-2.0 by Evgeny Chukreev <codedj@echo.ru> 
  *
  *  This file is part of AlsaPlayer.
  *
@@ -18,161 +16,264 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
-*/
-
-#ifndef __PLAYLIST_H__
-#define __PLAYLIST_H__
-
-#include <glib-object.h>
-#include <glib.h>
-
-#include "playitem.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
-/**
- * @file playlist.h
- *
- * @brief	Declarations for #ApPlaylist and #ApPlaylistClass.
- *
- * @par List of signals defined in ApPlaylistClass:
- *	- @b "updated". Emitted when updating process for a one #ApPlayItem is done.
- *		     Handler for this signal takes three arguments:
- *		     @code void handler (ApPlaylist *playlist, ApPlayItem *plaitem, gpointer data); @endcode
- *		     First argument is a playlist which did item updating.
- *		     Next one is an updated item. This playitem was queued for
- *		     update by ap_playlist_update() function. Last argument is
- *		     a data pointer which was passed for g_signal_connect().
- *	- @b "inserted".
- *	- @b "cleared".
- *	- @b "pause-toggled".
- *	- @b "looping-playlist-toggled".
- *	- @b "looping-song-toggled".
  */
 
-/**
- * @brief	Returns the type ID of the #ApPlaylist type.
- */
-#define AP_TYPE_PLAYLIST		(ap_playlist_get_type ())
+#ifndef __Playlist_h__
+#define __Playlist_h__
+#include "CorePlayer.h"
+#include <vector>
+#include <string>
+#include <set>
 
-/**
- * @brief	Cast a #ApPlaylist or derived pointer
- *		into a (ApPlaylist*) pointer.
- * 
- * Depending on the current debugging level, this function may invoke
- * certain runtime checks to identify invalid casts
- */
-#define AP_PLAYLIST(playlist)		(G_TYPE_CHECK_INSTANCE_CAST ((playlist), AP_TYPE_PLAYLIST, ApPlaylist))
+#define MAGIC_ID	"# 1.0.0 (Do not edit!)"
 
-/**
- * @brief	Check whether a valid #ApPlaylist
- *		pointer is of type #AP_TYPE_PLAYLIST.
- */
-#define AP_IS_PLAYLIST(playlist)	(G_TYPE_CHECK_INSTANCE_TYPE ((playlist), AP_TYPE_PLAYLIST))
- 
-/**
- * @brief	This is opaque structure for a playlist type.
- *
- * All the fields in the #ApPlaylist structure are private to the #ApPlaylist
- * implementation and should never be accessed directly.
- */
-typedef struct _ApPlaylist		ApPlaylist;
+enum plist_result {E_PL_SUCCESS = 0, E_PL_DUBIOUS, E_PL_BAD};
+enum plist_format {PL_FORMAT_M3U};
 
-/**
- * @brief	This is opaque structure for a playlist class.
- *
- * All the fields in the #ApPlaylistClass structure are private
- * to the #ApPlaylistClass implementation and should never be accessed directly.
- */
-typedef struct _ApPlaylistClass		ApPlaylistClass;
+// This variable should be initialized when the program started.
+extern pthread_mutex_t playlist_sort_seq_mutex;
 
-struct _ApPlaylist {
-    /* Parent object structure.
-     * 
-     * The ap_object structure needs to be the first
-     * element in the playlist structure in order for
-     * the object mechanism to work correctly. This
-     * allows a ApPlaylist pointer to be cast to a
-     * ApObject pointer.
-     */
-    ApObject	    ap_object;
- 
-    GPtrArray*	    queue;
-    
-    gboolean	    active;
-   
-    gboolean	    paused;
-    gboolean	    looping_song;
-    gboolean	    looping_playlist;
-
-    GAsyncQueue*    info_queue;
-    GThread*	    info_thread;
-
-    GAsyncQueue*    insert_queue;
-    GThread*	    insert_thread;
+class PlayItem
+{
+	private:
+		bool parsed;
+		bool eof;
+	public:
+		PlayItem(std::string filename_new) {
+			filename = filename_new;
+			playtime = 0;
+			parsed = false;
+			marked_to_keep_curritem = 0;
+			UnsetEof();
+		}
+		bool Parsed() { return parsed; }
+		void SetEof() { eof = true; }
+		void UnsetEof() { eof = false; }
+		bool Eof() { return eof; }
+		void SetParsed() { parsed = true; }
+		std::string filename;
+		std::string title;
+		std::string artist;
+		std::string album;
+		std::string genre;
+		std::string year;
+		std::string track;
+		std::string comment;
+		int playtime;
+		
+		bool marked_to_keep_curritem;	    // Don't use it if you don't what is it!
 };
 
-struct _ApPlaylistClass {
-    /* Parent class structure.
-     * 
-     * The ap_object_class structure needs to be the first
-     * element in the playlist class structure in order for
-     * the class mechanism to work correctly. This allows a
-     * ApPlaylistClass pointer to be cast to a ApObjectClass
-     * pointer.
-     */
-    ApObjectClass    ap_object_class;
+// C interface for the playlist
+typedef void(*cbsetcurrent_type)(void *data, unsigned pos);
+typedef void(*cbinsert_type)(void *data, std::vector<PlayItem> &items, unsigned pos);
+typedef void(*cbremove_type)(void *data, unsigned start, unsigned end);
+typedef void(*cbupdated_type)(void *data, PlayItem &, unsigned);
+typedef void(*cbclear_type)(void *data);
 
-    /* defualt handlers for signals */
-    void*   (*pause_toggled_signal)		(ApPlaylist	*playlist,
-						 gboolean	pause,
-						 gpointer	data);
-    
-    void*   (*looping_song_toggled_signal)	(ApPlaylist	*playlist,
-						 gboolean	looping_song,
-						 gpointer	data);
+typedef struct _playlist_interface
+{
+	void *data;
+	cbsetcurrent_type cbsetcurrent;
+	cbinsert_type cbinsert;
+	cbremove_type cbremove;
+	cbupdated_type cbupdated;
+	cbclear_type cbclear;
+} playlist_interface;
 
-    void*   (*looping_playlist_toggled_signal)	(ApPlaylist	*playlist,
-						 gboolean	looping_playlist,
-						 gpointer	data);
 
-    void*   (*updated_signal)			(ApPlaylist	*playlist,
-						 ApPlayItem	*playitem,
-						 gpointer	data);
+class PlaylistInterface
+{
+	private:
+	public:
+		// Note: it is not permissible to call any Playlist methods in
+		// one of these callback methods - will cause deadlock.
+		// Callbacks - Called when:
 
-    void*   (*inserted_signal)			(ApPlaylist	*playlist,
-						 guint		pos,
-						 GPtrArray	*playitem,
-						 gpointer	data);
+		// Current position changed
+		virtual void CbSetCurrent(unsigned pos) = 0;
 
-    void*   (*cleared_signal)			(ApPlaylist	*playlist,
-						 gpointer	data);
+		// Some items were inserted
+		// Note: pos is the position to insert at
+		// So - pos == 0  means insert items at beginning
+		//      pos == n  means insert at end, ie append, where n is number of
+		//      items already in list
+		// Note: CbSetCurrent will be called after this callback.
+		virtual void CbInsert(std::vector<PlayItem> &items, unsigned pos) = 0;
+		// Item was updated
+		virtual void CbUpdated(PlayItem &item, unsigned pos) = 0;
+
+		// Tracks from position start to end inclusive were removed
+		// Note: CbSetCurrent will be called after this callback.
+		virtual void CbRemove(unsigned, unsigned) = 0;
+
+		// List was been cleared.  Current position is now 0.
+		virtual void CbClear() = 0;
 };
 
-GType		    ap_playlist_get_type		(void) G_GNUC_CONST;
-void		    ap_playlist_set_pause		(ApPlaylist	*playlist,
-							 gboolean	pause);
-gboolean	    ap_playlist_is_paused		(ApPlaylist	*playlist);
-void		    ap_playlist_set_loop_song		(ApPlaylist	*playlist,
-							 gboolean	loop_song);
-gboolean	    ap_playlist_is_looping_song		(ApPlaylist	*playlist);
-void		    ap_playlist_set_loop_playlist	(ApPlaylist	*playlist,
-							 gboolean	loop_playlist);
-gboolean	    ap_playlist_is_looping_playlist	(ApPlaylist	*playlist);
-void		    ap_playlist_update			(ApPlaylist	*playlist,
-							 ApPlayItem	*playitem);
-void		    ap_playlist_insert			(ApPlaylist	*playlist,
-							 GPtrArray	*array,
-							 guint		pos);
-void		    ap_playlist_clear			(ApPlaylist     *playlist);
-void		    ap_playlist_shuffle			(ApPlaylist     *playlist);
-void		    ap_playlist_sort			(ApPlaylist     *playlist,
-							 const gchar    *order);
+class Playlist
+{
+	friend void playlist_looper(void *data);
+	friend void insert_looper(void *);
+	friend void info_looper(Playlist *);
+private:
+	CorePlayer *player1;
+	CorePlayer *player2;
 
-#ifdef __cplusplus
+	int total_time;
+	int total_size;
+
+	// Mutex to stop moving onto next song while we're modifying the playlist
+	pthread_mutex_t playlist_mutex;
+
+	// Mutex for loading playlists
+	
+	pthread_mutex_t playlist_load_mutex;
+	
+	// Interfaces mutex
+	pthread_mutex_t interfaces_mutex;
+	
+	// Thread which starts new song when previous one finishes
+	// -- would be nice to get rid of this eventually...
+	// (perhaps by setting a callback on the player to be called
+	// when the song finishes)
+	pthread_t playlist_thread;
+
+	// Flags used by thread to exit neatly
+	bool active;    // True until set to false by destructor
+	bool paused;	// Playlist is paused
+        bool shuffled;  // Playlis is shuffled
+	bool loopingSong;	//  Loop the current song
+	bool loopingPlaylist;	// Loop the Playlist
+	bool crossfade; // Crossfade the playlist
+        bool onebyone; // Stop after each song
+	AlsaNode *our_node; // Node	
+	CorePlayer *coreplayer; // Core player - set this
+
+	std::vector<PlayItem> queue;	// List of files to play
+	unsigned curritem;		// Position of next file to play
+
+	std::set<PlaylistInterface *> interfaces;  // Things to tell when things change
+	std::set<playlist_interface *> cinterfaces; // C version
+
+	void Looper(void *data);
+
+	void LockInterfaces();
+	void UnlockInterfaces();
+	
+	bool PlayFile(PlayItem const &);
+public:	
+	void Lock();
+	void Unlock();
+
+	void Stop();
+	bool CanPlay(std::string const &);
+	bool Eof();
+	
+	Playlist(AlsaNode *);
+	~Playlist();
+
+
+	// Get CorePLayer object
+	CorePlayer *GetCorePlayer() { return coreplayer; }
+	AlsaNode *GetNode() { return our_node; }
+
+	PlayItem *GetItem(unsigned);
+	// Get the number of items in the playlist (0 if playlist is empty)
+	int Length();
+
+	// Move to specified item in playlist and play from there
+	// Position 1 is first item, n is last item where n is length of list
+	void Play(unsigned);
+
+	void Next();    // Start playing next item in playlist
+	void Prev();    // Start playing previous item in playlist
+	int GetCurrent() { return curritem; } // Return current item
+	void SetCurrent(unsigned pos);	// Set current item
+
+	// Insert items at position - 0 = beginning, 1 = after first item, etc
+	void Insert(std::vector<std::string> const &, unsigned);
+
+	// To insert just one item:
+	void Insert(std::string const &, unsigned);
+
+	// Add several items and play them immediately
+	// (Avoids possible concurrency problems)
+	void AddAndPlay(std::vector<std::string> const &);
+
+	// Add just one item and play it
+	void AddAndPlay(std::string const &);
+
+	// Remove tracks from position start to end inclusive
+	// Position 1 is first track, n is last track where n is length of list
+	void Remove(unsigned start, unsigned end);
+
+	// Shuffle playlist
+	void Shuffle();
+        void UnShuffle() { shuffled = false; }
+        bool Shuffled() { return shuffled; }
+
+	// Sort playlist according to seq
+	void Sort (std::string const &seq);
+	
+	// Clear playlist
+	void Clear();
+
+	// Pause controls
+	bool IsPaused() { return paused; }
+	void Pause() { paused = true; }
+	void UnPause() { paused = false; }
+
+	// Crossfade controls
+	bool Crossfading() { return crossfade; }
+	void Crossfade() { crossfade = true; }
+	void UnCrossfade() { crossfade = false; }
+
+	// Loop_Song controls
+	bool LoopingSong() { return loopingSong; }
+	void LoopSong() { loopingSong = true; }
+	void UnLoopSong() { loopingSong = false; }
+
+	// Loop_Playlist controls
+	bool LoopingPlaylist() { return loopingPlaylist; }
+	void LoopPlaylist() { loopingPlaylist = true; }
+	void UnLoopPlaylist() { loopingPlaylist = false; }
+
+        // Play songs one by one
+        bool IsOneByOne() { return  onebyone; }
+        void SetOneByOne() { onebyone = true; }
+        void UnSetOneByOne() { onebyone = false; }
+
+	// Save playlist to file
+	enum plist_result Save(std::string, enum plist_format) const;
+
+	// Load playlist from file
+	enum plist_result Load(std::string const &, unsigned, bool);
+
+	// Register to receive callbacks
+	void Register(PlaylistInterface *);
+	void Register(playlist_interface *);
+
+	void RegisterNotifier(coreplayer_notifier *, void *data);
+	void UnRegisterNotifier(coreplayer_notifier *);
+	
+	// Unregister - must do this before a registered interface is deleted
+	void UnRegister(PlaylistInterface *);
+	void UnRegister(playlist_interface *);
+
+	std::vector<PlayItem>& GetQueue() { return queue; }
+};
+
+inline void Playlist::Insert(std::string const &path, unsigned pos) {
+	std::vector<std::string> items;
+	items.push_back(path);
+	Insert(items, pos);
 }
-#endif /* __cplusplus */
 
-#endif /* __PLAYLIST_H__ */
+inline void Playlist::AddAndPlay(std::string const &path) {
+	std::vector<std::string> items;
+	items.push_back(path);
+	Playlist::AddAndPlay(items);
+}
+
+#endif
