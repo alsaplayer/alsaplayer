@@ -1,0 +1,333 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: alsaplayer 0.99.82\n"
+"Report-Msgid-Bugs-To: alsaplayer-devel@lists.tartarus.org\n"
+"POT-Creation-Date: 2014-02-06 03:25+0100\n"
+"PO-Revision-Date: 2021-03-10 15:38+0800\n"
+"Last-Translator: 玉堂白鹤 <yjwork@qq.com>\n"
+"Language-Team: \n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.4.2\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: interface/gtk2/AboutWindow.cpp:83
+msgid ""
+"AlsaPlayer is free software; you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public Licence as published by\n"
+"the Free Software Foundation; either version 3 of the Licence, or\n"
+"(at your option) any later version.\n"
+"\n"
+"AlsaPlayer is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public Licence for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public Licence\n"
+"along with AlsaPlayer; if not, see <http://www.gnu.org/licenses/>."
+msgstr ""
+
+#: interface/gtk2/AboutWindow.cpp:103
+msgid "No comments yet"
+msgstr "暂无评论"
+
+#: interface/gtk2/AboutWindow.cpp:109
+msgid "translator-credits"
+msgstr "玉堂白鹤 <yjwork@qq.com>, 2021"
+
+#: interface/gtk2/gtk_interface.cpp:254
+msgid "Error !"
+msgstr "错误 !"
+
+#: interface/gtk2/gtk_interface.cpp:268
+msgid "Warning !"
+msgstr "警告 !"
+
+#: interface/gtk2/gtk_interface.cpp:282
+msgid "Excuse me !"
+msgstr "对不起！"
+
+#: interface/gtk2/gtk_interface.cpp:339
+#, c-format
+msgid "Volume: %d%%"
+msgstr "音量: %d%%"
+
+#: interface/gtk2/gtk_interface.cpp:339
+msgid "Volume: mute"
+msgstr "音量: 静音"
+
+#: interface/gtk2/gtk_interface.cpp:352
+#, c-format
+msgid "Pan: left %d%%"
+msgstr "声像：左 %d%%"
+
+#: interface/gtk2/gtk_interface.cpp:354
+#, c-format
+msgid "Pan: right %d%%"
+msgstr "声像：右 %d%%"
+
+#: interface/gtk2/gtk_interface.cpp:356
+msgid "Pan: center"
+msgstr "声像：居中"
+
+#: interface/gtk2/gtk_interface.cpp:372
+msgid "Speed: pause"
+msgstr "速度: 暂停"
+
+#: interface/gtk2/gtk_interface.cpp:375
+#, c-format
+msgid "Speed: %d%%  "
+msgstr "速度: %d%%  "
+
+#: interface/gtk2/gtk_interface.cpp:917
+#, c-format
+msgid "No stream"
+msgstr "没有音乐流"
+
+#: interface/gtk2/gtk_interface.cpp:1112
+msgid "Scopes..."
+msgstr ""
+
+#: interface/gtk2/gtk_interface.cpp:1125
+msgid "CD Player (CDDA)"
+msgstr "CD 播放器 (CDDA)"
+
+#: interface/gtk2/gtk_interface.cpp:1162
+msgid "Set end of the looper"
+msgstr "设置循环结尾"
+
+#: interface/gtk2/gtk_interface.cpp:1175
+msgid "Switch off looper"
+msgstr "关闭循环"
+
+#: interface/gtk2/gtk_interface.cpp:1185 interface/gtk2/gtk_interface.cpp:1398
+msgid "Set start of the looper"
+msgstr "设置循环起点"
+
+#: interface/gtk2/gtk_interface.cpp:1208
+msgid "Switch off loop"
+msgstr "关闭循环"
+
+#: interface/gtk2/gtk_interface.cpp:1218 interface/gtk2/gtk_interface.cpp:1388
+msgid "Play playlist in loop"
+msgstr "播放列表循环"
+
+#: interface/gtk2/gtk_interface.cpp:1233
+msgid "Play song in loop"
+msgstr "单曲循环"
+
+#: interface/gtk2/gtk_interface.cpp:1366
+msgid "Position control"
+msgstr "位置控制"
+
+#: interface/gtk2/gtk_interface.cpp:1366
+msgid "Set position of the song"
+msgstr "设置歌曲的位置"
+
+#: interface/gtk2/gtk_interface.cpp:1406
+msgid "Play CD"
+msgstr "播放 CD"
+
+#: interface/gtk2/gtk_interface.cpp:1414
+msgid "Previous track"
+msgstr "上一首"
+
+#: interface/gtk2/gtk_interface.cpp:1414
+msgid "Go to track before the current one on the list"
+msgstr "转到列表中当前曲目之前的曲目"
+
+#: interface/gtk2/gtk_interface.cpp:1422
+#: interface/gtk2/PreferencesWindow.cpp:224
+msgid "Play"
+msgstr "播放"
+
+#: interface/gtk2/gtk_interface.cpp:1422
+msgid "Play current track on the list or open filechooser if list is empty"
+msgstr "播放列表中的当前曲目，如果列表为空，则打开文件选择器"
+
+#: interface/gtk2/gtk_interface.cpp:1431
+msgid "Stop"
+msgstr "停止"
+
+#: interface/gtk2/gtk_interface.cpp:1439
+msgid "Next track"
+msgstr "下一首"
+
+#: interface/gtk2/gtk_interface.cpp:1439
+msgid "Play the track after the current one on the list"
+msgstr "播放列表中当前曲目之后的曲目"
+
+#: interface/gtk2/gtk_interface.cpp:1447
+msgid "Playlist window"
+msgstr "播放列表窗口"
+
+#: interface/gtk2/gtk_interface.cpp:1447
+msgid "Manage playlist"
+msgstr "管理播放列表"
+
+#: interface/gtk2/gtk_interface.cpp:1466
+msgid "Normal speed backwards"
+msgstr "正常速度倒放"
+
+#: interface/gtk2/gtk_interface.cpp:1466
+msgid "Play track backwards with normal speed"
+msgstr "以正常速度向后播放曲目"
+
+#: interface/gtk2/gtk_interface.cpp:1474
+msgid "Pause/Unpause"
+msgstr "暂停/取消暂停"
+
+#: interface/gtk2/gtk_interface.cpp:1482
+msgid "Normal speed"
+msgstr "正常速度"
+
+#: interface/gtk2/gtk_interface.cpp:1482
+msgid "Play track normally"
+msgstr "正常播放曲目"
+
+#: interface/gtk2/gtk_interface.cpp:1488
+msgid "Speed control"
+msgstr "速度控制"
+
+#: interface/gtk2/gtk_interface.cpp:1488
+msgid "Change playback speed"
+msgstr "更改播放速度"
+
+#: interface/gtk2/gtk_interface.cpp:1501
+msgid "Center balance"
+msgstr "平衡居中"
+
+#: interface/gtk2/gtk_interface.cpp:1508
+msgid "Balance"
+msgstr "平衡"
+
+#: interface/gtk2/gtk_interface.cpp:1508
+msgid "Change balance"
+msgstr "更改平衡"
+
+#: interface/gtk2/gtk_interface.cpp:1518
+msgid "Mute/Unmute"
+msgstr "静音/取消静音"
+
+#: interface/gtk2/gtk_interface.cpp:1526
+msgid "Volume"
+msgstr "音量"
+
+#: interface/gtk2/gtk_interface.cpp:1526
+msgid "Change volume"
+msgstr "更改音量"
+
+#: interface/gtk2/PlaylistWindow.cpp:115
+msgid "Unknown"
+msgstr "未知"
+
+#: interface/gtk2/PlaylistWindow.cpp:261
+msgid "Choose file or URL"
+msgstr "选择文件或 URL"
+
+#: interface/gtk2/PlaylistWindow.cpp:271
+msgid "Do not close the window after adding files"
+msgstr "添加文件后不要关闭窗口"
+
+#: interface/gtk2/PlaylistWindow.cpp:459
+msgid "Unknown drop!"
+msgstr ""
+
+#: interface/gtk2/PlaylistWindow.cpp:513
+msgid "Cannot set uris"
+msgstr ""
+
+#: interface/gtk2/PlaylistWindow.cpp:618
+msgid "Add a song into the playlist"
+msgstr "将歌曲添加到播放列表"
+
+#: interface/gtk2/PlaylistWindow.cpp:622
+msgid "Remove the selected song from the playlist"
+msgstr "从播放列表移除所选曲目"
+
+#: interface/gtk2/PlaylistWindow.cpp:624
+msgid "Shuffle"
+msgstr "随机"
+
+#: interface/gtk2/PlaylistWindow.cpp:626
+msgid "Randomize the playlist"
+msgstr "播放列表随机化"
+
+#: interface/gtk2/PlaylistWindow.cpp:633
+msgid "Open a playlist"
+msgstr "打开播放列表"
+
+#: interface/gtk2/PlaylistWindow.cpp:637
+msgid "Save the playlist"
+msgstr "保存播放列表"
+
+#: interface/gtk2/PlaylistWindow.cpp:641
+msgid "Remove the current playlist"
+msgstr "删除当前播放列表"
+
+#: interface/gtk2/PlaylistWindow.cpp:734
+msgid ""
+"It doesn't look like playlist !\n"
+"Are you sure you want to proceed ?"
+msgstr ""
+"它看起来不像播放列表！\n"
+"您确定要继续吗？"
+
+#: interface/gtk2/PreferencesWindow.cpp:118
+msgid "Play on start"
+msgstr ""
+
+#: interface/gtk2/PreferencesWindow.cpp:123
+msgid "Play song after adding to playlist"
+msgstr "添加到播放列表后播放歌曲"
+
+#: interface/gtk2/PreferencesWindow.cpp:128
+msgid "Show title in title-bar"
+msgstr "在标题栏中显示标题"
+
+#: interface/gtk2/PreferencesWindow.cpp:154
+msgid "Background color"
+msgstr "背景颜色"
+
+#: interface/gtk2/PreferencesWindow.cpp:170
+msgid "Font color"
+msgstr "字体颜色"
+
+#: interface/gtk2/PreferencesWindow.cpp:186
+msgid "Fonts"
+msgstr "字体"
+
+#: interface/gtk2/PreferencesWindow.cpp:205
+msgid "Preferences"
+msgstr "首选项"
+
+#: interface/gtk2/PreferencesWindow.cpp:220
+msgid "General"
+msgstr "常规(_G)"
+
+#: interface/gtk2/ScopesWindow.cpp:344
+msgid "Open exclusively"
+msgstr ""
+
+#: interface/gtk2/ScopesWindow.cpp:359
+msgid "Close all"
+msgstr "全部关闭"
+
+#: interface/gtk2/ScopesWindow.cpp:410
+msgid "Scopes"
+msgstr ""
+
+#: interface/gtk2/ScopesWindow.cpp:417
+msgid "Double click to activate"
+msgstr "双击激活"
+
+#: interface/gtk2/ScopesWindow.cpp:434
+msgid "Scope name"
+msgstr ""
