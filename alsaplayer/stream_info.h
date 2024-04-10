@@ -24,6 +24,9 @@
 
 #define SI_MAX_FIELD_LEN 128
 
+#ifdef __linux__
+#include <linux/limits.h>
+#endif // __linux__
 // some arch don't define PATH_MAX
 #ifndef PATH_MAX
 #define PATH_MAX 1024
