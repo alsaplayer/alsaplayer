@@ -128,6 +128,12 @@ static void socket_looper(void *arg)
 		// So we have a connection
 		msg = ap_message_receive(fd);
 
+		// Check for broken connection
+		if (msg) {
+			close(fd);
+			continue;
+		}
+
 		// Check version
 		if (msg->header.version != AP_CONTROL_VERSION) {
 			alsaplayer_error("protocol version mismatch (server): %x != %x",
