@@ -129,7 +129,7 @@ static void socket_looper(void *arg)
 		msg = ap_message_receive(fd);
 
 		// Check for broken connection
-		if (msg) {
+		if (!msg) {
 			close(fd);
 			continue;
 		}
