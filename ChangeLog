@@ -1,3 +1,6 @@
+# This is for the 0.99.82 release.
+# For the current devel log, clone the repo and use 'git log'.
+
 commit 08a4cb54ee6048c94d70cda5e64cbe35f236d059
 Author: Dominique Michel <dominique.c.michel@gmail.com>
 Date:   Fri Apr 12 11:26:26 2024 +0200
