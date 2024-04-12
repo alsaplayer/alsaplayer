@@ -17,7 +17,7 @@ dnl Authors:
 dnl   Ulrich Drepper <drepper@cygnus.com>, 1995-2000.
 dnl   Bruno Haible <haible@clisp.cons.org>, 2000-2006.
 
-AC_PREREQ(2.52)
+AC_PREREQ([2.72])
 
 dnl Checks for all prerequisites of the intl subdirectory,
 dnl except for INTL_LIBTOOL_SUFFIX_PREFIX (and possibly LIBTOOL), INTLOBJS,
@@ -171,11 +171,8 @@ AC_DEFUN([gt_INTL_SUBDIR_CORE],
   AC_REQUIRE([gt_INTTYPES_PRI])dnl
   AC_REQUIRE([gl_LOCK])dnl
 
-  AC_TRY_LINK(
-    [int foo (int a) { a = __builtin_expect (a, 10); return a == 10 ? 0 : 1; }],
-    [],
-    [AC_DEFINE([HAVE_BUILTIN_EXPECT], 1,
-       [Define to 1 if the compiler understands __builtin_expect.])])
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[int foo (int a) { a = __builtin_expect (a, 10); return a == 10 ? 0 : 1; }]], [[]])],[AC_DEFINE([HAVE_BUILTIN_EXPECT], 1,
+       [Define to 1 if the compiler understands __builtin_expect.])],[])
 
   AC_CHECK_HEADERS([argz.h inttypes.h limits.h unistd.h sys/param.h])
   AC_CHECK_FUNCS([getcwd getegid geteuid getgid getuid mempcpy munmap \
@@ -195,11 +192,8 @@ AC_DEFUN([gt_INTL_SUBDIR_CORE],
   dnl glibc >= 2.4 has a NL_LOCALE_NAME macro when _GNU_SOURCE is defined,
   dnl and a _NL_LOCALE_NAME macro always.
   AC_CACHE_CHECK([for NL_LOCALE_NAME macro], gt_cv_nl_locale_name,
-    [AC_TRY_LINK([#include <langinfo.h>
-#include <locale.h>],
-      [char* cs = nl_langinfo(_NL_LOCALE_NAME(LC_MESSAGES));],
-      gt_cv_nl_locale_name=yes,
-      gt_cv_nl_locale_name=no)
+    [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <langinfo.h>
+#include <locale.h>]], [[char* cs = nl_langinfo(_NL_LOCALE_NAME(LC_MESSAGES));]])],[gt_cv_nl_locale_name=yes],[gt_cv_nl_locale_name=no])
     ])
   if test $gt_cv_nl_locale_name = yes; then
     AC_DEFINE(HAVE_NL_LOCALE_NAME, 1,
@@ -244,11 +238,11 @@ dnl Check whether a function is declared.
 AC_DEFUN([gt_CHECK_DECL],
 [
   AC_CACHE_CHECK([whether $1 is declared], ac_cv_have_decl_$1,
-    [AC_TRY_COMPILE([$2], [
+    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[$2]], [[
 #ifndef $1
   char *p = (char *) $1;
 #endif
-], ac_cv_have_decl_$1=yes, ac_cv_have_decl_$1=no)])
+]])],[ac_cv_have_decl_$1=yes],[ac_cv_have_decl_$1=no])])
   if test $ac_cv_have_decl_$1 = yes; then
     gt_value=1
   else

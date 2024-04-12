@@ -6,7 +6,7 @@ dnl with or without modifications, as long as this notice is preserved.
 
 dnl From Paul Eggert.
 
-AC_PREREQ(2.13)
+AC_PREREQ([2.72])
 
 # Define uintmax_t to 'unsigned long' or 'unsigned long long'
 # if it is not already defined in <stdint.h> or <inttypes.h>.

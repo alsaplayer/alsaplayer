@@ -26,19 +26,17 @@ Found it
       dnl Define it ourselves. Here we assume that the type 'size_t' is not wider
       dnl than the type 'unsigned long'. Try hard to find a definition that can
       dnl be used in a preprocessor #if, i.e. doesn't contain a cast.
-      _AC_COMPUTE_INT([sizeof (size_t) * CHAR_BIT - 1], size_t_bits_minus_1,
-        [#include <stddef.h>
-#include <limits.h>], size_t_bits_minus_1=)
-      _AC_COMPUTE_INT([sizeof (size_t) <= sizeof (unsigned int)], fits_in_uint,
-        [#include <stddef.h>], fits_in_uint=)
+      AC_COMPUTE_INT([size_t_bits_minus_1],[sizeof (size_t) * CHAR_BIT - 1],[#include <stddef.h>
+#include <limits.h>],[size_t_bits_minus_1=])
+      AC_COMPUTE_INT([fits_in_uint],[sizeof (size_t) <= sizeof (unsigned int)],[#include <stddef.h>],[fits_in_uint=])
       if test -n "$size_t_bits_minus_1" && test -n "$fits_in_uint"; then
         if test $fits_in_uint = 1; then
           dnl Even though SIZE_MAX fits in an unsigned int, it must be of type
           dnl 'unsigned long' if the type 'size_t' is the same as 'unsigned long'.
-          AC_TRY_COMPILE([#include <stddef.h>
+          AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <stddef.h>
             extern size_t foo;
             extern unsigned long foo;
-            ], [], fits_in_uint=0)
+            ]], [[]])],[fits_in_uint=0],[])
         fi
         dnl We cannot use 'expr' to simplify this expression, because 'expr'
         dnl works only with 'long' integers in the host environment, while we

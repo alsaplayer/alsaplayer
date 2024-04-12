@@ -13,7 +13,7 @@ dnl by the GNU Library General Public License, and the rest of the GNU
 dnl gettext package package is covered by the GNU General Public License.
 dnl They are *not* in the public domain.
 
-AC_PREREQ(2.52)
+AC_PREREQ([2.72])
 
 dnl Tells the AM_GNU_GETTEXT macro to consider an intl/ directory.
 AC_DEFUN([AM_GNU_GETTEXT_INTL_SUBDIR], [])

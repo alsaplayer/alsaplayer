@@ -52,7 +52,7 @@ AC_ARG_ENABLE(libmikmodtest, [  --disable-libmikmodtest       Do not try to comp
       ac_save_CFLAGS="$CFLAGS"
       ac_save_LIBS="$LIBS"
 	  AC_LANG_SAVE
-	  AC_LANG_C
+	  AC_LANG([C])
       CFLAGS="$CFLAGS $LIBMIKMOD_CFLAGS $LIBMIKMOD_LDADD"
       LIBS="$LIBMIKMOD_LIBS $LIBS"
 dnl
@@ -60,7 +60,7 @@ dnl Now check if the installed libmikmod is sufficiently new. (Also sanity
 dnl checks the results of libmikmod-config to some extent
 dnl
       rm -f conf.mikmodtest
-      AC_TRY_RUN([
+      AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <mikmod.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -148,7 +148,7 @@ int main()
     }
   return 1;
 }
-],, no_libmikmod=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
+]])],[],[no_libmikmod=yes],[echo $ac_n "cross compiling; assumed OK... $ac_c"])
        CFLAGS="$ac_save_CFLAGS"
        LIBS="$ac_save_LIBS"
 	   AC_LANG_RESTORE
@@ -172,12 +172,11 @@ int main()
           CFLAGS="$CFLAGS $LIBMIKMOD_CFLAGS"
           LIBS="$LIBS $LIBMIKMOD_LIBS"
 		  AC_LANG_SAVE
-		  AC_LANG_C
-          AC_TRY_LINK([
+		  AC_LANG([C])
+          AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <mikmod.h>
 #include <stdio.h>
-],      [ return (MikMod_GetVersion()!=0); ],
-        [ echo "*** The test program compiled, but did not run. This usually means"
+]], [[ return (MikMod_GetVersion()!=0); ]])],[ echo "*** The test program compiled, but did not run. This usually means"
           echo "*** that the run-time linker is not finding libmikmod or finding the wrong"
           echo "*** version of libmikmod. If it is not finding libmikmod, you'll need to set your"
           echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
@@ -185,8 +184,7 @@ int main()
           echo "*** is required on your system."
 	  echo "***"
           echo "*** If you have an old version installed, it is best to remove it, although"
-          echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"],
-        [ echo "*** The test program failed to compile or link. See the file config.log for the"
+          echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"],[ echo "*** The test program failed to compile or link. See the file config.log for the"
           echo "*** exact error that occured. This usually means libmikmod was incorrectly installed"
           echo "*** or that you have moved libmikmod since it was installed. In the latter case, you"
           echo "*** may want to edit the libmikmod-config script: $LIBMIKMOD_CONFIG" ])

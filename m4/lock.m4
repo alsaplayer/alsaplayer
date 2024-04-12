@@ -35,11 +35,11 @@ AC_DEFUN([gl_LOCK_EARLY_BODY],
   AC_BEFORE([$0], [gl_ARGP])dnl
 
   AC_REQUIRE([AC_CANONICAL_HOST])
-  AC_REQUIRE([AC_GNU_SOURCE]) dnl needed for pthread_rwlock_t on glibc systems
+  AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS]) dnl needed for pthread_rwlock_t on glibc systems
   dnl Check for multithreading.
   AC_ARG_ENABLE(threads,
-AC_HELP_STRING([--enable-threads={posix|solaris|pth|win32}], [specify multithreading API])
-AC_HELP_STRING([--disable-threads], [build without multithread safety]),
+AS_HELP_STRING([--enable-threads={posix|solaris|pth|win32}],[specify multithreading API])
+AS_HELP_STRING([--disable-threads],[build without multithread safety]),
     [gl_use_threads=$enableval],
     [case "$host_os" in
        dnl Disable multithreading by default on OSF/1, because it interferes
@@ -57,7 +57,7 @@ AC_HELP_STRING([--disable-threads], [build without multithread safety]),
         # groks <pthread.h>. cc also understands the flag -pthread, but
         # we don't use it because 1. gcc-2.95 doesn't understand -pthread,
         # 2. putting a flag into CPPFLAGS that has an effect on the linker
-        # causes the AC_TRY_LINK test below to succeed unexpectedly,
+        # causes the AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[]])],[],[]) test below to succeed unexpectedly,
         # leading to wrong values of LIBTHREAD and LTLIBTHREAD.
         CPPFLAGS="$CPPFLAGS -D_REENTRANT"
         ;;
@@ -86,8 +86,8 @@ AC_DEFUN([gl_LOCK_BODY],
     dnl Check whether the compiler and linker support weak declarations.
     AC_MSG_CHECKING([whether imported symbols can be declared weak])
     gl_have_weak=no
-    AC_TRY_LINK([extern void xyzzy ();
-#pragma weak xyzzy], [xyzzy();], [gl_have_weak=yes])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[extern void xyzzy ();
+#pragma weak xyzzy]], [[xyzzy();]])],[gl_have_weak=yes],[])
     AC_MSG_RESULT([$gl_have_weak])
     if test "$gl_use_threads" = yes || test "$gl_use_threads" = posix; then
       # On OSF/1, the compiler needs the flag -pthread or -D_REENTRANT so that
@@ -101,10 +101,8 @@ AC_DEFUN([gl_LOCK_BODY],
         # Test whether both pthread_mutex_lock and pthread_mutexattr_init exist
         # in libc. IRIX 6.5 has the first one in both libc and libpthread, but
         # the second one only in libpthread, and lock.c needs it.
-        AC_TRY_LINK([#include <pthread.h>],
-          [pthread_mutex_lock((pthread_mutex_t*)0);
-           pthread_mutexattr_init((pthread_mutexattr_t*)0);],
-          [gl_have_pthread=yes])
+        AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <pthread.h>]], [[pthread_mutex_lock((pthread_mutex_t*)0);
+           pthread_mutexattr_init((pthread_mutexattr_t*)0);]])],[gl_have_pthread=yes],[])
         # Test for libpthread by looking for pthread_kill. (Not pthread_self,
         # since it is defined as a macro on OSF/1.)
         if test -n "$gl_have_pthread"; then
@@ -156,15 +154,13 @@ AC_DEFUN([gl_LOCK_BODY],
             [],
             [#include <pthread.h>])
           # glibc defines PTHREAD_MUTEX_RECURSIVE as enum, not as a macro.
-          AC_TRY_COMPILE([#include <pthread.h>],
-            [#if __FreeBSD__ == 4
+          AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <pthread.h>]], [[#if __FreeBSD__ == 4
 error "No, in FreeBSD 4.0 recursive mutexes actually don't work."
 #else
 int x = (int)PTHREAD_MUTEX_RECURSIVE;
 return !x;
-#endif],
-            [AC_DEFINE([HAVE_PTHREAD_MUTEX_RECURSIVE], 1,
-               [Define if the <pthread.h> defines PTHREAD_MUTEX_RECURSIVE.])])
+#endif]])],[AC_DEFINE([HAVE_PTHREAD_MUTEX_RECURSIVE], 1,
+               [Define if the <pthread.h> defines PTHREAD_MUTEX_RECURSIVE.])],[])
         fi
       fi
     fi
@@ -173,10 +169,8 @@ return !x;
         gl_have_solaristhread=
         gl_save_LIBS="$LIBS"
         LIBS="$LIBS -lthread"
-        AC_TRY_LINK([#include <thread.h>
-#include <synch.h>],
-          [thr_self();],
-          [gl_have_solaristhread=yes])
+        AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <thread.h>
+#include <synch.h>]], [[thr_self();]])],[gl_have_solaristhread=yes],[])
         LIBS="$gl_save_LIBS"
         if test -n "$gl_have_solaristhread"; then
           gl_threads_api=solaris
@@ -201,7 +195,7 @@ return !x;
       gl_have_pth=
       gl_save_LIBS="$LIBS"
       LIBS="$LIBS -lpth"
-      AC_TRY_LINK([#include <pth.h>], [pth_self();], gl_have_pth=yes)
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <pth.h>]], [[pth_self();]])],[gl_have_pth=yes],[])
       LIBS="$gl_save_LIBS"
       if test -n "$gl_have_pth"; then
         gl_threads_api=pth

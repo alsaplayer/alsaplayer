@@ -4,10 +4,10 @@ dnl Copyright (C) 2001 Rik Hemsley (rikkus) <rik@kde.org>
 dnl AM_PATH_QT([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 AC_DEFUN([AM_PATH_QT],
 [
-AC_CHECKING([for Qt 3.0, built with -thread ...])
+AS_MESSAGE([checking for Qt 3.0, built with -thread ......])
 
 AC_LANG_SAVE
-AC_LANG_CPLUSPLUS
+AC_LANG([C++])
 
 saved_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
 saved_LIBRARY_PATH="$LIBRARY_PATH"
@@ -127,20 +127,17 @@ else
   CXXFLAGS="$CXXFLAGS -I$qt_incdir"
   LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$qt_libdir"
 
-  AC_TRY_LINK([
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <qstring.h>
-  ],
-  [
+  ]], [[
 #if QT_VERSION < 300
 #error Qt version too old
 #endif
   QString s("Hello, world!");
   qDebug(s.latin1());
-  ],
-  found_qt="yes"
-  AC_MSG_RESULT([ok]),
-  AC_MSG_ERROR([failed - check config.log for details])
-  )
+  ]])],[found_qt="yes"
+  AC_MSG_RESULT(ok)],[AC_MSG_ERROR(failed - check config.log for details)
+  ])
 
   if test "x$found_qt" = "xyes"
   then

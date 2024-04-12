@@ -21,8 +21,7 @@ dnl   Ulrich Drepper <drepper@cygnus.com>, 1995.
 AC_DEFUN([gt_LC_MESSAGES],
 [
   AC_CACHE_CHECK([for LC_MESSAGES], gt_cv_val_LC_MESSAGES,
-    [AC_TRY_LINK([#include <locale.h>], [return LC_MESSAGES],
-       gt_cv_val_LC_MESSAGES=yes, gt_cv_val_LC_MESSAGES=no)])
+    [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <locale.h>]], [[return LC_MESSAGES]])],[gt_cv_val_LC_MESSAGES=yes],[gt_cv_val_LC_MESSAGES=no])])
   if test $gt_cv_val_LC_MESSAGES = yes; then
     AC_DEFINE(HAVE_LC_MESSAGES, 1,
       [Define if your <locale.h> file defines LC_MESSAGES.])

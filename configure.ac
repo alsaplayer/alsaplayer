@@ -1,7 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT([alsaplayer],[0.99.82],[alsaplayer-devel@lists.tartarus.org],
-		[alsaplayer],[http://alsaplayer.sourceforge.net/])
+AC_INIT([alsaplayer],[0.99.82],[alsaplayer-devel@lists.tartarus.org],[alsaplayer],[http://alsaplayer.sourceforge.net/])
 
 AC_CONFIG_SRCDIR([app/Main.cpp])
 AC_CANONICAL_TARGET([])
@@ -20,7 +19,7 @@ AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_CXX
 AC_PROG_INSTALL
-AC_GNU_SOURCE
+AC_USE_SYSTEM_EXTENSIONS
 
 IT_PROG_INTLTOOL(0.50.0)
 
@@ -35,7 +34,15 @@ dnl ======================
 dnl Check for header files
 dnl ======================
 
-AC_HEADER_STDC
+m4_warn([obsolete],
+[The preprocessor macro 'STDC_HEADERS' is obsolete.
+  Except in unusual embedded environments, you can safely include all
+  C89 headers unconditionally.])dnl
+# Autoupdate added the next two lines to ensure that your configure
+# script's behavior did not change.  They are probably safe to remove.
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+
 AC_HEADER_DIRENT
 AC_CHECK_HEADERS(fcntl.h)
 AC_CHECK_HEADERS(malloc.h)
@@ -135,7 +142,7 @@ dnl NLS stuff
 dnl =========
 
 AC_ARG_ENABLE(nls,
-	AC_HELP_STRING([--enable-nls], [Enabled NLS support (default=yes)]),,
+	AS_HELP_STRING([--enable-nls],[Enabled NLS support (default=yes)]),,
 	enable_nls=no)
 
 if test "$enable_nls" = yes; then
@@ -148,7 +155,7 @@ dnl OpenGL
 dnl ======
 
 AC_ARG_ENABLE(opengl,
-	AC_HELP_STRING([--enable-opengl], [Enable OpenGL plugins (default=yes)]),,
+	AS_HELP_STRING([--enable-opengl],[Enable OpenGL plugins (default=yes)]),,
 	enable_opengl=yes)
 
 if test "x$enable_opengl" = xyes; then
@@ -196,14 +203,14 @@ else
 fi
 
 AC_ARG_ENABLE(mikmod,
-	AC_HELP_STRING([--enable-mikmod], [Enable Mikmod plugin (default=yes)]),
+	AS_HELP_STRING([--enable-mikmod],[Enable Mikmod plugin (default=yes)]),
 	[if test "$enableval" = "no" ; then
 		if test "$have_mikmod" = "yes" ; then have_mikmod=no ; fi
 	fi])
 
 
 AC_ARG_ENABLE(oggvorbis,
-	AC_HELP_STRING([--enable-oggvorbis], [Enable Ogg Vorbis plugin (default=yes)]),
+	AS_HELP_STRING([--enable-oggvorbis],[Enable Ogg Vorbis plugin (default=yes)]),
 	[if test "$enableval" = "no" ; then
 		if test "$have_oggvorbis" = "yes" ; then have_oggvorbis=no ; fi
 	fi])
@@ -220,7 +227,7 @@ AC_CHECK_LIB(FLAC, FLAC__stream_decoder_new,
 
 
 AC_ARG_ENABLE(flac,
-	AC_HELP_STRING([--enable-flac], [Enable FLAC plugin (default=yes)]),
+	AS_HELP_STRING([--enable-flac],[Enable FLAC plugin (default=yes)]),
 	[if test "$enableval" = "no" ; then
 		if test "$have_flac" = "yes" ; then have_flac=no ; fi
 	fi])
@@ -241,7 +248,7 @@ AC_CHECK_LIB(mad, mad_stream_init,
      AC_DEFINE(HAVE_LIBMAD, 1, [Define if you have MAD library (-lmad)]), have_libmad=no; MAD_LDADD=, -lmad)
 
 AC_ARG_ENABLE(mad,
-	AC_HELP_STRING([--enable-mad], [Enable MAD plugin (default=yes)]),
+	AS_HELP_STRING([--enable-mad],[Enable MAD plugin (default=yes)]),
 	[if test "$enableval" = "no" ; then
 		if test "$have_libmad" = "yes" ; then have_libmad=no ; fi
 	fi])
@@ -258,7 +265,7 @@ AC_CHECK_LIB(id3tag, id3_file_open,
 	AC_DEFINE(HAVE_LIBID3TAG, 1, [Define if you have libid3tag library (-lid3tag)]), use_libid3tag=no)
 
 AC_ARG_ENABLE(id3tag,
-	AC_HELP_STRING([--enable-id3tag], [Enable libid3tag support (default=yes)]),
+	AS_HELP_STRING([--enable-id3tag],[Enable libid3tag support (default=yes)]),
 	[if test "$enableval" = "no" ; then
 		if test "$use_libid3tag" = "yes" ; then use_libid3tag=no ; fi
 	fi])
@@ -310,7 +317,7 @@ dnl ================
 PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.10.0 gthread-2.0 >= 2.0.3 pango, can_systray=yes, can_systray=no)
 
 AC_ARG_ENABLE(systray,
-	AC_HELP_STRING([--enable-systray], [Enable SysTray icon (default=no)]),,
+	AS_HELP_STRING([--enable-systray],[Enable SysTray icon (default=no)]),,
 	enable_systray=no)
 
 if test "x$enable_systray" = xyes ; then
@@ -420,35 +427,35 @@ dnl is really modular
 dnl =====================================================
 
 AC_ARG_ENABLE(jack,
-	AC_HELP_STRING([--enable-jack], [Enable jack support (default=yes)]),
+	AS_HELP_STRING([--enable-jack],[Enable jack support (default=yes)]),
 	[if test "$enableval" = "no" ; then have_jack=no ; fi])
 
 AC_ARG_ENABLE(alsa,
-	AC_HELP_STRING([--enable-alsa], [Enable ALSA (default=yes)]),
+	AS_HELP_STRING([--enable-alsa],[Enable ALSA (default=yes)]),
 	[if test "$enableval" = "no" ; then have_alsa=no ; fi])
 
 AC_ARG_ENABLE(esd,
-	AC_HELP_STRING([--enable-esd], [Enable esd driver (default=yes)]),
+	AS_HELP_STRING([--enable-esd],[Enable esd driver (default=yes)]),
 	[if test "$enableval" = "no" ; then have_esd=no ; fi])
 
 AC_ARG_ENABLE(sparc,
-	AC_HELP_STRING([--enable-sparc], [Enable SPARC driver (default=yes)]),
+	AS_HELP_STRING([--enable-sparc],[Enable SPARC driver (default=yes)]),
 	[if test "$enableval" = "no" ; then have_sparc=no ; fi])
 
 AC_ARG_ENABLE(oss,
-	AC_HELP_STRING([--enable-oss], [Enable OSS driver (default=yes)]),
+	AS_HELP_STRING([--enable-oss],[Enable OSS driver (default=yes)]),
 	[if test "$enableval" = "no" ; then have_oss=no ; fi])
 
 AC_ARG_ENABLE(sgi,
-	AC_HELP_STRING([--enable-sgi], [Enable SGI driver (default=yes)]),
+	AS_HELP_STRING([--enable-sgi],[Enable SGI driver (default=yes)]),
 	[if test "$enableval" = "no" ; then have_sgi=no ; fi])
 
 AC_ARG_ENABLE(gtk2,
-	AC_HELP_STRING([--enable-gtk2], [Enable GTK2 graphical interface (default=yes)]),
+	AS_HELP_STRING([--enable-gtk2],[Enable GTK2 graphical interface (default=yes)]),
 	[if test "$enableval" = "no" ; then have_gtk2=no ; fi])
 
 AC_ARG_ENABLE(nas,
-	AC_HELP_STRING([--enable-nas], [Enable NAS driver (default=yes)]),
+	AS_HELP_STRING([--enable-nas],[Enable NAS driver (default=yes)]),
 	[if test "$enableval" = "no" ; then have_nas=no ; fi])
 
 if test "x$ac_cv_header_mad_h" = "xno" ; then
@@ -518,7 +525,7 @@ dnl Debugging stuff
 dnl ===============
 
 AC_ARG_ENABLE(debug,
-	AC_HELP_STRING([--enable-debug], [Enable debugging (default=no)]),,
+	AS_HELP_STRING([--enable-debug],[Enable debugging (default=no)]),,
 	enable_debug=no)
 
 if test "$enable_debug" = yes; then
@@ -531,7 +538,7 @@ fi
 
 
 AC_ARG_ENABLE(profiling,
-	AC_HELP_STRING([--enable-profiling], [Enable profiling (-pg)]),,
+	AS_HELP_STRING([--enable-profiling],[Enable profiling (-pg)]),,
 	enable_profiling=no)
 
 if test "$enable_profiling" = yes; then
@@ -539,7 +546,7 @@ if test "$enable_profiling" = yes; then
 fi
 
 AC_ARG_ENABLE(werror,
-	AC_HELP_STRING([--enable-werror], [enable -Werror in all Makefiles]))
+	AS_HELP_STRING([--enable-werror],[enable -Werror in all Makefiles]))
 
 if test x$enable_werror = "xyes" ; then
 	AP_ADD_CFLAGS([-Werror])
@@ -565,7 +572,7 @@ AC_SUBST(ADDON_DIR)
 AC_SUBST(AS)
 AC_SUBST(ASFLAGS)
 
-AC_OUTPUT([ po/Makefile.in
+AC_CONFIG_FILES([ po/Makefile.in
 Makefile
 alsaplayer.1
 alsaplayer.pc
@@ -612,6 +619,7 @@ m4/Makefile
 docs/Makefile
 docs/reference.doxygen
 ])
+AC_OUTPUT
 
 echo "
 Configuration:
