@@ -1,20 +1,19 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Free Software Foundation, Inc.
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#Russian translations for alsaplayer package.
+# Copyright (C) 2024 Free Software Foundation, Inc.
+# This file is distributed under the same license as the alsaplayer package.
+# Sergey Kharitonov <sergejharitonov001@gmail.com>, 2024.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: alsaplayer 0.99.82\n"
 "Report-Msgid-Bugs-To: alsaplayer-devel@lists.tartarus.org\n"
 "POT-Creation-Date: 2014-02-06 03:25+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"Last-Translator: Sergey Kharitonov <sergejharitonov001@gmail.com>\n"
+"Language-Team: Russian <ru@li.org>\n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: interface/gtk2/AboutWindow.cpp:83
@@ -32,299 +31,312 @@ msgid ""
 "You should have received a copy of the GNU General Public Licence\n"
 "along with AlsaPlayer; if not, see <http://www.gnu.org/licenses/>."
 msgstr ""
+"AlsaPlayer - это свободное ПО; вы можете распространять его и/или изменять\n"
+"на условиях Общественно лицензия GNU, опубликованной\n"
+"Фонда свободного ПО; либо версии 3 Лицензии, либо\n"
+"(на ваш выбор) любую более позднюю версию.\n"
+"\n"
+"AlsaPlayer распространяется в надежде, что он будет полезен,\n"
+"но БЕЗ КАКИХ-ЛИБО ГАРАНТИЙ; даже без подразумеваемой гарантии\n"
+"ТОВАРНОСТЬ или ПРИГОДНОСТЬ ДЛЯ КОНКРЕТНОЙ ЦЕЛИ. См.\n"
+"Подробнее об Общественной лицензия GNU.\n"
+"\n"
+"Вы должны были получить копию Общественной лицензии GNU\n"
+"вместе с AlsaPlayer;,если нет, то см. тут <http://www.gnu.org/licenses/>.."
 
 #: interface/gtk2/AboutWindow.cpp:103
 msgid "No comments yet"
-msgstr ""
+msgstr "Комментариев пока нет"
 
 #: interface/gtk2/AboutWindow.cpp:109
 msgid "translator-credits"
-msgstr ""
+msgstr "Сергей Харитонов <sergejharitonov001@gmail.com>, 2024"
 
 #: interface/gtk2/gtk_interface.cpp:254
 msgid "Error !"
-msgstr ""
+msgstr "Ошибка !"
 
 #: interface/gtk2/gtk_interface.cpp:268
 msgid "Warning !"
-msgstr ""
+msgstr "Внимание !"
 
 #: interface/gtk2/gtk_interface.cpp:282
 msgid "Excuse me !"
-msgstr ""
+msgstr "Мне очень жаль !"
 
 #: interface/gtk2/gtk_interface.cpp:339
 #, c-format
 msgid "Volume: %d%%"
-msgstr ""
+msgstr "Громкость: %d%%"
 
 #: interface/gtk2/gtk_interface.cpp:339
 msgid "Volume: mute"
-msgstr ""
+msgstr "Громкость: на нуле "
 
 #: interface/gtk2/gtk_interface.cpp:352
 #, c-format
 msgid "Pan: left %d%%"
-msgstr ""
+msgstr "Слух: слева %d%%"
 
 #: interface/gtk2/gtk_interface.cpp:354
 #, c-format
 msgid "Pan: right %d%%"
-msgstr ""
+msgstr "Слух: справа %d%%"
 
 #: interface/gtk2/gtk_interface.cpp:356
 msgid "Pan: center"
-msgstr ""
+msgstr "Слух: по центру"
 
 #: interface/gtk2/gtk_interface.cpp:372
 msgid "Speed: pause"
-msgstr ""
+msgstr "Скорость: на паузе"
 
 #: interface/gtk2/gtk_interface.cpp:375
 #, c-format
 msgid "Speed: %d%%  "
-msgstr ""
+msgstr "Скорость: %d%%  "
 
 #: interface/gtk2/gtk_interface.cpp:917
 #, c-format
 msgid "No stream"
-msgstr ""
+msgstr "Нет трансляции"
 
 #: interface/gtk2/gtk_interface.cpp:1112
 msgid "Scopes..."
-msgstr ""
+msgstr "Визуализации..."
 
 #: interface/gtk2/gtk_interface.cpp:1125
 msgid "CD Player (CDDA)"
-msgstr ""
+msgstr "CD-привод (CDDA)"
 
 #: interface/gtk2/gtk_interface.cpp:1162
 msgid "Set end of the looper"
-msgstr ""
+msgstr "Установить конец петлителя"
 
 #: interface/gtk2/gtk_interface.cpp:1175
 msgid "Switch off looper"
-msgstr ""
+msgstr "Отключить петлитель"
 
 #: interface/gtk2/gtk_interface.cpp:1185 interface/gtk2/gtk_interface.cpp:1398
 msgid "Set start of the looper"
-msgstr ""
+msgstr "Установить начало петлителя"
 
 #: interface/gtk2/gtk_interface.cpp:1208
 msgid "Switch off loop"
-msgstr ""
+msgstr "Отключить повтор"
 
 #: interface/gtk2/gtk_interface.cpp:1218 interface/gtk2/gtk_interface.cpp:1388
 msgid "Play playlist in loop"
-msgstr ""
+msgstr "Повторное воспроизведение плейлиста"
 
 #: interface/gtk2/gtk_interface.cpp:1233
 msgid "Play song in loop"
-msgstr ""
+msgstr "Повторное воспроизведение песни"
 
 #: interface/gtk2/gtk_interface.cpp:1366
 msgid "Position control"
-msgstr ""
+msgstr "Сменить позицию"
 
 #: interface/gtk2/gtk_interface.cpp:1366
 msgid "Set position of the song"
-msgstr ""
+msgstr "Изменить позицию песни"
 
 #: interface/gtk2/gtk_interface.cpp:1406
 msgid "Play CD"
-msgstr ""
+msgstr "Прослушать CD"
 
 #: interface/gtk2/gtk_interface.cpp:1414
 msgid "Previous track"
-msgstr ""
+msgstr "Трек ранее"
 
 #: interface/gtk2/gtk_interface.cpp:1414
 msgid "Go to track before the current one on the list"
-msgstr ""
+msgstr "Воспроизводит трек ранее с списке"
 
 #: interface/gtk2/gtk_interface.cpp:1422
 #: interface/gtk2/PreferencesWindow.cpp:224
 msgid "Play"
-msgstr ""
+msgstr "Воспроизвести"
 
 #: interface/gtk2/gtk_interface.cpp:1422
 msgid "Play current track on the list or open filechooser if list is empty"
-msgstr ""
+msgstr "Воспроизводит текущий трек из списка или откройте выборный файл, если список пуст"
 
 #: interface/gtk2/gtk_interface.cpp:1431
 msgid "Stop"
-msgstr ""
+msgstr "Оконьчить"
 
 #: interface/gtk2/gtk_interface.cpp:1439
 msgid "Next track"
-msgstr ""
+msgstr "Трек далее"
 
 #: interface/gtk2/gtk_interface.cpp:1439
 msgid "Play the track after the current one on the list"
-msgstr ""
+msgstr "Воспроизводит трек далее в списке"
 
 #: interface/gtk2/gtk_interface.cpp:1447
 msgid "Playlist window"
-msgstr ""
+msgstr "Окно плейлиста"
 
 #: interface/gtk2/gtk_interface.cpp:1447
 msgid "Manage playlist"
-msgstr ""
+msgstr "Правка плейлиста"
 
 #: interface/gtk2/gtk_interface.cpp:1466
 msgid "Normal speed backwards"
-msgstr ""
+msgstr "Ровная скорость назад"
 
 #: interface/gtk2/gtk_interface.cpp:1466
 msgid "Play track backwards with normal speed"
-msgstr ""
+msgstr "Воспроизводит трек назад с ровной скоростью"
 
 #: interface/gtk2/gtk_interface.cpp:1474
 msgid "Pause/Unpause"
-msgstr ""
+msgstr "Приостановить  / Возобновить"
 
 #: interface/gtk2/gtk_interface.cpp:1482
 msgid "Normal speed"
-msgstr ""
+msgstr "Ровная скорость"
 
 #: interface/gtk2/gtk_interface.cpp:1482
 msgid "Play track normally"
-msgstr ""
+msgstr "Воспроизводит трек ровно"
 
 #: interface/gtk2/gtk_interface.cpp:1488
 msgid "Speed control"
-msgstr ""
+msgstr "Темп скорости "
 
 #: interface/gtk2/gtk_interface.cpp:1488
 msgid "Change playback speed"
-msgstr ""
+msgstr "Изменить скорость воспроизведения"
 
 #: interface/gtk2/gtk_interface.cpp:1501
 msgid "Center balance"
-msgstr ""
+msgstr "Баланс по центру"
 
 #: interface/gtk2/gtk_interface.cpp:1508
 msgid "Balance"
-msgstr ""
+msgstr "Баланс"
 
 #: interface/gtk2/gtk_interface.cpp:1508
 msgid "Change balance"
-msgstr ""
+msgstr "Уровень баланса"
 
 #: interface/gtk2/gtk_interface.cpp:1518
 msgid "Mute/Unmute"
-msgstr ""
+msgstr "Без звука / Со звуком"
 
 #: interface/gtk2/gtk_interface.cpp:1526
 msgid "Volume"
-msgstr ""
+msgstr "Громкость"
 
 #: interface/gtk2/gtk_interface.cpp:1526
 msgid "Change volume"
-msgstr ""
+msgstr "Уровень громкости"
 
 #: interface/gtk2/PlaylistWindow.cpp:115
 msgid "Unknown"
-msgstr ""
+msgstr "Нет данных"
 
 #: interface/gtk2/PlaylistWindow.cpp:261
 msgid "Choose file or URL"
-msgstr ""
+msgstr "Выберите файл или ссылку"
 
 #: interface/gtk2/PlaylistWindow.cpp:271
 msgid "Do not close the window after adding files"
-msgstr ""
+msgstr "Не закрывать окно после добавления файлов"
 
 #: interface/gtk2/PlaylistWindow.cpp:459
 msgid "Unknown drop!"
-msgstr ""
+msgstr "Неизвестное падение!"
 
 #: interface/gtk2/PlaylistWindow.cpp:513
 msgid "Cannot set uris"
-msgstr ""
+msgstr "Не могу установить ссылки"
 
 #: interface/gtk2/PlaylistWindow.cpp:618
 msgid "Add a song into the playlist"
-msgstr ""
+msgstr "Добавить песню в плейлист"
 
 #: interface/gtk2/PlaylistWindow.cpp:622
 msgid "Remove the selected song from the playlist"
-msgstr ""
+msgstr "Удалить выбранную песню из плейлиста"
 
 #: interface/gtk2/PlaylistWindow.cpp:624
 msgid "Shuffle"
-msgstr ""
+msgstr "Вразброс"
 
 #: interface/gtk2/PlaylistWindow.cpp:626
 msgid "Randomize the playlist"
-msgstr ""
+msgstr "Случайный выбор треков в плейлисте"
 
 #: interface/gtk2/PlaylistWindow.cpp:633
 msgid "Open a playlist"
-msgstr ""
+msgstr "Открыть плейлист"
 
 #: interface/gtk2/PlaylistWindow.cpp:637
 msgid "Save the playlist"
-msgstr ""
+msgstr "Сохранить плейлист"
 
 #: interface/gtk2/PlaylistWindow.cpp:641
 msgid "Remove the current playlist"
-msgstr ""
+msgstr "Удалить текущий плейлист"
 
 #: interface/gtk2/PlaylistWindow.cpp:734
 msgid ""
 "It doesn't look like playlist !\n"
 "Are you sure you want to proceed ?"
-msgstr ""
+msgstr "Мне кажется, что это не плейлист !\n"
+"Вы уверены, что хотите продолжить?"
 
 #: interface/gtk2/PreferencesWindow.cpp:118
 msgid "Play on start"
-msgstr ""
+msgstr "Автовоспроизведение при запуске"
 
 #: interface/gtk2/PreferencesWindow.cpp:123
 msgid "Play song after adding to playlist"
-msgstr ""
+msgstr "Автовоспроизведение песню после добавления в плейлист"
 
 #: interface/gtk2/PreferencesWindow.cpp:128
 msgid "Show title in title-bar"
-msgstr ""
+msgstr "Показывать название в строке заголовка"
 
 #: interface/gtk2/PreferencesWindow.cpp:154
 msgid "Background color"
-msgstr ""
+msgstr "Цвет фона"
 
 #: interface/gtk2/PreferencesWindow.cpp:170
 msgid "Font color"
-msgstr ""
+msgstr "Цвет шрифта"
 
 #: interface/gtk2/PreferencesWindow.cpp:186
 msgid "Fonts"
-msgstr ""
+msgstr "Шрифты"
 
 #: interface/gtk2/PreferencesWindow.cpp:205
 msgid "Preferences"
-msgstr ""
+msgstr "Настройки"
 
 #: interface/gtk2/PreferencesWindow.cpp:220
 msgid "General"
-msgstr ""
+msgstr "Основное"
 
 #: interface/gtk2/ScopesWindow.cpp:344
 msgid "Open exclusively"
-msgstr ""
+msgstr "Только открыть"
 
 #: interface/gtk2/ScopesWindow.cpp:359
 msgid "Close all"
-msgstr ""
+msgstr "Закрыть все"
 
 #: interface/gtk2/ScopesWindow.cpp:410
 msgid "Scopes"
-msgstr ""
+msgstr "Визуализация"
 
 #: interface/gtk2/ScopesWindow.cpp:417
 msgid "Double click to activate"
-msgstr ""
+msgstr "Активируйте двумя кликами"
 
 #: interface/gtk2/ScopesWindow.cpp:434
 msgid "Scope name"
-msgstr ""
+msgstr "Имя визуализации"
