@@ -11,13 +11,13 @@ jobs:
 
     steps:
       - name: Check out the code
-        uses: actions/checkout@main
+        uses: actions/checkout@release
 
-      - name: Set up autotools
-        run: sudo apt-get install -y autoconf automake libtool intltool
+#      - name: Set up autotools
+#        run: sudo apt-get install -y autoconf automake libtool intltool
 
-      - name: Run autogen.sh
-        run: ./autogen.sh
+#      - name: Run autogen.sh
+#        run: ./autogen.sh
 
       - name: Run configure
         run: ./configure
