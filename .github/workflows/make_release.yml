@@ -9,6 +9,7 @@ jobs:
   build-and-release:
     runs-on: ubuntu-latest
 
+    using: "composite"
     steps:
       - name: Check out the code
         uses: actions/checkout@release
