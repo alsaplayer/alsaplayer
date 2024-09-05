@@ -21,11 +21,11 @@ jobs:
 #      - name: Run autogen.sh
 #        run: ./autogen.sh
 
-      - name: Run configure
-        run: ./configure
+#      - name: Run configure
+#        run: ./configure
 
-      - name: Run make dist to create the archive
-        run: make dist
+#      - name: Run make dist to create the archive
+#        run: make dist
 
       - name: Get the generated archive name
         id: get_dist_name
