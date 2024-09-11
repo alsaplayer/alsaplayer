@@ -1,32 +1,29 @@
-name: Create Release
+name: Upload Release with tag match
 
 on:
   push:
+    branches:
+      - '!*'
+      - 'release'
     tags:
-      - '*'
+      - '!*'
+      - 'v*'
 
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out the code
         uses: actions/checkout@v4
-        with:
-            ref: 'release'
-
 #      - name: Set up autotools
 #        run: sudo apt-get install -y autoconf automake libtool intltool
-
 #      - name: Run autogen.sh
 #        run: ./autogen.sh
-
 #      - name: Run configure
 #        run: ./configure
 
 #      - name: Run make dist to create the archive
 #        run: make dist
-
       - name: Get the generated archive name
         id: get_dist_name
         run: echo "ARCHIVE_NAME=$(ls *.tar.gz)" >> $GITHUB_ENV
