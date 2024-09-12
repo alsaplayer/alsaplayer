@@ -563,6 +563,14 @@ AC_SUBST(DFLAGS)
 
 ADDON_DIR=${libdir}/$PACKAGE
 
+
+dnl ===============
+dnl GetText Package
+dnl ===============
+
+GETTEXT_PACKAGE=alsaplayer
+AC_SUBST(GETTEXT_PACKAGE)
+
 dnl ================
 dnl Create Makefiles
 dnl ================
