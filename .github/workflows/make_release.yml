@@ -1,13 +1,12 @@
 name: Upload Release with tag match
-
+# See https://github.com/orgs/community/discussions/136962
 on:
   push:
-    branches:
-      - '!*'
-      - 'release'
-    tags:
-      - '!*'
-      - 'v*'
+    paths:
+      - '**.tar.gz'
+#    tags:
+#      - '!*'
+#      - 'v*'
 
 jobs:
   build-and-release:
@@ -15,6 +14,8 @@ jobs:
     steps:
       - name: Check out the code
         uses: actions/checkout@v4
+        with:
+          ref: release
 #      - name: Set up autotools
 #        run: sudo apt-get install -y autoconf automake libtool intltool
 #      - name: Run autogen.sh
