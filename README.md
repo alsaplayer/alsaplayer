@@ -115,4 +115,4 @@ straight forward. Improvements to the interface will follow soon.
 ## OTHER INFO
 - WWW Page : http://alsaplayer.sourceforge.net/
 - Original author, Email : <andy@loafoe.nl>
-- Administrator, Email: <dominique@tuxfamily.org>
+- Administrator, Email: <dominique_libre@users.sourceforge.net>
