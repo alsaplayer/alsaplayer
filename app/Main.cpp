@@ -930,7 +930,7 @@ int main(int argc, char **argv)
 	do {
 		if (!node || !node->ReadyToRun()) {
 			alsaplayer_error
-				("failed to load output plugin (%s). exitting...",
+				("failed to load output plugin (%s). exiting...",
 					use_output ? use_output: "alsa,etc.");
 			return 1;
 		}

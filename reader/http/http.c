@@ -718,7 +718,7 @@ static void *http_open(const char *uri, reader_status_type status, void *data)
     char redirect[10240];
     int tries = 0;
 
-    /* Alloc descripor and init members. */
+    /* Alloc descriptor and init members. */
     desc = malloc (sizeof (http_desc_t));
     desc->going = 0;
     desc->new_datablock = 0;

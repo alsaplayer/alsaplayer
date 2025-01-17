@@ -37,7 +37,7 @@ uninstall-local: reference.doxygen.log
 	then echo '-- Nothing to uninstall' ; \
 	else \
 	  for i in $$installfiles reference/html/doxygen.png reference/html/doxygen.css; do \
-	    echo '-- Unstalling '$$i ; \
+	    echo '-- Uninstalling '$$i ; \
 	    rm $(DOC_DIR)/$$i; \
 	  done; \
 	fi)

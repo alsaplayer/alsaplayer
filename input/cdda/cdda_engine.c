@@ -768,7 +768,7 @@ cddb_lookup (const char *address, const char *char_port, int discID, struct cd_t
 
 	if (! answer)
 	{
-		alsaplayer_error("could not receive the informations from %s\n", address);
+		alsaplayer_error("could not receive the information from %s\n", address);
 		close (server_fd);
 		return NULL;
 	}
@@ -855,7 +855,7 @@ cddb_read_file (char *file, struct cdda_local_data *data)
 				}
 				continue;
 			} else {
-				// workaround album name on multiple lines, need improvment
+				// workaround album name on multiple lines, need improvement
 				if (data->tracks[1].album)
 					continue;
 

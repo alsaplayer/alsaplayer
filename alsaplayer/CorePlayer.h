@@ -169,7 +169,7 @@ class CorePlayer // Much more abstraction to come, well maybe not
 
 	int GetCurrentTime(int block=-1);
 					// Returns the time position of block in
-					// hundreths of seconds
+					// hundredths of seconds
 	int GetStreamInfo(stream_info *info); // Return stream info
 	int GetBlocks();	// Total number of blocks
 	int GetTracks();	// Total number of tracks

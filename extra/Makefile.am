@@ -31,7 +31,7 @@ uninstall-local:
 	then echo '--Nothing to uninstall' ; \
 	else \
 	  for i in $$installfiles ; do \
-	    echo '-- Unstalling '$$i ; \
+	    echo '-- Uninstalling '$$i ; \
 	    rm $(DESKTOP_DIR)/$$i; \
 	  done; \
 	fi)
@@ -40,7 +40,7 @@ uninstall-local:
 	then echo '--Nothing to uninstall' ; \
 	else \
 	  for i in $$installfiles ; do \
-	    echo '-- Unstalling '$$i ; \
+	    echo '-- Uninstalling '$$i ; \
 	    rm $(ICON_DIR)/$$i; \
 	  done; \
 	fi)

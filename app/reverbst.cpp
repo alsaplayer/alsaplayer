@@ -88,7 +88,7 @@ double lallpassmem2=0;
 const double COMB_R_GAIN[4]={COMB_R_GAIN_1,COMB_R_GAIN_2,COMB_R_GAIN_3,COMB_R_GAIN_4};
 long COMB_R_DELAY[4];
 
-/* Mixing value -- Value from 0 to 1 for the ammount of reverb */
+/* Mixing value -- Value from 0 to 1 for the amount of reverb */
 #define AMMOUNT ((float)fbper/100.0)
 
 /* Global vars for filters */

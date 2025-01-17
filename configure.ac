@@ -286,7 +286,7 @@ AC_SUBST(JACK_CFLAGS)
 dnl ==========
 dnl XOSD stuff
 dnl nb.: by checking for "xosd_create" instead of "xosd_init", we
-dnl      implicitely require xosd 2.x instead of 1.x
+dnl      implicitly require xosd 2.x instead of 1.x
 dnl      (which is exactly what we want)
 dnl ==========
 AC_CHECK_LIB(xosd, xosd_create,
@@ -367,7 +367,7 @@ AC_SUBST(ALSA_LIBS)
 # path, eg #include <alsa/header.h> for the alsa headers.
 #
 # Therefore we outright remove '-I/usr/include/alsa' because its completely
-# un-necessary  and then with whats left, remove the '/alsa' components.
+# un-necessary and then with what's left, remove the '/alsa' components.
 ALSA_CFLAGS=$(echo $ALSA_CFLAGS | sed 's|-I/usr/include/alsa||g' | sed 's|/alsa||g')
 AC_SUBST(ALSA_CFLAGS)
 AM_CONDITIONAL(HAVE_ALSA, test "x$have_alsa" = xyes)
