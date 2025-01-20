@@ -18,10 +18,10 @@ BuildRequires: gtk+-devel, libvorbis-devel, mikmod
 
 %description
 AlsaPlayer is a new PCM player developed on the Linux Operating
-System. AlsaPlayer was written in the first place to excercise the new
+System. AlsaPlayer was written in the first place to exercise the new
 ALSA (Advanced Linux Sound Architecture) driver and library system.
 
-It has now developed into a versitile audio player with rich plugin system.
+It has now developed into a versatile audio player with rich plugin system.
 The  Input Plugins plugins include: OGG, MPEG, MAD, CDDA, MikMod, FLAC and
 Audiofile. The Output Plugins include: ALSA, OSS and OSS/Lite, Esound,
 Sparc (tested on UltraSparc), SGI, and JACK. There are also a few scope
@@ -34,7 +34,7 @@ Summary: Files needed for building applications with libalsaplayer
 
 %description devel
 The functionality of the alsaplayer is also exposed via a c programming
-library. This package is neede to compile programs that uses the library.
+library. This package is needed to compile programs that uses the library.
 
 %prep
 %setup -q

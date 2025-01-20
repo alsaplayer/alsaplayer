@@ -260,7 +260,7 @@ void AlsaNode::looper(void *pointer)
 
 	read_size = node->GetFragmentSize();
 	if (read_size > MAX_WRITE) {
-		alsaplayer_error("Fragment size too large. Exitting looper");
+		alsaplayer_error("Fragment size too large. Exiting looper");
 		pthread_exit(NULL);
 	}
 	while (node->looping) {
@@ -288,7 +288,7 @@ void AlsaNode::looper(void *pointer)
 		read_size = node->GetFragmentSize(); // Change on the fly
 	}
 	delete []buffer_data;
-	//alsaplayer_error("Exitting looper thread...");
+	//alsaplayer_error("Exiting looper thread...");
 	pthread_exit(NULL);
 }
 

@@ -71,7 +71,7 @@ static const char *sort_seq;
 
 // Function is similar to strcmp, but this is for PlayItem type.
 // This function uses sort_seq variable. Also this function should
-// be keept optimized for speed.
+// be kept optimized for speed.
 static int sort_comparator (const PlayItem &a, const PlayItem &b) {
     int ai, bi;
 
@@ -864,7 +864,7 @@ Playlist::Load(std::string const &uri, unsigned position, bool force)
 		    failures++;
 		    continue;
 		} else {
-		    // This is probably realtive URI or not supported URI type.
+		    // This is probably relative URI or not supported URI type.
 		    newfile = base + std::string(path);
 		}
 		// Test result

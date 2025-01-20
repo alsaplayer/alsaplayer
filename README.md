@@ -8,7 +8,7 @@ Contributions from many other peoples. See the AUTHORS file for details.
 AlsaPlayer is a PCM player developed on the Linux Operating System. Since
 the first public beta release it support has been added for various other
 Operating Systems (mostly Unix variants). AlsaPlayer was written in the first
-place to excercise the new ALSA (Advanced Linux Sound Architecture) driver and
+place to exercise the new ALSA (Advanced Linux Sound Architecture) driver and
 library system.
 
 
@@ -57,7 +57,7 @@ systems map quite well on to it however. Supported output plugins include:
 
 ## SCOPE PLUGINS
 Just as input and output support gets loaded in dynamically, scope (or
-visualization) plugins are laoded in dynamically also. This enables anyone to
+visualization) plugins are loaded in dynamically also. This enables anyone to
 develop a visualization plugin without changing a single line of code in the
 main program. A few scope plugins are provided in the main alsaplayer
 distribution:
@@ -70,14 +70,14 @@ distribution:
 - logFFtscope
 
 Nothing stops you from writing a kick ass *FULLSCREEN* (DGA) or even a
-*Hardwarde Accellerated OpenGL* visualization plugin for AlsaPlayer!
+*Hardwarde Accelerated OpenGL* visualization plugin for AlsaPlayer!
 
 
 ## EFFECTS PLUGINS
 Work in progress...
 
 
-## SCOKET CONTROL
+## SOCKET CONTROL
 AlsaPlayer can be controlled from an external program. You only need to
 link your application against the supplied libalsaplayer.so and in order
 to control AlsaPlayer from your own applications. Seeking, speed control and
@@ -97,7 +97,7 @@ different --prefix when running configure.
 
 
 ## EMBEDDED MODE
-For target systems with low CPU and RAM ressources you can run configure with
+For target systems with low CPU and RAM resources you can run configure with
 "CFLAGS=-DEMBEDDED". This reduces CPU and RAM usage but imposes the following
 limitations:
 

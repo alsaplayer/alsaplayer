@@ -80,14 +80,14 @@ void jack_restarter(void *arg)
 	sleep (2);
 
 	if (client) {
-		alsaplayer_error("jack: about ot close old jack client link");
+		alsaplayer_error("jack: about to close old jack client link");
 		jack_client_close(client);
 		client = (jack_client_t *)NULL;
 		alsaplayer_error("jack: closed old jack client link");
 	}
 	alsaplayer_error("jack: reconnecting...");
 	if (jack_prepare(arg) < 0) {
-		alsaplayer_error("failed reconnecting to jack...exitting");
+		alsaplayer_error("failed reconnecting to jack...exiting");
 		kill(0, SIGTERM);
 	}
 }
@@ -259,7 +259,7 @@ static int jack_open(const char *name)
 			alsaplayer_error("jack: alsaplayer is transport aware");
 			jack_transport_aware = 1;
 		} else {
-			/* alsaplayer_error("Unkown jack parameter: %s", t); */
+			/* alsaplayer_error("Unknown jack parameter: %s", t); */
 		}
 	}
 

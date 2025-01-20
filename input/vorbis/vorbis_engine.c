@@ -328,7 +328,7 @@ vorbis_stream_info(input_object *obj, stream_info *info)
 					 obj->nr_channels == 1 ? "mono":"stereo",
 					(int)(data->bitrate_instant / 1000));
 		} else {
-			ap_strlcpy(info->stream_type, "Unkown OGG VORBIS", sizeof (info->stream_type));
+			ap_strlcpy(info->stream_type, "Unknown OGG VORBIS", sizeof (info->stream_type));
 		}
 		info->status[0] = 0;
 	}
@@ -370,7 +370,7 @@ static float vorbis_can_handle(const char *path)
 	if (ext)
 		ext++;
 //#if FANCY_CHECKING
-#if 0 // This piece breaks Icecast streams. Need to implemente MIME types
+#if 0 // This piece breaks Icecast streams. Need to implement MIME types
         OggVorbis_File vf_temp;
         reader_type *datasource;
 	int stream;

@@ -1214,7 +1214,7 @@ void CorePlayer::producer_func(void *data)
 				blocks_read = obj->pcm_worker(obj->write_buf, obj->write_buf->start);
 				if (blocks_read != obj->blocks_in_buffer) {
 					if (obj->write_buf->start >= 0)
-						alsaplayer_error("an ERROR occured or EOF (%d)",
+						alsaplayer_error("an ERROR occurred or EOF (%d)",
 							obj->write_buf->start);
 					obj->write_buf->prev->start = -2;
 					obj->producing = false;
@@ -1234,7 +1234,7 @@ void CorePlayer::producer_func(void *data)
 			//alsaplayer_error("producer: unblocked");
 		}
 	}
-	//alsaplayer_error("Exitting producer_func (producing = %d)", obj->producing);
+	//alsaplayer_error("Exiting producer_func (producing = %d)", obj->producing);
 	pthread_exit(NULL);
 }
 

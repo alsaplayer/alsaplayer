@@ -315,7 +315,7 @@ Show song title in title bar.
 Launch or not the playlist window at start up.
 .TP
 .B gtk2_interface.playlist_height=0
-Default height of the playlist window. This value combined with the defaukt value of gtk2_interface.height correspond to no visible playlist.
+Default height of the playlist window. This value combined with the default value of gtk2_interface.height correspond to no visible playlist.
 .TP
 .B gtk2_interface.sopeswindow_active=false
 Launch or not the scopes selector window at start up.

@@ -55,7 +55,7 @@ class InfoWindow
 		//set new positions 
 		void set_positions();
 		
-		//set apperance
+		//set appearance
 		void set_background_color(const gchar*);
 		void set_font_color(const gchar*);
 		void set_fonts(const gchar*);

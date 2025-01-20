@@ -139,7 +139,7 @@ typedef void(*scope_set_data_type)(void *buffer, int count);
  *
  * This function should be defined if your scope wants to get FFT data.
  * The HOST typically calculates 256 FFT values per channel (going from
- * low frequency range to high). The value is betwee 0-256. The buffer format
+ * low frequency range to high). The value is between 0-256. The buffer format
  * is NON-interleaved int (int32). So if samples = 256 and channels = 2 then
  * there are 2 * 256 number of samples in the buffer. The first 256 are for
  * channel 1, the other 256 for channel 2.
@@ -171,7 +171,7 @@ typedef struct _scope_plugin
 	 */
 	void *handle;
 	/**
-	 * Should point to the implentation of your init() function.
+	 * Should point to the implementation of your init() function.
 	 * Required by the HOST.
 	 */
 	scope_init_type init;
